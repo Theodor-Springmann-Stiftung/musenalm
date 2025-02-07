@@ -9,7 +9,7 @@ import (
 func init() {
 	m.Register(func(app core.App) error {
 		series := seriesTable()
-		series.Fields = seriesFields(series)
+		series.Fields = seriesFields()
 		seriesIndexes(series)
 
 		return app.Save(series)
@@ -29,11 +29,11 @@ func seriesTable() *core.Collection {
 	return collection
 }
 
-func seriesFields(collection *core.Collection) core.FieldsList {
+func seriesFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: "name", Required: true, Presentable: true},
-		&core.TextField{Name: "pseudonyms", Required: false},
-		&core.TextField{Name: "references", Required: false},
+		&core.TextField{Name: models.SERIES_NAME_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: models.SERIES_PSEUDONYMS_FIELD, Required: false},
+		&core.TextField{Name: models.REFERENCES_FIELD, Required: false},
 	)
 
 	setMusenalmIDField(&fields)

@@ -13,11 +13,11 @@ func init() {
 			return err
 		}
 
-		collection.Fields.Add(&core.TextField{Name: "numbering", Required: false, Presentable: true})
+		collection.Fields.Add(&core.TextField{Name: models.NUMBERING_FIELD, Required: false, Presentable: true})
 
 		return app.Save(collection)
 	}, func(app core.App) error {
-		collection, err := app.FindCollectionByNameOrId(relationTableName(models.ENTRIES_TABLE, models.SERIES_TABLE))
+		collection, err := app.FindCollectionByNameOrId(models.RelationTableName(models.ENTRIES_TABLE, models.SERIES_TABLE))
 		if err != nil {
 			return nil
 		}

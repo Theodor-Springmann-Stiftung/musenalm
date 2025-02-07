@@ -396,15 +396,72 @@ var SERIES_RELATIONS = []string{
 }
 
 const (
+	PUBLIC_VIEW_RULE = "@request.auth.id != ''"
+
 	PLACES_TABLE   = "places"
 	AGENTS_TABLE   = "agents"
 	SERIES_TABLE   = "series"
 	ENTRIES_TABLE  = "entries"
 	PARTIALS_TABLE = "partials"
+	ITEMS_TABLE    = "items"
 
 	ANNOTATION_FIELD = "annotation"
 
 	MUSENALMID_FIELD = "musenalm_id"
 	EDITSTATE_FIELD  = "edit_state"
 	COMMENT_FIELD    = "edit_comment"
+
+	AGENTS_NAME_FIELD              = "name"
+	AGENTS_CORP_FIELD              = "corporate_body"
+	AGENTS_FICTIONAL_FIELD         = "fictional"
+	AGENTS_BIOGRAPHICAL_DATA_FIELD = "biographical_data"
+	AGENTS_PROFESSION_FIELD        = "profession"
+	AGENTS_PSEUDONYMS_FIELD        = "pseudonyms"
+
+	PLACES_NAME_FIELD      = "name"
+	PLACES_FICTIONAL_FIELD = "fictional"
+
+	SERIES_NAME_FIELD       = "name"
+	SERIES_PSEUDONYMS_FIELD = "pseudonyms"
+
+	RELATION_TYPE_FIELD       = "type"
+	RELATION_CONJECTURE_FIELD = "conjecture"
+	RELATION_UNCERTAIN_FIELD  = "uncertain"
+
+	PREFERRED_TITLE_FIELD = "preferred_title"
+	VARIANT_TITLE_FIELD   = "variant_title"
+	PARALLEL_TITLE_FIELD  = "parallel_title"
+
+	TITLE_STMT_FIELD          = "title_statement"
+	SUBTITLE_STMT_FIELD       = "subtitle_statement"
+	INCIPIT_STMT_FIELD        = "incipit_statement"
+	RESPONSIBILITY_STMT_FIELD = "responsibility_statement"
+	PUBLICATION_STMT_FIELD    = "publication_statement"
+	PLACE_STMT_FIELD          = "place_statement"
+
+	EDITION_FIELD = "edition"
+	YEAR_FIELD    = "year"
+
+	LANGUAGE_FIELD     = "language"
+	CONTENT_TYPE_FIELD = "content_type"
+
+	EXTENT_FIELD       = "extent"
+	DIMENSIONS_FIELD   = "dimensions"
+	MEDIA_TYPE_FIELD   = "media_type"
+	CARRIER_TYPE_FIELD = "carrier_type"
+
+	REFERENCES_FIELD = "references"
+	URI_FIELD        = "uri"
+
+	MUSENALM_BAENDE_STATUS_FIELD = "musenalm_status"
+	MUSENALM_INHALTE_TYPE_FIELD  = "musenalm_type"
+	MUSENALM_DEPRECATED_FIELD    = "musenalm_deprecated"
+	MUSENALM_PAGINATION_FIELD    = "musenalm_pagination"
+
+	NUMBERING_FIELD = "numbering"
+	SCAN_FIELD      = "scans"
 )
+
+func RelationTableName(collection1, collection2 string) string {
+	return "R_" + collection1 + "_" + collection2
+}
