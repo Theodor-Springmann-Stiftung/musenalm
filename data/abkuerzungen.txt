@@ -1,0 +1,54 @@
+ar: arabische Paginierung
+ar1: arabische Paginierung
+ar2: zweite arabische Paginierung
+ar3: dritte arabische Paginierung
+ar4: vierte arabische Paginierung
+ar5: fünfte arabische Paginierung
+ar6: sechste arabische Paginierung
+ar7: siebte arabische Paginierung
+B: Blatt
+BB: Blätter
+C: Corrigenda
+Diagr: Diagramm
+G: Graphik
+GG: Graphiken
+UG: Umschlaggraphik
+UG r: Umschlaggraphik recto
+UG v: Umschlaggraphik verso
+TG: Titelgraphik, Titelportrait etc
+TG v:  Titelgraphik, Titelportrait etc verso
+TG r: Titelgraphik, Titelportrait etc recto
+gA: graphische Anleitung
+gTzA: graphische Tanzanleitung
+G-Verz: Verzeichnis der Kupfer u. ä.
+Hrsg: Herausgeber
+I-Verz: Inhaltsverzeichnis
+Kal: Kalendarium
+Kr: Karte
+MusB: Musikbeigabe 
+MusBB: Musikbeigaben
+röm: römische Paginierung
+röm1: römische Paginierung
+röm2: zweite römische Paginierung
+röm3: dritte römische Paginierung
+röm4: vierte römische Paginierung
+röm5: fünfte römische Paginierung
+röm6: sechste römische Paginierung
+röm7: siebte römische Paginierung
+S: Seite
+SS: Seiten
+Sp: Spiegel
+T: Titel
+gT: graphischer Titel
+vT: Vortitel
+nT: Nachtitel
+zT: Zwischentitel
+Tab: Tabelle
+VB: Vorsatzblatt
+Vf: Verfasser
+VrlgM: Verlagsmitteilung
+Vrwrt: Vorwort
+#: Hinweis auf weitere Informationen in der Anmerkung.
+§§: Hinweis auf Mängel im Almanach (Beschädigungen, fehlende Graphiken od. Beiträge, unvollständige Sammlungen etc) in der Anmerkung
++++: Inhalte aus mehreren Almanachen interpoliert
+$: vermutlich

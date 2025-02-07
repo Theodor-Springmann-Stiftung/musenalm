@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="Baende.xsd" generated="2024-02-23T17:08:36">
+<Baende>
+<ID>4853</ID>
+<BIBLIO-ID>411407</BIBLIO-ID>
+<TITEL>&lt;div&gt;Kinder-Kalender / ein nützliches und unterhaltendes Jahrbuch / für / Knaben und Mädchen. / Dritter Jahrgang. / 1848. / Wien. / Bey Franz Riedl&apos;s sel. Witwe &amp;amp; Sohn&lt;/div&gt;</TITEL>
+<ORT-ALT>Wien (Riedl)</ORT-ALT>
+<JAHR>1848</JAHR>
+<HERAUSGEBER>unbezeichnet</HERAUSGEBER>
+<AUTOPSIE>0</AUTOPSIE>
+<ERFASST>0</ERFASST>
+<STATUS>
+<Value>Original vorhanden</Value>
+</STATUS>
+<NACHWEIS>nicht bei K; L/R 165;</NACHWEIS>
+<ANMERKUNGEN>&lt;div&gt;KVK ÖNB 1846-1848&lt;/div&gt;</ANMERKUNGEN>
+<REIHENTITEL-ALT>Kinder-Kalender (Wien, Riedl) 1848</REIHENTITEL-ALT>
+<ORTE>
+<Value>215</Value>
+</ORTE>
+</Baende>
+<Baende>
+<ID>4850</ID>
+<BIBLIO-ID>0</BIBLIO-ID>
+<JAHR>0</JAHR>
+<AUTOPSIE>0</AUTOPSIE>
+<ERFASST>0</ERFASST>
+<REIHENTITEL-ALT>Taschenbuch, Philosophisches für denkende Gottesverehrer 1799</REIHENTITEL-ALT>
+</Baende>
+<Baende>
+<ID>4851</ID>
+<BIBLIO-ID>0</BIBLIO-ID>
+<JAHR>0</JAHR>
+<AUTOPSIE>0</AUTOPSIE>
+<ERFASST>0</ERFASST>
+<REIHENTITEL-ALT>Kalender, Freyburger 1813</REIHENTITEL-ALT>
+</Baende>
+<Baende>
+<ID>4852</ID>
+<BIBLIO-ID>0</BIBLIO-ID>
+<JAHR>0</JAHR>
+<AUTOPSIE>0</AUTOPSIE>
+<ERFASST>0</ERFASST>
+<REIHENTITEL-ALT>Taschenbuch für Tollhäusler 1808</REIHENTITEL-ALT>
+</Baende>
+<Baende>
+<ID>77</ID>
+<BIBLIO-ID>110579</BIBLIO-ID>
+<SORTIERTITEL>MusenAlmanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVI / Göttingen, bey J. C. Dieterich</SORTIERTITEL>
+<TITEL>MusenAlmanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVI / Göttingen, bey J. C. Dieterich</TITEL>
+<ORT-ALT>Göttingen (J. C. Dieterich)</ORT-ALT>
+<JAHR>1776</JAHR>
+<HERAUSGEBER>unbezeichnet</HERAUSGEBER>
+<AUTOPSIE>1</AUTOPSIE>
+<ERFASST>1</ERFASST>
+<STATUS>
+<Value>Original vorhanden</Value>
+</STATUS>
+<NACHWEIS>K 84; L/R 24; Goed IV/1. 946, 3</NACHWEIS>
+<STRUKTUR>gT, recto G, nT, SS 1-192 darin 5 MusBB, 7 SS I-Verz u C</STRUKTUR>
+<NORM>~+++ Kal Reprint Hildesheim, New York (Olms) 1979</NORM>
+<ANMERKUNGEN>bibliophiles Ex zusammengebunden mit Jg 1775 (vielleicht aus Goethes Bibliothek)</ANMERKUNGEN>
+<REIHENTITEL-ALT>Musenalmanach (Göttinger) 1776</REIHENTITEL-ALT>
+<ORTE>
+<Value>78</Value>
+</ORTE>
+</Baende>
+<Baende>
+<ID>78</ID>
+<BIBLIO-ID>101029</BIBLIO-ID>
+<SORTIERTITEL>Musen Almanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVII / Göttingen, bey J. C. Dieterich</SORTIERTITEL>
+<TITEL>Musen Almanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVII / Göttingen, bey J. C. Dieterich</TITEL>
+<ORT-ALT>Göttingen (J. C. Dieterich)</ORT-ALT>
+<JAHR>1777</JAHR>
+<HERAUSGEBER>Göckingk</HERAUSGEBER>
+<AUTOPSIE>1</AUTOPSIE>
+<ERFASST>1</ERFASST>
+<STATUS>
+<Value>Original vorhanden</Value>
+</STATUS>
+<NACHWEIS>K 84; L/R 24; Goed IV/1. 946, 3</NACHWEIS>
+<STRUKTUR>VB, gT, 14 BB Kal, nT, SS 1-208 darin 10 MusBB, 6 SS I-Verz, 3 SS Anm d Hrsg u VrlgM</STRUKTUR>
+<NORM>~</NORM>
+<ANMERKUNGEN>Das sonst beigegebene Titelportrait fehlt; s.  Anm. am Ende des Almanachs: Eine Verzögerung, woran weder Herausgeber noch Verleger Schuld sind, hat gemacht, daß dießmal kein Portrait vor dem Alamanch steht.</ANMERKUNGEN>
+<REIHENTITEL-ALT>Musenalmanach (Göttinger) 1777</REIHENTITEL-ALT>
+<ORTE>
+<Value>78</Value>
+</ORTE>
+</Baende>
+<Baende>
+<ID>79</ID>
+<BIBLIO-ID>101030</BIBLIO-ID>
+<SORTIERTITEL>Musen Almanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVIII / Göttingen, bey J. C. Dieterich</SORTIERTITEL>
+<TITEL>Musen Almanach / in Sardonica / Vestalis / ex Mus. Walmod. / A MDCCLXXVIII / Göttingen, bey J. C. Dieterich</TITEL>
+<ORT-ALT>Göttingen (J. C. Dieterich)</ORT-ALT>
+<JAHR>1778</JAHR>
+<HERAUSGEBER>Goeckingk</HERAUSGEBER>
+<AUTOPSIE>1</AUTOPSIE>
+<ERFASST>1</ERFASST>
+<STATUS>
+<Value>Original vorhanden</Value>
+</STATUS>
+<NACHWEIS>K 84; L/R 24; Goed IV/1. 946, 3</NACHWEIS>
+<STRUKTUR>VB, verso G, gT, nT, 2 SS, 14 BB Kal, SS 1-160 darin 6 MusBB, 4 SS I-Verz, 2 SS Anm d Hrsg, S VrlgM; S C</STRUKTUR>
+<NORM>~</NORM>
+<REIHENTITEL-ALT>Musenalmanach (Göttinger) 1778</REIHENTITEL-ALT>
+<ORTE>
+<Value>78</Value>
+<Value>77</Value>
+</ORTE>
+</Baende>
+</dataroot>
