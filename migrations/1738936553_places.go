@@ -9,7 +9,7 @@ import (
 func init() {
 	m.Register(func(app core.App) error {
 		places := placesTable()
-		places.Fields = placesFields(places)
+		places.Fields = placesFields()
 		placesIndexes(places)
 
 		return app.Save(places)
@@ -29,11 +29,11 @@ func placesTable() *core.Collection {
 	return collection
 }
 
-func placesFields(collection *core.Collection) core.FieldsList {
+func placesFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: "name", Required: true, Presentable: true},
-		&core.BoolField{Name: "fictional", Required: false},
-		&core.URLField{Name: "registry_domains", Required: false, OnlyDomains: []string{"geonames.org"}},
+		&core.TextField{Name: models.PLACES_NAME_FIELD, Required: true, Presentable: true},
+		&core.BoolField{Name: models.AGENTS_FICTIONAL_FIELD, Required: false},
+		&core.URLField{Name: models.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
 	)
 
 	setMusenalmIDField(&fields)
@@ -45,5 +45,6 @@ func placesFields(collection *core.Collection) core.FieldsList {
 
 func placesIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, "name", false)
+	addIndex(collection, models.PLACES_NAME_FIELD, false)
+	addIndex(collection, models.URI_FIELD, true)
 }

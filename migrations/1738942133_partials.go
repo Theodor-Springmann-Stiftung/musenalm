@@ -44,41 +44,85 @@ func partialsFields(app core.App) *core.FieldsList {
 
 	fields := core.NewFieldsList(
 		// Title information
-		&core.TextField{Name: "preferredtitle", Required: true, Presentable: true},
-		&core.TextField{Name: "varianttitle", Required: false, Presentable: false},
-		&core.BoolField{Name: "paralleltitle", Required: false},
+		&core.TextField{Name: models.PREFERRED_TITLE_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: models.VARIANT_TITLE_FIELD, Required: false, Presentable: false},
+		&core.BoolField{Name: models.PARALLEL_TITLE_FIELD, Required: false},
 
 		// Transcribed information
-		&core.TextField{Name: "title_statement", Required: false, Presentable: false},
-		&core.TextField{Name: "subtitle_statement", Required: false, Presentable: false},
-		&core.TextField{Name: "incipit_statement", Required: false, Presentable: false},
+		&core.TextField{Name: models.TITLE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: models.SUBTITLE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: models.INCIPIT_STMT_FIELD, Required: false, Presentable: false},
 
-		&core.TextField{Name: "responsibility_statement", Required: false, Presentable: false},
-		&core.TextField{Name: "place_statement", Required: false, Presentable: false},
-		&core.TextField{Name: "publication_statement", Required: false, Presentable: false},
+		&core.TextField{Name: models.RESPONSIBILITY_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: models.PLACE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: models.PUBLICATION_STMT_FIELD, Required: false, Presentable: false},
 
 		// Other discerning Information
-		&core.NumberField{Name: "year", Required: false},
-		&core.TextField{Name: "edition", Required: false},
+		&core.NumberField{Name: models.YEAR_FIELD, Required: false},
+		&core.TextField{Name: models.EDITION_FIELD, Required: false},
 
 		// Media Information
-		&core.SelectField{Name: "language", Required: false, Values: models.LANGUAGE_VALUES, MaxSelect: len(models.LANGUAGE_VALUES)},
-		&core.SelectField{Name: "content_type", Required: false, Values: models.CONTENT_TYPE_VALUES, MaxSelect: len(models.CONTENT_TYPE_VALUES)},
+		&core.SelectField{
+			Name:      models.LANGUAGE_FIELD,
+			Required:  false,
+			Values:    models.LANGUAGE_VALUES,
+			MaxSelect: len(models.LANGUAGE_VALUES),
+		},
+		&core.SelectField{
+			Name:      models.CONTENT_TYPE_FIELD,
+			Required:  false,
+			Values:    models.CONTENT_TYPE_VALUES,
+			MaxSelect: len(models.CONTENT_TYPE_VALUES),
+		},
 
 		// Physical Description
-		&core.TextField{Name: "extent", Required: false},
-		&core.TextField{Name: "dimensions", Required: false},
-		&core.SelectField{Name: "media_type", Required: false, Values: models.MEDIA_TYPE_VALUES, MaxSelect: len(models.MEDIA_TYPE_VALUES)},
-		&core.SelectField{Name: "carrier_type", Required: false, Values: models.CARRIER_TYPE_VALUES, MaxSelect: len(models.CARRIER_TYPE_VALUES)},
+		&core.TextField{Name: models.EXTENT_FIELD, Required: false},
+		&core.TextField{Name: models.DIMENSIONS_FIELD, Required: false},
+		&core.SelectField{
+			Name:      models.MEDIA_TYPE_FIELD,
+			Required:  false,
+			Values:    models.MEDIA_TYPE_VALUES,
+			MaxSelect: len(models.MEDIA_TYPE_VALUES),
+		},
+		&core.SelectField{
+			Name:      models.CARRIER_TYPE_FIELD,
+			Required:  false,
+			Values:    models.CARRIER_TYPE_VALUES,
+			MaxSelect: len(models.CARRIER_TYPE_VALUES),
+		},
 
 		// Musenalm specific data
-		&core.SelectField{Name: "musenalm_type", Required: false, Values: models.MUSENALM_TYPE_VALUES, MaxSelect: len(models.MUSENALM_TYPE_VALUES)},
-		&core.SelectField{Name: "pagination", Required: false, Values: models.MUSENALM_PAGINATION_VALUES, MaxSelect: len(models.MUSENALM_PAGINATION_VALUES)},
-		&core.FileField{Name: "scans", Required: false, MaxSize: 100 * 1024 * 1024, MaxSelect: 100, MimeTypes: models.MUSENALM_MIME_TYPES, Thumbs: []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"}}, // 100 MB a file
+		&core.SelectField{
+			Name:      models.MUSENALM_INHALTE_TYPE_FIELD,
+			Required:  false,
+			Values:    models.MUSENALM_TYPE_VALUES,
+			MaxSelect: len(models.MUSENALM_TYPE_VALUES),
+		},
+		&core.SelectField{
+			Name:      models.MUSENALM_PAGINATION_FIELD,
+			Required:  false,
+			Values:    models.MUSENALM_PAGINATION_VALUES,
+			MaxSelect: len(models.MUSENALM_PAGINATION_VALUES),
+		},
+		&core.FileField{
+			Name:      models.SCAN_FIELD,
+			Required:  false,
+			MaxSize:   100 * 1024 * 1024,
+			MaxSelect: 1000,
+			MimeTypes: models.MUSENALM_MIME_TYPES,
+			Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
+		}, // 100 MB a file
 
 		// Band:
-		&core.NumberField{Name: "numbering", Required: false},
-		&core.RelationField{Name: "entries", Required: true, CollectionId: entries.Id, CascadeDelete: false, MaxSelect: 1, MinSelect: 1},
+		&core.NumberField{Name: models.NUMBERING_FIELD, Required: false},
+		&core.RelationField{
+			Name:          models.ENTRIES_TABLE,
+			Required:      true,
+			CollectionId:  entries.Id,
+			CascadeDelete: false,
+			MaxSelect:     1,
+			MinSelect:     1,
+		},
 	)
 
 	setMusenalmIDField(&fields)
@@ -90,15 +134,15 @@ func partialsFields(app core.App) *core.FieldsList {
 
 func partialsIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, "preferredtitle", false)
-	addIndex(collection, "varianttitle", false)
-	addIndex(collection, "paralleltitle", false)
-	addIndex(collection, "title_statement", false)
-	addIndex(collection, "subtitle_statement", false)
-	addIndex(collection, "incipit_statement", false)
-	addIndex(collection, "responsibility_statement", false)
-	addIndex(collection, "place_statement", false)
-	addIndex(collection, "publication_statement", false)
-	addIndex(collection, "year", false)
-	addIndex(collection, "edition", false)
+	addIndex(collection, models.PREFERRED_TITLE_FIELD, false)
+	addIndex(collection, models.VARIANT_TITLE_FIELD, false)
+	addIndex(collection, models.PARALLEL_TITLE_FIELD, false)
+	addIndex(collection, models.TITLE_STMT_FIELD, false)
+	addIndex(collection, models.SUBTITLE_STMT_FIELD, false)
+	addIndex(collection, models.INCIPIT_STMT_FIELD, false)
+	addIndex(collection, models.RESPONSIBILITY_STMT_FIELD, false)
+	addIndex(collection, models.PLACE_STMT_FIELD, false)
+	addIndex(collection, models.PUBLICATION_STMT_FIELD, false)
+	addIndex(collection, models.YEAR_FIELD, false)
+	addIndex(collection, models.EDITION_FIELD, false)
 }

@@ -9,7 +9,7 @@ import (
 func init() {
 	m.Register(func(app core.App) error {
 		agents := agentsTable()
-		agents.Fields = agentsFields(agents)
+		agents.Fields = agentsFields()
 		agentsIndexes(agents)
 
 		return app.Save(agents)
@@ -29,16 +29,16 @@ func agentsTable() *core.Collection {
 	return collection
 }
 
-func agentsFields(collection *core.Collection) core.FieldsList {
+func agentsFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: "name", Required: true, Presentable: true},
-		&core.BoolField{Name: "corporate_body", Required: false},
-		&core.BoolField{Name: "fictional", Required: false},
-		&core.URLField{Name: "registry_domains", Required: false},
-		&core.TextField{Name: "biographical_data", Required: false, Presentable: true},
-		&core.TextField{Name: "profession", Required: false},
-		&core.TextField{Name: "pseudonyms", Required: false},
-		&core.TextField{Name: "references", Required: false},
+		&core.TextField{Name: models.AGENTS_NAME_FIELD, Required: true, Presentable: true},
+		&core.BoolField{Name: models.AGENTS_CORP_FIELD, Required: false},
+		&core.BoolField{Name: models.AGENTS_FICTIONAL_FIELD, Required: false},
+		&core.URLField{Name: models.URI_FIELD, Required: false},
+		&core.TextField{Name: models.AGENTS_BIOGRAPHICAL_DATA_FIELD, Required: false, Presentable: true},
+		&core.TextField{Name: models.AGENTS_PROFESSION_FIELD, Required: false},
+		&core.TextField{Name: models.AGENTS_PSEUDONYMS_FIELD, Required: false},
+		&core.TextField{Name: models.REFERENCES_FIELD, Required: false},
 	)
 
 	setMusenalmIDField(&fields)
@@ -50,5 +50,6 @@ func agentsFields(collection *core.Collection) core.FieldsList {
 
 func agentsIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, "name", false)
+	addIndex(collection, models.AGENTS_NAME_FIELD, false)
+	addIndex(collection, models.URI_FIELD, true)
 }

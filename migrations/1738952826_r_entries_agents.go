@@ -15,7 +15,7 @@ func init() {
 
 		return app.Save(collections)
 	}, func(app core.App) error {
-		collection, err := app.FindCollectionByNameOrId(relationTableName(models.ENTRIES_TABLE, models.AGENTS_TABLE))
+		collection, err := app.FindCollectionByNameOrId(models.RelationTableName(models.ENTRIES_TABLE, models.AGENTS_TABLE))
 		if err != nil {
 			return nil
 		}

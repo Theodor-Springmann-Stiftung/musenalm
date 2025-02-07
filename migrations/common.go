@@ -7,7 +7,7 @@ import (
 )
 
 func setBasicPublicRules(collection *core.Collection) {
-	collection.ViewRule = types.Pointer("@request.auth.id != ''")
+	collection.ViewRule = types.Pointer(models.PUBLIC_VIEW_RULE)
 }
 
 func setMusenalmIDField(fieldlist *core.FieldsList) {
@@ -43,15 +43,15 @@ func basicRelationCollection(app core.App, sourcetablename, targettablename stri
 		return nil, err
 	}
 
-	collection := core.NewBaseCollection(relationTableName(stable.Name, ttable.Name))
+	collection := core.NewBaseCollection(models.RelationTableName(stable.Name, ttable.Name))
 	setBasicPublicRules(collection)
 
 	fields := core.NewFieldsList(
 		&core.RelationField{Name: stable.Name, Required: true, CollectionId: stable.Id, MinSelect: 1, MaxSelect: 1},
 		&core.RelationField{Name: ttable.Name, Required: true, CollectionId: ttable.Id, MinSelect: 1, MaxSelect: 1},
-		&core.SelectField{Name: "relation_type", Required: true, Values: relations, MaxSelect: 1},
-		&core.BoolField{Name: "conjecture", Required: false},
-		&core.BoolField{Name: "uncertain", Required: false},
+		&core.SelectField{Name: models.RELATION_TYPE_FIELD, Required: true, Values: relations, MaxSelect: 1},
+		&core.BoolField{Name: models.RELATION_CONJECTURE_FIELD, Required: false},
+		&core.BoolField{Name: models.RELATION_UNCERTAIN_FIELD, Required: false},
 	)
 
 	setNotesAndAnnotationsField(&fields)
@@ -59,11 +59,7 @@ func basicRelationCollection(app core.App, sourcetablename, targettablename stri
 	collection.Fields = fields
 	addIndex(collection, stable.Name, false)
 	addIndex(collection, ttable.Name, false)
-	addIndex(collection, "relation_type", false)
+	addIndex(collection, models.RELATION_TYPE_FIELD, false)
 
 	return collection, nil
-}
-
-func relationTableName(collection1, collection2 string) string {
-	return "R_" + collection1 + "_" + collection2
 }
