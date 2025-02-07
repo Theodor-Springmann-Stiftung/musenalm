@@ -8,7 +8,8 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
-	// _ "musenalm/migrations"
+
+	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
 )
 
 func main() {
