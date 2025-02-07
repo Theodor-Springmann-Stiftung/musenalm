@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="Orte.xsd" generated="2024-02-23T17:11:26">
+<Orte>
+<ID>2</ID>
+<NAME>[Emden]</NAME>
+<FIKTIV>0</FIKTIV>
+</Orte>
+<Orte>
+<ID>3</ID>
+<NAME>[Gera]</NAME>
+<FIKTIV>0</FIKTIV>
+</Orte>
+<Orte>
+<ID>77</ID>
+<NAME>Gotha</NAME>
+<FIKTIV>0</FIKTIV>
+</Orte>
+<Orte>
+<ID>78</ID>
+<NAME>Göttingen</NAME>
+<FIKTIV>0</FIKTIV>
+</Orte>
+<Orte>
+
+</dataroot>

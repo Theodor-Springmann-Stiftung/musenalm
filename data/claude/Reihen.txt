@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="Reihen.xsd" generated="2024-02-23T17:08:35">
+<Reihen>
+<ID>1208</ID>
+<NAME>Abendstunden</NAME>
+<SORTIERNAME>Abendstunden</SORTIERNAME>
+<NACHWEIS>K 5; nicht bei L/R; Goed VIII. 101, 225</NACHWEIS>
+<Anmerkungen>&lt;div&gt;Jgg 1820 (in zwei Bänden), 1823&lt;/div&gt;
+
+&lt;div&gt;Leipzig (Gleditsch)&lt;/div&gt;</Anmerkungen>
+</Reihen>
+</dataroot>

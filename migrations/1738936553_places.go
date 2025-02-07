@@ -1,0 +1,49 @@
+package migrations
+
+import (
+	"github.com/Theodor-Springmann-Stiftung/musenalm/models"
+	"github.com/pocketbase/pocketbase/core"
+	m "github.com/pocketbase/pocketbase/migrations"
+)
+
+func init() {
+	m.Register(func(app core.App) error {
+		places := placesTable()
+		places.Fields = placesFields(places)
+		placesIndexes(places)
+
+		return app.Save(places)
+	}, func(app core.App) error {
+		places, err := app.FindCollectionByNameOrId(models.PLACES_TABLE)
+		if err != nil {
+			return nil
+		}
+
+		return app.Delete(places)
+	})
+}
+
+func placesTable() *core.Collection {
+	collection := core.NewBaseCollection(models.PLACES_TABLE)
+	setBasicPublicRules(collection)
+	return collection
+}
+
+func placesFields(collection *core.Collection) core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: "name", Required: true, Presentable: true},
+		&core.BoolField{Name: "fictional", Required: false},
+		&core.URLField{Name: "registry_domains", Required: false, OnlyDomains: []string{"geonames.org"}},
+	)
+
+	setMusenalmIDField(&fields)
+	setEditorStateField(&fields)
+	setNotesAndAnnotationsField(&fields)
+
+	return fields
+}
+
+func placesIndexes(collection *core.Collection) {
+	addMusenalmIDIndex(collection)
+	addIndex(collection, "name", false)
+}

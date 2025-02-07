@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataroot xmlns:od="urn:schemas-microsoft-com:officedata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="_RELATION_BaendeReihen.xsd" generated="2024-02-23T17:08:21">
+<_x002A_RELATION_BaendeReihen>
+<ID>1</ID>
+<BAND>3026</BAND>
+<BEZIEHUNG>1</BEZIEHUNG>
+<REIHE>2191</REIHE>
+</_x002A_RELATION_BaendeReihen>
+<_x002A_RELATION_BaendeReihen>
+<ID>2</ID>
+<BAND>3633</BAND>
+<BEZIEHUNG>1</BEZIEHUNG>
+<REIHE>2190</REIHE>
+</_x002A_RELATION_BaendeReihen>
+<_x002A_RELATION_BaendeReihen>
+<ID>3</ID>
+<BAND>3632</BAND>
+<BEZIEHUNG>1</BEZIEHUNG>
+<REIHE>2189</REIHE>
+</_x002A_RELATION_BaendeReihen>
+</dataroot>
