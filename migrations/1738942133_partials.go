@@ -10,33 +10,33 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		items := itemsTable()
-		fields := itemsFields(items, app)
+		partials := partialsTable()
+		fields := partialsFields(app)
 		if fields == nil {
 			return errors.New("Could not find places collection")
 		}
 
-		items.Fields = *fields
-		itemsIndexes(items)
+		partials.Fields = *fields
+		partialsIndexes(partials)
 
-		return app.Save(items)
+		return app.Save(partials)
 	}, func(app core.App) error {
-		items, err := app.FindCollectionByNameOrId(models.ITEMS_TABLE)
+		partials, err := app.FindCollectionByNameOrId(models.PARTIALS_TABLE)
 		if err != nil {
 			return nil
 		}
 
-		return app.Delete(items)
+		return app.Delete(partials)
 	})
 }
 
-func itemsTable() *core.Collection {
-	collection := core.NewBaseCollection(models.ITEMS_TABLE)
+func partialsTable() *core.Collection {
+	collection := core.NewBaseCollection(models.PARTIALS_TABLE)
 	setBasicPublicRules(collection)
 	return collection
 }
 
-func itemsFields(collection *core.Collection, app core.App) *core.FieldsList {
+func partialsFields(app core.App) *core.FieldsList {
 	entries, err := app.FindCollectionByNameOrId(models.ENTRIES_TABLE)
 	if err != nil {
 		return nil
@@ -74,10 +74,10 @@ func itemsFields(collection *core.Collection, app core.App) *core.FieldsList {
 		// Musenalm specific data
 		&core.SelectField{Name: "musenalm_type", Required: false, Values: models.MUSENALM_TYPE_VALUES, MaxSelect: len(models.MUSENALM_TYPE_VALUES)},
 		&core.SelectField{Name: "pagination", Required: false, Values: models.MUSENALM_PAGINATION_VALUES, MaxSelect: len(models.MUSENALM_PAGINATION_VALUES)},
-		&core.FileField{Name: "scans", Required: false, MaxSize: 100 * 1024 * 1024, MaxSelect: 100, MimeTypes: models.MUSENALM_MIME_TYPES, Thumbs: []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"}}, // 100 MB
+		&core.FileField{Name: "scans", Required: false, MaxSize: 100 * 1024 * 1024, MaxSelect: 100, MimeTypes: models.MUSENALM_MIME_TYPES, Thumbs: []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"}}, // 100 MB a file
 
 		// Band:
-		&core.NumberField{Name: "running_number", Required: false},
+		&core.NumberField{Name: "numbering", Required: false},
 		&core.RelationField{Name: "entries", Required: true, CollectionId: entries.Id, CascadeDelete: false, MaxSelect: 1, MinSelect: 1},
 	)
 
@@ -88,10 +88,10 @@ func itemsFields(collection *core.Collection, app core.App) *core.FieldsList {
 	return &fields
 }
 
-func itemsIndexes(collection *core.Collection) {
+func partialsIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
 	addIndex(collection, "preferredtitle", false)
-	addIndex(collection, "varianttile", false)
+	addIndex(collection, "varianttitle", false)
 	addIndex(collection, "paralleltitle", false)
 	addIndex(collection, "title_statement", false)
 	addIndex(collection, "subtitle_statement", false)

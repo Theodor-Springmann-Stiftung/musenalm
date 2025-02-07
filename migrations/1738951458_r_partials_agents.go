@@ -8,16 +8,14 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		collection, err := basicRelationCollection(app, models.ENTRIES_TABLE, models.SERIES_TABLE, models.SERIES_RELATIONS)
+		collections, err := basicRelationCollection(app, models.PARTIALS_TABLE, models.AGENTS_TABLE, models.AGENT_RELATIONS)
 		if err != nil {
 			return err
 		}
 
-		collection.Fields.Add(&core.TextField{Name: "numbering", Required: false, Presentable: true})
-
-		return app.Save(collection)
+		return app.Save(collections)
 	}, func(app core.App) error {
-		collection, err := app.FindCollectionByNameOrId(relationTableName(models.ENTRIES_TABLE, models.SERIES_TABLE))
+		collection, err := app.FindCollectionByNameOrId(relationTableName(models.PARTIALS_TABLE, models.AGENTS_TABLE))
 		if err != nil {
 			return nil
 		}

@@ -93,7 +93,7 @@ func entriesFields(collection *core.Collection, app core.App) *core.FieldsList {
 func entriesIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
 	addIndex(collection, "preferredtitle", false)
-	addIndex(collection, "varianttile", false)
+	addIndex(collection, "varianttitle", false)
 	addIndex(collection, "paralleltitle", false)
 	addIndex(collection, "title_statement", false)
 	addIndex(collection, "subtitle_statement", false)

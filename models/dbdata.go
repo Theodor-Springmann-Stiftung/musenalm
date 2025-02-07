@@ -376,12 +376,31 @@ var MUSENALM_MIME_TYPES = []string{
 	"image/svg+xml",
 }
 
+var AGENT_RELATIONS = []string{
+	"Autor:in",
+	"Herausgeber:in",
+	"Verlag",
+	"Druck",
+	"Vertrieb",
+	"Stecher:in",
+	"Zeichner:in",
+	"Übersetzer:in",
+}
+
+var SERIES_RELATIONS = []string{
+	"Bevorzugter Reihentitel",
+	"Alternativer Reihentitel",
+	"Späterer Reihentitel",
+	"Früherer Reihentitel",
+	"In anderer Sprache",
+}
+
 const (
-	PLACES_TABLE  = "places"
-	AGENTS_TABLE  = "agents"
-	SERIES_TABLE  = "series"
-	ENTRIES_TABLE = "entries"
-	ITEMS_TABLE   = "items"
+	PLACES_TABLE   = "places"
+	AGENTS_TABLE   = "agents"
+	SERIES_TABLE   = "series"
+	ENTRIES_TABLE  = "entries"
+	PARTIALS_TABLE = "partials"
 
 	ANNOTATION_FIELD = "annotation"
 

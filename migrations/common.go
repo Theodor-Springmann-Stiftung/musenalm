@@ -8,12 +8,6 @@ import (
 
 func setBasicPublicRules(collection *core.Collection) {
 	collection.ViewRule = types.Pointer("@request.auth.id != ''")
-	collection.CreateRule = types.Pointer("@request.auth.id != '' && @request.body.user = @request.auth.id")
-	collection.UpdateRule = types.Pointer(`
-    @request.auth.id != '' &&
-    user = @request.auth.id &&
-    (@request.body.user:isset = false || @request.body.user = @request.auth.id)
-`)
 }
 
 func setMusenalmIDField(fieldlist *core.FieldsList) {
@@ -38,11 +32,7 @@ func addIndex(collection *core.Collection, field string, unique bool) {
 	collection.AddIndex("idx_"+name+"_"+field, unique, field, "")
 }
 
-func createAgentRelationsTable(app core.App, sourcetablename, targettablename, tablename string) error {
-	return nil
-}
-
-func basicRelationFields(app core.App, sourcetablename, targettablename string, relations []string) (core.FieldsList, error) {
+func basicRelationCollection(app core.App, sourcetablename, targettablename string, relations []string) (*core.Collection, error) {
 	stable, err := app.FindCollectionByNameOrId(sourcetablename)
 	if err != nil {
 		return nil, err
@@ -53,11 +43,27 @@ func basicRelationFields(app core.App, sourcetablename, targettablename string, 
 		return nil, err
 	}
 
+	collection := core.NewBaseCollection(relationTableName(stable.Name, ttable.Name))
+	setBasicPublicRules(collection)
+
 	fields := core.NewFieldsList(
-		&core.RelationField{Name: stable.Name, Required: true, CollectionId: stable.Id},
-		&core.RelationField{Name: ttable.Name, Required: true, CollectionId: ttable.Id},
-		&core.TextField{Name: "relation_type", Required: true},
+		&core.RelationField{Name: stable.Name, Required: true, CollectionId: stable.Id, MinSelect: 1, MaxSelect: 1},
+		&core.RelationField{Name: ttable.Name, Required: true, CollectionId: ttable.Id, MinSelect: 1, MaxSelect: 1},
+		&core.SelectField{Name: "relation_type", Required: true, Values: relations, MaxSelect: 1},
+		&core.BoolField{Name: "conjecture", Required: false},
+		&core.BoolField{Name: "uncertain", Required: false},
 	)
 
-	return fields, nil
+	setNotesAndAnnotationsField(&fields)
+
+	collection.Fields = fields
+	addIndex(collection, stable.Name, false)
+	addIndex(collection, ttable.Name, false)
+	addIndex(collection, "relation_type", false)
+
+	return collection, nil
+}
+
+func relationTableName(collection1, collection2 string) string {
+	return "R_" + collection1 + "_" + collection2
 }
