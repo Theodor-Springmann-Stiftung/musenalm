@@ -1,30 +1,30 @@
 package migrations
 
 import (
-	"github.com/Theodor-Springmann-Stiftung/musenalm/models"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func setBasicPublicRules(collection *core.Collection) {
-	collection.ViewRule = types.Pointer(models.PUBLIC_VIEW_RULE)
+	collection.ViewRule = types.Pointer(dbmodels.PUBLIC_VIEW_RULE)
 }
 
 func setMusenalmIDField(fieldlist *core.FieldsList) {
-	fieldlist.Add(&core.TextField{Name: models.MUSENALMID_FIELD, Max: 64, Required: false})
+	fieldlist.Add(&core.TextField{Name: dbmodels.MUSENALMID_FIELD, Max: 64, Required: false})
 }
 
 func setEditorStateField(fieldlist *core.FieldsList) {
-	fieldlist.Add(&core.SelectField{Name: models.EDITSTATE_FIELD, Required: false, Values: models.EDITORSTATE_VALUES})
+	fieldlist.Add(&core.SelectField{Name: dbmodels.EDITSTATE_FIELD, Required: false, Values: dbmodels.EDITORSTATE_VALUES})
 }
 
 func setNotesAndAnnotationsField(fieldlist *core.FieldsList) {
-	fieldlist.Add(&core.EditorField{Name: models.ANNOTATION_FIELD, Required: false, ConvertURLs: false})
-	fieldlist.Add(&core.EditorField{Name: models.COMMENT_FIELD, Required: false, ConvertURLs: false})
+	fieldlist.Add(&core.EditorField{Name: dbmodels.ANNOTATION_FIELD, Required: false, ConvertURLs: false})
+	fieldlist.Add(&core.EditorField{Name: dbmodels.COMMENT_FIELD, Required: false, ConvertURLs: false})
 }
 
 func addMusenalmIDIndex(collection *core.Collection) {
-	addIndex(collection, models.MUSENALMID_FIELD, true)
+	addIndex(collection, dbmodels.MUSENALMID_FIELD, true)
 }
 
 func addIndex(collection *core.Collection, field string, unique bool) {
@@ -43,15 +43,15 @@ func basicRelationCollection(app core.App, sourcetablename, targettablename stri
 		return nil, err
 	}
 
-	collection := core.NewBaseCollection(models.RelationTableName(stable.Name, ttable.Name))
+	collection := core.NewBaseCollection(dbmodels.RelationTableName(stable.Name, ttable.Name))
 	setBasicPublicRules(collection)
 
 	fields := core.NewFieldsList(
 		&core.RelationField{Name: stable.Name, Required: true, CollectionId: stable.Id, MinSelect: 1, MaxSelect: 1},
 		&core.RelationField{Name: ttable.Name, Required: true, CollectionId: ttable.Id, MinSelect: 1, MaxSelect: 1},
-		&core.SelectField{Name: models.RELATION_TYPE_FIELD, Required: true, Values: relations, MaxSelect: 1},
-		&core.BoolField{Name: models.RELATION_CONJECTURE_FIELD, Required: false},
-		&core.BoolField{Name: models.RELATION_UNCERTAIN_FIELD, Required: false},
+		&core.SelectField{Name: dbmodels.RELATION_TYPE_FIELD, Required: true, Values: relations, MaxSelect: 1},
+		&core.BoolField{Name: dbmodels.RELATION_CONJECTURE_FIELD, Required: false},
+		&core.BoolField{Name: dbmodels.RELATION_UNCERTAIN_FIELD, Required: false},
 	)
 
 	setNotesAndAnnotationsField(&fields)
@@ -59,7 +59,7 @@ func basicRelationCollection(app core.App, sourcetablename, targettablename stri
 	collection.Fields = fields
 	addIndex(collection, stable.Name, false)
 	addIndex(collection, ttable.Name, false)
-	addIndex(collection, models.RELATION_TYPE_FIELD, false)
+	addIndex(collection, dbmodels.RELATION_TYPE_FIELD, false)
 
 	return collection, nil
 }

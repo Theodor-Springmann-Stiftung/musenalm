@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/Theodor-Springmann-Stiftung/musenalm/models"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 )
@@ -14,7 +14,7 @@ func init() {
 
 		return app.Save(places)
 	}, func(app core.App) error {
-		places, err := app.FindCollectionByNameOrId(models.PLACES_TABLE)
+		places, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
 		if err != nil {
 			return nil
 		}
@@ -24,16 +24,16 @@ func init() {
 }
 
 func placesTable() *core.Collection {
-	collection := core.NewBaseCollection(models.PLACES_TABLE)
+	collection := core.NewBaseCollection(dbmodels.PLACES_TABLE)
 	setBasicPublicRules(collection)
 	return collection
 }
 
 func placesFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: models.PLACES_NAME_FIELD, Required: true, Presentable: true},
-		&core.BoolField{Name: models.AGENTS_FICTIONAL_FIELD, Required: false},
-		&core.URLField{Name: models.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
+		&core.TextField{Name: dbmodels.PLACES_NAME_FIELD, Required: true, Presentable: true},
+		&core.BoolField{Name: dbmodels.AGENTS_FICTIONAL_FIELD, Required: false},
+		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
 	)
 
 	setMusenalmIDField(&fields)
@@ -45,6 +45,6 @@ func placesFields() core.FieldsList {
 
 func placesIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, models.PLACES_NAME_FIELD, false)
-	addIndex(collection, models.URI_FIELD, true)
+	addIndex(collection, dbmodels.PLACES_NAME_FIELD, false)
+	addIndex(collection, dbmodels.URI_FIELD, false)
 }

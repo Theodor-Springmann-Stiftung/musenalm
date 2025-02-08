@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/Theodor-Springmann-Stiftung/musenalm/models"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 )
@@ -14,7 +14,7 @@ func init() {
 
 		return app.Save(series)
 	}, func(app core.App) error {
-		series, err := app.FindCollectionByNameOrId(models.SERIES_TABLE)
+		series, err := app.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
 		if err != nil {
 			return nil
 		}
@@ -24,16 +24,17 @@ func init() {
 }
 
 func seriesTable() *core.Collection {
-	collection := core.NewBaseCollection(models.SERIES_TABLE)
+	collection := core.NewBaseCollection(dbmodels.SERIES_TABLE)
 	setBasicPublicRules(collection)
 	return collection
 }
 
 func seriesFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: models.SERIES_NAME_FIELD, Required: true, Presentable: true},
-		&core.TextField{Name: models.SERIES_PSEUDONYMS_FIELD, Required: false},
-		&core.TextField{Name: models.REFERENCES_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.SERIES_NAME_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.SERIES_PSEUDONYMS_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.REFERENCES_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.SERIES_FREQUENCY_FIELD, Required: false},
 	)
 
 	setMusenalmIDField(&fields)

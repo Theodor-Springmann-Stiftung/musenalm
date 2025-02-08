@@ -3,7 +3,7 @@ package migrations
 import (
 	"errors"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/models"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 )
@@ -21,7 +21,7 @@ func init() {
 
 		return app.Save(entries)
 	}, func(app core.App) error {
-		entries, err := app.FindCollectionByNameOrId(models.ENTRIES_TABLE)
+		entries, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
 		if err != nil {
 			return nil
 		}
@@ -31,87 +31,82 @@ func init() {
 }
 
 func entriesTable() *core.Collection {
-	collection := core.NewBaseCollection(models.ENTRIES_TABLE)
+	collection := core.NewBaseCollection(dbmodels.ENTRIES_TABLE)
 	setBasicPublicRules(collection)
 	return collection
 }
 
 func entriesFields(app core.App) *core.FieldsList {
-	places, err := app.FindCollectionByNameOrId(models.PLACES_TABLE)
+	places, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
 	if err != nil {
 		return nil
 	}
 
 	fields := core.NewFieldsList(
 		// Title information
-		&core.TextField{Name: models.PREFERRED_TITLE_FIELD, Required: true, Presentable: true},
-		&core.TextField{Name: models.VARIANT_TITLE_FIELD, Required: false, Presentable: false},
-		&core.BoolField{Name: models.PARALLEL_TITLE_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.PREFERRED_TITLE_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.VARIANT_TITLE_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.PARALLEL_TITLE_FIELD, Required: false},
 
 		// Transcribed information
-		&core.TextField{Name: models.TITLE_STMT_FIELD, Required: false, Presentable: false},
-		&core.TextField{Name: models.SUBTITLE_STMT_FIELD, Required: false, Presentable: false},
-		&core.TextField{Name: models.INCIPIT_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.TITLE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.SUBTITLE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.INCIPIT_STMT_FIELD, Required: false, Presentable: false},
 
-		&core.TextField{Name: models.RESPONSIBILITY_STMT_FIELD, Required: false, Presentable: false},
-		&core.TextField{Name: models.PLACE_STMT_FIELD, Required: false, Presentable: false},
-		&core.TextField{Name: models.PUBLICATION_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.RESPONSIBILITY_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.PLACE_STMT_FIELD, Required: false, Presentable: false},
+		&core.TextField{Name: dbmodels.PUBLICATION_STMT_FIELD, Required: false, Presentable: false},
 
 		// Other discerning Information
-		&core.NumberField{Name: models.YEAR_FIELD, Required: false},
-		&core.TextField{Name: models.EDITION_FIELD, Required: false},
+		&core.NumberField{Name: dbmodels.YEAR_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.EDITION_FIELD, Required: false},
 
 		// Media Information
 		&core.SelectField{
-			Name:      models.LANGUAGE_FIELD,
+			Name:      dbmodels.LANGUAGE_FIELD,
 			Required:  false,
-			Values:    models.LANGUAGE_VALUES,
-			MaxSelect: len(models.LANGUAGE_VALUES),
+			Values:    dbmodels.LANGUAGE_VALUES,
+			MaxSelect: len(dbmodels.LANGUAGE_VALUES),
 		},
 		&core.SelectField{
-			Name:      models.CONTENT_TYPE_FIELD,
+			Name:      dbmodels.CONTENT_TYPE_FIELD,
 			Required:  false,
-			Values:    models.CONTENT_TYPE_VALUES,
-			MaxSelect: len(models.CONTENT_TYPE_VALUES),
+			Values:    dbmodels.CONTENT_TYPE_VALUES,
+			MaxSelect: len(dbmodels.CONTENT_TYPE_VALUES),
 		},
 
 		// Physical Description
-		&core.TextField{Name: models.EXTENT_FIELD, Required: false},
-		&core.TextField{Name: models.DIMENSIONS_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.EXTENT_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.DIMENSIONS_FIELD, Required: false},
 		&core.SelectField{
-			Name:      models.CARRIER_TYPE_FIELD,
+			Name:      dbmodels.CARRIER_TYPE_FIELD,
 			Required:  false,
-			Values:    models.MEDIA_TYPE_VALUES,
-			MaxSelect: len(models.MEDIA_TYPE_VALUES),
+			Values:    dbmodels.MEDIA_TYPE_VALUES,
+			MaxSelect: len(dbmodels.MEDIA_TYPE_VALUES),
 		},
 		&core.SelectField{
-			Name:      models.CARRIER_TYPE_FIELD,
+			Name:      dbmodels.CARRIER_TYPE_FIELD,
 			Required:  false,
-			Values:    models.CARRIER_TYPE_VALUES,
-			MaxSelect: len(models.CARRIER_TYPE_VALUES),
+			Values:    dbmodels.CARRIER_TYPE_VALUES,
+			MaxSelect: len(dbmodels.CARRIER_TYPE_VALUES),
 		},
 
 		// Norm Data
-		&core.TextField{Name: models.REFERENCES_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.REFERENCES_FIELD, Required: false},
 		&core.RelationField{
-			Name:          models.PLACES_TABLE,
+			Name:          dbmodels.PLACES_TABLE,
 			Required:      false,
 			CollectionId:  places.Id,
 			CascadeDelete: false,
 			MaxSelect:     5000,
 		},
 
-		// Musenalm specific data
-		&core.SelectField{
-			Name:      models.MUSENALM_BAENDE_STATUS_FIELD,
-			Required:  false,
-			Values:    models.MUSENALM_STATUS_VALUES,
-			MaxSelect: len(models.MUSENALM_STATUS_VALUES),
-		},
-		&core.JSONField{Name: models.MUSENALM_DEPRECATED_FIELD, Required: false},
-
 		// Exemplare:
-		&core.JSONField{Name: models.ITEMS_TABLE, Required: false},
+		&core.JSONField{Name: dbmodels.ITEMS_TABLE, Required: false},
+
+		// EDIT DATA:
+		&core.JSONField{Name: dbmodels.META_FIELD, Required: false},
+		&core.JSONField{Name: dbmodels.MUSENALM_DEPRECATED_FIELD, Required: false},
 	)
 
 	setMusenalmIDField(&fields)
@@ -123,15 +118,15 @@ func entriesFields(app core.App) *core.FieldsList {
 
 func entriesIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, models.PREFERRED_TITLE_FIELD, false)
-	addIndex(collection, models.VARIANT_TITLE_FIELD, false)
-	addIndex(collection, models.PARALLEL_TITLE_FIELD, false)
-	addIndex(collection, models.TITLE_STMT_FIELD, false)
-	addIndex(collection, models.SUBTITLE_STMT_FIELD, false)
-	addIndex(collection, models.INCIPIT_STMT_FIELD, false)
-	addIndex(collection, models.RESPONSIBILITY_STMT_FIELD, false)
-	addIndex(collection, models.PLACE_STMT_FIELD, false)
-	addIndex(collection, models.PUBLICATION_STMT_FIELD, false)
-	addIndex(collection, models.YEAR_FIELD, false)
-	addIndex(collection, models.EDITION_FIELD, false)
+	addIndex(collection, dbmodels.PREFERRED_TITLE_FIELD, false)
+	addIndex(collection, dbmodels.VARIANT_TITLE_FIELD, false)
+	addIndex(collection, dbmodels.PARALLEL_TITLE_FIELD, false)
+	addIndex(collection, dbmodels.TITLE_STMT_FIELD, false)
+	addIndex(collection, dbmodels.SUBTITLE_STMT_FIELD, false)
+	addIndex(collection, dbmodels.INCIPIT_STMT_FIELD, false)
+	addIndex(collection, dbmodels.RESPONSIBILITY_STMT_FIELD, false)
+	addIndex(collection, dbmodels.PLACE_STMT_FIELD, false)
+	addIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
+	addIndex(collection, dbmodels.YEAR_FIELD, false)
+	addIndex(collection, dbmodels.EDITION_FIELD, false)
 }
