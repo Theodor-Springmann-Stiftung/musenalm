@@ -8,11 +8,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func SeedTableSeries(app core.App, reihen xmlmodels.Reihentitel) error {
+func RecordsFromReihentitel(app core.App, reihen xmlmodels.Reihentitel) ([]*core.Record, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
 	records := make([]*core.Record, 0, len(reihen.Reihen))
 	if err != nil {
 		fmt.Println(err)
+		return records, err
 	}
 
 	for i := 0; i < len(reihen.Reihen); i++ {
@@ -39,5 +40,5 @@ func SeedTableSeries(app core.App, reihen xmlmodels.Reihentitel) error {
 		records = append(records, record)
 	}
 
-	return batchSave(app, records)
+	return records, nil
 }

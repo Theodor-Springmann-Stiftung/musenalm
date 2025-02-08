@@ -8,14 +8,14 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		collections, err := basicRelationCollection(app, dbmodels.PARTIALS_TABLE, dbmodels.AGENTS_TABLE, dbmodels.AGENT_RELATIONS)
+		collections, err := basicRelationCollection(app, dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE, dbmodels.AGENT_RELATIONS)
 		if err != nil {
 			return err
 		}
 
 		return app.Save(collections)
 	}, func(app core.App) error {
-		collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.PARTIALS_TABLE, dbmodels.AGENTS_TABLE))
+		collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
 		if err != nil {
 			return nil
 		}

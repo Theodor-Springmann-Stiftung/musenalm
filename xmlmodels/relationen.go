@@ -16,12 +16,12 @@ type Relation_Band_Reihe struct {
 
 type Relationen_Inhalte_Akteure struct {
 	XMLName    xml.Name                 `xml:"dataroot"`
-	Relationen []Relation_Inhalt_akteur `xml:"_x002A_RELATION_InhalteAkteure"`
+	Relationen []Relation_Inhalt_Akteur `xml:"_x002A_RELATION_InhalteAkteure"`
 }
 
-type Relation_Inhalt_akteur struct {
+type Relation_Inhalt_Akteur struct {
 	ID       string `xml:"ID"`
-	Band     string `xml:"INHALT"`
+	Inhalt   string `xml:"INHALT"`
 	Relation string `xml:"BEZIEHUNG"`
 	Akteur   string `xml:"AKTEUR"`
 }

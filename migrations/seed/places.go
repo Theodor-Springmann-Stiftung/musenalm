@@ -8,11 +8,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func SeedTablePlaces(app core.App, orte xmlmodels.Orte) error {
+func RecordsFromOrte(app core.App, orte xmlmodels.Orte) ([]*core.Record, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
 	records := make([]*core.Record, 0, len(orte.Orte))
 	if err != nil {
 		fmt.Println(err)
+		return records, err
 	}
 
 	for i := 0; i < len(orte.Orte); i++ {
@@ -33,5 +34,5 @@ func SeedTablePlaces(app core.App, orte xmlmodels.Orte) error {
 		records = append(records, record)
 	}
 
-	return batchSave(app, records)
+	return records, nil
 }

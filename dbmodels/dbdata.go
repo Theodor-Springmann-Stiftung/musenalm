@@ -1,6 +1,14 @@
 package dbmodels
 
-var EDITORSTATE_VALUES = []string{"Unknown", "ToDo", "Seen", "Partially Edited", "Waiting", "Edited"}
+var EDITORSTATE_VALUES = []string{"Unknown", "ToDo", "Seen", "Partially Edited", "Waiting", "Review", "Edited"}
+
+var ITEM_TYPE_VALUES = []string{
+	"Original",
+	"Reproduktion",
+	"Mikrofiche",
+	"Digitalisat",
+	"URL",
+}
 
 var MEDIA_TYPE_VALUES = []string{
 	"audio",
@@ -319,27 +327,28 @@ var MUSENALM_TYPE_VALUES = []string{
 	"Widmung",
 }
 
-var MUSENALM_PAGINATION_VALUES = []string{
-	"Römische Seitenzählung",
-	"Arabische Seitenzählung",
-	"Alphabetische Seitenzählung",
-	"Sonstige Seitenzählung",
-	"1. Arabische Seitenzählung",
-	"2. Arabische Seitenzählung",
-	"3. Arabische Seitenzählung",
-	"4. Arabische Seitenzählung",
-	"5. Arabische Seitenzählung",
-	"6. Arabische Seitenzählung",
-	"7. Arabische Seitenzählung",
-	"8. Arabische Seitenzählung",
-	"1. Römische Seitenzählung",
-	"2. Römische Seitenzählung",
-	"3. Römische Seitenzählung",
-	"4. Römische Seitenzählung",
-	"5. Römische Seitenzählung",
-	"6. Römische Seitenzählung",
-	"7. Römische Seitenzählung",
-	"8. Römische Seitenzählung",
+var MUSENALM_PAGINATION_VALUES = map[string]string{
+	"":      "",
+	"röm":   "Römische Seitenzählung",
+	"ar":    "Arabische Seitenzählung",
+	"alph":  "Alphabetische Seitenzählung",
+	"sonst": "Sonstige Seitenzählung",
+	"ar1":   "1. Arabische Seitenzählung",
+	"ar2":   "2. Arabische Seitenzählung",
+	"ar3":   "3. Arabische Seitenzählung",
+	"ar4":   "4. Arabische Seitenzählung",
+	"ar5":   "5. Arabische Seitenzählung",
+	"ar6":   "6. Arabische Seitenzählung",
+	"ar7":   "7. Arabische Seitenzählung",
+	"ar8":   "8. Arabische Seitenzählung",
+	"röm1":  "1. Römische Seitenzählung",
+	"röm2":  "2. Römische Seitenzählung",
+	"röm3":  "3. Römische Seitenzählung",
+	"röm4":  "4. Römische Seitenzählung",
+	"röm5":  "5. Römische Seitenzählung",
+	"röm6":  "6. Römische Seitenzählung",
+	"röm7":  "7. Römische Seitenzählung",
+	"röm8":  "8. Römische Seitenzählung",
 }
 
 var MUSENALM_MIME_TYPES = []string{
@@ -377,6 +386,7 @@ var MUSENALM_MIME_TYPES = []string{
 }
 
 var AGENT_RELATIONS = []string{
+	"Schöpfer",
 	"Autor:in",
 	"Herausgeber:in",
 	"Verlag",
@@ -384,7 +394,12 @@ var AGENT_RELATIONS = []string{
 	"Vertrieb",
 	"Stecher:in",
 	"Zeichner:in",
+	"Komponist:in",
+	"Künstler:in",
 	"Übersetzer:in",
+	"Redakteur:in",
+	"Kartograf:in",
+	"Kupferstecher:in",
 }
 
 var SERIES_RELATIONS = []string{
@@ -402,7 +417,7 @@ const (
 	AGENTS_TABLE   = "agents"
 	SERIES_TABLE   = "series"
 	ENTRIES_TABLE  = "entries"
-	PARTIALS_TABLE = "partials"
+	CONTENTS_TABLE = "contents"
 	ITEMS_TABLE    = "items"
 
 	ANNOTATION_FIELD = "annotation"
@@ -462,6 +477,12 @@ const (
 
 	NUMBERING_FIELD = "numbering"
 	SCAN_FIELD      = "scans"
+
+	ITEMS_LOCATION_FIELD   = "location"
+	ITEMS_OWNER_FIELD      = "owner"
+	ITEMS_MEDIA_FIELD      = "media"
+	ITEMS_CONDITION_FIELD  = "condition"
+	ITEMS_IDENTIFIER_FIELD = "identifier"
 )
 
 func RelationTableName(collection1, collection2 string) string {

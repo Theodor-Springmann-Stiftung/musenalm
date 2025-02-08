@@ -2,6 +2,8 @@ package migrations
 
 import (
 	"errors"
+	"maps"
+	"slices"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
@@ -21,7 +23,7 @@ func init() {
 
 		return app.Save(partials)
 	}, func(app core.App) error {
-		partials, err := app.FindCollectionByNameOrId(dbmodels.PARTIALS_TABLE)
+		partials, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
 		if err != nil {
 			return nil
 		}
@@ -31,7 +33,7 @@ func init() {
 }
 
 func partialsTable() *core.Collection {
-	collection := core.NewBaseCollection(dbmodels.PARTIALS_TABLE)
+	collection := core.NewBaseCollection(dbmodels.CONTENTS_TABLE)
 	setBasicPublicRules(collection)
 	return collection
 }
@@ -46,7 +48,7 @@ func partialsFields(app core.App) *core.FieldsList {
 		// Title information
 		&core.TextField{Name: dbmodels.PREFERRED_TITLE_FIELD, Required: true, Presentable: true},
 		&core.TextField{Name: dbmodels.VARIANT_TITLE_FIELD, Required: false, Presentable: false},
-		&core.BoolField{Name: dbmodels.PARALLEL_TITLE_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.PARALLEL_TITLE_FIELD, Required: false},
 
 		// Transcribed information
 		&core.TextField{Name: dbmodels.TITLE_STMT_FIELD, Required: false, Presentable: false},
@@ -101,7 +103,7 @@ func partialsFields(app core.App) *core.FieldsList {
 		&core.SelectField{
 			Name:      dbmodels.MUSENALM_PAGINATION_FIELD,
 			Required:  false,
-			Values:    dbmodels.MUSENALM_PAGINATION_VALUES,
+			Values:    slices.Collect(maps.Values(dbmodels.MUSENALM_PAGINATION_VALUES)),
 			MaxSelect: len(dbmodels.MUSENALM_PAGINATION_VALUES),
 		},
 		&core.FileField{
