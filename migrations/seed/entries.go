@@ -2,8 +2,6 @@ package seed
 
 import (
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -12,24 +10,23 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func SeedTableEntries(
+func RecordsFromBände(
 	app core.App,
 	entries xmlmodels.Bände,
-	biblio map[int]xmlmodels.BIBLIOEintrag,
 	orte xmlmodels.Orte,
-) error {
+) ([]*core.Record, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
 	records := make([]*core.Record, 0, len(entries.Bände))
-	r := regexp.MustCompile("\\d{6}")
 	if err != nil {
 		fmt.Println(err)
+		return records, err
 	}
 
 	omap := datatypes.MakeMap(orte.Orte, func(o xmlmodels.Ort) string { return o.ID })
 	ocoll, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.PLACES_TABLE)
-		return err
+		return records, err
 	}
 
 	for i := 0; i < len(entries.Bände); i++ {
@@ -68,13 +65,12 @@ func SeedTableEntries(
 		}
 
 		handleDeprecated(record, band)
-		handleItems(r, band, &biblio, record)
 		handleOrte(record, band, omap, app, ocoll)
 
 		records = append(records, record)
 	}
 
-	return batchSave(app, records)
+	return records, nil
 }
 
 func handleOrte(
@@ -133,92 +129,4 @@ func handleDeprecated(record *core.Record, band xmlmodels.Band) {
 	}
 
 	record.Set(dbmodels.MUSENALM_DEPRECATED_FIELD, depr)
-}
-
-func handleItems(r *regexp.Regexp, band xmlmodels.Band, biblio *map[int]xmlmodels.BIBLIOEintrag, record *core.Record) {
-	nst := NormalizeString(band.Norm)
-	matches := r.FindAllStringSubmatchIndex(nst, -1)
-	t := map[string]string{}
-	for i, m := range matches {
-		nr := nst[m[0]:m[1]]
-		end := len(nst)
-
-		if m[1] >= len(nst) {
-			t[nr] = ""
-			continue
-		}
-
-		if len(matches)-1 > i {
-			end = matches[i+1][0]
-		}
-
-		rest := nst[m[1]:end]
-		var last []rune
-
-		for y, c := range rest {
-			if c == '\\' && y < len(rest)-1 && rest[y+1] == ')' {
-				break
-			}
-			if c != '(' && c != ')' {
-				last = append(last, c)
-			}
-		}
-
-		if last != nil && len(last) > 0 {
-			t[nr] = string(last)
-		}
-	}
-
-	var exemlist []dbmodels.Exemplar
-
-	if band.BiblioID != 0 {
-		exem := dbmodels.Exemplar{Identifier: strconv.Itoa(band.BiblioID)}
-		if e, ok := (*biblio)[band.BiblioID]; ok {
-			exem.Location = strings.TrimSpace(e.Standort)
-			exem.Condition = strings.TrimSpace(e.Zustand)
-			message := ""
-			message = appendMessage(e.NotizÄusseres, message)
-			message = appendMessage(e.NotizInhalt, message)
-			message = appendMessage(e.Anmerkungen, message)
-			exem.Annotation = message
-		}
-
-		exemlist = append(exemlist, exem)
-	}
-
-	for nr, m := range t {
-		exem := dbmodels.Exemplar{Identifier: nr}
-
-		no, err := strconv.Atoi(strings.TrimSpace(nr))
-		message := strings.TrimSpace(m)
-		if err != nil {
-			if e, ok := (*biblio)[no]; ok {
-				exem.Location = strings.TrimSpace(e.Standort)
-				exem.Condition = strings.TrimSpace(e.Zustand)
-				message = appendMessage(e.NotizÄusseres, message)
-				message = appendMessage(e.NotizInhalt, message)
-				message = appendMessage(e.Anmerkungen, message)
-			}
-		}
-		exem.Annotation = message
-
-		if exem.Identifier != "" {
-			exemlist = append(exemlist, exem)
-		}
-	}
-
-	if len(exemlist) > 0 {
-		record.Set(dbmodels.ITEMS_TABLE, exemlist)
-	}
-}
-
-func appendMessage(message string, toAppend string) string {
-	notiza := strings.TrimSpace(toAppend)
-	if notiza != "" {
-		if message != "" {
-			message += "\n"
-		}
-		message += notiza
-	}
-	return message
 }

@@ -13,7 +13,7 @@ func NormalizeString(s string) string {
 	return s
 }
 
-func batchSave(app core.App, records []*core.Record) error {
+func BatchSave(app core.App, records []*core.Record) error {
 	app.RunInTransaction(func(txapp core.App) error {
 		for _, record := range records {
 			if err := txapp.Save(record); err != nil {
