@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -9,6 +10,10 @@ func Assert(err error, msg ...string) {
 		return
 	}
 
+	fmt.Println(err)
+	for msg := range msg {
+		fmt.Println(msg)
+	}
 	os.Exit(1)
 }
 
@@ -17,6 +22,9 @@ func AssertNonNil(obj interface{}, msg ...string) {
 		return
 	}
 
+	for msg := range msg {
+		fmt.Println(msg)
+	}
 	os.Exit(1)
 }
 
@@ -25,6 +33,9 @@ func AssertNil(obj interface{}, msg ...string) {
 		return
 	}
 
+	for msg := range msg {
+		fmt.Println(msg)
+	}
 	os.Exit(1)
 }
 
@@ -33,5 +44,9 @@ func AssertStr(str string, msg ...string) {
 		return
 	}
 
+	fmt.Println(str)
+	for msg := range msg {
+		fmt.Println(msg)
+	}
 	os.Exit(1)
 }

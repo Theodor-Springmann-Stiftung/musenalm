@@ -96,13 +96,13 @@ func handlePreferredTitleEntry(
 	if band.Jahr == 0 {
 		jahr = "[o. J.]"
 	} else {
-		jahr = " (" + jahr + ")"
+		jahr = "(" + jahr + ")"
 	}
 
 	bevti := slices.IndexFunc(rels, func(r xmlmodels.Relation_Band_Reihe) bool { return r.Relation == "1" })
 	if bevti != -1 {
 		bevt := rmap[rels[bevti].Reihe]
-		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(bevt.Titel)+jahr)
+		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(bevt.Titel)+" "+jahr)
 		return
 	}
 
