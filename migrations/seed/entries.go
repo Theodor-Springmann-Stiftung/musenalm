@@ -2,6 +2,8 @@ package seed
 
 import (
 	"fmt"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -12,32 +14,35 @@ import (
 
 func RecordsFromBände(
 	app core.App,
-	entries xmlmodels.Bände,
-	orte xmlmodels.Orte,
+	adb xmlmodels.AccessDB,
 ) ([]*core.Record, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
-	records := make([]*core.Record, 0, len(entries.Bände))
+	records := make([]*core.Record, 0, len(adb.Bände.Bände))
 	if err != nil {
 		fmt.Println(err)
 		return records, err
 	}
 
-	omap := datatypes.MakeMap(orte.Orte, func(o xmlmodels.Ort) string { return o.ID })
+	omap := datatypes.MakeMap(adb.Orte.Orte, func(o xmlmodels.Ort) string { return o.ID })
+	relmap := datatypes.MakeMultiMap(
+		adb.Relationen_Bände_Reihen.Relationen,
+		func(r xmlmodels.Relation_Band_Reihe) string { return r.Band },
+	)
+	rmap := datatypes.MakeMap(adb.Reihen.Reihen, func(r xmlmodels.Reihe) string { return r.ID })
 	ocoll, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.PLACES_TABLE)
 		return records, err
 	}
 
-	for i := 0; i < len(entries.Bände); i++ {
-		band := entries.Bände[i]
+	for i := 0; i < len(adb.Bände.Bände); i++ {
+		band := adb.Bände.Bände[i]
 		record := core.NewRecord(collection)
 
 		// TODO: Hier bevorzugter reihentitel + jahr, oder irgendein reihentitel, oder reihentitelALT
 		if band.ReihentitelALT == "" {
 			continue
 		}
-		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(band.ReihentitelALT))
 		record.Set(dbmodels.TITLE_STMT_FIELD, NormalizeString(band.Titelangabe))
 		record.Set(dbmodels.REFERENCES_FIELD, NormalizeString(band.Nachweis))
 		record.Set(dbmodels.ANNOTATION_FIELD, NormalizeString(band.Anmerkungen))
@@ -64,6 +69,7 @@ func RecordsFromBände(
 			record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[0])
 		}
 
+		handlePreferredTitleEntry(record, band, rmap, relmap)
 		handleDeprecated(record, band)
 		handleOrte(record, band, omap, app, ocoll)
 
@@ -71,6 +77,40 @@ func RecordsFromBände(
 	}
 
 	return records, nil
+}
+
+func handlePreferredTitleEntry(
+	record *core.Record,
+	band xmlmodels.Band,
+	rmap map[string]xmlmodels.Reihe,
+	rrelmap map[string][]xmlmodels.Relation_Band_Reihe,
+) {
+	rels := rrelmap[band.ID]
+	if len(rels) == 0 {
+		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(band.ReihentitelALT))
+		record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+		return
+	}
+
+	jahr := strconv.Itoa(band.Jahr)
+	if band.Jahr == 0 {
+		jahr = "[o. J.]"
+	} else {
+		jahr = " (" + jahr + ")"
+	}
+
+	bevti := slices.IndexFunc(rels, func(r xmlmodels.Relation_Band_Reihe) bool { return r.Relation == "1" })
+	if bevti != -1 {
+		bevt := rmap[rels[bevti].Reihe]
+		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(bevt.Titel)+jahr)
+		return
+	}
+
+	slices.SortFunc(rels, func(a, b xmlmodels.Relation_Band_Reihe) int {
+		return strings.Compare(a.Relation, b.Relation)
+	})
+
+	record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(rmap[rels[0].Reihe].Titel)+jahr)
 }
 
 func handleOrte(
@@ -126,6 +166,8 @@ func handleDeprecated(record *core.Record, band xmlmodels.Band) {
 		Norm:        NormalizeString(band.Norm),
 		BiblioID:    band.BiblioID,
 		Status:      band.Status.Value,
+		Gesichtet:   band.Gesichtet,
+		Erfasst:     band.Erfasst,
 	}
 
 	record.Set(dbmodels.MUSENALM_DEPRECATED_FIELD, depr)
