@@ -1,4 +1,4 @@
 {
 	"debug": true,
-	"allow_test_login": false
+	"allow_test_login": true
 }
