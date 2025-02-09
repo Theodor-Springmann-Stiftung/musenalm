@@ -1,2 +1,11 @@
 pb_data/
 musenalm
+node_modules
+tmp/
+bin/
+cache/
+data_bilder/
+config.json
+out.log
+*.log
+*.out
