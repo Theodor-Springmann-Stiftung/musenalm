@@ -5,4 +5,6 @@ type Deprecated struct {
 	Norm        string   `json:"norm"`
 	BiblioID    int      `json:"biblio"`
 	Status      []string `json:"status"`
+	Gesichtet   bool     `json:"gesichtet"`
+	Erfasst     bool     `json:"erfasst"`
 }

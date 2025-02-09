@@ -56,7 +56,7 @@ func init() {
 
 		wg.Wait()
 
-		if records, err := seed.RecordsFromBände(app, adb.Bände, adb.Orte); err == nil {
+		if records, err := seed.RecordsFromBände(app, *adb); err == nil {
 			if err = seed.BatchSave(app, records); err != nil {
 				panic(err)
 			}

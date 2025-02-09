@@ -61,7 +61,6 @@ func partialsFields(app core.App) *core.FieldsList {
 
 		// Other discerning Information
 		&core.NumberField{Name: dbmodels.YEAR_FIELD, Required: false},
-		&core.TextField{Name: dbmodels.EDITION_FIELD, Required: false},
 
 		// Media Information
 		&core.SelectField{
@@ -80,18 +79,6 @@ func partialsFields(app core.App) *core.FieldsList {
 		// Physical Description
 		&core.TextField{Name: dbmodels.EXTENT_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.DIMENSIONS_FIELD, Required: false},
-		&core.SelectField{
-			Name:      dbmodels.MEDIA_TYPE_FIELD,
-			Required:  false,
-			Values:    dbmodels.MEDIA_TYPE_VALUES,
-			MaxSelect: len(dbmodels.MEDIA_TYPE_VALUES),
-		},
-		&core.SelectField{
-			Name:      dbmodels.CARRIER_TYPE_FIELD,
-			Required:  false,
-			Values:    dbmodels.CARRIER_TYPE_VALUES,
-			MaxSelect: len(dbmodels.CARRIER_TYPE_VALUES),
-		},
 
 		// Musenalm specific data
 		&core.SelectField{
@@ -146,5 +133,4 @@ func partialsIndexes(collection *core.Collection) {
 	addIndex(collection, dbmodels.PLACE_STMT_FIELD, false)
 	addIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
 	addIndex(collection, dbmodels.YEAR_FIELD, false)
-	addIndex(collection, dbmodels.EDITION_FIELD, false)
 }
