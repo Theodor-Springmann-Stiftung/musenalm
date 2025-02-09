@@ -1,33 +1,21 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/apis"
-	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/plugins/migratecmd"
-
+	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
+	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	"log"
 )
 
 func main() {
-	app := pocketbase.New()
+	app := app.New(app.Config{})
 
-	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
+	migratecmd.MustRegister(app.PB, app.PB.RootCmd, migratecmd.Config{
 		Automigrate:  false,
 		TemplateLang: migratecmd.TemplateLangGo,
 	})
 
-	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		// serves static files from the provided public dir (if exists)
-		se.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public"), false))
-
-		return se.Next()
-	})
-
-	if err := app.Start(); err != nil {
+	if err := app.PB.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

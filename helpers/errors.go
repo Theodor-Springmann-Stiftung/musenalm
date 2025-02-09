@@ -2,8 +2,6 @@ package helpers
 
 import (
 	"os"
-
-	"github.com/Theodor-Springmann-Stiftung/kgpz_web/helpers/logging"
 )
 
 func Assert(err error, msg ...string) {
@@ -11,7 +9,6 @@ func Assert(err error, msg ...string) {
 		return
 	}
 
-	logging.Error(err, msg...)
 	os.Exit(1)
 }
 
@@ -20,7 +17,6 @@ func AssertNonNil(obj interface{}, msg ...string) {
 		return
 	}
 
-	logging.Error(nil, msg...)
 	os.Exit(1)
 }
 
@@ -29,7 +25,6 @@ func AssertNil(obj interface{}, msg ...string) {
 		return
 	}
 
-	logging.Error(nil, msg...)
 	os.Exit(1)
 }
 
@@ -38,6 +33,5 @@ func AssertStr(str string, msg ...string) {
 		return
 	}
 
-	logging.Error(nil, msg...)
 	os.Exit(1)
 }
