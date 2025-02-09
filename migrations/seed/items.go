@@ -66,10 +66,10 @@ func ItemsFromBändeAndBIBLIO(
 			}
 		}
 
-		var exemlist []dbmodels.Exemplar
+		var exemlist []dbmodels.Item
 
 		if band.BiblioID != 0 {
-			exem := dbmodels.Exemplar{Identifier: strconv.Itoa(band.BiblioID)}
+			exem := dbmodels.Item{Identifier: strconv.Itoa(band.BiblioID)}
 			if e, ok := biblio[band.BiblioID]; ok {
 				exem.Location = strings.TrimSpace(e.Standort)
 				exem.Condition = strings.TrimSpace(e.Zustand)
@@ -84,7 +84,7 @@ func ItemsFromBändeAndBIBLIO(
 		}
 
 		for nr, m := range t {
-			exem := dbmodels.Exemplar{Identifier: nr}
+			exem := dbmodels.Item{Identifier: nr}
 
 			no, err := strconv.Atoi(strings.TrimSpace(nr))
 			message := strings.TrimSpace(m)
