@@ -2,10 +2,12 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
@@ -13,6 +15,11 @@ type App struct {
 	PB       *pocketbase.PocketBase
 	MAConfig Config
 }
+
+const (
+	TEST_SUPERUSER_MAIL = "test@test.de"
+	TEST_SUPERUSER_PASS = "passwort"
+)
 
 func init() {
 	sql.Register("pb_sqlite3",
@@ -41,6 +48,37 @@ func New(config Config) App {
 		DBConnect: func(dbPath string) (*dbx.DB, error) {
 			return dbx.Open("pb_sqlite3", dbPath)
 		},
+		DefaultDev: config.Debug,
+	})
+
+	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		superusersCol, err := e.App.FindCachedCollectionByNameOrId(core.CollectionNameSuperusers)
+		if err != nil {
+			return fmt.Errorf("Failed to fetch %q collection: %w.", core.CollectionNameSuperusers, err)
+		}
+
+		superuser, err := e.App.FindAuthRecordByEmail(superusersCol, TEST_SUPERUSER_MAIL)
+		if err != nil {
+			superuser = core.NewRecord(superusersCol)
+		} else if !config.AllowTestLogin {
+			// INFO: we to it as a raw query here since PB does not support deleting the last superuser
+			_, err = e.App.DB().
+				NewQuery("DELETE FROM " + superusersCol.Name + " WHERE id = '" + superuser.Id + "'").
+				Execute()
+			if err != nil {
+				return fmt.Errorf("Failed to delete superuser account: %w.", err)
+			}
+			return e.Next()
+		}
+
+		superuser.SetEmail(TEST_SUPERUSER_MAIL)
+		superuser.SetPassword(TEST_SUPERUSER_PASS)
+
+		if err := app.Save(superuser); err != nil {
+			return fmt.Errorf("Failed to upsert superuser account: %w.", err)
+		}
+
+		return e.Next()
 	})
 
 	return App{
