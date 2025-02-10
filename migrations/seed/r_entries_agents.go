@@ -8,8 +8,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relationen_Bände_Akteure) ([]*core.Record, error) {
-	records := make([]*core.Record, 0, len(relations.Relationen))
+func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relationen_Bände_Akteure) ([]*dbmodels.REntriesAgents, error) {
+	records := make([]*dbmodels.REntriesAgents, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE))
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
@@ -29,28 +29,29 @@ func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relation
 			continue
 		}
 
-		record := core.NewRecord(collection)
-		record.Set(dbmodels.ENTRIES_TABLE, entry.Id)
-		record.Set(dbmodels.AGENTS_TABLE, agent.Id)
+		record := dbmodels.NewREntriesAgents(core.NewRecord(collection))
+		record.SetEntry(entry.Id)
+		record.SetAgent(agent.Id)
 
 		switch relation.Relation {
 		case "8":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Vertrieb")
+			record.SetType("Vertrieb")
 		case "7":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Druck")
+			record.SetType("Druck")
 		case "6":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Verlag")
+			record.SetType("Verlag")
 		case "5":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Herausgeber:in")
+			record.SetType("Herausgeber:in")
 		}
 
-		rel := record.GetString(dbmodels.RELATION_TYPE_FIELD)
-		ent := record.GetString(dbmodels.ENTRIES_TABLE)
-		ser := record.GetString(dbmodels.AGENTS_TABLE)
+		rel := record.Type()
+		ent := record.Entry()
+		ser := record.Agent()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
-			entry.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
-			_ = app.Save(entry)
+			e := dbmodels.NewEntry(entry)
+			e.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+			_ = app.Save(e)
 		}
 		records = append(records, record)
 	}

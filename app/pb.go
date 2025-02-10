@@ -29,7 +29,7 @@ func init() {
                     PRAGMA busy_timeout       = 10000;
                     PRAGMA journal_mode       = WAL;
                     PRAGMA journal_size_limit = 200000000;
-                    PRAGMA synchronous        = NORMAL;
+                    PRAGMA synchronous        = FULL;
                     PRAGMA foreign_keys       = ON;
                     PRAGMA temp_store         = MEMORY;
                     PRAGMA cache_size         = -32768;

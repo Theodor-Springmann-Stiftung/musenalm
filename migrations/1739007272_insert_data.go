@@ -1,8 +1,6 @@
 package migrations
 
 import (
-	"sync"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/migrations/seed"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
@@ -19,86 +17,91 @@ func init() {
 
 		adb.Reihen = xmlmodels.SanitizeReihen(adb.Reihen, adb.Relationen_Bände_Reihen)
 
-		wg := sync.WaitGroup{}
-		wg.Add(3)
-		go func() {
-			if records, err := seed.RecordsFromAkteure(app, adb.Akteure); err == nil {
-				if err = seed.BatchSave(app, records); err != nil {
-					panic(err)
+		if records, err := seed.RecordsFromAkteure(app, adb.Akteure); err == nil {
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
-			} else {
-				panic(err)
 			}
-			wg.Done()
-		}()
+		} else {
+			panic(err)
+		}
 
-		go func() {
-			if records, err := seed.RecordsFromOrte(app, adb.Orte); err == nil {
-				if err = seed.BatchSave(app, records); err != nil {
-					panic(err)
+		if records, err := seed.RecordsFromOrte(app, adb.Orte); err == nil {
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
-			} else {
-				panic(err)
 			}
-			wg.Done()
-		}()
+		} else {
+			panic(err)
+		}
 
-		go func() {
-			if records, err := seed.RecordsFromReihentitel(app, adb.Reihen); err == nil {
-				if err = seed.BatchSave(app, records); err != nil {
-					panic(err)
+		if records, err := seed.RecordsFromReihentitel(app, adb.Reihen); err == nil {
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
-			} else {
-				panic(err)
 			}
-			wg.Done()
-		}()
-
-		wg.Wait()
+		} else {
+			panic(err)
+		}
 
 		if records, err := seed.RecordsFromBände(app, *adb); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)
 		}
 
 		if records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)
 		}
 
 		if records, err := seed.RecordsFromInhalte(app, adb.Inhalte); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)
 		}
 
 		if records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err := app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)
 		}
 
 		if records, err := seed.RecordsFromRelationBändeAkteure(app, adb.Relationen_Bände_Akteure); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err := app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)
 		}
 
 		if records, err := seed.RecordsFromRelationInhalteAkteure(app, adb.Relationen_Inhalte_Akteure); err == nil {
-			if err = seed.BatchSave(app, records); err != nil {
-				panic(err)
+			for _, record := range records {
+				if err := app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
 			}
 		} else {
 			panic(err)

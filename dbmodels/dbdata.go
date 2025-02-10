@@ -434,10 +434,11 @@ const (
 	AGENTS_PROFESSION_FIELD        = "profession"
 	AGENTS_PSEUDONYMS_FIELD        = "pseudonyms"
 
-	PLACES_NAME_FIELD      = "name"
-	PLACES_FICTIONAL_FIELD = "fictional"
+	PLACES_NAME_FIELD       = "name"
+	PLACES_FICTIONAL_FIELD  = "fictional"
+	PLACES_PSEUDONYMS_FIELD = "pseudonyms"
 
-	SERIES_NAME_FIELD       = "name"
+	SERIES_TITLE_FIELD      = "title"
 	SERIES_PSEUDONYMS_FIELD = "pseudonyms"
 	SERIES_FREQUENCY_FIELD  = "frequency"
 

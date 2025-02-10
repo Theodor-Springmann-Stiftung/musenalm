@@ -8,8 +8,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relationen_Bände_Reihen) ([]*core.Record, error) {
-	records := make([]*core.Record, 0, len(relations.Relationen))
+func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relationen_Bände_Reihen) ([]*dbmodels.REntriesSeries, error) {
+	records := make([]*dbmodels.REntriesSeries, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))
@@ -17,11 +17,13 @@ func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relatione
 	}
 
 	for _, relation := range relations.Relationen {
-		entry, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Band)
+		e, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Band)
 		if err != nil {
 			app.Logger().Error("Error finding Entry", "error", err, "relation", relation)
 			continue
 		}
+
+		entry := dbmodels.NewEntry(e)
 
 		series, err := app.FindFirstRecordByData(dbmodels.SERIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Reihe)
 		if err != nil {
@@ -29,35 +31,35 @@ func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relatione
 			continue
 		}
 
-		record := core.NewRecord(collection)
-		record.Set(dbmodels.ENTRIES_TABLE, entry.Id)
-		record.Set(dbmodels.SERIES_TABLE, series.Id)
+		record := dbmodels.NewREntriesSeries(core.NewRecord(collection))
+		record.SetEntry(entry.Id)
+		record.SetSeries(series.Id)
 
 		switch relation.Relation {
 		case "1":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Bevorzugter Reihentitel")
+			record.SetType("Bevorzugter Reihentitel")
 		case "2":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Alternativer Reihentitel")
+			record.SetType("Alternativer Reihentitel")
 		case "3":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "In anderer Sprache")
+			record.SetType("In anderer Sprache")
 		case "4":
-			entry.Set(dbmodels.LANGUAGE_FIELD, "fre")
+			entry.SetLanguage([]string{"fre"})
 			_ = app.Save(entry)
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "In anderer Sprache")
+			record.SetType("In anderer Sprache")
 		case "5":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Alternativer Reihentitel")
+			record.SetType("Alternativer Reihentitel")
 		case "6":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Früherer Reihentitel")
+			record.SetType("Früherer Reihentitel")
 		case "7":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Späterer Reihentitel")
+			record.SetType("Späterer Reihentitel")
 		}
 
-		rel := record.GetString(dbmodels.RELATION_TYPE_FIELD)
-		ent := record.GetString(dbmodels.ENTRIES_TABLE)
-		ser := record.GetString(dbmodels.SERIES_TABLE)
+		rel := record.Type()
+		ent := record.Entry()
+		ser := record.Series()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
-			entry.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+			entry.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
 			_ = app.Save(entry)
 		}
 

@@ -32,6 +32,7 @@ func placesTable() *core.Collection {
 func placesFields() core.FieldsList {
 	fields := core.NewFieldsList(
 		&core.TextField{Name: dbmodels.PLACES_NAME_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.PLACES_PSEUDONYMS_FIELD, Required: false, Presentable: true},
 		&core.BoolField{Name: dbmodels.AGENTS_FICTIONAL_FIELD, Required: false},
 		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
 	)

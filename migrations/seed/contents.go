@@ -2,6 +2,7 @@ package seed
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -9,43 +10,50 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromInhalte(app core.App, inhalte xmlmodels.Inhalte) ([]*core.Record, error) {
+const NO_TITLE = "[No Title]"
+
+func RecordsFromInhalte(app core.App, inhalte xmlmodels.Inhalte) ([]*dbmodels.Content, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
-	records := make([]*core.Record, 0, len(inhalte.Inhalte))
+	records := make([]*dbmodels.Content, 0, len(inhalte.Inhalte))
 	if err != nil {
 		fmt.Println(err)
 		return records, err
 	}
 
 	for i := 0; i < len(inhalte.Inhalte); i++ {
-		record := core.NewRecord(collection)
+		record := dbmodels.NewContent(core.NewRecord(collection))
 		inhalt := inhalte.Inhalte[i]
 		band, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, inhalt.Band)
 		if err != nil {
 			app.Logger().Error("Error finding band record for inhalt", "error", err, "inhalt", inhalt)
 			continue
 		}
-		record.Set(dbmodels.ENTRIES_TABLE, band.Id)
-		record.Set(dbmodels.ANNOTATION_FIELD, NormalizeString(inhalt.Anmerkungen))
-		record.Set(dbmodels.MUSENALMID_FIELD, inhalt.ID)
-		record.Set(dbmodels.RESPONSIBILITY_STMT_FIELD, NormalizeString(inhalt.Urheberangabe))
-		record.Set(dbmodels.MUSENALM_INHALTE_TYPE_FIELD, inhalt.Typ.Value)
-		record.Set(dbmodels.EXTENT_FIELD, NormalizeString(inhalt.Seite))
-		record.Set(dbmodels.TITLE_STMT_FIELD, NormalizeString(inhalt.Titelangabe))
-		record.Set(dbmodels.INCIPIT_STMT_FIELD, NormalizeString(inhalt.Incipit))
+		record.SetEntry(band.Id)
+		record.SetAnnotation(NormalizeString(inhalt.Anmerkungen))
+		record.SetMusenalmID(inhalt.ID)
+		record.SetResponsibilityStmt(NormalizeString(inhalt.Urheberangabe))
+		record.SetMusenalmType(inhalt.Typ.Value)
+		record.SetExtent(NormalizeString(inhalt.Seite))
+		record.SetTitleStmt(NormalizeString(inhalt.Titelangabe))
+		record.SetIncipitStmt(NormalizeString(inhalt.Incipit))
 
 		counting, ok := dbmodels.MUSENALM_PAGINATION_VALUES[inhalt.Paginierung]
 		if ok {
-			record.Set(dbmodels.MUSENALM_PAGINATION_FIELD, counting)
+			record.SetMusenalmPagination(counting)
 		}
-		record.Set(dbmodels.NUMBERING_FIELD, NormalizeString(inhalt.Objektnummer))
+
+		no, err := strconv.ParseFloat(NormalizeString(inhalt.Objektnummer), 64)
+		if err != nil {
+			app.Logger().Error("Error parsing object number", "error", err, "object number", inhalt.Objektnummer)
+		}
+		record.SetNumbering(no)
 
 		handlePreferredTitle(inhalt, record)
-		n := record.GetString(dbmodels.PREFERRED_TITLE_FIELD)
-		if n == "" || n == "No Title" {
-			record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[1])
+		n := record.PreferredTitle()
+		if n == "" || n == NO_TITLE {
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
 		} else {
-			record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
 		}
 
 		records = append(records, record)
@@ -53,14 +61,14 @@ func RecordsFromInhalte(app core.App, inhalte xmlmodels.Inhalte) ([]*core.Record
 	return records, nil
 }
 
-func handlePreferredTitle(inhalt xmlmodels.Inhalt, record *core.Record) {
+func handlePreferredTitle(inhalt xmlmodels.Inhalt, record *dbmodels.Content) {
 	if inhalt.Titelangabe != "" {
-		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(inhalt.Titelangabe))
+		record.SetPreferredTitle(NormalizeString(inhalt.Titelangabe))
 		return
 	}
 
 	if inhalt.Incipit != "" {
-		record.Set(dbmodels.PREFERRED_TITLE_FIELD, NormalizeString(inhalt.Incipit)+"…")
+		record.SetPreferredTitle(NormalizeString(inhalt.Incipit) + "…")
 		return
 	}
 
@@ -76,12 +84,12 @@ func handlePreferredTitle(inhalt xmlmodels.Inhalt, record *core.Record) {
 				urhh = NormalizeString(urhh)
 				str += " (" + urhh + ")"
 			}
-			record.Set(dbmodels.PREFERRED_TITLE_FIELD, "["+str+"]")
+			record.SetPreferredTitle("[" + str + "]")
 			return
 		}
 	}
 
-	record.Set(dbmodels.PREFERRED_TITLE_FIELD, "[Kein Titel]")
+	record.SetPreferredTitle(NO_TITLE)
 }
 
 func commatizeArray(array []string) string {

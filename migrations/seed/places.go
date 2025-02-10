@@ -8,9 +8,9 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromOrte(app core.App, orte xmlmodels.Orte) ([]*core.Record, error) {
+func RecordsFromOrte(app core.App, orte xmlmodels.Orte) ([]*dbmodels.Place, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
-	records := make([]*core.Record, 0, len(orte.Orte))
+	records := make([]*dbmodels.Place, 0, len(orte.Orte))
 	if err != nil {
 		fmt.Println(err)
 		return records, err
@@ -18,17 +18,17 @@ func RecordsFromOrte(app core.App, orte xmlmodels.Orte) ([]*core.Record, error) 
 
 	for i := 0; i < len(orte.Orte); i++ {
 		ort := orte.Orte[i]
-		record := core.NewRecord(collection)
-		record.Set(dbmodels.PLACES_NAME_FIELD, NormalizeString(ort.Name))
-		record.Set(dbmodels.ANNOTATION_FIELD, NormalizeString(ort.Anmerkungen))
-		record.Set(dbmodels.PLACES_FICTIONAL_FIELD, ort.Fiktiv)
-		record.Set(dbmodels.MUSENALMID_FIELD, ort.ID)
+		record := dbmodels.NewPlace(core.NewRecord(collection))
+		record.SetName(NormalizeString(ort.Name))
+		record.SetAnnotation(NormalizeString(ort.Anmerkungen))
+		record.SetFictional(ort.Fiktiv)
+		record.SetMusenalmID(ort.ID)
 
 		n := ort.Name
 		if n == "" {
-			record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[1])
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
 		} else {
-			record.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
 		}
 
 		records = append(records, record)

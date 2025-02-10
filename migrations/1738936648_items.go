@@ -60,6 +60,7 @@ func itemsFields(app core.App) core.FieldsList {
 	)
 
 	setNotesAndAnnotationsField(&fields)
+	setEditorStateField(&fields)
 
 	return fields
 }

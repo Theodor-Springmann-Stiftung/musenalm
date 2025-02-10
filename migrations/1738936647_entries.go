@@ -101,9 +101,6 @@ func entriesFields(app core.App) *core.FieldsList {
 			MaxSelect:     5000,
 		},
 
-		// Exemplare:
-		&core.JSONField{Name: dbmodels.ITEMS_TABLE, Required: false},
-
 		// EDIT DATA:
 		&core.JSONField{Name: dbmodels.META_FIELD, Required: false},
 		&core.JSONField{Name: dbmodels.MUSENALM_DEPRECATED_FIELD, Required: false},
