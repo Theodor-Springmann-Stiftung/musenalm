@@ -411,7 +411,8 @@ var SERIES_RELATIONS = []string{
 }
 
 const (
-	PUBLIC_VIEW_RULE = "@request.auth.id != ''"
+	PUBLIC_VIEW_RULE = ""
+	PUBLIC_LIST_RULE = ""
 
 	PLACES_TABLE   = "places"
 	AGENTS_TABLE   = "agents"

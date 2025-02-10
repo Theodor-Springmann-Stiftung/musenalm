@@ -1,6 +1,9 @@
 package dbmodels
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
+)
 
 var _ core.RecordProxy = (*Content)(nil)
 
@@ -150,7 +153,7 @@ func (c *Content) Scans() []string {
 	return c.GetStringSlice(SCAN_FIELD)
 }
 
-func (c *Content) SetScans(scans []string) {
+func (c *Content) SetScans(scans []*filesystem.File) {
 	c.Set(SCAN_FIELD, scans)
 }
 
