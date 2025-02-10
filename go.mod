@@ -7,6 +7,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/pocketbase/dbx v1.11.0
 	github.com/pocketbase/pocketbase v0.25.0
+	github.com/spf13/cobra v1.8.1
 	github.com/yalue/merged_fs v1.3.0
 )
 
@@ -48,7 +49,6 @@ require (
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.7.1 // indirect
-	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	gocloud.dev v0.40.0 // indirect
