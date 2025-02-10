@@ -16,9 +16,9 @@ func ItemsFromBändeAndBIBLIO(
 	app core.App,
 	entries xmlmodels.Bände,
 	biblio map[int]xmlmodels.BIBLIOEintrag,
-) ([]*core.Record, error) {
+) ([]*dbmodels.Item, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
-	records := make([]*core.Record, 0, len(entries.Bände))
+	records := make([]*dbmodels.Item, 0, len(entries.Bände))
 	r := regexp.MustCompile("\\d{6}")
 	if err != nil {
 		fmt.Println(err)
@@ -66,65 +66,63 @@ func ItemsFromBändeAndBIBLIO(
 			}
 		}
 
-		var exemlist []dbmodels.Item
-
 		if band.BiblioID != 0 {
-			exem := dbmodels.Item{Identifier: strconv.Itoa(band.BiblioID)}
+			exem := dbmodels.NewItem(core.NewRecord(collection))
+			exem.SetIdentifier(strconv.Itoa(band.BiblioID))
 			if e, ok := biblio[band.BiblioID]; ok {
-				exem.Location = strings.TrimSpace(e.Standort)
-				exem.Condition = strings.TrimSpace(e.Zustand)
+				exem.SetLocation(strings.TrimSpace(e.Standort))
+				exem.SetCondition(strings.TrimSpace(e.Zustand))
 				message := ""
 				message = appendMessage(e.NotizÄusseres, message)
 				message = appendMessage(e.NotizInhalt, message)
 				message = appendMessage(e.Anmerkungen, message)
-				exem.Annotation = message
+				exem.SetAnnotation(message)
 			}
 
-			exemlist = append(exemlist, exem)
+			records = append(records, exem)
 		}
 
 		for nr, m := range t {
-			exem := dbmodels.Item{Identifier: nr}
+			exem := dbmodels.NewItem(core.NewRecord(collection))
+			exem.SetIdentifier(nr)
 
 			no, err := strconv.Atoi(strings.TrimSpace(nr))
 			message := strings.TrimSpace(m)
 			if err != nil {
 				if e, ok := biblio[no]; ok {
-					exem.Location = strings.TrimSpace(e.Standort)
-					exem.Condition = strings.TrimSpace(e.Zustand)
+					exem.SetLocation(strings.TrimSpace(e.Standort))
+					exem.SetCondition(strings.TrimSpace(e.Zustand))
 					message = appendMessage(e.NotizÄusseres, message)
 					message = appendMessage(e.NotizInhalt, message)
 					message = appendMessage(e.Anmerkungen, message)
 				}
 			}
-			exem.Annotation = message
+			exem.SetAnnotation(message)
 
-			if exem.Identifier != "" {
-				exemlist = append(exemlist, exem)
+			if exem.Identifier() != "" {
+				records = append(records, exem)
 			}
 		}
 
-		if len(exemlist) > 0 {
-			for _, exem := range exemlist {
-				record := core.NewRecord(collection)
-				record.Set(dbmodels.ENTRIES_TABLE, banddb.Id)
-				record.Set(dbmodels.ITEMS_IDENTIFIER_FIELD, exem.Identifier)
-				record.Set(dbmodels.ITEMS_LOCATION_FIELD, exem.Location)
-				record.Set(dbmodels.ITEMS_OWNER_FIELD, "Theodor Springmann Stiftung")
-				record.Set(dbmodels.ITEMS_CONDITION_FIELD, exem.Condition)
+		if len(records) > 0 {
+			for _, exem := range records {
+				exem.SetEntry(banddb.Id)
+				exem.SetOwner("Theodor Springmann Stiftung")
 
 				if slices.Contains(band.Status.Value, "Original vorhanden") {
-					record.Set(dbmodels.ITEMS_MEDIA_FIELD, dbmodels.ITEM_TYPE_VALUES[0])
+					exem.SetMedia([]string{dbmodels.ITEM_TYPE_VALUES[0]})
 				}
 
 				if slices.Contains(band.Status.Value, "Reprint vorhanden") {
-					med := record.GetStringSlice(dbmodels.ITEMS_MEDIA_FIELD)
-					record.Set(dbmodels.ITEMS_MEDIA_FIELD, append(med, dbmodels.ITEM_TYPE_VALUES[1]))
+					med := exem.Media()
+					exem.SetMedia(append(med, dbmodels.ITEM_TYPE_VALUES[1]))
 				}
 
-				record.Set(dbmodels.ANNOTATION_FIELD, exem.Annotation)
-
-				records = append(records, record)
+				if exem.Location() == "" {
+					exem.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+				} else {
+					exem.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+				}
 			}
 		}
 	}

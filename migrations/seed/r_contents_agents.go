@@ -9,8 +9,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relationen_Inhalte_Akteure) ([]*core.Record, error) {
-	records := make([]*core.Record, 0, len(relations.Relationen))
+func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relationen_Inhalte_Akteure) ([]*dbmodels.RContentsAgents, error) {
+	records := make([]*dbmodels.RContentsAgents, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
@@ -18,27 +18,29 @@ func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relatio
 	}
 
 	for _, relation := range relations.Relationen {
-		content, err := app.FindFirstRecordByData(dbmodels.CONTENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Inhalt)
+		c, err := app.FindFirstRecordByData(dbmodels.CONTENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Inhalt)
 		if err != nil {
 			app.Logger().Error("Error finding Inhalt", "error", err, "relation", relation)
 			continue
 		}
+		content := dbmodels.NewContent(c)
 
-		agent, err := app.FindFirstRecordByData(dbmodels.AGENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Akteur)
+		a, err := app.FindFirstRecordByData(dbmodels.AGENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Akteur)
 		if err != nil {
 			app.Logger().Error("Error finding Content", "error", err, "relation", relation)
 			continue
 		}
+		agent := dbmodels.NewAgent(a)
 
-		record := core.NewRecord(collection)
-		record.Set(dbmodels.CONTENTS_TABLE, content.Id)
-		record.Set(dbmodels.AGENTS_TABLE, agent.Id)
+		record := dbmodels.NewRContentsAgents(core.NewRecord(collection))
+		record.SetContent(content.Id)
+		record.SetAgent(agent.Id)
 
 		switch relation.Relation {
 		case "1":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Schöpfer")
-			cat := content.GetStringSlice(dbmodels.MUSENALM_INHALTE_TYPE_FIELD)
-			ber := agent.GetString(dbmodels.AGENTS_PROFESSION_FIELD)
+			record.SetType("Schöpfer")
+			cat := content.MusenalmType()
+			ber := agent.Profession()
 			probt := 0
 			probm := 0
 			probg := 0
@@ -81,32 +83,32 @@ func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relatio
 			}
 
 			if probt == 3 && probm <= 1 && probg <= 1 {
-				record.Set(dbmodels.RELATION_TYPE_FIELD, "Autor:in")
+				record.SetType("Autor:in")
 				break
 			}
 
 			if probm == 3 && probt <= 1 && probg <= 1 {
-				record.Set(dbmodels.RELATION_TYPE_FIELD, "Komponist:in")
+				record.SetType("Komponist:in")
 				break
 			}
 
 			if probg == 3 && probt <= 1 && probm <= 1 {
-				record.Set(dbmodels.RELATION_TYPE_FIELD, "Künstler:in")
+				record.SetType("Künstler:in")
 				break
 			}
 
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Schöpfer")
+			record.SetType("Schöpfer")
 		case "2":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Autor:in")
+			record.SetType("Autor:in")
 		case "3":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Zeichner:in")
+			record.SetType("Herausgeber:in")
 		case "4":
-			record.Set(dbmodels.RELATION_TYPE_FIELD, "Kupferstecher:in")
+			record.SetType("Verlag")
 		}
 
-		rel := record.GetString(dbmodels.RELATION_TYPE_FIELD)
-		ent := record.GetString(dbmodels.CONTENTS_TABLE)
-		ser := record.GetString(dbmodels.AGENTS_TABLE)
+		rel := record.Type()
+		ent := record.Content()
+		ser := record.Agent()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
 			content.Set(dbmodels.EDITSTATE_FIELD, dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])

@@ -31,7 +31,7 @@ func seriesTable() *core.Collection {
 
 func seriesFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: dbmodels.SERIES_NAME_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.SERIES_TITLE_FIELD, Required: true, Presentable: true},
 		&core.TextField{Name: dbmodels.SERIES_PSEUDONYMS_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.REFERENCES_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.SERIES_FREQUENCY_FIELD, Required: false},
@@ -46,5 +46,5 @@ func seriesFields() core.FieldsList {
 
 func seriesIndexes(collection *core.Collection) {
 	addMusenalmIDIndex(collection)
-	addIndex(collection, "name", false)
+	addIndex(collection, dbmodels.SERIES_TITLE_FIELD, false)
 }
