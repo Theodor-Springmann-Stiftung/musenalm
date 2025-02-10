@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/views"
 	"github.com/mattn/go-sqlite3"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
@@ -14,11 +17,12 @@ import (
 type App struct {
 	PB       *pocketbase.PocketBase
 	MAConfig Config
+	Pages    []pagemodels.IPage
 }
 
 const (
-	TEST_SUPERUSER_MAIL = "test@test.de"
-	TEST_SUPERUSER_PASS = "passwort"
+	TEST_SUPERUSER_MAIL = "demo@example.com"
+	TEST_SUPERUSER_PASS = "password"
 )
 
 func init() {
@@ -93,4 +97,36 @@ func (app *App) setupTestuser() {
 
 		return e.Next()
 	})
+}
+
+func (app *App) Serve() error {
+	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
+
+	app.PB.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
+		e.Next()
+		for _, page := range pages {
+			err := page.Up(e.App)
+			if err != nil {
+				page.Down(e.App)
+				continue
+			}
+			app.Pages = append(app.Pages, page)
+		}
+		return nil
+	})
+
+	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		for _, page := range app.Pages {
+			page.Setup(e.Router, e.App, engine)
+		}
+		return e.Next()
+	})
+	return app.PB.Start()
+}
+
+func (app *App) ResetPages() error {
+	for _, page := range pages {
+		page.Down(app.PB)
+	}
+	return nil
 }
