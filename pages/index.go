@@ -35,7 +35,7 @@ func (p *IndexPage) Down(app core.App) error {
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET("/{$}", func(e *core.RequestEvent) error {
 		var builder strings.Builder
-		err := engine.Render(&builder, "/", nil)
+		err := engine.Render(&builder, "/", nil, "blank")
 		if err != nil {
 			return err
 		}

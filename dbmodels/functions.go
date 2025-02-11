@@ -21,7 +21,7 @@ func SetNotesAndAnnotationsField(fieldlist *core.FieldsList) {
 }
 
 func AddMusenalmIDIndex(collection *core.Collection) {
-	AddIndex(collection, MUSENALMID_FIELD, true)
+	AddIndexNoCollate(collection, MUSENALMID_FIELD, true)
 }
 
 func AddIndex(collection *core.Collection, field string, unique bool) {
@@ -32,6 +32,17 @@ func AddIndex(collection *core.Collection, field string, unique bool) {
 		u = "UNIQUE "
 	}
 	itext := "CREATE " + u + "INDEX " + iname + " ON " + name + " (" + field + " COLLATE NOCASE)"
+	collection.Indexes = append(collection.Indexes, itext)
+}
+
+func AddIndexNoCollate(collection *core.Collection, field string, unique bool) {
+	name := collection.Name
+	iname := "idx_" + name + "_" + field
+	u := ""
+	if unique {
+		u = "UNIQUE "
+	}
+	itext := "CREATE " + u + "INDEX " + iname + " ON " + name + " (" + field + ")"
 	collection.Indexes = append(collection.Indexes, itext)
 }
 
