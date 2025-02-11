@@ -10,6 +10,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -120,6 +121,8 @@ func (app *App) Serve() error {
 	})
 
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+
 		for _, page := range app.Pages {
 			page.Setup(e.Router, e.App, engine)
 		}
