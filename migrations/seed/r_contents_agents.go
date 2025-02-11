@@ -9,7 +9,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relationen_Inhalte_Akteure) ([]*dbmodels.RContentsAgents, error) {
+func RecordsFromRelationInhalteAkteure(
+	app core.App,
+	relations xmlmodels.Relationen_Inhalte_Akteure,
+	contents map[string]*dbmodels.Content,
+	agents map[string]*dbmodels.Agent,
+) ([]*dbmodels.RContentsAgents, error) {
 	records := make([]*dbmodels.RContentsAgents, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
 	if err != nil {
@@ -18,19 +23,17 @@ func RecordsFromRelationInhalteAkteure(app core.App, relations xmlmodels.Relatio
 	}
 
 	for _, relation := range relations.Relationen {
-		c, err := app.FindFirstRecordByData(dbmodels.CONTENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Inhalt)
-		if err != nil {
-			app.Logger().Error("Error finding Inhalt", "error", err, "relation", relation)
-			continue
-		}
-		content := dbmodels.NewContent(c)
-
-		a, err := app.FindFirstRecordByData(dbmodels.AGENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Akteur)
-		if err != nil {
+		content, ok := contents[relation.Inhalt]
+		if !ok {
 			app.Logger().Error("Error finding Content", "error", err, "relation", relation)
 			continue
 		}
-		agent := dbmodels.NewAgent(a)
+
+		agent, ok := agents[relation.Akteur]
+		if !ok {
+			app.Logger().Error("Error finding Agent", "error", err, "relation", relation)
+			continue
+		}
 
 		record := dbmodels.NewRContentsAgents(core.NewRecord(collection))
 		record.SetContent(content.Id)
