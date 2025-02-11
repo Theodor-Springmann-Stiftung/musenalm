@@ -34,7 +34,7 @@ func init() {
 
 func partialsTable() *core.Collection {
 	collection := core.NewBaseCollection(dbmodels.CONTENTS_TABLE)
-	setBasicPublicRules(collection)
+	dbmodels.SetBasicPublicRules(collection)
 	return collection
 }
 
@@ -114,23 +114,23 @@ func partialsFields(app core.App) *core.FieldsList {
 		},
 	)
 
-	setMusenalmIDField(&fields)
-	setEditorStateField(&fields)
-	setNotesAndAnnotationsField(&fields)
+	dbmodels.SetMusenalmIDField(&fields)
+	dbmodels.SetEditorStateField(&fields)
+	dbmodels.SetNotesAndAnnotationsField(&fields)
 
 	return &fields
 }
 
 func partialsIndexes(collection *core.Collection) {
-	addMusenalmIDIndex(collection)
-	addIndex(collection, dbmodels.PREFERRED_TITLE_FIELD, false)
-	addIndex(collection, dbmodels.VARIANT_TITLE_FIELD, false)
-	addIndex(collection, dbmodels.PARALLEL_TITLE_FIELD, false)
-	addIndex(collection, dbmodels.TITLE_STMT_FIELD, false)
-	addIndex(collection, dbmodels.SUBTITLE_STMT_FIELD, false)
-	addIndex(collection, dbmodels.INCIPIT_STMT_FIELD, false)
-	addIndex(collection, dbmodels.RESPONSIBILITY_STMT_FIELD, false)
-	addIndex(collection, dbmodels.PLACE_STMT_FIELD, false)
-	addIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
-	addIndex(collection, dbmodels.YEAR_FIELD, false)
+	dbmodels.AddMusenalmIDIndex(collection)
+	dbmodels.AddIndex(collection, dbmodels.PREFERRED_TITLE_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.VARIANT_TITLE_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.PARALLEL_TITLE_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.TITLE_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.SUBTITLE_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.INCIPIT_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.RESPONSIBILITY_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.PLACE_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.YEAR_FIELD, false)
 }

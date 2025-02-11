@@ -25,7 +25,7 @@ func init() {
 
 func itemsTable() *core.Collection {
 	collection := core.NewBaseCollection(dbmodels.ITEMS_TABLE)
-	setBasicPublicRules(collection)
+	dbmodels.SetBasicPublicRules(collection)
 	return collection
 }
 
@@ -59,16 +59,16 @@ func itemsFields(app core.App) core.FieldsList {
 		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, Presentable: false},
 	)
 
-	setNotesAndAnnotationsField(&fields)
-	setEditorStateField(&fields)
+	dbmodels.SetNotesAndAnnotationsField(&fields)
+	dbmodels.SetEditorStateField(&fields)
 
 	return fields
 }
 
 func itemsIndexes(collection *core.Collection) {
-	addIndex(collection, dbmodels.ITEMS_CONDITION_FIELD, false)
-	addIndex(collection, dbmodels.ITEMS_OWNER_FIELD, false)
-	addIndex(collection, dbmodels.ITEMS_LOCATION_FIELD, false)
-	addIndex(collection, dbmodels.ITEMS_IDENTIFIER_FIELD, false)
-	addIndex(collection, dbmodels.URI_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.ITEMS_CONDITION_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.ITEMS_OWNER_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.ITEMS_LOCATION_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.ITEMS_IDENTIFIER_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.URI_FIELD, false)
 }

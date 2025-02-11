@@ -25,7 +25,7 @@ func init() {
 
 func seriesTable() *core.Collection {
 	collection := core.NewBaseCollection(dbmodels.SERIES_TABLE)
-	setBasicPublicRules(collection)
+	dbmodels.SetBasicPublicRules(collection)
 	return collection
 }
 
@@ -37,14 +37,14 @@ func seriesFields() core.FieldsList {
 		&core.TextField{Name: dbmodels.SERIES_FREQUENCY_FIELD, Required: false},
 	)
 
-	setMusenalmIDField(&fields)
-	setEditorStateField(&fields)
-	setNotesAndAnnotationsField(&fields)
+	dbmodels.SetMusenalmIDField(&fields)
+	dbmodels.SetEditorStateField(&fields)
+	dbmodels.SetNotesAndAnnotationsField(&fields)
 
 	return fields
 }
 
 func seriesIndexes(collection *core.Collection) {
-	addMusenalmIDIndex(collection)
-	addIndex(collection, dbmodels.SERIES_TITLE_FIELD, false)
+	dbmodels.AddMusenalmIDIndex(collection)
+	dbmodels.AddIndex(collection, dbmodels.SERIES_TITLE_FIELD, false)
 }
