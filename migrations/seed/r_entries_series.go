@@ -8,7 +8,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relationen_Bände_Reihen) ([]*dbmodels.REntriesSeries, error) {
+func RecordsFromRelationBändeReihen(
+	app core.App,
+	relations xmlmodels.Relationen_Bände_Reihen,
+	series map[string]*dbmodels.Series,
+	entries map[string]*dbmodels.Entry,
+) ([]*dbmodels.REntriesSeries, error) {
 	records := make([]*dbmodels.REntriesSeries, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))
 	if err != nil {
@@ -17,16 +22,14 @@ func RecordsFromRelationBändeReihen(app core.App, relations xmlmodels.Relatione
 	}
 
 	for _, relation := range relations.Relationen {
-		e, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Band)
-		if err != nil {
+		entry, ok := entries[relation.Band]
+		if !ok {
 			app.Logger().Error("Error finding Entry", "error", err, "relation", relation)
 			continue
 		}
 
-		entry := dbmodels.NewEntry(e)
-
-		series, err := app.FindFirstRecordByData(dbmodels.SERIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Reihe)
-		if err != nil {
+		series, ok := series[relation.Reihe]
+		if !ok {
 			app.Logger().Error("Error finding Series", "error", err, "relation", relation)
 			continue
 		}

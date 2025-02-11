@@ -16,7 +16,11 @@ import (
 
 const NO_TITLE = "[No Title]"
 
-func RecordsFromInhalte(app core.App, inhalte xmlmodels.Inhalte) ([]*dbmodels.Content, error) {
+func RecordsFromInhalte(
+	app core.App,
+	inhalte xmlmodels.Inhalte,
+	entries map[string]*dbmodels.Entry,
+) ([]*dbmodels.Content, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
 	records := make([]*dbmodels.Content, 0, len(inhalte.Inhalte))
 	if err != nil {
@@ -29,11 +33,7 @@ func RecordsFromInhalte(app core.App, inhalte xmlmodels.Inhalte) ([]*dbmodels.Co
 	for i := 0; i < len(inhalte.Inhalte); i++ {
 		record := dbmodels.NewContent(core.NewRecord(collection))
 		inhalt := inhalte.Inhalte[i]
-		band, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, inhalt.Band)
-		if err != nil {
-			app.Logger().Error("Error finding band record for inhalt", "error", err, "inhalt", inhalt)
-			continue
-		}
+		band, ok := entries[inhalt.Band]
 
 		record.SetEntry(band.Id)
 		record.SetAnnotation(NormalizeString(inhalt.Anmerkungen))

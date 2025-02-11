@@ -8,7 +8,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relationen_Bände_Akteure) ([]*dbmodels.REntriesAgents, error) {
+func RecordsFromRelationBändeAkteure(
+	app core.App,
+	relations xmlmodels.Relationen_Bände_Akteure,
+	entries map[string]*dbmodels.Entry,
+	agents map[string]*dbmodels.Agent,
+) ([]*dbmodels.REntriesAgents, error) {
 	records := make([]*dbmodels.REntriesAgents, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE))
 	if err != nil {
@@ -17,14 +22,14 @@ func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relation
 	}
 
 	for _, relation := range relations.Relationen {
-		entry, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, relation.Band)
-		if err != nil {
+		entry, ok := entries[relation.Band]
+		if !ok {
 			app.Logger().Error("Error finding Entry", "error", err, "relation", relation)
 			continue
 		}
 
-		agent, err := app.FindFirstRecordByData(dbmodels.AGENTS_TABLE, dbmodels.MUSENALMID_FIELD, relation.Akteur)
-		if err != nil {
+		agent, ok := agents[relation.Akteur]
+		if !ok {
 			app.Logger().Error("Error finding Agent", "error", err, "relation", relation)
 			continue
 		}
@@ -49,9 +54,8 @@ func RecordsFromRelationBändeAkteure(app core.App, relations xmlmodels.Relation
 		ser := record.Agent()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
-			e := dbmodels.NewEntry(entry)
-			e.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
-			_ = app.Save(e)
+			entry.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+			_ = app.Save(entry)
 		}
 		records = append(records, record)
 	}

@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/migrations/seed"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 	"github.com/pocketbase/pocketbase/core"
@@ -17,8 +18,9 @@ func init() {
 
 		adb.Reihen = xmlmodels.SanitizeReihen(adb.Reihen, adb.Relationen_Bände_Reihen)
 
-		if records, err := seed.RecordsFromAkteure(app, adb.Akteure); err == nil {
-			for _, record := range records {
+		agents, err := seed.RecordsFromAkteure(app, adb.Akteure)
+		if err == nil {
+			for _, record := range agents {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
@@ -27,8 +29,9 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromOrte(app, adb.Orte); err == nil {
-			for _, record := range records {
+		places, err := seed.RecordsFromOrte(app, adb.Orte)
+		if err == nil {
+			for _, record := range places {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
@@ -37,8 +40,9 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromReihentitel(app, adb.Reihen); err == nil {
-			for _, record := range records {
+		series, err := seed.RecordsFromReihentitel(app, adb.Reihen)
+		if err == nil {
+			for _, record := range series {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
@@ -47,8 +51,9 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromBände(app, *adb); err == nil {
-			for _, record := range records {
+		entries, err := seed.RecordsFromBände(app, *adb)
+		if err == nil {
+			for _, record := range entries {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
@@ -67,8 +72,11 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromInhalte(app, adb.Inhalte); err == nil {
-			for _, record := range records {
+		entriesmap := datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.MusenalmID() })
+
+		contents, err := seed.RecordsFromInhalte(app, adb.Inhalte, entriesmap)
+		if err == nil {
+			for _, record := range contents {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
@@ -77,7 +85,11 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen); err == nil {
+		seriesmap := datatypes.MakeMap(series, func(record *dbmodels.Series) string { return record.MusenalmID() })
+		agentsmap := datatypes.MakeMap(agents, func(record *dbmodels.Agent) string { return record.MusenalmID() })
+		contentsmap := datatypes.MakeMap(contents, func(record *dbmodels.Content) string { return record.MusenalmID() })
+
+		if records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen, seriesmap, entriesmap); err == nil {
 			for _, record := range records {
 				if err := app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
@@ -87,7 +99,7 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromRelationBändeAkteure(app, adb.Relationen_Bände_Akteure); err == nil {
+		if records, err := seed.RecordsFromRelationBändeAkteure(app, adb.Relationen_Bände_Akteure, entriesmap, agentsmap); err == nil {
 			for _, record := range records {
 				if err := app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
@@ -97,7 +109,7 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.RecordsFromRelationInhalteAkteure(app, adb.Relationen_Inhalte_Akteure); err == nil {
+		if records, err := seed.RecordsFromRelationInhalteAkteure(app, adb.Relationen_Inhalte_Akteure, contentsmap, agentsmap); err == nil {
 			for _, record := range records {
 				if err := app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
