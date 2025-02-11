@@ -68,7 +68,7 @@ func itemsFields(app core.App) core.FieldsList {
 func itemsIndexes(collection *core.Collection) {
 	dbmodels.AddIndex(collection, dbmodels.ITEMS_CONDITION_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.ITEMS_OWNER_FIELD, false)
-	dbmodels.AddIndex(collection, dbmodels.ITEMS_LOCATION_FIELD, false)
-	dbmodels.AddIndex(collection, dbmodels.ITEMS_IDENTIFIER_FIELD, false)
-	dbmodels.AddIndex(collection, dbmodels.URI_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.ITEMS_LOCATION_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.ITEMS_IDENTIFIER_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.URI_FIELD, false)
 }

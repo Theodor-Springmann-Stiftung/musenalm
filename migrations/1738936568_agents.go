@@ -51,5 +51,5 @@ func agentsFields() core.FieldsList {
 func agentsIndexes(collection *core.Collection) {
 	dbmodels.AddMusenalmIDIndex(collection)
 	dbmodels.AddIndex(collection, dbmodels.AGENTS_NAME_FIELD, false)
-	dbmodels.AddIndex(collection, dbmodels.URI_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.URI_FIELD, false)
 }

@@ -133,4 +133,5 @@ func partialsIndexes(collection *core.Collection) {
 	dbmodels.AddIndex(collection, dbmodels.PLACE_STMT_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.YEAR_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.ENTRIES_TABLE, false)
 }
