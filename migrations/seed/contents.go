@@ -128,7 +128,7 @@ func commatizeArray(array []string) string {
 }
 
 func getImages(path string) map[string][]string {
-	/// BUG: there is a bug somewhere, where files ending with numbers after a comma (",001") etc dont get added
+	/// FIXED: there is a bug somewhere, where files ending with numbers after a comma (",001") etc dont get added
 	ret := make(map[string][]string)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return ret
@@ -136,18 +136,16 @@ func getImages(path string) map[string][]string {
 
 	e := func(path string, fileInfo os.FileInfo, inpErr error) (err error) {
 		if !fileInfo.IsDir() {
-			basesplit := strings.Split(fileInfo.Name(), "-")
-			if len(basesplit) == 3 {
-				extensionsplit := strings.Split(basesplit[2], ".")
-				if len(extensionsplit) == 2 {
-					// BUG: prob here
-					commaseperatorsplit := strings.Split(extensionsplit[0], ",")
-					id := commaseperatorsplit[1]
-					if _, ok := ret[id]; !ok {
-						ret[id] = make([]string, 0)
-					}
-					ret[id] = append(ret[id], path)
+			ext := filepath.Ext(fileInfo.Name())
+			filename := strings.TrimSuffix(fileInfo.Name(), ext)
+			basesplit := strings.Split(filename, "-")
+			if len(basesplit) >= 3 {
+				commaseperatorsplit := strings.Split(basesplit[2], ",")
+				id := commaseperatorsplit[0]
+				if _, ok := ret[id]; !ok {
+					ret[id] = make([]string, 0)
 				}
+				ret[id] = append(ret[id], path)
 			}
 		}
 		return nil

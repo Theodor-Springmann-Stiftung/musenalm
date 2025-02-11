@@ -5,6 +5,7 @@ tmp/
 bin/
 cache/
 data_bilder/
+Almanach-Bilder/
 config.json
 out.log
 *.log
