@@ -26,7 +26,13 @@ func AddMusenalmIDIndex(collection *core.Collection) {
 
 func AddIndex(collection *core.Collection, field string, unique bool) {
 	name := collection.Name
-	collection.AddIndex("idx_"+name+"_"+field, unique, field, "")
+	iname := "idx_" + name + "_" + field
+	u := ""
+	if unique {
+		u = "UNIQUE "
+	}
+	itext := "CREATE " + u + "INDEX " + iname + " ON " + name + " (" + field + " COLLATE NOCASE)"
+	collection.Indexes = append(collection.Indexes, itext)
 }
 
 func RelationTableName(collection1, collection2 string) string {
