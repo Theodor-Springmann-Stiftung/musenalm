@@ -5,7 +5,6 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 var bilder_fields = core.NewFieldsList(
@@ -70,8 +69,8 @@ func init() {
 func bilderCollection() *core.Collection {
 	c := core.NewBaseCollection(
 		pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_BILDER))
-	c.ListRule = types.Pointer("")
-	c.ViewRule = types.Pointer("")
+	c.ListRule = dbmodels.PUBLIC_LIST_RULE
+	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
 	c.Fields = bilder_fields
 	return c
 }
@@ -79,8 +78,8 @@ func bilderCollection() *core.Collection {
 func texteCollection() *core.Collection {
 	c := core.NewBaseCollection(
 		pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_TEXTE))
-	c.ListRule = types.Pointer("")
-	c.ViewRule = types.Pointer("")
+	c.ListRule = dbmodels.PUBLIC_LIST_RULE
+	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
 	c.Fields = texte_fields
 	return c
 }

@@ -8,7 +8,7 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		collections, err := basicRelationCollection(app, dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE, dbmodels.AGENT_RELATIONS)
+		collections, err := dbmodels.BasicRelationCollection(app, dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE, dbmodels.AGENT_RELATIONS)
 		if err != nil {
 			return err
 		}

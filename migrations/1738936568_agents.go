@@ -25,7 +25,7 @@ func init() {
 
 func agentsTable() *core.Collection {
 	collection := core.NewBaseCollection(dbmodels.AGENTS_TABLE)
-	setBasicPublicRules(collection)
+	dbmodels.SetBasicPublicRules(collection)
 	return collection
 }
 
@@ -41,15 +41,15 @@ func agentsFields() core.FieldsList {
 		&core.TextField{Name: dbmodels.REFERENCES_FIELD, Required: false},
 	)
 
-	setMusenalmIDField(&fields)
-	setEditorStateField(&fields)
-	setNotesAndAnnotationsField(&fields)
+	dbmodels.SetMusenalmIDField(&fields)
+	dbmodels.SetEditorStateField(&fields)
+	dbmodels.SetNotesAndAnnotationsField(&fields)
 
 	return fields
 }
 
 func agentsIndexes(collection *core.Collection) {
-	addMusenalmIDIndex(collection)
-	addIndex(collection, dbmodels.AGENTS_NAME_FIELD, false)
-	addIndex(collection, dbmodels.URI_FIELD, false)
+	dbmodels.AddMusenalmIDIndex(collection)
+	dbmodels.AddIndex(collection, dbmodels.AGENTS_NAME_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.URI_FIELD, false)
 }

@@ -1,5 +1,7 @@
 package dbmodels
 
+import "github.com/pocketbase/pocketbase/tools/types"
+
 var EDITORSTATE_VALUES = []string{"Unknown", "ToDo", "Seen", "Partially Edited", "Waiting", "Review", "Edited"}
 
 var ITEM_TYPE_VALUES = []string{
@@ -410,10 +412,10 @@ var SERIES_RELATIONS = []string{
 	"In anderer Sprache",
 }
 
-const (
-	PUBLIC_VIEW_RULE = ""
-	PUBLIC_LIST_RULE = ""
+var PUBLIC_VIEW_RULE = types.Pointer("")
+var PUBLIC_LIST_RULE = types.Pointer("")
 
+const (
 	PLACES_TABLE   = "places"
 	AGENTS_TABLE   = "agents"
 	SERIES_TABLE   = "series"
@@ -486,7 +488,3 @@ const (
 	ITEMS_CONDITION_FIELD  = "condition"
 	ITEMS_IDENTIFIER_FIELD = "identifier"
 )
-
-func RelationTableName(collection1, collection2 string) string {
-	return "R_" + collection1 + "_" + collection2
-}

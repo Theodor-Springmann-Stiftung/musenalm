@@ -25,7 +25,7 @@ func init() {
 
 func placesTable() *core.Collection {
 	collection := core.NewBaseCollection(dbmodels.PLACES_TABLE)
-	setBasicPublicRules(collection)
+	dbmodels.SetBasicPublicRules(collection)
 	return collection
 }
 
@@ -37,15 +37,15 @@ func placesFields() core.FieldsList {
 		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
 	)
 
-	setMusenalmIDField(&fields)
-	setEditorStateField(&fields)
-	setNotesAndAnnotationsField(&fields)
+	dbmodels.SetMusenalmIDField(&fields)
+	dbmodels.SetEditorStateField(&fields)
+	dbmodels.SetNotesAndAnnotationsField(&fields)
 
 	return fields
 }
 
 func placesIndexes(collection *core.Collection) {
-	addMusenalmIDIndex(collection)
-	addIndex(collection, dbmodels.PLACES_NAME_FIELD, false)
-	addIndex(collection, dbmodels.URI_FIELD, false)
+	dbmodels.AddMusenalmIDIndex(collection)
+	dbmodels.AddIndex(collection, dbmodels.PLACES_NAME_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.URI_FIELD, false)
 }
