@@ -17,6 +17,8 @@ exclude_dir = [
 	"cache_gnd",
 	"cache_geonames",
 	"pb_data",
+	"Almanach-Bilder",
+	"Static-Bilder",
 ]
 exclude_file = []
 exclude_regex = ["_test.go"]

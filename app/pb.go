@@ -85,6 +85,7 @@ func (app *App) setupTestuser() {
 			if err != nil {
 				return fmt.Errorf("Failed to delete superuser account: %w.", err)
 			}
+
 			return e.Next()
 		}
 
@@ -103,7 +104,10 @@ func (app *App) Serve() error {
 	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
 
 	app.PB.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
-		e.Next()
+		if err := e.Next(); err != nil {
+			return err
+		}
+
 		for _, page := range pages {
 			err := page.Up(e.App)
 			if err != nil {
