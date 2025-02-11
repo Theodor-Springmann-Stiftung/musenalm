@@ -16,6 +16,7 @@ func ItemsFromBändeAndBIBLIO(
 	app core.App,
 	entries xmlmodels.Bände,
 	biblio map[int]xmlmodels.BIBLIOEintrag,
+	entriesmap map[string]*dbmodels.Entry,
 ) ([]*dbmodels.Item, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
 	records := make([]*dbmodels.Item, 0, len(entries.Bände))
@@ -27,9 +28,9 @@ func ItemsFromBändeAndBIBLIO(
 
 	for i := 0; i < len(entries.Bände); i++ {
 		band := entries.Bände[i]
-		banddb, err := app.FindFirstRecordByData(dbmodels.ENTRIES_TABLE, dbmodels.MUSENALMID_FIELD, band.ID)
-		if err != nil {
-			app.Logger().Error("Error finding record", "error", err, "collection", dbmodels.ENTRIES_TABLE, "field", dbmodels.MUSENALMID_FIELD, "value", band.ID)
+		banddb, ok := entriesmap[band.ID]
+		if !ok {
+			app.Logger().Error("Error finding entry", "error", err, "entry", band.ID)
 			continue
 		}
 

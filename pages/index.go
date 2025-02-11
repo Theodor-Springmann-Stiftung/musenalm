@@ -2,6 +2,7 @@ package pages
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -33,7 +34,12 @@ func (p *IndexPage) Down(app core.App) error {
 
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET("/{$}", func(e *core.RequestEvent) error {
-		return e.String(http.StatusOK, "Hello, World!")
+		var builder strings.Builder
+		err := engine.Render(&builder, "/", nil)
+		if err != nil {
+			return err
+		}
+		return e.HTML(http.StatusOK, builder.String())
 	})
 	return nil
 }

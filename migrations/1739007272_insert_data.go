@@ -40,6 +40,8 @@ func init() {
 			panic(err)
 		}
 
+		placesmap := datatypes.MakeMap(places, func(record *dbmodels.Place) string { return record.Name() })
+
 		series, err := seed.RecordsFromReihentitel(app, adb.Reihen)
 		if err == nil {
 			for _, record := range series {
@@ -51,7 +53,7 @@ func init() {
 			panic(err)
 		}
 
-		entries, err := seed.RecordsFromBände(app, *adb)
+		entries, err := seed.RecordsFromBände(app, *adb, placesmap)
 		if err == nil {
 			for _, record := range entries {
 				if err = app.Save(record); err != nil {
@@ -62,7 +64,9 @@ func init() {
 			panic(err)
 		}
 
-		if records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO); err == nil {
+		entriesmap := datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.MusenalmID() })
+
+		if records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO, entriesmap); err == nil {
 			for _, record := range records {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
@@ -71,8 +75,6 @@ func init() {
 		} else {
 			panic(err)
 		}
-
-		entriesmap := datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.MusenalmID() })
 
 		contents, err := seed.RecordsFromInhalte(app, adb.Inhalte, entriesmap)
 		if err == nil {

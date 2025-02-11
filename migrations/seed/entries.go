@@ -15,6 +15,7 @@ import (
 func RecordsFromBände(
 	app core.App,
 	adb xmlmodels.AccessDB,
+	places map[string]*dbmodels.Place,
 ) ([]*dbmodels.Entry, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
 	records := make([]*dbmodels.Entry, 0, len(adb.Bände.Bände))
@@ -74,7 +75,7 @@ func RecordsFromBände(
 
 		handlePreferredTitleEntry(record, band, rmap, relmap)
 		handleDeprecated(record, band)
-		handleOrte(record, band, omap, app, ocoll)
+		handleOrte(record, band, omap, app, ocoll, places)
 
 		records = append(records, record)
 	}
@@ -122,6 +123,7 @@ func handleOrte(
 	orte map[string]xmlmodels.Ort,
 	app core.App,
 	ocollection *core.Collection,
+	places map[string]*dbmodels.Place,
 ) {
 	for _, v := range band.Orte {
 		o, ok := orte[v.Value]
@@ -133,8 +135,8 @@ func handleOrte(
 				e = true
 			}
 
-			ort, err := app.FindFirstRecordByData(dbmodels.PLACES_TABLE, dbmodels.PLACES_NAME_FIELD, n)
-			if err == nil {
+			ort, ok := places[n]
+			if ok {
 				before := record.Places()
 				record.SetPlaces(append(before, ort.Id))
 			} else {
