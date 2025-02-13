@@ -5,21 +5,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-const (
-	P_INDEX_NAME   = "index"
-	T_INDEX_BILDER = "bilder"
-	T_INDEX_TEXTE  = "texte"
-
-	F_INDEX_BILDER_TITEL        = "Titel"
-	F_INDEX_BILDER_BESCHREIBUNG = "Beschreibung"
-	F_INDEX_BILDER_BILD         = "Bild"
-	F_INDEX_BILDER_VORSCHAU     = "Vorschau"
-
-	F_INDEX_TEXTE_TITEL = "Titel"
-	F_INDEX_TEXTE_ABS1  = "Abs1"
-	F_INDEX_TEXTE_ABS2  = "Abs2"
-)
-
 type IndexBilder struct {
 	core.BaseRecordProxy
 }
@@ -35,35 +20,35 @@ func NewIndexBilder(record *core.Record) *IndexBilder {
 }
 
 func (b *IndexBilder) Titel() string {
-	return b.GetString(F_INDEX_BILDER_TITEL)
+	return b.GetString(F_TITLE)
 }
 
 func (b *IndexBilder) SetTitel(titel string) {
-	b.Set(F_INDEX_BILDER_TITEL, titel)
+	b.Set(F_TITLE, titel)
 }
 
 func (b *IndexBilder) Beschreibung() string {
-	return b.GetString(F_INDEX_BILDER_BESCHREIBUNG)
+	return b.GetString(F_DESCRIPTION)
 }
 
 func (b *IndexBilder) SetBeschreibung(beschreibung string) {
-	b.Set(F_INDEX_BILDER_BESCHREIBUNG, beschreibung)
+	b.Set(F_DESCRIPTION, beschreibung)
 }
 
 func (b *IndexBilder) Bild() string {
-	return b.GetString(F_INDEX_BILDER_BILD)
+	return b.GetString(F_IMAGE)
 }
 
 func (b *IndexBilder) SetBild(bild *filesystem.File) {
-	b.Set(F_INDEX_BILDER_BILD, bild)
+	b.Set(F_IMAGE, bild)
 }
 
 func (b *IndexBilder) Vorschau() string {
-	return b.GetString(F_INDEX_BILDER_VORSCHAU)
+	return b.GetString(F_PREVIEW)
 }
 
 func (b *IndexBilder) SetVorschau(vorschau *filesystem.File) {
-	b.Set(F_INDEX_BILDER_VORSCHAU, vorschau)
+	b.Set(F_PREVIEW, vorschau)
 }
 
 type IndexTexte struct {
@@ -71,7 +56,7 @@ type IndexTexte struct {
 }
 
 func (t *IndexTexte) TableName() string {
-	return GeneratePageTableName(P_INDEX_NAME, T_INDEX_TEXTE)
+	return GeneratePageTableName(P_INDEX_NAME)
 }
 
 func NewIndexTexte(record *core.Record) *IndexTexte {
@@ -81,11 +66,11 @@ func NewIndexTexte(record *core.Record) *IndexTexte {
 }
 
 func (t *IndexTexte) Titel() string {
-	return t.GetString(F_INDEX_TEXTE_TITEL)
+	return t.GetString(F_TITLE)
 }
 
 func (t *IndexTexte) SetTitel(titel string) {
-	t.Set(F_INDEX_TEXTE_TITEL, titel)
+	t.Set(F_TITLE, titel)
 }
 
 func (t *IndexTexte) Abs1() string {

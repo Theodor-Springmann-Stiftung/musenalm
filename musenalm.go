@@ -9,6 +9,7 @@ import (
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_index"
+	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_reihen"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 )
 

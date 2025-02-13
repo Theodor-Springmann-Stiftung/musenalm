@@ -1,0 +1,9 @@
+Hello {{ .name }} from the {{ .haus }}(default template)!
+{{ range $id, $r := .series }}
+	<div>
+		{{ $r.Title }}
+		<div>
+			{{ $r.Annotation }}
+		</div>
+	</div>
+{{ end }}

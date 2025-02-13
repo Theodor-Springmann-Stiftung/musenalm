@@ -7,31 +7,9 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-var bilder_fields = core.NewFieldsList(
-	&core.TextField{Name: pagemodels.F_INDEX_BILDER_TITEL, Required: true, Presentable: true},
-	&core.EditorField{Name: pagemodels.F_INDEX_BILDER_BESCHREIBUNG, Required: false, Presentable: false},
-	&core.FileField{
-		Name:      pagemodels.F_INDEX_BILDER_BILD,
-		Required:  true,
-		MaxSize:   100 * 1024 * 1024,
-		MaxSelect: 1000,
-		MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
-		Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
-	}, // 100 MB a file
-	&core.FileField{
-		Name:      pagemodels.F_INDEX_BILDER_VORSCHAU,
-		Required:  true,
-		MaxSize:   100 * 1024 * 1024,
-		MaxSelect: 1000,
-		MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
-		Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
-	}, // 100 MB a file
-)
-
 var texte_fields = core.NewFieldsList(
-	&core.TextField{Name: pagemodels.F_INDEX_TEXTE_TITEL, Required: true, Presentable: true},
-	&core.EditorField{Name: pagemodels.F_INDEX_TEXTE_ABS1, Required: false, Presentable: false},
-	&core.EditorField{Name: pagemodels.F_INDEX_TEXTE_ABS2, Required: false, Presentable: false},
+	pagemodels.EditorField(pagemodels.F_INDEX_TEXTE_ABS1),
+	pagemodels.EditorField(pagemodels.F_INDEX_TEXTE_ABS2),
 )
 
 func init() {
@@ -56,7 +34,7 @@ func init() {
 		}
 
 		collection_t, err := app.FindCollectionByNameOrId(
-			pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_TEXTE))
+			pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME))
 		if err == nil && collection_t != nil {
 			if err := app.Delete(collection_t); err != nil {
 				return err
@@ -71,15 +49,18 @@ func bilderCollection() *core.Collection {
 		pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_BILDER))
 	c.ListRule = dbmodels.PUBLIC_LIST_RULE
 	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
-	c.Fields = bilder_fields
+	c.Fields = core.NewFieldsList(
+		pagemodels.TextField(pagemodels.F_TITLE),
+		pagemodels.EditorField(pagemodels.F_DESCRIPTION),
+		pagemodels.RequiredImageField(pagemodels.F_IMAGE, false),
+		pagemodels.RequiredImageField(pagemodels.F_PREVIEW, false),
+	)
+
 	return c
 }
 
 func texteCollection() *core.Collection {
-	c := core.NewBaseCollection(
-		pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_TEXTE))
-	c.ListRule = dbmodels.PUBLIC_LIST_RULE
-	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
-	c.Fields = texte_fields
+	c := pagemodels.BasePageCollection(pagemodels.P_INDEX_NAME)
+	c.Fields = append(c.Fields, texte_fields...)
 	return c
 }
