@@ -1,6 +1,12 @@
 package dbmodels
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"slices"
+
+	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+)
 
 var _ core.RecordProxy = (*Series)(nil)
 
@@ -80,4 +86,11 @@ func (s *Series) Frequency() string {
 
 func (s *Series) SetFrequency(frequency string) {
 	s.Set(SERIES_FREQUENCY_FIELD, frequency)
+}
+
+func SortSeriesByTitle(series []*Series) {
+	collator := collate.New(language.German)
+	slices.SortFunc(series, func(i, j *Series) int {
+		return collator.CompareString(i.Title(), j.Title())
+	})
 }

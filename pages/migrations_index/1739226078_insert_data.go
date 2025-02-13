@@ -14,20 +14,48 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
+const ABS1 = "<p>Die Epoche der Almanache und Taschenbücher in der deutschsprachigen Publizistik beginnt im Jahr 1770 und klingt ab 1848 allmählich aus.</p><p>Noch heute erstaunt die Vielfalt der im Almanachwesen anzutreffenden Gegenstände: es gab literarische, politische, historische, satirische, philosophische und naturwissenschaftliche Almanache und Taschenbücher; es gab solche die der Mode, der Forstwirtschaft, dem Laientheater, dem Schachspiel oder der leichten Abendunterhaltung gewidmet waren etc.</p><p>In ihrer thematischen Bandbreite stellen Almanache und Taschenbücher über ihre oft reizvolle Ausstattung und Illustration hinaus wichtige kulturhistorische Zeitzeugen dar.</p>"
+
+const ABS2 = "Die laufend aktualisierte Datenbank erfasst die Almanache nach <a href='/reihen'>Reihen</a>, <a href='/personen'>Personen</a> und verschiedenen Arten von Beiträgen — Textbeiträgen, Graphiken oder Musikbeiträgen. Umfangreiche <a href='/recherche'>Suchfunktionen</a> helfen bei der Erschließung des Materials."
+
 func init() {
 	m.Register(func(app core.App) error {
+		index_collection, err := app.FindCollectionByNameOrId(
+			pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME))
+		if err != nil {
+			app.Logger().Error("Could not find Table Texte! You need to execute table migrations first!")
+			return err
+		}
+
 		images := readImages(app, xmlmodels.STATIC_IMG_PATH, xmlmodels.BESCHREIBUNGEN_FN)
 		for _, image := range images {
 			if err := app.Save(image); err != nil {
 				app.Logger().Error("Failed to save image:", "error", err, "image", image)
 			}
 		}
+
+		text := pagemodels.NewIndexTexte(core.NewRecord(index_collection))
+		text.SetTitel("MUSENALM")
+		text.SetAbs1(ABS1)
+		text.SetAbs2(ABS2)
+
+		if err := app.Save(text); err != nil {
+			app.Logger().Error("Failed to save text:", "error", err, "text", text)
+			return err
+		}
+
 		return nil
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(
 			pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_BILDER))
 		if err == nil && collection != nil {
 			app.DB().NewQuery("DELETE FROM " + collection.TableName()).Execute()
+		}
+
+		index_collection, err := app.FindCollectionByNameOrId(
+			pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME))
+		if err == nil && index_collection != nil {
+			app.DB().NewQuery("DELETE FROM " + index_collection.TableName()).Execute()
 		}
 		return nil
 	})

@@ -29,6 +29,7 @@ func NewEngine(layouts, templates *fs.FS) *Engine {
 		LayoutRegistry:   NewLayoutRegistry(*layouts),
 		TemplateRegistry: NewTemplateRegistry(*templates),
 		FuncMap:          make(template.FuncMap),
+		GlobalData:       make(map[string]interface{}),
 	}
 	e.funcs()
 	return &e
@@ -106,10 +107,8 @@ func (e *Engine) AddFuncs(funcs map[string]interface{}) {
 func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, layout ...string) error {
 	// TODO: check if a reload is needed if files on disk have changed
 	gd := e.GlobalData
-	if e.GlobalData != nil {
-		for k, v := range ld {
-			gd[k] = v
-		}
+	for k, v := range ld {
+		gd[k] = v
 	}
 
 	e.mu.Lock()
