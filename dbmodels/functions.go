@@ -81,3 +81,15 @@ func BasicRelationCollection(app core.App, sourcetablename, targettablename stri
 
 	return collection, nil
 }
+
+type IDable interface {
+	ID() string
+}
+
+func GetIDs(records []IDable) []string {
+	ids := []string{}
+	for _, r := range records {
+		ids = append(ids, r.ID())
+	}
+	return ids
+}

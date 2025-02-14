@@ -1,6 +1,9 @@
 package pagemodels
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -15,5 +18,27 @@ type IPage interface {
 
 type Page struct {
 	// WARNING: this is not thread safe, just set this once in setup
-	Name string
+	Name     string
+	Layout   string
+	Template string
+}
+
+func (p *Page) Up(app core.App) error {
+	return nil
+}
+
+func (p *Page) Down(app core.App) error {
+	return nil
+}
+
+func (p *Page) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+	router.GET(p.Name, func(e *core.RequestEvent) error {
+		var builder strings.Builder
+		err := engine.Render(&builder, p.Template, nil, p.Layout)
+		if err != nil {
+			return e.HTML(http.StatusInternalServerError, err.Error())
+		}
+		return e.HTML(http.StatusOK, builder.String())
+	})
+	return nil
 }

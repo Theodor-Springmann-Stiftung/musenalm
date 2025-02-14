@@ -7,11 +7,17 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/views"
+	"github.com/fsnotify/fsnotify"
 	"github.com/mattn/go-sqlite3"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+)
+
+const (
+	LAYOUT_DIR = "./views/layouts"
+	ROUTES_DIR = "./views/routes"
 )
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
@@ -103,6 +109,25 @@ func (app *App) setupTestuser() {
 
 func (app *App) Serve() error {
 	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
+	engine.Globals(map[string]interface{}{"isDev": app.MAConfig.Debug})
+
+	// INFO: hot reloading for poor people
+	if app.MAConfig.Debug {
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			return fmt.Errorf("Failed to create watcher: %w.", err)
+		}
+		defer watcher.Close()
+
+		go app.watchFN(watcher, engine)
+		if err := watcher.Add(LAYOUT_DIR); err != nil {
+			return fmt.Errorf("Failed to watch layout directory: %w.", err)
+		}
+
+		if err := watcher.Add(ROUTES_DIR); err != nil {
+			return fmt.Errorf("Failed to watch routes directory: %w.", err)
+		}
+	}
 
 	app.PB.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
 		if err := e.Next(); err != nil {
@@ -136,4 +161,21 @@ func (app *App) ResetPages() error {
 		page.Down(app.PB)
 	}
 	return nil
+}
+
+func (app *App) watchFN(watcher *fsnotify.Watcher, engine *templating.Engine) {
+	for {
+		select {
+		case _, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			engine.Reload()
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			fmt.Println("error:", err)
+		}
+	}
 }

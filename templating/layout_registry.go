@@ -33,10 +33,8 @@ func (r *LayoutRegistry) Register(fs fs.FS) *LayoutRegistry {
 	return NewLayoutRegistry(merged_fs.MergeMultiple(fs, r.layoutsFS))
 }
 
-func (r *LayoutRegistry) Reset() error {
-	r.cache.Clear()
-	r.once = sync.Once{}
-	return nil
+func (r *LayoutRegistry) Reset() *LayoutRegistry {
+	return NewLayoutRegistry(r.layoutsFS)
 }
 
 func (r *LayoutRegistry) Load() error {

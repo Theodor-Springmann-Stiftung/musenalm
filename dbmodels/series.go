@@ -20,6 +20,10 @@ func NewSeries(record *core.Record) *Series {
 	return i
 }
 
+func (s Series) ID() string {
+	return s.Id
+}
+
 func (s *Series) TableName() string {
 	return SERIES_TABLE
 }

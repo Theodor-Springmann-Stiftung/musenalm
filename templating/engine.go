@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/fs"
 	"sync"
+
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
 )
 
 const (
@@ -12,6 +14,8 @@ const (
 )
 
 type Engine struct {
+	regmu *sync.Mutex
+
 	// NOTE: LayoutRegistry and TemplateRegistry have their own syncronization & cache and do not require a mutex here
 	LayoutRegistry   *LayoutRegistry
 	TemplateRegistry *TemplateRegistry
@@ -25,6 +29,7 @@ type Engine struct {
 // which also means we must reload the engine if the app changes
 func NewEngine(layouts, templates *fs.FS) *Engine {
 	e := Engine{
+		regmu:            &sync.Mutex{},
 		mu:               &sync.Mutex{},
 		LayoutRegistry:   NewLayoutRegistry(*layouts),
 		TemplateRegistry: NewTemplateRegistry(*templates),
@@ -38,6 +43,7 @@ func NewEngine(layouts, templates *fs.FS) *Engine {
 func (e *Engine) funcs() error {
 	e.mu.Lock()
 	e.mu.Unlock()
+	e.AddFunc("Safe", functions.Safe)
 	return nil
 }
 
@@ -53,7 +59,7 @@ func (e *Engine) Globals(data map[string]interface{}) {
 	}
 }
 
-func (e *Engine) Load() error {
+func (e *Engine) Load() {
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 
@@ -68,25 +74,14 @@ func (e *Engine) Load() error {
 	}()
 
 	wg.Wait()
-	return nil
 }
 
-func (e *Engine) Reload() error {
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		e.LayoutRegistry.Reset()
-	}()
-
-	go func() {
-		defer wg.Done()
-		e.TemplateRegistry.Reset()
-	}()
-
-	wg.Wait()
-	return nil
+func (e *Engine) Reload() {
+	e.regmu.Lock()
+	defer e.regmu.Unlock()
+	e.LayoutRegistry = e.LayoutRegistry.Reset()
+	e.TemplateRegistry = e.TemplateRegistry.Reset()
+	e.Load()
 }
 
 // INFO: fn is a function that returns either one value or two values, the second one being an error
@@ -113,6 +108,8 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, l
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	e.regmu.Lock()
+	defer e.regmu.Unlock()
 	var l *template.Template
 	if layout == nil || len(layout) == 0 {
 		lay, err := e.LayoutRegistry.Default(&e.FuncMap)
