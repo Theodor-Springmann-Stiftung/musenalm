@@ -1,9 +1,29 @@
-Hello {{ .name }} from the {{ .haus }}(default template)!
+{{ if .letters }}
+	<div>
+		{{ range $id, $r := .letters }}
+			<a href="/reihen?letter={{ $r }}">{{ $r }}</a>
+		{{ end }}
+	</div>
+{{ end }}
+
 {{ range $id, $r := .series }}
 	<div>
 		{{ $r.Title }}
 		<div>
-			{{ $r.Annotation }}
+			{{ Safe $r.Annotation }}
 		</div>
+	</div>
+{{ end }}
+
+{{ if .search }}
+	<div class="mt-8">
+		{{ range $id, $r := .altseries }}
+			<div>
+				{{ $r.Title }}
+				<div>
+					{{ Safe $r.Annotation }}
+				</div>
+			</div>
+		{{ end }}
 	</div>
 {{ end }}

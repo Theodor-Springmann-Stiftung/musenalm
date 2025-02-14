@@ -33,10 +33,8 @@ func (r *TemplateRegistry) Register(path string, fs fs.FS) *TemplateRegistry {
 	return NewTemplateRegistry(merged_fs.MergeMultiple(fs, r.routesFS))
 }
 
-func (r *TemplateRegistry) Reset() error {
-	r.cache.Clear()
-	r.once = sync.Once{}
-	return nil
+func (r *TemplateRegistry) Reset() *TemplateRegistry {
+	return NewTemplateRegistry(r.routesFS)
 }
 
 func (r *TemplateRegistry) Load() error {
