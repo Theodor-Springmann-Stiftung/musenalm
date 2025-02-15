@@ -1,3 +1,5 @@
+{{ $model := . }}
+
 {{ if .letters }}
 	<div>
 		{{ range $id, $r := .letters }}
@@ -6,30 +8,44 @@
 	</div>
 {{ end }}
 
-{{ range $id, $r := .series }}
-	<div>
-		<a href="/reihe/{{ $r.MusenalmID }}">{{ $r.Title }}</a>
-		<div>
-			{{ Safe $r.Annotation }}
-		</div>
-	</div>
-{{ end }}
 
+<input
+	class="form-control"
+	type="search"
+	name="search"
+	placeholder="Suche"
+	hx-get="/reihen"
+	hx-trigger="input changed delay:=200ms, keyup[key=='Enter']"
+	hx-select="#series"
+	hx-target="#series" />
 
-<div class="flex flex-row">
-	{{ if .search }}
-		<div class="mt-8">
-			{{ range $id, $r := .altseries }}
-				<div>
-					<a href="/reihe/{{ $r.MusenalmID }}">{{ $r.Title }}</a>
-					<div>
-						{{ Safe $r.Annotation }}
+<div id="series">
+	{{ if or .series .altseries }}
+		{{ range $id, $r := .series }}
+			<div class="mb-1.5">
+				{{ template "_reihe" (Arr $model $r) }}
+			</div>
+		{{ end }}
+
+		{{ if .search }}
+			<div class="mt-8">
+				{{ range $id, $r := .altseries }}
+					<div class="mb-1.5">
+						{{ template "_reihe" (Arr $model $r) }}
 					</div>
-				</div>
-			{{ end }}
+				{{ end }}
+			</div>
+		{{ end }}
+	{{ else }}
+		<div class="mt-8">
+			Keine Reihen
+			{{ if .search }}für {{ .search }}{{ end }}
+			gefunden.
 		</div>
 	{{ end }}
+</div>
 
+<div class="flex flex-row">
 	{{ if .agents }}
 		<div class="mt-8">
 			{{ range $id, $r := .agents }}
@@ -65,5 +81,4 @@
 			{{ end }}
 		</div>
 	{{ end }}
-
 </div>

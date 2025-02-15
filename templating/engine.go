@@ -44,6 +44,7 @@ func (e *Engine) funcs() error {
 	e.mu.Lock()
 	e.mu.Unlock()
 	e.AddFunc("Safe", functions.Safe)
+	e.AddFunc("Arr", functions.Arr)
 	return nil
 }
 
@@ -101,6 +102,10 @@ func (e *Engine) AddFuncs(funcs map[string]interface{}) {
 
 func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, layout ...string) error {
 	gd := e.GlobalData
+	if ld == nil {
+		ld = make(map[string]interface{})
+	}
+
 	// INFO: don't pollute the global data space
 	for k, v := range gd {
 		_, ok := ld[k]

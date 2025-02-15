@@ -1,9 +1,16 @@
 package dbmodels
 
 import (
+	"slices"
+
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
+
+type AgentsEntries map[string][]*REntriesAgents
+type AgentsContents map[string][]*RContentsAgents
 
 func AgentForId(app core.App, id string) (*Agent, error) {
 	agent := &Agent{}
@@ -14,4 +21,194 @@ func AgentForId(app core.App, id string) (*Agent, error) {
 		return nil, err
 	}
 	return agent, nil
+}
+
+func AgentsForEntries(app core.App, entries []*Entry) (map[string]*Agent, AgentsEntries, error) {
+	eids := []any{}
+	for _, e := range entries {
+		eids = append(eids, e.Id)
+	}
+
+	relations := []*REntriesAgents{}
+	err := app.RecordQuery(RelationTableName(ENTRIES_TABLE, AGENTS_TABLE)).
+		Where(dbx.HashExp{ENTRIES_TABLE: eids}).
+		All(&relations)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentIds := []any{}
+	for _, r := range relations {
+		agentIds = append(agentIds, r.Agent())
+	}
+
+	agents := []*Agent{}
+	err = app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.HashExp{ID_FIELD: agentIds}).
+		All(&agents)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentsMap := make(map[string]*Agent, len(agents))
+	for _, a := range agents {
+		agentsMap[a.Id] = a
+	}
+
+	relationMap := make(map[string][]*REntriesAgents, len(entries))
+	for _, r := range relations {
+		relationMap[r.Entry()] = append(relationMap[r.Entry()], r)
+	}
+
+	return agentsMap, relationMap, nil
+}
+
+func AgentsForContents(app core.App, contents []*Content) (map[string]*Agent, AgentsContents, error) {
+	cids := []any{}
+	for _, c := range contents {
+		cids = append(cids, c.Id)
+	}
+
+	relations := []*RContentsAgents{}
+	err := app.RecordQuery(RelationTableName(CONTENTS_TABLE, AGENTS_TABLE)).
+		Where(dbx.HashExp{CONTENTS_TABLE: cids}).
+		All(&relations)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentIds := []any{}
+	for _, r := range relations {
+		agentIds = append(agentIds, r.Agent())
+	}
+
+	agents := []*Agent{}
+	err = app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.HashExp{ID_FIELD: agentIds}).
+		All(&agents)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentsMap := make(map[string]*Agent, len(agents))
+	for _, a := range agents {
+		agentsMap[a.Id] = a
+	}
+
+	relationMap := make(map[string][]*RContentsAgents, len(contents))
+	for _, r := range relations {
+		relationMap[r.Content()] = append(relationMap[r.Content()], r)
+	}
+
+	return agentsMap, relationMap, nil
+}
+
+func LettersForAgents(app core.App) ([]string, error) {
+	letters := []core.Record{}
+	ids := []string{}
+
+	err := app.RecordQuery(AGENTS_TABLE).
+		Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+		Distinct(true).
+		All(&letters)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, l := range letters {
+		ids = append(ids, l.GetString("id"))
+	}
+
+	collator := collate.New(language.German, collate.Loose)
+	collator.SortStrings(ids)
+
+	return ids, nil
+}
+
+func AgentsForLetter(app core.App, letter string) ([]*Agent, error) {
+	agents := []*Agent{}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
+		OrderBy(AGENTS_NAME_FIELD).
+		All(&agents)
+	if err != nil {
+		return nil, err
+	}
+
+	return agents, nil
+}
+
+func SortAgentsByName(series []*Agent) {
+	collator := collate.New(language.German, collate.Loose)
+	slices.SortFunc(series, func(i, j *Agent) int {
+		return collator.CompareString(i.Name(), j.Name())
+	})
+}
+
+func BasicSearchAgents(app core.App, query string) ([]*Agent, []*Agent, error) {
+	agents, err := TitleSearchAgents(app, query)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	altagents, err := AltSearchAgents(app, query)
+	if err != nil {
+		return nil, nil, err
+	}
+	return agents, altagents, nil
+}
+
+func TitleSearchAgents(app core.App, query string) ([]*Agent, error) {
+	agents := []*Agent{}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.Like(AGENTS_NAME_FIELD, query).Match(true, true)).
+		OrWhere(dbx.Like(AGENTS_PSEUDONYMS_FIELD, query).Match(true, true)).
+		OrderBy(AGENTS_NAME_FIELD).
+		All(&agents)
+	if err != nil {
+		return nil, err
+	}
+
+	return agents, nil
+}
+
+func AltSearchAgents(app core.App, query string) ([]*Agent, error) {
+	agents := []*Agent{}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.Like(ANNOTATION_FIELD, query).Match(true, true)).
+		OrderBy(AGENTS_NAME_FIELD).
+		All(&agents)
+	if err != nil {
+		return nil, err
+	}
+
+	return agents, nil
+}
+
+func AgentsForProfession(app core.App, profession string, letter string) ([]*Agent, error) {
+	agents := []*Agent{}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
+		AndWhere(dbx.Like(AGENTS_PROFESSION_FIELD, profession).Match(true, true)).
+		OrderBy(AGENTS_NAME_FIELD).
+		All(&agents)
+	if err != nil {
+		return nil, err
+	}
+
+	return agents, nil
+}
+
+func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
+	agents := []*Agent{}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
+		AndWhere(dbx.HashExp{AGENTS_CORP_FIELD: org}).
+		OrderBy(AGENTS_NAME_FIELD).
+		All(&agents)
+	if err != nil {
+		return nil, err
+	}
+
+	return agents, nil
 }

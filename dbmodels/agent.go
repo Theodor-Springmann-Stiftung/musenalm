@@ -1,11 +1,7 @@
 package dbmodels
 
 import (
-	"slices"
-
 	"github.com/pocketbase/pocketbase/core"
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
 )
 
 var _ core.RecordProxy = (*Agent)(nil)
@@ -114,11 +110,4 @@ func (a *Agent) SetEditState(editState string) {
 
 func (a *Agent) Comment() string {
 	return a.GetString(COMMENT_FIELD)
-}
-
-func SortAgentsByName(series []*Agent) {
-	collator := collate.New(language.German)
-	slices.SortFunc(series, func(i, j *Agent) int {
-		return collator.CompareString(i.Name(), j.Name())
-	})
 }

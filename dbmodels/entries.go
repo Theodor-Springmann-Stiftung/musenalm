@@ -88,3 +88,36 @@ func EntryForId(app core.App, id string) (*Entry, error) {
 	}
 	return entry, nil
 }
+
+func EntryForMusenalmID(app core.App, id string) (*Entry, error) {
+	entry := &Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.HashExp{MUSENALMID_FIELD: id}).
+		One(entry)
+	if err != nil {
+		return nil, err
+	}
+	return entry, nil
+}
+
+func EntriesForContents(app core.App, contents []*Content) (map[string]*Entry, error) {
+	cids := []any{}
+	for _, c := range contents {
+		cids = append(cids, c.Entry())
+	}
+
+	entries := []*Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.HashExp{ID_FIELD: cids}).
+		All(&entries)
+	if err != nil {
+		return nil, err
+	}
+
+	entriesMap := make(map[string]*Entry, len(entries))
+	for _, e := range entries {
+		entriesMap[e.Id] = e
+	}
+
+	return entriesMap, nil
+}

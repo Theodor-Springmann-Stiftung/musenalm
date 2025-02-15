@@ -24,14 +24,6 @@ type IndexPage struct {
 	pagemodels.Page
 }
 
-func (p *IndexPage) Up(app core.App) error {
-	return nil
-}
-
-func (p *IndexPage) Down(app core.App) error {
-	return nil
-}
-
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET("/{$}", func(e *core.RequestEvent) error {
 		var builder strings.Builder

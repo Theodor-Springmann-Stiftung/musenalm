@@ -68,7 +68,7 @@ func IDsForSeriesses(series []*Series) []any {
 func makeMapForEnrySeries(relations []*REntriesSeries, entries map[string]*Entry) SeriesEntries {
 	m := map[string][]*REntriesSeries{}
 	for _, r := range relations {
-		m[r.Id] = append(m[r.Id], r)
+		m[r.Series()] = append(m[r.Series()], r)
 	}
 
 	for _, rel := range m {
@@ -111,8 +111,8 @@ func EntriesForSeriesses(app core.App, series []*Series) (
 
 	smap := map[string][]*REntriesSeries{}
 	for _, r := range relations {
-		series := NewREntriesSeries(r)
-		smap[series.Id] = append(smap[series.Id], series)
+		rel := NewREntriesSeries(r)
+		smap[rel.Series()] = append(smap[rel.Series()], rel)
 	}
 
 	for _, rel := range smap {
