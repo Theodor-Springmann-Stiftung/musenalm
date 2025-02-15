@@ -15,6 +15,8 @@
 	<h2>Inhalte</h2>
 	{{ range $id, $c := .contents }}
 		<div>
+			{{ $e := index $model.centries $c.Entry }}
+			<a href="/almanach/{{ $e.MusenalmID }}">{{ $e.PreferredTitle }}</a>
 			{{ $c.PreferredTitle }}
 			{{ $c.Numbering }}
 		</div>
