@@ -15,15 +15,55 @@
 	</div>
 {{ end }}
 
-{{ if .search }}
-	<div class="mt-8">
-		{{ range $id, $r := .altseries }}
-			<div>
-				{{ $r.Title }}
+
+<div class="flex flex-row">
+	{{ if .search }}
+		<div class="mt-8">
+			{{ range $id, $r := .altseries }}
 				<div>
-					{{ Safe $r.Annotation }}
+					{{ $r.Title }}
+					<div>
+						{{ Safe $r.Annotation }}
+					</div>
 				</div>
-			</div>
-		{{ end }}
-	</div>
-{{ end }}
+			{{ end }}
+		</div>
+	{{ end }}
+
+	{{ if .agents }}
+		<div class="mt-8">
+			{{ range $id, $r := .agents }}
+				<div>
+					<a href="/reihen?agent={{ $r.Id }}">{{ $r.Name }}</a>
+				</div>
+			{{ end }}
+		</div>
+	{{ end }}
+
+	{{ if .places }}
+		<div class="mt-8">
+			{{ range $id, $r := .places }}
+				<div>
+					<a href="/reihen?place={{ $r.Id }}">{{ $r.Name }}</a>
+				</div>
+			{{ end }}
+		</div>
+	{{ end }}
+
+	{{ if .years }}
+		<div class="mt-8">
+			{{ range $id, $r := .years }}
+				{{ if eq $r 0 }}
+					<div>
+						<a href="/reihen?year=0">ohne Jahr</a>
+					</div>
+				{{ else }}
+					<div>
+						<a href="/reihen?year={{ $r }}">{{ $r }}</a>
+					</div>
+				{{ end }}
+			{{ end }}
+		</div>
+	{{ end }}
+
+</div>

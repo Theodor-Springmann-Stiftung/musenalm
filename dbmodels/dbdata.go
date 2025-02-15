@@ -423,6 +423,7 @@ const (
 	CONTENTS_TABLE = "contents"
 	ITEMS_TABLE    = "items"
 
+	ID_FIELD         = "id"
 	ANNOTATION_FIELD = "annotation"
 
 	MUSENALMID_FIELD = "musenalm_id"
