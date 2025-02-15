@@ -15,7 +15,6 @@ import (
 
 const (
 	URL_REIHEN   = "/reihen/"
-	URL_REIHE    = "/reihen/{id}/"
 	PARAM_LETTER = "letter"
 	PARAM_SEARCH = "search"
 	PARAM_PERSON = "agent"

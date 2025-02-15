@@ -8,7 +8,7 @@
 
 {{ range $id, $r := .series }}
 	<div>
-		{{ $r.Title }}
+		<a href="/reihe/{{ $r.MusenalmID }}">{{ $r.Title }}</a>
 		<div>
 			{{ Safe $r.Annotation }}
 		</div>
@@ -21,7 +21,7 @@
 		<div class="mt-8">
 			{{ range $id, $r := .altseries }}
 				<div>
-					{{ $r.Title }}
+					<a href="/reihe/{{ $r.MusenalmID }}">{{ $r.Title }}</a>
 					<div>
 						{{ Safe $r.Annotation }}
 					</div>
