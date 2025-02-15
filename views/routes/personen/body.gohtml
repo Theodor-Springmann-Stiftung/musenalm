@@ -1,0 +1,92 @@
+{{ $model := . }}
+
+{{ range $count, $letter := $model.letters }}
+	<a href="/personen?letter={{ $letter }}{{ if $model.filter }}&filter={{ $model.filter }}{{ end }}"
+		>{{ $letter }}</a
+	>
+{{ end }}
+
+
+<input
+	class="form-control"
+	type="search"
+	name="search"
+	placeholder="Suche"
+	hx-get="/personen"
+	hx-trigger="input changed delay:200ms, keyup[key=='Enter']"
+	hx-select="#agents"
+	hx-target="#agents" />
+
+<div>
+	<a href="/personen{{ if .letter }}?letter={{ .letter }}{{ end }}">Alle</a>
+	<a href="/personen?filter=org{{ if .letter }}&letter={{ .letter }}{{ end }}"
+		>Verlage u. Druckereien</a
+	>
+	<a href="/personen?filter=noorg{{ if .letter }}&letter={{ .letter }}{{ end }}">Personen</a>
+	<a href="/personen?filter=musik{{ if .letter }}&letter={{ .letter }}{{ end }}">Musiker:innen</a>
+	<a href="/personen?filter=autor{{ if .letter }}&letter={{ .letter }}{{ end }}">Autor:innen</a>
+	<a href="/personen?filter=graphik{{ if .letter }}&letter={{ .letter }}{{ end }}"
+		>Graphiker:innen</a
+	>
+	<a href="/personen?filter=hrsg{{ if .letter }}&letter={{ .letter }}{{ end }}"
+		>Herausgeber:innen</a
+	>
+</div>
+
+<div id="agents">
+	{{ if or .agents .altagents }}
+		{{ if .agents }}
+			<table class="w-full [&_td]:!align-top">
+				{{ range $count, $agent := .agents }}
+					<tr>
+						<td>
+							<a href="/person/{{ $agent.Id }}">
+								{{ $agent.Name }}
+								{{ if $agent.Pseudonyms }}
+									<br />
+									({{ $agent.Pseudonyms }})
+								{{ end }}
+							</a>
+						</td>
+						<td>
+							{{ if $agent.CorporateBody }}
+								Körperschaft
+							{{ else }}
+								{{ $agent.Profession }},
+								{{ $agent.BiographicalData }}
+							{{ end }}
+						</td>
+						<td>{{ $agent.References }}</td>
+					</tr>
+				{{ end }}
+
+			</table>
+		{{ end }}
+		{{ if .altagents }}
+			<table class="w-full mt-6">
+				{{ range $count, $agent := .altagents }}
+					<tr>
+						<td>
+							{{ $agent.Name }}
+							{{ if $agent.Pseudonyms }}
+								<br />
+								({{ $agent.Pseudonyms }})
+							{{ end }}
+						</td>
+						<td>
+							{{ if $agent.CorporateBody }}
+								Körperschaft
+							{{ else }}
+								{{ $agent.Profession }},
+								{{ $agent.BiographicalData }}
+							{{ end }}
+						</td>
+						<td>{{ $agent.References }}</td>
+					</tr>
+				{{ end }}
+			</table>
+		{{ end }}
+	{{ else }}
+		<p>Keine Personen gefunden.</p>
+	{{ end }}
+</div>

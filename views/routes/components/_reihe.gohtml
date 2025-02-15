@@ -1,0 +1,21 @@
+{{ $model := index . 0 }}
+{{ $r := index . 1 }}
+
+
+<a href="/reihe/{{ $r.MusenalmID }}">{{ $r.Title }}</a>
+<div>
+	{{ Safe $r.Annotation }}
+</div>
+<div>
+	{{ $bds := index $model.relations $r.Id }}
+	{{ if $bds }}
+		{{ range $_, $rel := $bds }}
+			{{ $bd := index $model.entries $rel.Entry }}
+			{{ if $bd }}
+				<div>
+					<a href="/almanach/{{ $bd.MusenalmID }}">{{ $bd.Year }}</a>
+				</div>
+			{{ end }}
+		{{ end }}
+	{{ end }}
+</div>

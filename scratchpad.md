@@ -21,3 +21,9 @@ Für einen Umzug:
 Alle PB-Abfragen die Record benutzen, nach sql-Abfragen umwandeln.
 Eigene DB-Connection
 Modelle umwandeln (zzt RecordProxy)
+
+
+- Abfragen Personen
+- Abfragen Person
+- Ersellen & Abfragen FTS5-Tabellen
+- Erstellen Textseiten

@@ -1,0 +1,22 @@
+{{ $model := . }}
+
+{{ if .entries }}
+	<h2>Bände nach Riehentiteln</h2>
+	{{ range $id, $r := .series }}
+		<div>
+			{{ template "_reihe" (Arr $model $r) }}
+		</div>
+	{{ end }}
+{{ else }}
+	<div>Keine Bände</div>
+{{ end }}
+
+{{ if .contents }}
+	<h2>Inhalte</h2>
+	{{ range $id, $c := .contents }}
+		<div>
+			{{ $c.PreferredTitle }}
+			{{ $c.Numbering }}
+		</div>
+	{{ end }}
+{{ end }}

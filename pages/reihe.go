@@ -36,13 +36,13 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 		data := make(map[string]interface{})
 		reihe, err := dbmodels.SeriesForId(app, id)
 		if err != nil {
-			return err
+			return Error404(e, engine, err)
 		}
 		data["series"] = reihe
 
 		rmap, emap, err := dbmodels.EntriesForSeriesses(app, []*dbmodels.Series{reihe})
 		if err != nil {
-			return err
+			return Error404(e, engine, err)
 		}
 
 		data["relations"] = rmap
@@ -58,7 +58,7 @@ func (p *ReihePage) Get(request *core.RequestEvent, engine *templating.Engine, d
 	var builder strings.Builder
 	err := engine.Render(&builder, TEMPLATE_REIHE, data)
 	if err != nil {
-		return err
+		return Error404(request, engine, err)
 	}
 	return request.HTML(http.StatusOK, builder.String())
 }
