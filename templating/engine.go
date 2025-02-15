@@ -100,10 +100,13 @@ func (e *Engine) AddFuncs(funcs map[string]interface{}) {
 }
 
 func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, layout ...string) error {
-	// TODO: check if a reload is needed if files on disk have changed
 	gd := e.GlobalData
-	for k, v := range ld {
-		gd[k] = v
+	// INFO: don't pollute the global data space
+	for k, v := range gd {
+		_, ok := ld[k]
+		if !ok {
+			ld[k] = v
+		}
 	}
 
 	e.mu.Lock()
@@ -135,7 +138,7 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, l
 		return err
 	}
 
-	err = lay.Execute(out, gd)
+	err = lay.Execute(out, ld)
 	if err != nil {
 		return err
 	}

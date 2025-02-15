@@ -2,22 +2,25 @@ package pages
 
 import (
 	"net/http"
-	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
 const (
 	URL_REIHEN   = "/reihen/"
+	URL_REIHE    = "/reihen/{id}/"
 	PARAM_LETTER = "letter"
 	PARAM_SEARCH = "search"
+	PARAM_PERSON = "agent"
+	PARAM_PLACE  = "place"
+	PARAM_YEAR   = "year"
 )
 
 func init() {
@@ -47,179 +50,177 @@ func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 		if search != "" {
 			return p.SearchRequest(app, engine, e)
 		}
+		person := e.Request.URL.Query().Get(PARAM_PERSON)
+		if person != "" {
+			return p.PersonRequest(app, engine, e)
+		}
+		place := e.Request.URL.Query().Get(PARAM_PLACE)
+		if place != "" {
+			return p.PlaceRequest(app, engine, e)
+		}
+		year := e.Request.URL.Query().Get(PARAM_YEAR)
+		if year != "" {
+			return p.YearRequest(app, engine, e)
+		}
 
 		return p.LetterRequest(app, engine, e)
 	})
 	return nil
 }
 
+func (p *ReihenPage) YearRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
+	year := e.Request.URL.Query().Get(PARAM_YEAR)
+	data := map[string]interface{}{}
+	data[PARAM_YEAR] = year
+
+	y, err := strconv.Atoi(year)
+	if err != nil {
+		return err
+	}
+
+	series, relations, entries, err := dbmodels.SeriesForYear(app, y)
+	if err != nil {
+		return err
+	}
+	data["entries"] = entries
+	data["relations"] = relations
+	data["series"] = series
+
+	return p.Get(e, engine, data)
+}
+
 func (p *ReihenPage) LetterRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	letter := e.Request.URL.Query().Get(PARAM_LETTER)
+	data := map[string]interface{}{}
 	if letter == "" {
 		letter = "A"
 	}
-	series := []*dbmodels.Series{}
-	err := app.RecordQuery(dbmodels.SERIES_TABLE).
-		Where(dbx.Like(dbmodels.SERIES_TITLE_FIELD, letter).Match(false, true)).
-		OrderBy(dbmodels.SERIES_TITLE_FIELD).
-		All(&series)
-	// INFO: this does not return an error if the result set is empty
+	data[PARAM_LETTER] = letter
+
+	series, err := dbmodels.SeriesForLetter(app, letter)
 	if err != nil {
 		return err
 	}
-
 	// INFO: We sort again since the query can't sort german umlauts correctly
-	dbmodels.SortSeriesByTitle(series)
+	dbmodels.SortSeriessesByTitle(series)
+	data["series"] = series
 
-	smap, bmap := p.EntriesForSeries(app, series)
-	agents, _ := p.GetAgents(app)
-
-	var builder strings.Builder
-	err = engine.Render(&builder, URL_REIHEN, map[string]interface{}{
-		PARAM_LETTER: letter,
-		"series":     series,
-		"letters":    p.Letters(app),
-		"entries":    bmap,
-		"relations":  smap,
-		"agents":     agents,
-	})
+	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
 	if err != nil {
 		return err
 	}
+	data["entries"] = bmap
+	data["relations"] = rmap
 
-	return e.HTML(http.StatusOK, builder.String())
+	return p.Get(e, engine, data)
+}
+
+func (p *ReihenPage) PersonRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
+	person := e.Request.URL.Query().Get(PARAM_PERSON)
+	data := map[string]interface{}{}
+	data[PARAM_PERSON] = person
+
+	agent, err := dbmodels.AgentForId(app, person)
+	if err != nil {
+		return err
+	}
+	data["a"] = agent
+
+	series, relations, entries, err := dbmodels.SeriesForAgent(app, person)
+	if err != nil {
+		return err
+	}
+	data["series"] = series
+	data["relations"] = relations
+	data["entries"] = entries
+
+	return p.Get(e, engine, data)
+}
+
+func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
+	place := e.Request.URL.Query().Get(PARAM_PLACE)
+	data := map[string]interface{}{}
+	data[PARAM_PLACE] = place
+
+	pl, err := dbmodels.PlaceForId(app, place)
+	if err != nil {
+		return err
+	}
+	data["p"] = pl
+
+	series, relations, entries, err := dbmodels.SeriesForPlace(app, place)
+	if err != nil {
+		return err
+	}
+	data["series"] = series
+	data["relations"] = relations
+	data["entries"] = entries
+
+	return p.Get(e, engine, data)
 }
 
 func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
-	series := []*dbmodels.Series{}
-	err := app.RecordQuery(dbmodels.SERIES_TABLE).
-		Where(dbx.Like(dbmodels.SERIES_TITLE_FIELD, search).Match(true, true)).
-		OrderBy(dbmodels.SERIES_TITLE_FIELD).
-		All(&series)
+	data := map[string]interface{}{}
+	data[PARAM_SEARCH] = search
+	series, altseries, err := dbmodels.BasicSearchSeries(app, search)
 	if err != nil {
 		return err
 	}
+	dbmodels.SortSeriessesByTitle(series)
+	dbmodels.SortSeriessesByTitle(altseries)
+	data["series"] = series
+	data["altseries"] = altseries
 
-	altseries := []*dbmodels.Series{}
-	err = app.RecordQuery(dbmodels.SERIES_TABLE).
-		Where(dbx.Like(dbmodels.ANNOTATION_FIELD, search).Match(true, true)).
-		OrderBy(dbmodels.SERIES_TITLE_FIELD).
-		All(&altseries)
+	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
 	if err != nil {
 		return err
 	}
+	data["entries"] = bmap
+	data["relations"] = rmap
 
-	dbmodels.SortSeriesByTitle(series)
-	dbmodels.SortSeriesByTitle(altseries)
+	return p.Get(e, engine, data)
+}
 
-	smap, bmap := p.EntriesForSeries(app, series)
-	agents, _ := p.GetAgents(app)
+func (p *ReihenPage) CommonData(app core.App, data map[string]interface{}) error {
+	agents, err := dbmodels.AllAgentsForSeries(app)
+	if err != nil {
+		return err
+	}
+	data["agents"] = agents
+
+	letters, err := dbmodels.LettersForSeries(app)
+	if err != nil {
+		return err
+	}
+	data["letters"] = letters
+
+	places, err := dbmodels.AllPlaces(app)
+	if err != nil {
+		return err
+	}
+	dbmodels.SortPlacesByName(places)
+	data["places"] = places
+
+	years, err := dbmodels.YearsForEntries(app)
+	if err != nil {
+		return err
+	}
+	data["years"] = years
+
+	return nil
+}
+
+func (p *ReihenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
+	err := p.CommonData(request.App, data)
+	if err != nil {
+		return err
+	}
 
 	var builder strings.Builder
-	err = engine.Render(&builder, URL_REIHEN, map[string]interface{}{
-		PARAM_SEARCH: search,
-		"series":     series,
-		"altseries":  altseries,
-		"letters":    p.Letters(app),
-		"entries":    bmap,
-		"relations":  smap,
-		"agents":     agents,
-	})
+	err = engine.Render(&builder, URL_REIHEN, data)
 	if err != nil {
 		return err
 	}
-
-	return e.HTML(http.StatusOK, builder.String())
-}
-
-func (p *ReihenPage) Letters(app core.App) []string {
-	letters := []core.Record{}
-	ids := []string{}
-
-	err := app.RecordQuery(dbmodels.SERIES_TABLE).
-		Select("upper(substr(" + dbmodels.SERIES_TITLE_FIELD + ", 1, 1)) AS id").
-		Distinct(true).
-		All(&letters)
-	if err != nil {
-		return ids
-	}
-
-	for _, l := range letters {
-		ids = append(ids, l.GetString("id"))
-	}
-	return ids
-}
-
-func (p *ReihenPage) EntriesForSeries(app core.App, series []*dbmodels.Series) (
-	map[string][]*dbmodels.REntriesSeries,
-	map[string]*dbmodels.Entry) {
-	ids := []any{}
-	for _, s := range series {
-		ids = append(ids, s.Id)
-	}
-
-	relations := []*core.Record{}
-
-	err := app.RecordQuery(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)).
-		Where(dbx.HashExp{
-			dbmodels.SERIES_TABLE: ids,
-		}).
-		All(&relations)
-	if err != nil {
-		return nil, nil
-	}
-
-	app.ExpandRecords(relations, []string{dbmodels.ENTRIES_TABLE}, nil)
-	bmap := map[string]*dbmodels.Entry{}
-	for _, r := range relations {
-		record := r.ExpandedOne(dbmodels.ENTRIES_TABLE)
-		if record == nil {
-			continue
-		}
-		entry := dbmodels.NewEntry(record)
-		bmap[entry.Id] = entry
-	}
-
-	smap := map[string][]*dbmodels.REntriesSeries{}
-	for _, r := range relations {
-		series := dbmodels.NewREntriesSeries(r)
-		smap[series.Id] = append(smap[series.Id], series)
-	}
-
-	for _, rel := range smap {
-		slices.SortFunc(rel, func(i, j *dbmodels.REntriesSeries) int {
-			ientry := bmap[i.Entry()]
-			jentry := bmap[j.Entry()]
-			return ientry.Year() - jentry.Year()
-		})
-	}
-
-	return smap, bmap
-}
-
-func (p *ReihenPage) GetAgents(app core.App) ([]*dbmodels.Agent, error) {
-	rels := []*core.Record{}
-	// INFO: we could just fetch all relations here
-	err := app.RecordQuery(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)).
-		GroupBy(dbmodels.AGENTS_TABLE).
-		All(&rels)
-	if err != nil {
-		return nil, err
-	}
-
-	app.ExpandRecords(rels, []string{dbmodels.AGENTS_TABLE}, nil)
-	agents := []*dbmodels.Agent{}
-	for _, r := range rels {
-		record := r.ExpandedOne(dbmodels.AGENTS_TABLE)
-		if record == nil {
-			continue
-		}
-		agent := dbmodels.NewAgent(record)
-		agents = append(agents, agent)
-	}
-
-	dbmodels.SortAgentsByName(agents)
-
-	return agents, err
+	return request.HTML(http.StatusOK, builder.String())
 }
