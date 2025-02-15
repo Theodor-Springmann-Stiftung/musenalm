@@ -155,6 +155,15 @@ func handleOrte(
 			}
 
 			if e {
+				rec, err := app.FindFirstRecordByData(dbmodels.PLACES_TABLE, dbmodels.PLACES_NAME_FIELD, NormalizeString(o.Name))
+				if err != nil {
+					app.Logger().Error("Error finding record", "error", err, "record", rec)
+				} else if rec != nil {
+					err = app.Delete(rec)
+					if err != nil {
+						app.Logger().Error("Error deleting record", "error", err, "record", rec)
+					}
+				}
 				// INFO: We do not need to get the record metadata here, as we know that the record is new
 				record.SetMeta(map[string]dbmodels.MetaData{dbmodels.PLACES_TABLE: {Conjecture: true}})
 			}
