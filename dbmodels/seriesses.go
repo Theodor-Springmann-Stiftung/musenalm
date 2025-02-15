@@ -246,3 +246,15 @@ func SeriesForYear(app core.App, year int) ([]*Series, SeriesEntries, map[string
 
 	return SeriesForEntries(app, series)
 }
+
+func SeriesForId(app core.App, id string) (*Series, error) {
+	s := &Series{}
+	err := app.RecordQuery(SERIES_TABLE).
+		Where(dbx.HashExp{MUSENALMID_FIELD: id}).
+		One(s)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
