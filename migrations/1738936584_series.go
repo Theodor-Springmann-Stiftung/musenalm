@@ -37,6 +37,7 @@ func seriesFields() core.FieldsList {
 		&core.TextField{Name: dbmodels.SERIES_FREQUENCY_FIELD, Required: false},
 	)
 
+	dbmodels.SetCreatedUpdatedFields(&fields)
 	dbmodels.SetMusenalmIDField(&fields)
 	dbmodels.SetEditorStateField(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)

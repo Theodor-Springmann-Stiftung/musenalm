@@ -1,4 +1,4 @@
-package migrations_reihen
+package migrations_danksagungen
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -9,7 +9,6 @@ import (
 
 var reihen_fields = core.NewFieldsList(
 	pagemodels.EditorField(pagemodels.F_TEXT),
-	pagemodels.RequiredImageField(pagemodels.F_IMAGE, false),
 )
 
 func init() {
@@ -22,7 +21,7 @@ func init() {
 		return nil
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(
-			pagemodels.GeneratePageTableName(pagemodels.P_REIHEN_NAME))
+			pagemodels.GeneratePageTableName(pagemodels.P_DANK_NAME))
 		if err == nil && collection != nil {
 			if err := app.Delete(collection); err != nil {
 				app.Logger().Error("Failed to delete collection:", "error", err, "collection", collection)
@@ -34,7 +33,7 @@ func init() {
 }
 
 func pageCollection() *core.Collection {
-	c := pagemodels.BasePageCollection(pagemodels.P_REIHEN_NAME)
+	c := pagemodels.BasePageCollection(pagemodels.P_DANK_NAME)
 	c.Fields = append(c.Fields, reihen_fields...)
 	dbmodels.SetBasicPublicRules(c)
 	return c

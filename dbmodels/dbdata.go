@@ -424,6 +424,8 @@ const (
 	ITEMS_TABLE    = "items"
 
 	ID_FIELD         = "id"
+	CREATED_FIELD    = "created"
+	UPDATED_FIELD    = "updated"
 	ANNOTATION_FIELD = "annotation"
 
 	MUSENALMID_FIELD = "musenalm_id"

@@ -134,23 +134,26 @@ func (app *App) Serve() error {
 			return err
 		}
 
-		for _, page := range pages {
-			err := page.Up(e.App)
-			if err != nil {
-				page.Down(e.App)
-				continue
-			}
-			app.Pages = append(app.Pages, page)
-		}
 		return nil
 	})
 
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+		// INFO: we put this here, to make sure all migrations are done
+		for _, page := range pages {
+			err := page.Up(e.App)
+			if err != nil {
+				app.PB.Logger().Error("Failed to up page %q: %v", "error", err)
+				page.Down(e.App)
+				continue
+			}
+			app.Pages = append(app.Pages, page)
+		}
 
 		for _, page := range app.Pages {
 			page.Setup(e.Router, e.App, engine)
 		}
+
 		return e.Next()
 	})
 	return app.PB.Start()
