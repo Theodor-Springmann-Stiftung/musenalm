@@ -26,6 +26,14 @@ func (p *Place) SetName(name string) {
 	p.Set(PLACES_NAME_FIELD, name)
 }
 
+func (p *Place) Pseudonyms() string {
+	return p.GetString(PLACES_PSEUDONYMS_FIELD)
+}
+
+func (p *Place) SetPseudonyms(pseudonyms string) {
+	p.Set(PLACES_PSEUDONYMS_FIELD, pseudonyms)
+}
+
 func (p *Place) Fictional() bool {
 	return p.GetBool(PLACES_FICTIONAL_FIELD)
 }

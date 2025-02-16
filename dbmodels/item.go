@@ -114,10 +114,10 @@ func (a *Item) SetEditState(editState string) {
 	a.Set(EDITSTATE_FIELD, editState)
 }
 
-func (a *Item) Comments() string {
+func (a *Item) Comment() string {
 	return a.GetString(COMMENT_FIELD)
 }
 
-func (a *Item) SetComments(comments string) {
+func (a *Item) SetComment(comments string) {
 	a.Set(COMMENT_FIELD, comments)
 }
