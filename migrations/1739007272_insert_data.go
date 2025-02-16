@@ -66,7 +66,6 @@ func init() {
 				}
 			}
 			placesmap = datatypes.MakeMap(places, func(record *dbmodels.Place) string { return record.Name() })
-			placesmapid = datatypes.MakeMap(places, func(record *dbmodels.Place) string { return record.Id })
 			wg.Done()
 		}()
 
@@ -103,15 +102,16 @@ func init() {
 		wg.Add(2)
 
 		go func() {
-			if records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO, entriesmap); err == nil {
-				for _, record := range records {
-					if err = app.Save(record); err != nil {
-						app.Logger().Error("Error saving record", "error", err, "record", record)
-					}
-				}
-			} else {
+			records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO, entriesmap)
+			if err != nil {
 				panic(err)
 			}
+			for _, record := range records {
+				if err = app.Save(record); err != nil {
+					app.Logger().Error("Error saving record", "error", err, "record", record)
+				}
+			}
+			items = records
 			wg.Done()
 		}()
 
@@ -183,6 +183,15 @@ func init() {
 
 		wg.Wait()
 
+		// INFO: We need to get places again, sice it has changed in entries
+		places := []*dbmodels.Place{}
+		err = app.RecordQuery(dbmodels.PLACES_TABLE).All(&places)
+		if err != nil {
+			panic(err)
+		}
+
+		placesmapid = datatypes.MakeMap(places, func(record *dbmodels.Place) string { return record.Id })
+
 		// INFO: Inserting FTS5 data
 		qp := dbmodels.FTS5InsertQuery(app, dbmodels.PLACES_TABLE, dbmodels.PLACES_FTS5_FIELDS)
 		qa := dbmodels.FTS5InsertQuery(app, dbmodels.AGENTS_TABLE, dbmodels.AGENTS_FTS5_FIELDS)
@@ -191,7 +200,7 @@ func init() {
 		qe := dbmodels.FTS5InsertQuery(app, dbmodels.ENTRIES_TABLE, dbmodels.ENTRIES_FTS5_FIELDS)
 		qc := dbmodels.FTS5InsertQuery(app, dbmodels.CONTENTS_TABLE, dbmodels.CONTENTS_FTS5_FIELDS)
 
-		for _, place := range placesmap {
+		for _, place := range places {
 			if err = dbmodels.BulkInsertFTS5Place(qp, place); err != nil {
 				app.Logger().Error("Error inserting place", "error", err, "place", place)
 			}
