@@ -9,7 +9,7 @@ func BasePageCollection(pagename string) *core.Collection {
 	c := core.NewBaseCollection(GeneratePageTableName(pagename))
 	c.ListRule = dbmodels.PUBLIC_LIST_RULE
 	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
-	c.Fields = StandardPageFields()
+	c.Fields = append(c.Fields, StandardPageFields()...)
 	return c
 }
 
@@ -19,6 +19,8 @@ func StandardPageFields() core.FieldsList {
 		EditorField(F_DESCRIPTION),
 		TextField(F_TAGS),
 	)
+
+	ret = append(ret, CreatedUpdatedFields()...)
 	return ret
 }
 
@@ -62,4 +64,11 @@ func RequiredImageField(name string, multiselect bool) *core.FileField {
 		MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
 		Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
 	}
+}
+
+func CreatedUpdatedFields() core.FieldsList {
+	return core.NewFieldsList(
+		&core.AutodateField{Name: dbmodels.CREATED_FIELD, OnCreate: true},
+		&core.AutodateField{Name: dbmodels.UPDATED_FIELD, OnCreate: true, OnUpdate: true},
+	)
 }

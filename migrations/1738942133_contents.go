@@ -115,6 +115,7 @@ func partialsFields(app core.App) *core.FieldsList {
 	)
 
 	dbmodels.SetMusenalmIDField(&fields)
+	dbmodels.SetCreatedUpdatedFields(&fields)
 	dbmodels.SetEditorStateField(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)
 

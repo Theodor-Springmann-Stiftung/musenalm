@@ -37,6 +37,7 @@ func placesFields() core.FieldsList {
 		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, OnlyDomains: []string{"geonames.org"}},
 	)
 
+	dbmodels.SetCreatedUpdatedFields(&fields)
 	dbmodels.SetMusenalmIDField(&fields)
 	dbmodels.SetEditorStateField(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)

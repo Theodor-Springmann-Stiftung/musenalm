@@ -59,6 +59,7 @@ func itemsFields(app core.App) core.FieldsList {
 		&core.URLField{Name: dbmodels.URI_FIELD, Required: false, Presentable: false},
 	)
 
+	dbmodels.SetCreatedUpdatedFields(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)
 	dbmodels.SetEditorStateField(&fields)
 

@@ -7,6 +7,11 @@ func SetBasicPublicRules(collection *core.Collection) {
 	collection.ListRule = PUBLIC_LIST_RULE
 }
 
+func SetCreatedUpdatedFields(fieldlist *core.FieldsList) {
+	fieldlist.Add(&core.AutodateField{Name: CREATED_FIELD, OnCreate: true})
+	fieldlist.Add(&core.AutodateField{Name: UPDATED_FIELD, OnCreate: true, OnUpdate: true})
+}
+
 func SetMusenalmIDField(fieldlist *core.FieldsList) {
 	fieldlist.Add(&core.TextField{Name: MUSENALMID_FIELD, Max: 64, Required: false})
 }
@@ -70,6 +75,8 @@ func BasicRelationCollection(app core.App, sourcetablename, targettablename stri
 		&core.SelectField{Name: RELATION_TYPE_FIELD, Required: true, Values: relations, MaxSelect: 1},
 		&core.BoolField{Name: RELATION_CONJECTURE_FIELD, Required: false},
 		&core.BoolField{Name: RELATION_UNCERTAIN_FIELD, Required: false},
+		&core.AutodateField{Name: CREATED_FIELD, OnCreate: true},
+		&core.AutodateField{Name: UPDATED_FIELD, OnCreate: true, OnUpdate: true},
 	)
 
 	SetNotesAndAnnotationsField(&fields)

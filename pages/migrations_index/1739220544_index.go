@@ -56,11 +56,14 @@ func bilderCollection() *core.Collection {
 		pagemodels.RequiredImageField(pagemodels.F_PREVIEW, false),
 	)
 
+	dbmodels.SetBasicPublicRules(c)
 	return c
 }
 
 func texteCollection() *core.Collection {
 	c := pagemodels.BasePageCollection(pagemodels.P_INDEX_NAME)
 	c.Fields = append(c.Fields, texte_fields...)
+	c.Fields = append(c.Fields, pagemodels.CreatedUpdatedFields()...)
+	dbmodels.SetBasicPublicRules(c)
 	return c
 }

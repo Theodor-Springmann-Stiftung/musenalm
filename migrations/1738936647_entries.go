@@ -106,6 +106,7 @@ func entriesFields(app core.App) *core.FieldsList {
 		&core.JSONField{Name: dbmodels.MUSENALM_DEPRECATED_FIELD, Required: false},
 	)
 
+	dbmodels.SetCreatedUpdatedFields(&fields)
 	dbmodels.SetMusenalmIDField(&fields)
 	dbmodels.SetEditorStateField(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)
