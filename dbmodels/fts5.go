@@ -99,7 +99,11 @@ func CreateFTS5TableQuery(tablename string, fields ...string) string {
 		return ""
 	}
 
-	str := "CREATE VIRTUAL TABLE IF NOT EXISTS " + FTS5TableName(tablename) + " USING fts5(" + ID_FIELD + " UNINDEXED, "
+	str := "CREATE VIRTUAL TABLE IF NOT EXISTS " +
+		FTS5TableName(tablename) +
+		" USING fts5(" +
+		ID_FIELD +
+		", "
 	for i, f := range fields {
 		str += f
 		if i < len(fields)-1 {
