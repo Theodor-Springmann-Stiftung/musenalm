@@ -103,13 +103,13 @@ func CreateFTS5TableQuery(tablename string, fields ...string) string {
 		return ""
 	}
 
-	str := "CREATE VIRTUAL TABLE IF NOT EXISTS " + FTS5_PREFIX + tablename + " USING fts5(id, "
+	str := "CREATE VIRTUAL TABLE IF NOT EXISTS " + FTS5_PREFIX + tablename + " USING fts5(id UNINDEXED, "
 	for i, f := range fields {
 		str += f
 		if i < len(fields)-1 {
 			str += ", "
 		}
 	}
-	str += ")"
+	str += " tokenize = 'trigram')"
 	return str
 }
