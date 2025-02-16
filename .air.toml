@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
 args_bin = []
 full_bin = "./tmp/musenalm --dir ./pb_data serve"
-cmd = "go build -tags=\"dev,fts5\" -o ./tmp/musenalm ."
+cmd = "go build -tags=dev,fts5 -o ./tmp/musenalm ."
 delay = 400
 exclude_dir = [
 	"views/assets",
