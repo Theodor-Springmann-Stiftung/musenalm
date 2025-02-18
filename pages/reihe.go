@@ -1,9 +1,6 @@
 package pages
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -36,13 +33,13 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 		data := make(map[string]interface{})
 		reihe, err := dbmodels.SeriesForId(app, id)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["series"] = reihe
 
 		rmap, emap, err := dbmodels.EntriesForSeriesses(app, []*dbmodels.Series{reihe})
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 
 		data["relations"] = rmap
@@ -55,10 +52,5 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 }
 
 func (p *ReihePage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	var builder strings.Builder
-	err := engine.Render(&builder, TEMPLATE_REIHE, data)
-	if err != nil {
-		return Error404(request, engine, err)
-	}
-	return request.HTML(http.StatusOK, builder.String())
+	return engine.Response200(request, TEMPLATE_REIHE, data)
 }

@@ -1,9 +1,6 @@
 package pagemodels
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -74,12 +71,7 @@ func (p *DefaultPage) Setup(router *router.Router[*core.RequestEvent], app core.
 		data["keywords"] = p.Keywords()
 		data["text"] = p.Text()
 
-		var builder strings.Builder
-		err := engine.Render(&builder, p.Template, data, p.Layout)
-		if err != nil {
-			return e.HTML(http.StatusInternalServerError, err.Error())
-		}
-		return e.HTML(http.StatusOK, builder.String())
+		return engine.Response200(e, p.Template, data, p.Layout)
 	})
 	return nil
 }

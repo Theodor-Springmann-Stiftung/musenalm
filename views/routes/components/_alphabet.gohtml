@@ -1,0 +1,13 @@
+{{ $model := . }}
+
+{{ if $model.letters }}
+	<div class="alphabet">
+		{{ range $id, $r := .letters }}
+			<a
+				href="?letter={{ $r }}"
+				{{ if eq $model.active $r }}aria-current="page"{{ end }}
+				>{{ $r }}</a
+			>
+		{{ end }}
+	</div>
+{{ end }}

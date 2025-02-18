@@ -1,3 +1,4 @@
+{{ $model := . }}
 <div
 	class="pb-1.5 border-b border-zinc-300"
 	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
@@ -8,15 +9,37 @@
 		</div>
 
 		<nav
-			class="self-end font-serif font-bold flex flex-row gap-x-6 [&>a]:no-underline
+			class="self-end font-serif font-bold flex flex-row gap-x-4 [&>a]:no-underline
 		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5">
-			<a href="/reihen/">Reihen</a>
-			<a href="/personen/">Personen</a>
-			<a href="/suche/">Suche</a>
+			<a
+				href="/reihen/"
+				{{ if and $model.page (HasPrefix $model.page.Path "/reihe") -}}
+					aria-current="page"
+				{{- end -}}
+				>Reihen</a
+			>
+			<a
+				href="/personen/"
+				{{ if and $model.page (HasPrefix $model.page.Path "/person") -}}
+					aria-current="page"
+				{{- end -}}
+				>Personen</a
+			>
+			<a
+				href="/suche/"
+				{{ if and $model.page (HasPrefix $model.page.Path "/suche") -}}
+					aria-current="page"
+				{{- end -}}
+				>Suche</a
+			>
 			<button
+				{{ if and $model.page (HasPrefix $model.page.Path "/edition") -}}
+					aria-current="true"
+				{{- end -}}
 				data-url="/edition/"
-				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer"
-				:class="openeditionmenu? 'bg-slate-200' : 'closed'"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100
+				!pr-2.5"
+				:class="openeditionmenu? 'bg-slate-100' : 'closed'"
 				@click="openeditionmenu = !openeditionmenu">
 				<i x-show="!openeditionmenu" class="ri-arrow-right-s-fill"></i>
 				<i x-show="openeditionmenu" class="ri-arrow-down-s-fill"></i>
@@ -27,17 +50,46 @@
 	<nav
 		:class="openeditionmenu? 'open' : 'closed'"
 		x-show="openeditionmenu"
-		class="submenu w-full flex flex-row justify-end pt-3 gap-x-6 font-bold font-serif
-		[&>a]:no-underline [&>*]:-mb-1.5">
-		<a href="/edition/einfuehrung/">Einführung</a>
-		<a href="/edition/dokumentation/">Dokumentation</a>
-		<a href="/edition/literatur/">Literatur</a>
-		<a href="/edition/danksagungen/">Danksagungen</a>
-		<a href="/edition/kontakt/">Kontakt</a>
+		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
+		<a
+			href="/edition/einfuehrung/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/edition/einfuehrung") -}}
+				aria-current="page"
+			{{- end -}}
+			>Einführung</a
+		>
+		<a
+			href="/edition/dokumentation/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/edition/dokumentation") -}}
+				aria-current="page"
+			{{- end -}}
+			>Dokumentation</a
+		>
+		<a
+			href="/edition/literatur/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/edition/literatur") -}}
+				aria-current="page"
+			{{- end -}}
+			>Literatur</a
+		>
+		<a
+			href="/edition/danksagungen/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/edition/danksagungen") -}}
+				aria-current="page"
+			{{- end -}}
+			>Danksagungen</a
+		>
+		<a
+			href="/edition/kontakt/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/edition/kontakt") -}}
+				aria-current="page"
+			{{- end -}}
+			>Kontakt</a
+		>
 	</nav>
 </div>
 
 <script type="module">
 	import { setMenuActive } from "/assets/scripts.js";
-	setMenuActive();
 </script>

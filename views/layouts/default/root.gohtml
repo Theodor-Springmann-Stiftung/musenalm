@@ -30,8 +30,8 @@
 	</head>
 
 	<body class="w-full" hx-ext="response-targets" hx-boost="true">
-		<div class="container flex flex-col min-h-screen max-w-(--breakpoint-xl) mx-auto">
-			<header class="px-3 py-2.5" id="header">
+		<div class="container flex flex-col min-h-screen max-w-(--breakpoint-xl) mx-auto px-3 py-3.5">
+			<header class="" id="header">
 				{{ block "_menu" . }}
 					<!-- Default app menu... -->
 				{{ end }}
@@ -39,7 +39,7 @@
 
 			<div></div>
 
-			<main class="">
+			<main class="text-lg">
 				{{ block "body" . }}
 					<!-- Default app body... -->
 				{{ end }}

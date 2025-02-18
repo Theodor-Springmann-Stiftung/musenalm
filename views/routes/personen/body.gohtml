@@ -1,10 +1,6 @@
 {{ $model := . }}
 
-{{ range $count, $letter := $model.letters }}
-	<a href="/personen?letter={{ $letter }}{{ if $model.filter }}&filter={{ $model.filter }}{{ end }}"
-		>{{ $letter }}</a
-	>
-{{ end }}
+{{ template "_alphabet" Dict "active" .letter "letters" .letters }}
 
 
 <input

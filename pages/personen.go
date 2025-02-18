@@ -1,9 +1,6 @@
 package pages
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -90,7 +87,7 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	}
 
 	if err != nil {
-		return Error404(e, engine, err)
+		return Error404(e, engine, err, data)
 	}
 	dbmodels.SortAgentsByName(agents)
 	data["agents"] = agents
@@ -106,7 +103,7 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 
 	agents, altagents, err := dbmodels.BasicSearchAgents(app, search)
 	if err != nil {
-		return Error404(e, engine, err)
+		return Error404(e, engine, err, data)
 	}
 
 	dbmodels.SortAgentsByName(agents)
@@ -129,7 +126,7 @@ func (p *PersonenPage) LetterRequest(app core.App, engine *templating.Engine, e 
 
 	agents, err := dbmodels.AgentsForLetter(app, letter)
 	if err != nil {
-		return Error404(e, engine, err)
+		return Error404(e, engine, err, data)
 	}
 	dbmodels.SortAgentsByName(agents)
 	data["agents"] = agents
@@ -140,13 +137,8 @@ func (p *PersonenPage) LetterRequest(app core.App, engine *templating.Engine, e 
 func (p *PersonenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	err := p.CommonData(request.App, data)
 	if err != nil {
-		return Error404(request, engine, err)
+		return Error404(request, engine, err, data)
 	}
 
-	var builder strings.Builder
-	err = engine.Render(&builder, URL_PERSONEN, data)
-	if err != nil {
-		return Error404(request, engine, err)
-	}
-	return request.HTML(http.StatusOK, builder.String())
+	return engine.Response200(request, URL_PERSONEN, data)
 }
