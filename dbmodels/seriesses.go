@@ -2,11 +2,15 @@ package dbmodels
 
 import (
 	"slices"
+	"strings"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/text/cases"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
+	"golang.org/x/text/unicode/norm"
 )
 
 type SeriesEntries map[string][]*REntriesSeries
@@ -19,6 +23,17 @@ func SortSeriessesByTitle(series []*Series) {
 }
 
 func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error) {
+	query = strings.TrimSpace(query)
+	query = datatypes.DeleteTags(query)
+	query = datatypes.NormalizeString(query)
+	query = datatypes.RemovePunctuation(query)
+	query = cases.Lower(language.German).String(query)
+	query = norm.NFKD.String(query)
+
+	if query == "" {
+		return []*Series{}, []*Series{}, nil
+	}
+
 	series, err := TitleSearchSeries(app, query)
 	if err != nil {
 		return nil, nil, err
@@ -33,8 +48,20 @@ func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error)
 
 func TitleSearchSeries(app core.App, query string) ([]*Series, error) {
 	series := []*Series{}
-	err := app.RecordQuery(SERIES_TABLE).
-		Where(dbx.Like(SERIES_TITLE_FIELD, query).Match(true, true)).
+	queries := strings.Split(query, " ")
+	q := app.RecordQuery(SERIES_TABLE).
+		Where(dbx.Like(SERIES_TITLE_FIELD, queries[0]).Match(true, true))
+
+	if len(queries) > 1 {
+		for _, que := range queries[1:] {
+			que = strings.TrimSpace(que)
+			if que != "" {
+				q.AndWhere(dbx.Like(SERIES_TITLE_FIELD, que).Match(true, true))
+			}
+		}
+	}
+
+	err := q.
 		OrderBy(SERIES_TITLE_FIELD).
 		All(&series)
 	if err != nil {

@@ -1,51 +1,64 @@
-const p = "script[xslt-onload]", a = "xslt-template", u = "xslt-transformed", c = /* @__PURE__ */ new Map();
-function m() {
-  let t = htmx.findAll(p);
-  for (let e of t)
-    T(e);
+const f = "script[xslt-onload]", i = "xslt-template", m = "xslt-transformed", c = /* @__PURE__ */ new Map();
+function u() {
+  let t = htmx.findAll(f);
+  for (let r of t)
+    p(r);
 }
-function T(t) {
-  if (t.getAttribute(u) === "true" || !t.hasAttribute(a))
+function p(t) {
+  if (t.getAttribute(m) === "true" || !t.hasAttribute(i))
     return;
-  let e = "#" + t.getAttribute(a), o = c.get(e);
+  let r = "#" + t.getAttribute(i), o = c.get(r);
   if (!o) {
-    let n = htmx.find(e);
-    if (n) {
-      let l = n.innerHTML ? new DOMParser().parseFromString(n.innerHTML, "application/xml") : n.contentDocument;
-      o = new XSLTProcessor(), o.importStylesheet(l), c.set(e, o);
+    let s = htmx.find(r);
+    if (s) {
+      let l = s.innerHTML ? new DOMParser().parseFromString(s.innerHTML, "application/xml") : s.contentDocument;
+      o = new XSLTProcessor(), o.importStylesheet(l), c.set(r, o);
     } else
-      throw new Error("Unknown XSLT template: " + e);
+      throw new Error("Unknown XSLT template: " + r);
   }
-  let i = new DOMParser().parseFromString(t.innerHTML, "application/xml"), s = o.transformToFragment(i, document), r = new XMLSerializer().serializeToString(s);
-  t.outerHTML = r;
+  let a = new DOMParser().parseFromString(t.innerHTML, "application/xml"), e = o.transformToFragment(a, document), n = new XMLSerializer().serializeToString(e);
+  t.outerHTML = n;
 }
-function f() {
-  document.querySelectorAll("template[simple]").forEach((e) => {
-    let o = e.getAttribute("id"), i = e.content;
+function d() {
+  document.querySelectorAll("template[simple]").forEach((r) => {
+    let o = r.getAttribute("id"), a = r.content;
     customElements.define(
       o,
       class extends HTMLElement {
         constructor() {
-          super(), this.appendChild(i.cloneNode(!0)), this.slots = this.querySelectorAll("slot");
+          super(), this.appendChild(a.cloneNode(!0)), this.slots = this.querySelectorAll("slot");
         }
         connectedCallback() {
-          let s = [];
-          this.slots.forEach((r) => {
-            let n = r.getAttribute("name"), l = this.querySelector(`[slot="${n}"]`);
-            l && (r.replaceWith(l.cloneNode(!0)), s.push(l));
-          }), s.forEach((r) => {
-            r.remove();
+          let e = [];
+          this.slots.forEach((n) => {
+            let s = n.getAttribute("name"), l = this.querySelector(`[slot="${s}"]`);
+            l && (n.replaceWith(l.cloneNode(!0)), e.push(l));
+          }), e.forEach((n) => {
+            n.remove();
           });
         }
       }
     );
   });
 }
-function d() {
-  m(), htmx.on("htmx:load", function(t) {
-    m();
-  }), f();
+function h() {
+  u(), htmx.on("htmx:load", function(t) {
+    u();
+  }), d();
+}
+function T(t) {
+  t || (t = window.location.href);
+  const r = document.querySelectorAll("nav");
+  if (r && r.length > 0)
+    for (const o of r)
+      o.querySelectorAll("a, [data-url]").forEach((e) => {
+        if (e.dataset.url && e.dataset.url !== "") {
+          let n = window.location.origin + e.dataset.url;
+          t.startsWith(n) ? e.setAttribute("aria-current", "page") : e.removeAttribute("aria-current");
+        } else e.href && (t.startsWith(e.href) ? e.setAttribute("aria-current", "page") : e.removeAttribute("aria-current"));
+      });
 }
 export {
-  d as setup
+  T as setMenuActive,
+  h as setup
 };

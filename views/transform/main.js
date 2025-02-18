@@ -90,4 +90,32 @@ function setup() {
 	setup_templates();
 }
 
-export { setup };
+function setMenuActive(url) {
+	if (!url) {
+		url = window.location.href;
+	}
+	const menus = document.querySelectorAll("nav");
+	if (menus && menus.length > 0) {
+		for (const menu of menus) {
+			const links = menu.querySelectorAll("a, [data-url]");
+			links.forEach((link) => {
+				if (link.dataset.url && link.dataset.url !== "") {
+					let fullurl = window.location.origin + link.dataset.url;
+					if (url.startsWith(fullurl)) {
+						link.setAttribute("aria-current", "page");
+					} else {
+						link.removeAttribute("aria-current");
+					}
+				} else if (link.href) {
+					if (url.startsWith(link.href)) {
+						link.setAttribute("aria-current", "page");
+					} else {
+						link.removeAttribute("aria-current");
+					}
+				}
+			});
+		}
+	}
+}
+
+export { setup, setMenuActive };
