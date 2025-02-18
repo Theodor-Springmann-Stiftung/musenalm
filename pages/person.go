@@ -1,8 +1,6 @@
 package pages
 
 import (
-	"strings"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -37,13 +35,13 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 
 		agent, err := dbmodels.AgentForId(app, person)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["a"] = agent
 
 		series, relations, entries, err := dbmodels.SeriesForAgent(app, person)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 
 		dbmodels.SortSeriessesByTitle(series)
@@ -53,19 +51,19 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 
 		contents, err := dbmodels.ContentsForAgent(app, person)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 
 		agents, crelations, err := dbmodels.AgentsForContents(app, contents)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["agents"] = agents
 		data["crelations"] = crelations
 
 		centries, err := dbmodels.EntriesForContents(app, contents)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["centries"] = centries
 
@@ -79,13 +77,5 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 }
 
 func (p *PersonPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	var builder strings.Builder
-	err := engine.Render(&builder, TEMPLATE_PERSON, data)
-	if err != nil {
-		return Error404(request, engine, err)
-	}
-
-	request.Response.Header().Set("Content-Type", "text/html")
-	request.Response.Write([]byte(builder.String()))
-	return nil
+	return engine.Response200(request, TEMPLATE_PERSON, data)
 }

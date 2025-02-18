@@ -1,9 +1,6 @@
 package pages
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -36,13 +33,13 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 		data := make(map[string]interface{})
 		entry, err := dbmodels.EntryForMusenalmID(app, id)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["entry"] = entry
 
 		series, srelations, _, err := dbmodels.SeriesForEntries(app, []*dbmodels.Entry{entry})
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 
 		s := map[string]*dbmodels.Series{}
@@ -55,26 +52,26 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 
 		places, err := dbmodels.PlacesForEntry(app, entry)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["places"] = places
 
 		contents, err := dbmodels.ContentsForEntry(app, entry)
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["contents"] = contents
 
 		agents, arelations, err := dbmodels.AgentsForEntries(app, []*dbmodels.Entry{entry})
 		if err != nil {
-			return Error404(e, engine, err)
+			return Error404(e, engine, err, data)
 		}
 		data["arelations"] = arelations
 
 		if len(contents) > 0 {
 			cagents, crelations, err := dbmodels.AgentsForContents(app, contents)
 			if err != nil {
-				return Error404(e, engine, err)
+				return Error404(e, engine, err, data)
 			}
 			data["crelations"] = crelations
 			for k, v := range cagents {
@@ -90,10 +87,5 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 }
 
 func (p *AlmanachPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	var builder strings.Builder
-	err := engine.Render(&builder, TEMPLATE_ALMANACH, data)
-	if err != nil {
-		return Error404(request, engine, err)
-	}
-	return request.HTML(http.StatusOK, builder.String())
+	return engine.Response200(request, TEMPLATE_ALMANACH, data)
 }

@@ -1,12 +1,6 @@
 {{ $model := . }}
 
-{{ if .letters }}
-	<div>
-		{{ range $id, $r := .letters }}
-			<a href="/reihen?letter={{ $r }}">{{ $r }}</a>
-		{{ end }}
-	</div>
-{{ end }}
+{{ template "_alphabet" Dict "active" .letter "letters" .letters }}
 
 
 <input

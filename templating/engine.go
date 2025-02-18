@@ -1,12 +1,16 @@
 package templating
 
 import (
+	"errors"
 	"html/template"
 	"io"
 	"io/fs"
+	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 const (
@@ -45,6 +49,8 @@ func (e *Engine) funcs() error {
 	e.mu.Unlock()
 	e.AddFunc("Safe", functions.Safe)
 	e.AddFunc("Arr", functions.Arr)
+	e.AddFunc("HasPrefix", strings.HasPrefix)
+	e.AddFunc("Dict", functions.Dict)
 	return nil
 }
 
@@ -149,4 +155,71 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, l
 	}
 
 	return nil
+}
+
+func (e *Engine) Response404(request *core.RequestEvent, err error, data map[string]interface{}) error {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+
+	var sb strings.Builder
+	if err != nil {
+		request.App.Logger().Error("404 error fetching URL!", "error", err, "request", request.Request.URL)
+		data["Error"] = err.Error()
+	}
+
+	data["page"] = requestData(request)
+
+	err2 := e.Render(&sb, "/errors/404/", data)
+	if err != nil {
+		return e.Response500(request, errors.Join(err, err2), data)
+	}
+
+	return request.HTML(http.StatusNotFound, sb.String())
+}
+
+func (e *Engine) Response500(request *core.RequestEvent, err error, data map[string]interface{}) error {
+	if data == nil {
+		data = make(map[string]interface{})
+	}
+
+	var sb strings.Builder
+	if err != nil {
+		request.App.Logger().Error("500 error fetching URL!", "error", err, "request", request.Request.URL)
+		data["Error"] = err.Error()
+	}
+
+	data["page"] = requestData(request)
+
+	err2 := e.Render(&sb, "/errors/500/", data)
+	if err != nil {
+		return request.String(http.StatusInternalServerError, errors.Join(err, err2).Error())
+	}
+
+	return request.HTML(http.StatusInternalServerError, sb.String())
+}
+
+func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[string]interface{}, layout ...string) error {
+	if ld == nil {
+		ld = make(map[string]interface{})
+	}
+
+	ld["page"] = requestData(request)
+
+	var builder strings.Builder
+	err := e.Render(&builder, path, ld, layout...)
+	if err != nil {
+		return e.Response500(request, err, ld)
+	}
+
+	return request.HTML(http.StatusOK, builder.String())
+}
+
+func requestData(request *core.RequestEvent) map[string]interface{} {
+	data := make(map[string]interface{})
+	data["Path"] = request.Request.URL.Path
+	data["Query"] = request.Request.URL.Query()
+	data["Method"] = request.Request.Method
+	data["Host"] = request.Request.Host
+	return data
 }

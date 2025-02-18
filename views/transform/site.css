@@ -27,12 +27,9 @@
 	font-variant-caps: small-caps;
 }
 
-@layer base {
-}
-
 @layer components {
 	html {
-		font-size: 15.5px;
+		font-size: 16.5px;
 	}
 
 	body {
@@ -58,8 +55,16 @@
 		@apply ml-14 list-disc;
 	}
 
+	nav > a {
+		@apply hover:!border-zinc-200;
+	}
+
 	nav > * {
-		@apply border-b-4 border-transparent hover:!border-zinc-200;
+		@apply border-b-4 border-transparent;
+	}
+
+	nav > button[aria-current="true"] {
+		@apply !bg-slate-200;
 	}
 
 	nav a[aria-current="page"] {
