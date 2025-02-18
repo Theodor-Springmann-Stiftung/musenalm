@@ -3,14 +3,18 @@
 	class="pb-1.5 border-b border-zinc-300"
 	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
 	<div class="flex flex-row justify-between">
-		<div>
-			<h1 class="font-bold">{{ .site.title }}</h1>
-			<h2 class="italic">{{ .site.desc }}</h2>
+		<div class="flex flex-row gap-x-3">
+			<div class="grow-0"><img class="h-14 w-14 border" src="/assets/favicon.png" /></div>
+			<div class="flex flex-col">
+				<h1 class="font-bold text-2xl tracking-wide">{{ .site.title }}</h1>
+				<h2 class="italic">{{ .site.desc }}</h2>
+			</div>
 		</div>
 
 		<nav
 			class="self-end font-serif font-bold flex flex-row gap-x-4 [&>a]:no-underline
-		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5">
+		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5"
+			hx-boost="false">
 			<a
 				href="/reihen/"
 				{{ if and $model.page (HasPrefix $model.page.Path "/reihe") -}}
