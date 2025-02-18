@@ -53,7 +53,7 @@ time = false
 clean_on_exit = true
 
 [proxy]
-app_port = 8080
+app_port = 8090
 enabled = true
 proxy_port = 8081
 

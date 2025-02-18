@@ -1,9 +1,8 @@
-@import 'tailwindcss';
-
+@import "tailwindcss";
 @theme {
-  --font-script: Rancho, ui-serif;
-  --font-sans: 'Source Sans 3', 'Merriweather Sans', ui-sans-serif;
-  --font-serif: 'Merriweather', ui-serif;
+	--font-script: Rancho, ui-serif;
+	--font-sans: "Source Sans 3", "Merriweather Sans", ui-sans-serif;
+	--font-serif: "Merriweather", ui-serif;
 }
 
 /*
@@ -15,17 +14,17 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		border-color: var(--color-gray-200, currentColor);
+	}
 }
 
 @utility font-variant-small-caps {
-  font-variant-caps: small-caps;
+	font-variant-caps: small-caps;
 }
 
 @layer base {
@@ -44,7 +43,7 @@
 	h2,
 	h3,
 	h4 {
-		@apply font-serif font-bold;
+		@apply font-serif;
 	}
 
 	a {
@@ -59,8 +58,20 @@
 		@apply ml-14 list-disc;
 	}
 
-	a[aria-current="page"] {
-		@apply text-red-500!;
+	nav > * {
+		@apply border-b-4 border-transparent hover:!border-zinc-200;
+	}
+
+	nav a[aria-current="page"] {
+		@apply text-blue-400;
+	}
+
+	nav a[aria-current="page"] {
+		@apply !border-zinc-300;
+	}
+
+	nav.submenu a[aria-current="page"] {
+		@apply text-blue-400;
 	}
 
 	main {

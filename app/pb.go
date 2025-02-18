@@ -109,7 +109,14 @@ func (app *App) setupTestuser() {
 
 func (app *App) Serve() error {
 	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
-	engine.Globals(map[string]interface{}{"isDev": app.MAConfig.Debug})
+	engine.Globals(map[string]interface{}{
+		"isDev": app.MAConfig.Debug,
+		"lang":  "de",
+		"site": map[string]interface{}{
+			"title": "Musenalm",
+			"lang":  "de",
+			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
+		}})
 
 	// INFO: hot reloading for poor people
 	if app.MAConfig.Debug {

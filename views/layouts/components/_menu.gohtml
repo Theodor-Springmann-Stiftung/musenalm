@@ -1,4 +1,43 @@
-<div class="flex flex-row justify-center mt-8 gap-x-2">
-	<a href="/reihen">Reihen</a>
-	<a href="/personen/">Personen</a>
+<div
+	class="pb-1.5 border-b border-zinc-300"
+	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
+	<div class="flex flex-row justify-between">
+		<div>
+			<h1 class="font-bold">{{ .site.title }}</h1>
+			<h2 class="italic">{{ .site.desc }}</h2>
+		</div>
+
+		<nav
+			class="self-end font-serif font-bold flex flex-row gap-x-6 [&>a]:no-underline
+		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5">
+			<a href="/reihen/">Reihen</a>
+			<a href="/personen/">Personen</a>
+			<a href="/suche/">Suche</a>
+			<button
+				data-url="/edition/"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer"
+				:class="openeditionmenu? 'bg-slate-200' : 'closed'"
+				@click="openeditionmenu = !openeditionmenu">
+				<i x-show="!openeditionmenu" class="ri-arrow-right-s-fill"></i>
+				<i x-show="openeditionmenu" class="ri-arrow-down-s-fill"></i>
+				Redaktion &amp; Kontakt
+			</button>
+		</nav>
+	</div>
+	<nav
+		:class="openeditionmenu? 'open' : 'closed'"
+		x-show="openeditionmenu"
+		class="submenu w-full flex flex-row justify-end pt-3 gap-x-6 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5">
+		<a href="/edition/einfuehrung/">Einführung</a>
+		<a href="/edition/dokumentation/">Dokumentation</a>
+		<a href="/edition/literatur/">Literatur</a>
+		<a href="/edition/danksagungen/">Danksagungen</a>
+		<a href="/edition/kontakt/">Kontakt</a>
+	</nav>
 </div>
+
+<script type="module">
+	import { setMenuActive } from "/assets/scripts.js";
+	setMenuActive();
+</script>
