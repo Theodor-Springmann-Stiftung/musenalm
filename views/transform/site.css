@@ -3,6 +3,22 @@
 	--font-script: Rancho, ui-serif;
 	--font-sans: "Source Sans 3", "Merriweather Sans", ui-sans-serif;
 	--font-serif: "Merriweather", ui-serif;
+
+	--color-background: oklch(0.985 0.001 106.423);
+	--color-background-darker: oklch(0.97 0.001 106.424);
+	--color-background-dark: oklch(0.923 0.003 48.717);
+
+	--color-border-main: oklch(0.97 0.001 106.424);
+	--color-border-secondary: oklch(0.923 0.003 48.717);
+
+	--color-text: oklch(0.21 0.034 264.665);
+	--color-text-strong: oklch(0 0 0);
+	--color-text-muted: oklch(0.373 0.034 259.733);
+	--color-text-disabled: oklch(0.872 0.01 258.338);
+	--color-text-subtle: oklch(0.707 0.022 261.325);
+
+	--color-accent-blue-500: oklch(0.623 0.214 259.815);
+	--color-accent-blue-100: oklch(0.932 0.032 255.585);
 }
 
 /*
@@ -33,7 +49,7 @@
 	}
 
 	body {
-		@apply bg-slate-50;
+		@apply bg-stone-50;
 	}
 
 	h1,
@@ -77,5 +93,17 @@
 
 	main {
 		@apply grow shrink-0;
+	}
+
+	.small-caps {
+		@apply font-variant-small-caps;
+	}
+
+	.alphabet a[aria-current="page"] {
+		@apply pb-3 pt-2 font-bold italic !bg-stone-50 relative -bottom-3 border-b;
+	}
+
+	.alphabet a:hover:not([aria-current="page"]) {
+		@apply pb-1 pt-0.5 !bg-stone-50 relative;
 	}
 }

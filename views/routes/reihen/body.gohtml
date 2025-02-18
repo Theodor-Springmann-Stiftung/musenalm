@@ -1,19 +1,14 @@
 {{ $model := . }}
 
-{{ template "_alphabet" Dict "active" .letter "letters" .letters }}
 
+<div class="mt-4">
+	{{ template "_alphabet" Dict "active" .letter "letters" .letters "search" .search }}
+</div>
 
-<input
-	class="form-control"
-	type="search"
-	name="search"
-	placeholder="Suche"
-	hx-get="/reihen"
-	hx-trigger="input changed delay:=200ms, keyup[key=='Enter']"
-	hx-select="#series"
-	hx-target="#series" />
-
-<div id="series">
+<div id="searchcontent" class="pt-4 font-serif">
+	{{ if .search }}
+		<div class="mt-8">Reihen für {{ .search }} gefunden.</div>
+	{{ end }}
 	{{ if or .series .altseries }}
 		{{ range $id, $r := .series }}
 			<div class="mb-1.5">
