@@ -63,15 +63,11 @@
 	}
 
 	nav a[aria-current="page"] {
-		@apply text-blue-400;
+		@apply text-slate-800;
 	}
 
 	nav a[aria-current="page"] {
 		@apply !border-zinc-300;
-	}
-
-	nav.submenu a[aria-current="page"] {
-		@apply text-blue-400;
 	}
 
 	main {
