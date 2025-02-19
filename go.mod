@@ -7,7 +7,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/pocketbase/dbx v1.11.0
-	github.com/pocketbase/pocketbase v0.25.3
+	github.com/pocketbase/pocketbase v0.25.5
 	github.com/spf13/cobra v1.8.1
 	github.com/yalue/merged_fs v1.3.0
 	golang.org/x/text v0.22.0
@@ -69,5 +69,5 @@ require (
 	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.2 // indirect
-	modernc.org/sqlite v1.34.5 // indirect
+	modernc.org/sqlite v1.35.0 // indirect
 )

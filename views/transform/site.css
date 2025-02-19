@@ -99,11 +99,24 @@
 		@apply font-variant-small-caps;
 	}
 
-	.alphabet a[aria-current="page"] {
+	.alphabet a[aria-current="page"]:not(.inactive) {
 		@apply pb-3 pt-2 font-bold italic !bg-stone-50 relative -bottom-3 border-b;
 	}
 
-	.alphabet a:hover:not([aria-current="page"]) {
+	.alphabet a:hover:not([aria-current="page"]:not(.inactive)) {
 		@apply pb-1 pt-0.5 !bg-stone-50 relative;
+	}
+
+	.headingcontainer:before {
+		content: "";
+		@apply bg-zinc-300 w-[50%] absolute top-0 left-[50%] h-[1px];
+	}
+
+	.headingcontainer {
+		@apply mt-10 border-r border-zinc-300 relative;
+	}
+
+	.headingcontainer h1 {
+		@apply text-3xl font-bold px-3 bg-stone-50 relative -translate-y-[50%] w-min whitespace-nowrap mx-auto;
 	}
 }

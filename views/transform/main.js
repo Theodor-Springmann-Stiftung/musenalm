@@ -1,48 +1,66 @@
+// INFO: We import this so vite processes the stylesheet
 import "./site.css";
 
 const ATTR_XSLT_ONLOAD = "script[xslt-onload]";
 const ATTR_XSLT_TEMPLATE = "xslt-template";
 const ATTR_XSLT_STATE = "xslt-transformed";
+const FILTER_LIST_ELEMENT = "filter-list";
 
-const xslt_processors = new Map();
+class XSLTParseProcess {
+	#processors;
 
-function setup_xslt() {
-	let els = htmx.findAll(ATTR_XSLT_ONLOAD);
-	for (let element of els) {
-		transform_xslt(element);
-	}
-}
-
-function transform_xslt(element) {
-	if (
-		element.getAttribute(ATTR_XSLT_STATE) === "true" ||
-		!element.hasAttribute(ATTR_XSLT_TEMPLATE)
-	) {
-		return;
+	constructor() {
+		this.#processors = new Map();
 	}
 
-	let templateId = "#" + element.getAttribute(ATTR_XSLT_TEMPLATE);
-	let processor = xslt_processors.get(templateId);
-	if (!processor) {
-		let template = htmx.find(templateId);
-		if (template) {
-			let content = template.innerHTML
-				? new DOMParser().parseFromString(template.innerHTML, "application/xml")
-				: template.contentDocument;
-			processor = new XSLTProcessor();
-			processor.importStylesheet(content);
-			xslt_processors.set(templateId, processor);
-		} else {
-			throw new Error("Unknown XSLT template: " + templateId);
+	setup() {
+		let els = htmx.findAll(ATTR_XSLT_ONLOAD);
+		for (let element of els) {
+			this.#transform_xslt(element);
 		}
 	}
 
-	let data = new DOMParser().parseFromString(element.innerHTML, "application/xml");
-	let frag = processor.transformToFragment(data, document);
-	let s = new XMLSerializer().serializeToString(frag);
-	element.outerHTML = s;
+	hookupHTMX() {
+		// INFO: We can instead use afterSettle; and also clear the map with
+		// xslt_processors.clear();
+		htmx.on("htmx:load", (_) => {
+			this.setup();
+		});
+	}
+
+	#transform_xslt(element) {
+		if (
+			element.getAttribute(ATTR_XSLT_STATE) === "true" ||
+			!element.hasAttribute(ATTR_XSLT_TEMPLATE)
+		) {
+			return;
+		}
+
+		let templateId = "#" + element.getAttribute(ATTR_XSLT_TEMPLATE);
+		let processor = this.#processors.get(templateId);
+		if (!processor) {
+			let template = htmx.find(templateId);
+			if (template) {
+				let content = template.innerHTML
+					? new DOMParser().parseFromString(template.innerHTML, "application/xml")
+					: template.contentDocument;
+				processor = new XSLTProcessor();
+				processor.importStylesheet(content);
+				this.#processors.set(templateId, processor);
+			} else {
+				throw new Error("Unknown XSLT template: " + templateId);
+			}
+		}
+
+		let data = new DOMParser().parseFromString(element.innerHTML, "application/xml");
+		let frag = processor.transformToFragment(data, document);
+		let s = new XMLSerializer().serializeToString(frag);
+		element.outerHTML = s;
+	}
 }
 
+// INFO: these is a function to define simple reusable templates which we don't need.
+// Since we can include templates server-side.
 function setup_templates() {
 	let templates = document.querySelectorAll("template[simple]");
 	templates.forEach((template) => {
@@ -77,45 +95,213 @@ function setup_templates() {
 	});
 }
 
-// INFO: This is intended to be callled once on website load
-function setup() {
-	setup_xslt();
-
-	htmx.on("htmx:load", function (_) {
-		// INFO: We can instead use afterSettle; and also clear the map with
-		// xslt_processors.clear();
-		setup_xslt();
-	});
-
-	setup_templates();
-}
-
-function setMenuActive(url) {
-	if (!url) {
-		url = window.location.href;
+class FilterList extends HTMLElement {
+	#hiddenlist = false;
+	constructor() {
+		super();
+		this._items = [];
+		this._url = "";
+		this._filterstart = false;
+		this._placeholder = "Liste filtern...";
+		this.render();
 	}
-	const menus = document.querySelectorAll("nav");
-	if (menus && menus.length > 0) {
-		for (const menu of menus) {
-			const links = menu.querySelectorAll("a, [data-url]");
-			links.forEach((link) => {
-				if (link.dataset.url && link.dataset.url !== "") {
-					let fullurl = window.location.origin + link.dataset.url;
-					if (url.startsWith(fullurl)) {
-						link.setAttribute("aria-current", "page");
-					} else {
-						link.removeAttribute("aria-current");
-					}
-				} else if (link.href) {
-					if (url.startsWith(link.href)) {
-						link.setAttribute("aria-current", "page");
-					} else {
-						link.removeAttribute("aria-current");
-					}
-				}
-			});
+
+	static get observedAttributes() {
+		return ["data-url"];
+	}
+
+	set items(data) {
+		if (Array.isArray(data)) {
+			this._items = data;
+			this.render();
 		}
 	}
+
+	get items() {
+		return this._items;
+	}
+
+	connectedCallback() {
+		this._url = this.getAttribute("data-url") || "./";
+		this._filterstart = this.getAttribute("data-filterstart") === "true";
+		this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...";
+
+		if (this._filterstart) {
+			this.#hiddenlist = true;
+		}
+
+		this.addEventListener("input", this.onInput.bind(this));
+		this.addEventListener("keydown", this.onEnter.bind(this));
+		this.addEventListener("focusin", this.onGainFocus.bind(this));
+		this.addEventListener("focusout", this.onLoseFocus.bind(this));
+	}
+
+	attributeChangedCallback(name, oldValue, newValue) {
+		if (name === "data-url" && oldValue !== newValue) {
+			this._url = newValue;
+			this.render();
+		}
+		if (name === "data-filterstart" && oldValue !== newValue) {
+			this._filterstart = newValue === "true";
+			this.render();
+		}
+		if (name === "data-placeholder" && oldValue !== newValue) {
+			this._placeholder = newValue;
+			this.render();
+		}
+	}
+
+	onInput(e) {
+		if (e.target && e.target.tagName.toLowerCase() === "input") {
+			this._filter = e.target.value;
+			this.renderList();
+		}
+	}
+
+	onGainFocus(e) {
+		if (e.target && e.target.tagName.toLowerCase() === "input") {
+			this.#hiddenlist = false;
+			this.renderList();
+		}
+	}
+
+	onLoseFocus(e) {
+		if (e.target && e.target.tagName.toLowerCase() === "input") {
+			e.target.value = "";
+			this._filter = "";
+			if (this._filterstart) {
+				this.#hiddenlist = true;
+			}
+			this.renderList();
+		}
+	}
+
+	onEnter(e) {
+		if (e.target && e.target.tagName.toLowerCase() === "input" && e.key === "Enter") {
+			e.preventDefault();
+			const link = this.querySelector("a");
+			if (link) {
+				link.click();
+			}
+		}
+	}
+
+	setHREFFunc(fn) {
+		this.getHREF = fn;
+		this.render();
+	}
+
+	setLinkTextFunc(fn) {
+		this.getLinkText = fn;
+		this.render();
+	}
+
+	getHREF(item) {
+		if (!item) {
+			return "";
+		} else if (!item.id) {
+			return "";
+		}
+		return item.id;
+	}
+
+	getLinkText(item) {
+		if (!item) {
+			return "";
+		} else if (!item.name) {
+			return "";
+		}
+		return item.name;
+	}
+
+	#isActive(item) {
+		if (!item) {
+			return "";
+		}
+
+		let href = this.getHREF(item);
+		if (href === "") {
+			return "";
+		}
+
+		if (!window.location.href.endsWith(href)) {
+			return "";
+		}
+
+		return "aria-current='page'";
+	}
+
+	#hiddenList() {
+		if (this.#hiddenlist) {
+			return "hidden";
+		}
+		return "";
+	}
+
+	renderList() {
+		let list = this.querySelector("#list");
+		if (list) {
+			list.outerHTML = this.List();
+		}
+	}
+
+	render() {
+		this.innerHTML = `
+            <div class="p-4 font-serif text-base">
+							${this.Input()}
+							${this.List()}
+            </div>
+        `;
+	}
+
+	Input() {
+		return `
+			<div class="flex w-full pb-0.5 border-b border-zinc-600">
+						<i class="ri-arrow-right-s-line mr-1"></i>
+						<div class="grow">
+						<input
+								type="text"
+								placeholder="${this._placeholder}"
+								class="w-full placeholder:italic px-2 " />
+						</div>
+				</div>
+				`;
+	}
+
+	List() {
+		let filtereditems = this._items;
+		if (this._filter) {
+			if (!this._filterstart)
+				filtereditems = this._items.filter((item) => {
+					return this.getLinkText(item).toLowerCase().includes(this._filter.toLowerCase());
+				});
+			else
+				filtereditems = this._items.filter((item) => {
+					return this.getLinkText(item).toLowerCase().startsWith(this._filter.toLowerCase());
+				});
+		}
+
+		return `
+							<div id="list" class="links min-h-72 max-h-60 overflow-auto border-b border-zinc-300 ${this.#hiddenList()}">
+								${filtereditems
+									.map(
+										(item, index) => `
+									<a
+										href="${this._url}${this.getHREF(item)}"
+										class="block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
+											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
+										}"
+										${this.#isActive(item)}>
+										${this.getLinkText(item)}
+									</a>
+								`,
+									)
+									.join("")}
+							</div>
+				`;
+	}
 }
 
-export { setup, setMenuActive };
+customElements.define(FILTER_LIST_ELEMENT, FilterList);
+
+export { XSLTParseProcess, FilterList };

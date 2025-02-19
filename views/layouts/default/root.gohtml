@@ -20,16 +20,13 @@
 		<script src="/assets/js/htmx-response-targets.js" defer></script>
 		<script src="/assets/js/client-side-templates.js" defer></script>
 
+		<script type="module" src="/assets/scripts.js"></script>
+
 		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
 		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
-
-		<script type="module">
-			import { setup } from "/assets/scripts.js";
-			setup();
-		</script>
 	</head>
 
-	<body class="w-full" hx-ext="response-targets" hx-boost="false">
+	<body class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
 		<div class="container flex flex-col min-h-screen max-w-(--breakpoint-xl) mx-auto px-3 py-3.5">
 			<header class="" id="header">
 				{{ block "_menu" . }}
@@ -37,9 +34,7 @@
 				{{ end }}
 			</header>
 
-			<div></div>
-
-			<main class="text-lg">
+			<main class="">
 				{{ block "body" . }}
 					<!-- Default app body... -->
 				{{ end }}
