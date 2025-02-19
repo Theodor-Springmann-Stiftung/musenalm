@@ -15,6 +15,7 @@ import (
 func RecordsFromBände(
 	app core.App,
 	adb xmlmodels.AccessDB,
+	// INFO: this is a string map, bc it's not by ID but by place name
 	places map[string]*dbmodels.Place,
 ) ([]*dbmodels.Entry, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
@@ -31,12 +32,12 @@ func RecordsFromBände(
 	}
 
 	// INFO: lets make some maps to speed this up
-	omap := datatypes.MakeMap(adb.Orte.Orte, func(o xmlmodels.Ort) string { return o.ID })
+	omap := datatypes.MakeMap(adb.Orte.Orte, func(o xmlmodels.Ort) int { return o.ID })
 	relmap := datatypes.MakeMultiMap(
 		adb.Relationen_Bände_Reihen.Relationen,
-		func(r xmlmodels.Relation_Band_Reihe) string { return r.Band },
+		func(r xmlmodels.Relation_Band_Reihe) int { return r.Band },
 	)
-	rmap := datatypes.MakeMap(adb.Reihen.Reihen, func(r xmlmodels.Reihe) string { return r.ID })
+	rmap := datatypes.MakeMap(adb.Reihen.Reihen, func(r xmlmodels.Reihe) int { return r.ID })
 
 	for i := 0; i < len(adb.Bände.Bände); i++ {
 		band := adb.Bände.Bände[i]
@@ -86,8 +87,8 @@ func RecordsFromBände(
 func handlePreferredTitleEntry(
 	record *dbmodels.Entry,
 	band xmlmodels.Band,
-	rmap map[string]xmlmodels.Reihe,
-	rrelmap map[string][]xmlmodels.Relation_Band_Reihe,
+	rmap map[int]xmlmodels.Reihe,
+	rrelmap map[int][]xmlmodels.Relation_Band_Reihe,
 ) {
 	rels := rrelmap[band.ID]
 	if len(rels) == 0 {
@@ -120,7 +121,7 @@ func handlePreferredTitleEntry(
 func handleOrte(
 	record *dbmodels.Entry,
 	band xmlmodels.Band,
-	orte map[string]xmlmodels.Ort,
+	orte map[int]xmlmodels.Ort,
 	app core.App,
 	ocollection *core.Collection,
 	places map[string]*dbmodels.Place,

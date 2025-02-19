@@ -8,7 +8,7 @@ type Akteure struct {
 }
 
 type Akteur struct {
-	ID           string `xml:"ID"`
+	ID           int    `xml:"ID"`
 	Name         string `xml:"NAME"`
 	Körperschaft bool   `xml:"ORGANISATION"`
 	Beruf        string `xml:"BERUF"`

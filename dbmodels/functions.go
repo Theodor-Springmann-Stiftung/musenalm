@@ -13,7 +13,7 @@ func SetCreatedUpdatedFields(fieldlist *core.FieldsList) {
 }
 
 func SetMusenalmIDField(fieldlist *core.FieldsList) {
-	fieldlist.Add(&core.TextField{Name: MUSENALMID_FIELD, Max: 64, Required: false})
+	fieldlist.Add(&core.NumberField{Name: MUSENALMID_FIELD, Required: true})
 }
 
 func SetEditorStateField(fieldlist *core.FieldsList) {

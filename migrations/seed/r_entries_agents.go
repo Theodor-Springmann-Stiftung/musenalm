@@ -11,8 +11,8 @@ import (
 func RecordsFromRelationBändeAkteure(
 	app core.App,
 	relations xmlmodels.Relationen_Bände_Akteure,
-	entries map[string]*dbmodels.Entry,
-	agents map[string]*dbmodels.Agent,
+	entries map[int]*dbmodels.Entry,
+	agents map[int]*dbmodels.Agent,
 ) ([]*dbmodels.REntriesAgents, error) {
 	records := make([]*dbmodels.REntriesAgents, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE))

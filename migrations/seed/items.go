@@ -16,7 +16,7 @@ func ItemsFromBändeAndBIBLIO(
 	app core.App,
 	entries xmlmodels.Bände,
 	biblio map[int]xmlmodels.BIBLIOEintrag,
-	entriesmap map[string]*dbmodels.Entry,
+	entriesmap map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Item, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
 	records := make([]*dbmodels.Item, 0, len(entries.Bände))

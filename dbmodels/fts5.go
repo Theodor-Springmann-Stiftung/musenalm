@@ -220,7 +220,6 @@ func FTS5ValuesContent(content *Content, entry *Entry, agents []*Agent) []string
 		entrystring += "; [o.J.]"
 	}
 
-	strconv.Itoa(entry.Year())
 	return []string{
 		content.PreferredTitle(),
 		content.VariantTitle(),
@@ -237,7 +236,7 @@ func FTS5ValuesContent(content *Content, entry *Entry, agents []*Agent) []string
 		strconv.FormatFloat(content.Numbering(), 'f', 3, 64),
 		entrystring,
 		agentstring,
-		content.MusenalmID(),
+		strconv.Itoa(content.MusenalmID()),
 		datatypes.DeleteTags(content.Annotation()),
 		datatypes.DeleteTags(content.Comment()),
 	}
@@ -291,7 +290,7 @@ func FTS5ValuesEntry(entry *Entry, places []*Place, agents []*Agent, series []*S
 		placestring,
 		agentstring,
 		seriesstring,
-		entry.MusenalmID(),
+		strconv.Itoa(entry.MusenalmID()),
 		datatypes.DeleteTags(entry.Annotation()),
 		datatypes.DeleteTags(entry.Comment()),
 	}

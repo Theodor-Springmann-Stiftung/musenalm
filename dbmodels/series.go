@@ -56,11 +56,11 @@ func (s *Series) SetAnnotation(annotation string) {
 	s.Set(ANNOTATION_FIELD, annotation)
 }
 
-func (s *Series) MusenalmID() string {
-	return s.GetString(MUSENALMID_FIELD)
+func (s *Series) MusenalmID() int {
+	return s.GetInt(MUSENALMID_FIELD)
 }
 
-func (s *Series) SetMusenalmID(id string) {
+func (s *Series) SetMusenalmID(id int) {
 	s.Set(MUSENALMID_FIELD, id)
 }
 
