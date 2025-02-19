@@ -143,7 +143,7 @@ func getImages(path string) map[int][]string {
 			if len(basesplit) >= 3 {
 				commaseperatorsplit := strings.Split(basesplit[2], ",")
 				id := commaseperatorsplit[0]
-				no, err := strconv.Atoi(id)
+				no, err := strconv.Atoi(NormalizeString(id))
 				if err != nil {
 					slog.Error("Error parsing id", "error", err, "id", id)
 					return nil
