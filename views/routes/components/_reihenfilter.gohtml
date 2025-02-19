@@ -1,0 +1,51 @@
+{{ $model := . }}
+<div class="min-w-96 max-w-96 float-right flex flex-col gap-y-4">
+	{{ if .agents }}
+		<filter-list
+			id="agent-list"
+			data-url="/reihen/?agent="
+			data-placeholder="Personen und Körperschaften filtern..."></filter-list>
+
+	<script type="module">
+		let agentList = document.getElementById("agent-list");
+		if (agentList) agentList.items = {{ .agents }};
+	</script>
+	{{ end }}
+
+	{{ if .places }}
+		<filter-list
+			id="place-list"
+			data-url="/reihen/?place="
+			data-placeholder="Erscheinungsorte filtern..."></filter-list>
+
+	<script type="module">
+		let placeList = document.getElementById("place-list");
+		if (placeList) placeList.items = {{ .places }};
+	</script>
+	{{ end }}
+
+	{{ if .years }}
+		<filter-list
+			id="year-list"
+			data-url="/reihen/?year="
+			data-filterstart="true"
+			data-placeholder="Erscheinungsjahr filtern..."></filter-list>
+
+	<script type="module">
+		let yearList = document.getElementById("year-list");
+		if (yearList) {
+			yearList.items = {{ .years }};
+
+			yearList.setHREFFunc((item) => {
+				if (item === 0) return "/reihen?year=0";
+				return `/reihen?year=${item}`;
+			});
+
+			yearList.setLinkTextFunc((item) => {
+				if (item === 0) return "ohne Jahr";
+				return String(item);
+			});
+		}
+	</script>
+	{{ end }}
+</div>

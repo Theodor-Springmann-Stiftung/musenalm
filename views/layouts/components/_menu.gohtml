@@ -13,8 +13,7 @@
 
 		<nav
 			class="self-end font-serif font-bold flex flex-row gap-x-4 [&>a]:no-underline
-		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5"
-			hx-boost="false">
+		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5">
 			<a
 				href="/reihen/"
 				{{ if and $model.page (HasPrefix $model.page.Path "/reihe") -}}
@@ -93,7 +92,3 @@
 		>
 	</nav>
 </div>
-
-<script type="module">
-	import { setMenuActive } from "/assets/scripts.js";
-</script>
