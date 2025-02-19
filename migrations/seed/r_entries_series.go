@@ -11,8 +11,8 @@ import (
 func RecordsFromRelationBändeReihen(
 	app core.App,
 	relations xmlmodels.Relationen_Bände_Reihen,
-	series map[string]*dbmodels.Series,
-	entries map[string]*dbmodels.Entry,
+	series map[int]*dbmodels.Series,
+	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.REntriesSeries, error) {
 	records := make([]*dbmodels.REntriesSeries, 0, len(relations.Relationen))
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))

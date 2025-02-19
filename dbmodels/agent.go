@@ -92,11 +92,11 @@ func (a *Agent) SetAnnotation(annotation string) {
 	a.Set(ANNOTATION_FIELD, annotation)
 }
 
-func (a *Agent) MusenalmID() string {
-	return a.GetString(MUSENALMID_FIELD)
+func (a *Agent) MusenalmID() int {
+	return a.GetInt(MUSENALMID_FIELD)
 }
 
-func (a *Agent) SetMusenalmID(id string) {
+func (a *Agent) SetMusenalmID(id int) {
 	a.Set(MUSENALMID_FIELD, id)
 }
 

@@ -21,15 +21,15 @@ func init() {
 
 		adb.Reihen = xmlmodels.SanitizeReihen(adb.Reihen, adb.Relationen_Bände_Reihen)
 
-		var agentsmap map[string]*dbmodels.Agent
+		var agentsmap map[int]*dbmodels.Agent
 		var placesmap map[string]*dbmodels.Place
 		var placesmapid map[string]*dbmodels.Place
-		var seriesmap map[string]*dbmodels.Series
-		var entriesmap map[string]*dbmodels.Entry
+		var seriesmap map[int]*dbmodels.Series
+		var entriesmap map[int]*dbmodels.Entry
 		var entriesmapid map[string]*dbmodels.Entry
 		var seriesmapid map[string]*dbmodels.Series
 		var agentsmapid map[string]*dbmodels.Agent
-		var contentsmap map[string]*dbmodels.Content
+		var contentsmap map[int]*dbmodels.Content
 		var r_entries_series map[string][]*dbmodels.REntriesSeries
 		var r_entries_agents map[string][]*dbmodels.REntriesAgents
 		var r_contents_agents map[string][]*dbmodels.RContentsAgents
@@ -50,7 +50,7 @@ func init() {
 			} else {
 				panic(err)
 			}
-			agentsmap = datatypes.MakeMap(agents, func(record *dbmodels.Agent) string { return record.MusenalmID() })
+			agentsmap = datatypes.MakeMap(agents, func(record *dbmodels.Agent) int { return record.MusenalmID() })
 			agentsmapid = datatypes.MakeMap(agents, func(record *dbmodels.Agent) string { return record.Id })
 			wg.Done()
 		}()
@@ -79,7 +79,7 @@ func init() {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
 			}
-			seriesmap = datatypes.MakeMap(series, func(record *dbmodels.Series) string { return record.MusenalmID() })
+			seriesmap = datatypes.MakeMap(series, func(record *dbmodels.Series) int { return record.MusenalmID() })
 			seriesmapid = datatypes.MakeMap(series, func(record *dbmodels.Series) string { return record.Id })
 			wg.Done()
 		}()
@@ -96,7 +96,7 @@ func init() {
 			}
 		}
 
-		entriesmap = datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.MusenalmID() })
+		entriesmap = datatypes.MakeMap(entries, func(record *dbmodels.Entry) int { return record.MusenalmID() })
 		entriesmapid = datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.Id })
 
 		wg.Add(2)
@@ -125,7 +125,7 @@ func init() {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
 			}
-			contentsmap = datatypes.MakeMap(contents, func(record *dbmodels.Content) string { return record.MusenalmID() })
+			contentsmap = datatypes.MakeMap(contents, func(record *dbmodels.Content) int { return record.MusenalmID() })
 			wg.Done()
 		}()
 

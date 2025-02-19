@@ -200,11 +200,11 @@ func (e *Entry) SetDeprecated(deprecated Deprecated) {
 	e.Set(MUSENALM_DEPRECATED_FIELD, deprecated)
 }
 
-func (e *Entry) MusenalmID() string {
-	return e.GetString(MUSENALMID_FIELD)
+func (e *Entry) MusenalmID() int {
+	return e.GetInt(MUSENALMID_FIELD)
 }
 
-func (e *Entry) SetMusenalmID(musenalmID string) {
+func (e *Entry) SetMusenalmID(musenalmID int) {
 	e.Set(MUSENALMID_FIELD, musenalmID)
 }
 

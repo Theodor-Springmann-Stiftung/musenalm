@@ -8,7 +8,7 @@ type Bände struct {
 }
 
 type Band struct {
-	ID                        string       `xml:"ID"`
+	ID                        int          `xml:"ID"`
 	BiblioID                  int          `xml:"BIBLIO-ID"`
 	Titelangabe               string       `xml:"TITEL"`
 	Ortsangabe                string       `xml:"ORT-ALT"`
@@ -26,7 +26,7 @@ type Band struct {
 }
 
 type Ortverweis struct {
-	Value string `xml:"Value"`
+	Value int `xml:"Value"`
 }
 
 type Status struct {

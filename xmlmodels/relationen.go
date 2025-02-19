@@ -8,10 +8,10 @@ type Relationen_Bände_Reihen struct {
 }
 
 type Relation_Band_Reihe struct {
-	ID       string `xml:"ID"`
-	Band     string `xml:"BAND"`
+	ID       int    `xml:"ID"`
+	Band     int    `xml:"BAND"`
 	Relation string `xml:"BEZIEHUNG"`
-	Reihe    string `xml:"REIHE"`
+	Reihe    int    `xml:"REIHE"`
 }
 
 type Relationen_Inhalte_Akteure struct {
@@ -20,10 +20,10 @@ type Relationen_Inhalte_Akteure struct {
 }
 
 type Relation_Inhalt_Akteur struct {
-	ID       string `xml:"ID"`
-	Inhalt   string `xml:"INHALT"`
+	ID       int    `xml:"ID"`
+	Inhalt   int    `xml:"INHALT"`
 	Relation string `xml:"BEZIEHUNG"`
-	Akteur   string `xml:"AKTEUR"`
+	Akteur   int    `xml:"AKTEUR"`
 }
 
 type Relationen_Bände_Akteure struct {
@@ -32,8 +32,8 @@ type Relationen_Bände_Akteure struct {
 }
 
 type Relation_Band_Akteur struct {
-	ID       string `xml:"ID"`
-	Band     string `xml:"BAND"`
+	ID       int    `xml:"ID"`
+	Band     int    `xml:"BAND"`
 	Relation string `xml:"BEZIEHUNG"`
-	Akteur   string `xml:"AKTEUR"`
+	Akteur   int    `xml:"AKTEUR"`
 }

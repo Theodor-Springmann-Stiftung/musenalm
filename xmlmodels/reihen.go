@@ -8,7 +8,7 @@ type Reihentitel struct {
 }
 
 type Reihe struct {
-	ID          string `xml:"ID"`
+	ID          int    `xml:"ID"`
 	Titel       string `xml:"NAME"`
 	Sortiername string `xml:"SORTIERNAME"`
 	Nachweis    string `xml:"NACHWEIS"`
@@ -16,7 +16,7 @@ type Reihe struct {
 }
 
 func SanitizeReihen(reihentitel Reihentitel, relationen Relationen_Bände_Reihen) Reihentitel {
-	m := make(map[string]bool)
+	m := make(map[int]bool)
 	o := Reihentitel{
 		Reihen: []Reihe{},
 	}

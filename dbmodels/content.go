@@ -173,11 +173,11 @@ func (c *Content) SetEntry(entry string) {
 	c.Set(ENTRIES_TABLE, entry)
 }
 
-func (c *Content) MusenalmID() string {
-	return c.GetString(MUSENALMID_FIELD)
+func (c *Content) MusenalmID() int {
+	return c.GetInt(MUSENALMID_FIELD)
 }
 
-func (c *Content) SetMusenalmID(musenalmID string) {
+func (c *Content) SetMusenalmID(musenalmID int) {
 	c.Set(MUSENALMID_FIELD, musenalmID)
 }
 

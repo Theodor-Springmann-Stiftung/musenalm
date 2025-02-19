@@ -58,11 +58,11 @@ func (p *Place) SetAnnotation(annotation string) {
 	p.Set(ANNOTATION_FIELD, annotation)
 }
 
-func (p *Place) MusenalmID() string {
-	return p.GetString(MUSENALMID_FIELD)
+func (p *Place) MusenalmID() int {
+	return p.GetInt(MUSENALMID_FIELD)
 }
 
-func (p *Place) SetMusenalmID(id string) {
+func (p *Place) SetMusenalmID(id int) {
 	p.Set(MUSENALMID_FIELD, id)
 }
 

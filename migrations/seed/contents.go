@@ -3,6 +3,7 @@ package seed
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,7 +20,7 @@ const NO_TITLE = "[No Title]"
 func RecordsFromInhalte(
 	app core.App,
 	inhalte xmlmodels.Inhalte,
-	entries map[string]*dbmodels.Entry,
+	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Content, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
 	records := make([]*dbmodels.Content, 0, len(inhalte.Inhalte))
@@ -127,9 +128,9 @@ func commatizeArray(array []string) string {
 	return array[0]
 }
 
-func getImages(path string) map[string][]string {
+func getImages(path string) map[int][]string {
 	/// FIXED: there is a bug somewhere, where files ending with numbers after a comma (",001") etc dont get added
-	ret := make(map[string][]string)
+	ret := make(map[int][]string)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return ret
 	}
@@ -142,10 +143,15 @@ func getImages(path string) map[string][]string {
 			if len(basesplit) >= 3 {
 				commaseperatorsplit := strings.Split(basesplit[2], ",")
 				id := commaseperatorsplit[0]
-				if _, ok := ret[id]; !ok {
-					ret[id] = make([]string, 0)
+				no, err := strconv.Atoi(id)
+				if err != nil {
+					slog.Error("Error parsing id", "error", err, "id", id)
+					return nil
 				}
-				ret[id] = append(ret[id], path)
+				if _, ok := ret[no]; !ok {
+					ret[no] = make([]string, 0)
+				}
+				ret[no] = append(ret[no], path)
 			}
 		}
 		return nil

@@ -8,7 +8,7 @@ type Orte struct {
 }
 
 type Ort struct {
-	ID          string `xml:"ID"`
+	ID          int    `xml:"ID"`
 	Name        string `xml:"NAME"`
 	Fiktiv      bool   `xml:"FIKTIV"`
 	Anmerkungen string `xml:"Anmerkungen"`
