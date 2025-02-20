@@ -1,9 +1,10 @@
 {{ $model := . }}
 <div
-	class="min-w-[32rem] max-w-[32rem] float-right ml-6 flex flex-col gap-y-8 [&>*]:py-12
-	[&>*]:px-12 -mr-36 [&>*]:bg-slate-100">
+	class="min-w-[32rem] max-w-[32rem] float-right ml-6 flex flex-col gap-y-8 [&>*]:pb-12
+	[&>*]:px-12 [&>*]:pt-8 -mr-36 [&>*]:bg-slate-100">
 	{{ if .agents }}
 		<div class="">
+			<h2 class="mb-6">Personen, Verlage &amp; Druckereien</h2>
 			<filter-list
 				id="agent-list"
 				data-url="/reihen/?agent="
@@ -32,6 +33,7 @@
 
 	{{ if .places }}
 		<div>
+			<h2 class="mb-6">Erscheinungsorte</h2>
 			<filter-list
 				id="place-list"
 				data-url="/reihen/?place="
@@ -45,11 +47,12 @@
 
 	{{ if .years }}
 		<div>
+			<h2 class="mb-6">Geltungsjahre</h2>
 			<filter-list
 				id="year-list"
 				data-url="/reihen/?year="
 				data-filterstart="true"
-				data-placeholder="Erscheinungsjahr filtern..."></filter-list>
+				data-placeholder="Nach Geltungsjahren filtern..."></filter-list>
 		</div>
 	<script type="module">
 		let yearList = document.getElementById("year-list");

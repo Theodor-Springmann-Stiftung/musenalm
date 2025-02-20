@@ -285,7 +285,7 @@ class FilterList extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
-            <div class="font-serif text-base">
+            <div class="font-serif text-base shadow-inner border border-stone-100">
 							${this.Input()}
 							${this.List()}
             </div>
@@ -309,7 +309,7 @@ class FilterList extends HTMLElement {
 	Input() {
 		return `
 			<div class="flex w-full py-0.5 border-b border-zinc-600 bg-stone-50">
-						<i class="ri-arrow-right-s-line mr-1 pl-2"></i>
+						<i class="ri-arrow-right-s-line pl-2"></i>
 						<div class="grow">
 						<input
 								type="text"
@@ -338,7 +338,7 @@ class FilterList extends HTMLElement {
 		}
 
 		return `
-							<div id="${FILTER_LIST_LIST}" class="${FILTER_LIST_LIST} pt-1 min-h-72 max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${this.#hiddenlist ? "hidden" : ""}">
+							<div id="${FILTER_LIST_LIST}" class="${FILTER_LIST_LIST} pt-1 min-h-[19rem] max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${this.#hiddenlist ? "hidden" : ""}">
 								${filtereditems
 									.map(
 										(item, index) => `

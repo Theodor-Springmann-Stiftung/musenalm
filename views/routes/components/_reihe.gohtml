@@ -1,26 +1,40 @@
 {{ $model := index . 0 }}
 {{ $r := index . 1 }}
 
+{{ $bds := index $model.relations $r.Id }}
+
 
 <div class="flex flex-row mb-1.5">
 	<div class="grow-0 shrink-0 w-[12rem] flex flex-col">
 		{{ if $r.References }}
 			<div class="text-sm font-sans px-2 py-1 bg-stone-100">{{ $r.References }}</div>
 		{{ end }}
+		{{ if $model.musenalmid }}
+			{{ range $_, $rel := $bds }}
+				<div class="font-sans text-sm px-2 py-1 bg-stone-100 searchable my-0.5">
+					Almanach-Nr.
+					{{ (index $model.entries
+						$rel.Entry).MusenalmID
+					}}
+				</div>
+			{{ end }}
+		{{ end }}
 		<div class="font-sans py-0.5 text-xs">
-			<a href="/reihe/?={{ $r.Id }}" class="no-underline rounded bg-stone-100 px-1.5">
+			<a href="/reihe/{{ $r.MusenalmID }}" class="no-underline rounded bg-stone-100 px-1.5">
 				<i class="ri-links-line"></i> Permalink
 			</a>
 		</div>
 	</div>
 	<div class="grow-0 ml-8 -indent-3">
-		<span class="font-bold">{{ $r.Title }}</span>
-		{{ if $r.Annotation }}
-			<span>&ensp;&middot;&ensp;</span>
-			<span class="">{{ Safe $r.Annotation }}</span>
-		{{ end }}
+		<div class="reihen-text contents">
+			<span class="font-bold">{{ $r.Title }}</span>
+			{{ if $r.Annotation }}
+				<span>&ensp;&middot;&ensp;</span>
+				<span class="">{{ Safe $r.Annotation }}</span>
+			{{ end }}
+		</div>
+		<div></div>
 		<div class="ml-3">
-			{{ $bds := index $model.relations $r.Id }}
 			{{ if $bds }}
 				{{ range $_, $rel := $bds }}
 					{{ $bd := index $model.entries $rel.Entry }}

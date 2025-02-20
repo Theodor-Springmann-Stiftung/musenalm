@@ -13,22 +13,43 @@
 </div>
 
 <div id="searchcontent" class="font-serif">
-	<div class="-ml-16">
-	{{ if or .series .altseries }}
-		<div class="mb-1 max-w-[60rem] hyphens-auto">
-			{{ range $id, $r := .series }}
-				{{ template "_reihe" (Arr $model $r) }}
-			{{ end }}
-		</div>
-		</div>
+	{{ if $model.search }}
+<script type="module">
+let elements = document.querySelectorAll('.reihen-text');
+let mark_instance = new Mark(elements);
+// INFO: we wait a little bit before marking, to settle everything
+	setTimeout(() => {
+		mark_instance.mark('{{ $model.search }}', {
+			"seperateWordSearch": true,
+		});
+	}, 200);
+</script>
+	{{ end }}
 
-		{{ if .search }}
-			<div class="mt-8 max-w-96">
-				{{ range $id, $r := .altseries }}
-						{{ template "_reihe" (Arr $model $r) }}
+	{{ if or .series .altseries }}
+		<div class="-ml-16">
+			<div class="mb-1 max-w-[60rem] hyphens-auto">
+				{{ range $id, $r := .series }}
+					{{ template "_reihe" (Arr $model $r) }}
 				{{ end }}
 			</div>
-		{{ end }}
+
+			{{ if and .search .altseries }}
+				{{ if .series }}
+					<div class="border-b text-xs font-sans text-right pb-0.5">
+						Treffer in Reihentiteln &uarr;
+					</div>
+				{{ end }}
+				<div class="border-t mb-1.5 text-xs font-sans text-right pt-0.5">
+					Treffer in Anmerkungen, Verweisen etc. &darr;
+				</div>
+				<div class="mb-1 max-w-[60rem] hyphens-auto">
+					{{ range $id, $r := .altseries }}
+						{{ template "_reihe" (Arr $model $r) }}
+					{{ end }}
+				</div>
+			{{ end }}
+		</div>
 	{{ else }}
 		<div class="mt-8">
 			Keine Reihen
