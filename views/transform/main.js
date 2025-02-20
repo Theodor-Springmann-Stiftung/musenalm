@@ -4,11 +4,14 @@ import "./site.css";
 const ATTR_XSLT_ONLOAD = "script[xslt-onload]";
 const ATTR_XSLT_TEMPLATE = "xslt-template";
 const ATTR_XSLT_STATE = "xslt-transformed";
+
 const FILTER_LIST_ELEMENT = "filter-list";
 const FILTER_LIST_LIST = "filter-list-list";
 const FILTER_LIST_ITEM = "filter-list-item";
 const FILTER_LIST_INPUT = "filter-list-input";
 const FILTER_LIST_SEARCHABLE = "filter-list-searchable";
+
+const SCROLL_BUTTON_ELEMENT = "scroll-button";
 
 class XSLTParseProcess {
 	#processors;
@@ -360,6 +363,69 @@ class FilterList extends HTMLElement {
 	}
 }
 
-customElements.define(FILTER_LIST_ELEMENT, FilterList);
+class ScrollButton extends HTMLElement {
+	constructor() {
+		super();
+		this.handleScroll = this.handleScroll.bind(this);
+		this.scrollToTop = this.scrollToTop.bind(this);
+	}
 
-export { XSLTParseProcess, FilterList };
+	connectedCallback() {
+		// Insert Tailwind-styled button in light DOM
+		this.innerHTML = `
+          <button
+            class="
+              scroll-to-top
+              fixed bottom-5 right-5
+              hidden
+              bg-gray-800 text-white
+              p-2
+              rounded-md
+              cursor-pointer
+              text-2xl
+              hover:opacity-80
+              transition-opacity
+              border-0
+            "
+            aria-label="Scroll to top"
+          >
+					<i class="ri-arrow-up-double-line"></i>
+          </button>
+        `;
+
+		this._button = this.querySelector(".scroll-to-top");
+
+		// Listen for scroll events
+		window.addEventListener("scroll", this.handleScroll);
+
+		// Listen for clicks on the button
+		this._button.addEventListener("click", this.scrollToTop);
+	}
+
+	disconnectedCallback() {
+		window.removeEventListener("scroll", this.handleScroll);
+		this._button.removeEventListener("click", this.scrollToTop);
+	}
+
+	handleScroll() {
+		// Show/hide button based on scroll position
+		const scrollTop = window.scrollY || document.documentElement.scrollTop;
+		if (scrollTop > 300) {
+			// Remove 'hidden' so it becomes visible
+			this._button.classList.remove("hidden");
+		} else {
+			// Add 'hidden' so it's not displayed
+			this._button.classList.add("hidden");
+		}
+	}
+
+	scrollToTop() {
+		// Smoothly scroll back to top
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	}
+}
+
+customElements.define(FILTER_LIST_ELEMENT, FilterList);
+customElements.define(SCROLL_BUTTON_ELEMENT, ScrollButton);
+
+export { XSLTParseProcess, FilterList, ScrollButton };
