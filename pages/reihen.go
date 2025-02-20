@@ -150,15 +150,17 @@ func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *co
 	return p.Get(e, engine, data)
 }
 
-// BUG: Umlaute werden nicht korrekt gesucht
 // BUG: alternative treffer haben keine relations
 // TODO: Suche nach Musenalm-ID
 // TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
+// TODO: FTS-Suche für alt. Ergebnisse
 func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	data := map[string]interface{}{}
 	data[PARAM_SEARCH] = search
+	// INFO: normalization happens in the db query
 	series, altseries, err := dbmodels.BasicSearchSeries(app, search)
+
 	if err != nil {
 		return Error404(e, engine, err, data)
 	}
@@ -171,6 +173,50 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 	if err != nil {
 		return Error404(e, engine, err, data)
 	}
+
+	rmap2, bmap2, err := dbmodels.EntriesForSeriesses(app, altseries)
+	if err != nil {
+		return Error404(e, engine, err, data)
+	}
+
+	for k, v := range rmap2 {
+		rmap[k] = v
+	}
+	for k, v := range bmap2 {
+		bmap[k] = v
+	}
+
+	// Searching for MUSENALM-ID
+	if searchint, err := strconv.Atoi(search); err == nil {
+		identries, err := dbmodels.EntriesForID(app, searchint)
+		if err != nil {
+			return Error404(e, engine, err, data)
+		}
+
+		if len(identries) != 0 {
+
+			idseries, rmap3, bmap3, err := dbmodels.SeriesForEntries(app, identries)
+			if err != nil {
+				return Error404(e, engine, err, data)
+			}
+
+			dbmodels.SortSeriessesByTitle(idseries)
+			data["idseries"] = idseries
+
+			if err != nil {
+				return Error404(e, engine, err, data)
+			}
+
+			for k, v := range rmap3 {
+				rmap[k] = v
+			}
+
+			for k, v := range bmap3 {
+				bmap[k] = v
+			}
+		}
+	}
+
 	data["entries"] = bmap
 	data["relations"] = rmap
 

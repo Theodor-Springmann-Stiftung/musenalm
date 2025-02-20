@@ -10,7 +10,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
-	"golang.org/x/text/unicode/norm"
 )
 
 type SeriesEntries map[string][]*REntriesSeries
@@ -22,13 +21,25 @@ func SortSeriessesByTitle(series []*Series) {
 	})
 }
 
+func MusenalmIDSearchSeries(app core.App, query string) ([]*Series, error) {
+	series := []*Series{}
+	err := app.RecordQuery(SERIES_TABLE).
+		Where(dbx.Like(MUSENALMID_FIELD, query).Match(true, false)).
+		All(&series)
+	if err != nil {
+		return nil, err
+	}
+
+	return series, nil
+}
+
 func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error) {
 	query = strings.TrimSpace(query)
 	query = datatypes.DeleteTags(query)
 	query = datatypes.NormalizeString(query)
 	query = datatypes.RemovePunctuation(query)
 	query = cases.Lower(language.German).String(query)
-	query = norm.NFKD.String(query)
+	// TODO: how to normalize, which unicode normalization to use?
 
 	if query == "" {
 		return []*Series{}, []*Series{}, nil

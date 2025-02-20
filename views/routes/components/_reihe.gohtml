@@ -1,5 +1,6 @@
 {{ $model := index . 0 }}
 {{ $r := index . 1 }}
+{{ $showidseries := index . 2 }}
 
 {{ $bds := index $model.relations $r.Id }}
 
@@ -9,13 +10,15 @@
 		{{ if $r.References }}
 			<div class="text-sm font-sans px-2 py-1 bg-stone-100">{{ $r.References }}</div>
 		{{ end }}
-		{{ if $model.musenalmid }}
+		{{ if $showidseries }}
 			{{ range $_, $rel := $bds }}
 				<div class="font-sans text-sm px-2 py-1 bg-stone-100 searchable my-0.5">
 					Almanach-Nr.
-					{{ (index $model.entries
-						$rel.Entry).MusenalmID
-					}}
+					<span class="reihen-text">
+						{{ (index $model.entries
+							$rel.Entry).MusenalmID
+						}}
+					</span>
 				</div>
 			{{ end }}
 		{{ end }}

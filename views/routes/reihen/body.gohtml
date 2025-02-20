@@ -26,31 +26,47 @@ let mark_instance = new Mark(elements);
 </script>
 	{{ end }}
 
-	{{ if or .series .altseries }}
-		<div class="-ml-16">
+
+	<div class="-ml-16">
+		{{ if and .search .idseries }}
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
-				{{ range $id, $r := .series }}
-					{{ template "_reihe" (Arr $model $r) }}
+				{{ range $id, $r := .idseries }}
+					{{ template "_reihe" (Arr $model $r true) }}
 				{{ end }}
 			</div>
+		{{ end }}
 
-			{{ if and .search .altseries }}
-				{{ if .series }}
-					<div class="border-b text-xs font-sans text-right pb-0.5">
-						Treffer in Reihentiteln &uarr;
-					</div>
+		{{ if .series }}
+			<div class="mb-1 max-w-[60rem] hyphens-auto">
+				{{ range $id, $r := .series }}
+					{{ template "_reihe" (Arr $model $r false) }}
 				{{ end }}
-				<div class="border-t mb-1.5 text-xs font-sans text-right pt-0.5">
-					Treffer in Anmerkungen, Verweisen etc. &darr;
-				</div>
-				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := .altseries }}
-						{{ template "_reihe" (Arr $model $r) }}
-					{{ end }}
+			</div>
+		{{ end }}
+
+		{{ if and .search .altseries }}
+			{{ if .idseries }}
+				<div class="border-b text-sm font-sans text-right pb-0.5">
+					Treffer in Almanach-Nummer &uarr;
 				</div>
 			{{ end }}
-		</div>
-	{{ else }}
+
+			{{ if .series }}
+				<div class="border-b text-sm font-sans text-right pb-0.5">
+					Treffer in Reihentiteln &uarr;
+				</div>
+			{{ end }}
+			<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
+				Treffer in Anmerkungen, Verweisen etc. &darr;
+			</div>
+			<div class="mb-1 max-w-[60rem] hyphens-auto">
+				{{ range $id, $r := .altseries }}
+					{{ template "_reihe" (Arr $model $r false) }}
+				{{ end }}
+			</div>
+		{{ end }}
+	</div>
+	{{ if not (or .series .altseries .idseries) }}
 		<div class="mt-8">
 			Keine Reihen
 			{{ if .search }}für {{ .search }}{{ end }}

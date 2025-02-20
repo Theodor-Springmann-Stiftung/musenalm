@@ -1,15 +1,14 @@
 package seed
 
 import (
-	"strings"
-
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/text/unicode/norm"
 )
 
 func NormalizeString(s string) string {
-	s = strings.TrimSpace(s)
-	s = strings.ReplaceAll(s, "<div>", "")
-	s = strings.ReplaceAll(s, "</div>", "")
+	s = datatypes.NormalizeString(s)
+	s = norm.NFC.String(s)
 	return s
 }
 

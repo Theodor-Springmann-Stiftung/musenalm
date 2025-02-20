@@ -1,11 +1,25 @@
 package dbmodels
 
 import (
+	"strconv"
+
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type EntriesAgents map[string][]*REntriesAgents
+
+func EntriesForID(app core.App, query int) ([]*Entry, error) {
+	entries := []*Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.HashExp{MUSENALMID_FIELD: strconv.Itoa(query)}).
+		All(&entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return entries, nil
+}
 
 func YearsForEntries(app core.App) ([]int, error) {
 	rec := []core.Record{}
