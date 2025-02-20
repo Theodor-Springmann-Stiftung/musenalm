@@ -5,6 +5,10 @@ const ATTR_XSLT_ONLOAD = "script[xslt-onload]";
 const ATTR_XSLT_TEMPLATE = "xslt-template";
 const ATTR_XSLT_STATE = "xslt-transformed";
 const FILTER_LIST_ELEMENT = "filter-list";
+const FILTER_LIST_LIST = "filter-list-list";
+const FILTER_LIST_ITEM = "filter-list-item";
+const FILTER_LIST_INPUT = "filter-list-input";
+const FILTER_LIST_SEARCHABLE = "filter-list-searchable";
 
 class XSLTParseProcess {
 	#processors;
@@ -166,8 +170,14 @@ class FilterList extends HTMLElement {
 	}
 
 	onLoseFocus(e) {
-		if (e.target && e.target.tagName.toLowerCase() === "input") {
-			e.target.value = "";
+		let input = this.querySelector("input");
+		if (e.target && e.target === input) {
+			relatedElement = e.relatedTarget;
+			if (relatedElement && this.contains(relatedElement)) {
+				return;
+			}
+
+			input.value = "";
 			this._filter = "";
 			if (this._filterstart) {
 				this.#hiddenlist = true;
@@ -186,13 +196,43 @@ class FilterList extends HTMLElement {
 		}
 	}
 
+	mark() {
+		if (typeof Mark !== "function") {
+			return;
+		}
+
+		let list = this.querySelector("#" + FILTER_LIST_LIST);
+		if (!list) {
+			return;
+		}
+
+		let instance = new Mark(list.querySelectorAll("." + FILTER_LIST_SEARCHABLE));
+		if (this._filter) {
+			instance.mark(this._filter, {
+				separateWordSearch: true,
+			});
+		}
+	}
+
+	// INFO: allows for setting a custom HREF of the list item
+	// The function takes the item as parameter fn(item) and should return a string.
 	setHREFFunc(fn) {
 		this.getHREF = fn;
 		this.render();
 	}
 
+	// INFO: allows for setting a custom link text of the list item
+	// The function takes the item as parameter fn(item) and should return a string or
+	// an HTML template literal.
 	setLinkTextFunc(fn) {
 		this.getLinkText = fn;
+		this.render();
+	}
+
+	// INFO: allows for setting the text that will be filtered for.
+	// The function takes the item as parameter fn(item) and should return a string.
+	setSearchTextFunc(fn) {
+		this.getSearchText = fn;
 		this.render();
 	}
 
@@ -205,7 +245,7 @@ class FilterList extends HTMLElement {
 		return item.id;
 	}
 
-	getLinkText(item) {
+	getSearchText(item) {
 		if (!item) {
 			return "";
 		} else if (!item.name) {
@@ -216,53 +256,65 @@ class FilterList extends HTMLElement {
 
 	#isActive(item) {
 		if (!item) {
-			return "";
+			return false;
 		}
 
 		let href = this.getHREF(item);
-		if (href === "") {
-			return "";
+		if (href === "" || !window.location.href.endsWith(href)) {
+			return false;
 		}
 
-		if (!window.location.href.endsWith(href)) {
-			return "";
-		}
-
-		return "aria-current='page'";
+		return true;
 	}
 
-	#hiddenList() {
-		if (this.#hiddenlist) {
-			return "hidden";
+	getLinkText(item) {
+		let text = this.getSearchText(item);
+		if (text === "") {
+			return ``;
 		}
-		return "";
+		return `<span class="${FILTER_LIST_SEARCHABLE}">${text}</span>`;
 	}
 
 	renderList() {
-		let list = this.querySelector("#list");
+		let list = this.querySelector("#" + FILTER_LIST_LIST);
 		if (list) {
 			list.outerHTML = this.List();
 		}
+		this.mark();
 	}
 
 	render() {
 		this.innerHTML = `
-            <div class="p-4 font-serif text-base">
+            <div class="font-serif text-base">
 							${this.Input()}
 							${this.List()}
             </div>
         `;
 	}
 
+	ActiveDot(item) {
+		if (this.#isActive(item)) {
+			return ``;
+		}
+		return "";
+	}
+
+	NoItems(items) {
+		if (items.length === 0) {
+			return `<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>`;
+		}
+		return "";
+	}
+
 	Input() {
 		return `
-			<div class="flex w-full pb-0.5 border-b border-zinc-600">
-						<i class="ri-arrow-right-s-line mr-1"></i>
+			<div class="flex w-full py-0.5 border-b border-zinc-600 bg-stone-50">
+						<i class="ri-arrow-right-s-line mr-1 pl-2"></i>
 						<div class="grow">
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="w-full placeholder:italic px-2 " />
+								class="${FILTER_LIST_INPUT} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -271,32 +323,38 @@ class FilterList extends HTMLElement {
 	List() {
 		let filtereditems = this._items;
 		if (this._filter) {
-			if (!this._filterstart)
+			if (!this._filterstart) {
+				let joins = this._filter.split(" ");
 				filtereditems = this._items.filter((item) => {
-					return this.getLinkText(item).toLowerCase().includes(this._filter.toLowerCase());
+					return joins.every((join) => {
+						return this.getSearchText(item).toLowerCase().includes(join.toLowerCase());
+					});
 				});
-			else
+			} else {
 				filtereditems = this._items.filter((item) => {
-					return this.getLinkText(item).toLowerCase().startsWith(this._filter.toLowerCase());
+					return this.getSearchText(item).toLowerCase().startsWith(this._filter.toLowerCase());
 				});
+			}
 		}
 
 		return `
-							<div id="list" class="links min-h-72 max-h-60 overflow-auto border-b border-zinc-300 ${this.#hiddenList()}">
+							<div id="${FILTER_LIST_LIST}" class="${FILTER_LIST_LIST} pt-1 min-h-72 max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${this.#hiddenlist ? "hidden" : ""}">
 								${filtereditems
 									.map(
 										(item, index) => `
 									<a
 										href="${this._url}${this.getHREF(item)}"
-										class="block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
+										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"
-										${this.#isActive(item)}>
+										${this.#isActive(item) ? 'aria-current="page"' : ""}>
+										${this.ActiveDot(item)}
 										${this.getLinkText(item)}
 									</a>
 								`,
 									)
 									.join("")}
+								${this.NoItems(filtereditems)}
 							</div>
 				`;
 	}

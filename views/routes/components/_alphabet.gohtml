@@ -4,7 +4,7 @@
 	<div
 		class="flex flex-row border-b px-3 border-zinc-300 items-end min-h-14"
 		x-data="{ search : '{{ $model.search }}' }">
-		<div id="alphabet" class="alphabet flex flex-row items-end">
+		<div id="alphabet" class="alphabet flex flex-row items-end text-xl">
 			{{ range $id, $r := .letters }}
 				<a
 					class="odd:bg-stone-100 even:bg-zinc-100 mr-1 border-zinc-300 border-x border-t [&>a[aria-current='page']]:font-bold
@@ -37,7 +37,7 @@
 					name="search"
 					value="{{ $model.search }}"
 					x-model="search"
-					placeholder="Band-ID od. Suchbegriff"
+					placeholder="Almanach-Nr od. Suchbegriff"
 					hx-get=""
 					hx-trigger="input changed delay:=200ms, keyup[key=='Enter']"
 					hx-select="#searchcontent"
