@@ -8,24 +8,24 @@
 	</div>
 </div>
 
-<div class="mt-3">
+<div class="mt-6">
 	{{ template "_reihenfilter" . }}
 </div>
 
-<div id="searchcontent" class="pt-4 font-serif">
+<div id="searchcontent" class="font-serif">
+	<div class="-ml-16">
 	{{ if or .series .altseries }}
-		{{ range $id, $r := .series }}
-			<div class="mb-1.5">
+		<div class="mb-1 max-w-[60rem] hyphens-auto">
+			{{ range $id, $r := .series }}
 				{{ template "_reihe" (Arr $model $r) }}
-			</div>
-		{{ end }}
+			{{ end }}
+		</div>
+		</div>
 
 		{{ if .search }}
-			<div class="mt-8">
+			<div class="mt-8 max-w-96">
 				{{ range $id, $r := .altseries }}
-					<div class="mb-1.5">
 						{{ template "_reihe" (Arr $model $r) }}
-					</div>
 				{{ end }}
 			</div>
 		{{ end }}

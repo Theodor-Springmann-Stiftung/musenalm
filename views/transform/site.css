@@ -119,4 +119,8 @@
 	.headingcontainer h1 {
 		@apply text-3xl font-bold px-3 bg-stone-50 relative -translate-y-[50%] w-min whitespace-nowrap mx-auto;
 	}
+
+	.filter-list-list .filter-list-item[aria-current="page"] {
+		@apply border-l-4 border-zinc-300 font-bold;
+	}
 }

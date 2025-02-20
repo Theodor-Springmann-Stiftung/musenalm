@@ -1,23 +1,42 @@
 {{ $model := . }}
-<div class="min-w-96 max-w-96 float-right flex flex-col gap-y-4">
+<div
+	class="min-w-[32rem] max-w-[32rem] float-right ml-6 flex flex-col gap-y-8 [&>*]:py-12
+	[&>*]:px-12 -mr-36 [&>*]:bg-slate-100">
 	{{ if .agents }}
-		<filter-list
-			id="agent-list"
-			data-url="/reihen/?agent="
-			data-placeholder="Personen und Körperschaften filtern..."></filter-list>
-
+		<div class="">
+			<filter-list
+				id="agent-list"
+				data-url="/reihen/?agent="
+				data-placeholder="Personen und Körperschaften filtern..."></filter-list>
+		</div>
 	<script type="module">
 		let agentList = document.getElementById("agent-list");
-		if (agentList) agentList.items = {{ .agents }};
+		if (agentList) {
+			agentList.items = {{ .agents }};
+
+			agentList.setSearchTextFunc((item) => {
+				return item.name;
+			});
+
+			agentList.setLinkTextFunc((item) => {
+				return `
+						<span class="filter-list-searchable">${item.name}</span>
+						<span class="text-xs text-stone-500 whitespace-nowrap">
+							${item.corporate_body ? "Verlag/Druck/Vertrieb" : item.biographical_data}
+						</span>
+						`;
+			});
+		}
 	</script>
 	{{ end }}
 
 	{{ if .places }}
-		<filter-list
-			id="place-list"
-			data-url="/reihen/?place="
-			data-placeholder="Erscheinungsorte filtern..."></filter-list>
-
+		<div>
+			<filter-list
+				id="place-list"
+				data-url="/reihen/?place="
+				data-placeholder="Erscheinungsorte filtern..."></filter-list>
+		</div>
 	<script type="module">
 		let placeList = document.getElementById("place-list");
 		if (placeList) placeList.items = {{ .places }};
@@ -25,20 +44,20 @@
 	{{ end }}
 
 	{{ if .years }}
-		<filter-list
-			id="year-list"
-			data-url="/reihen/?year="
-			data-filterstart="true"
-			data-placeholder="Erscheinungsjahr filtern..."></filter-list>
-
+		<div>
+			<filter-list
+				id="year-list"
+				data-url="/reihen/?year="
+				data-filterstart="true"
+				data-placeholder="Erscheinungsjahr filtern..."></filter-list>
+		</div>
 	<script type="module">
 		let yearList = document.getElementById("year-list");
 		if (yearList) {
 			yearList.items = {{ .years }};
 
 			yearList.setHREFFunc((item) => {
-				if (item === 0) return "/reihen?year=0";
-				return `/reihen?year=${item}`;
+				return String(item);
 			});
 
 			yearList.setLinkTextFunc((item) => {
