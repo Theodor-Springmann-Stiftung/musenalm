@@ -2,19 +2,19 @@ var _ = (i) => {
   throw TypeError(i);
 };
 var g = (i, r, t) => r.has(i) || _("Cannot " + t);
-var c = (i, r, t) => (g(i, r, "read from private field"), t ? t.call(i) : r.get(i)), a = (i, r, t) => r.has(i) ? _("Cannot add the same private member more than once") : r instanceof WeakSet ? r.add(i) : r.set(i, t), o = (i, r, t, e) => (g(i, r, "write to private field"), e ? e.call(i, t) : r.set(i, t), t), f = (i, r, t) => (g(i, r, "access private method"), t);
-const v = "script[xslt-onload]", m = "xslt-template", A = "xslt-transformed", F = "filter-list", d = "filter-list-list", I = "filter-list-item", w = "filter-list-input", E = "filter-list-searchable";
-var l, p, x;
+var c = (i, r, t) => (g(i, r, "read from private field"), t ? t.call(i) : r.get(i)), l = (i, r, t) => r.has(i) ? _("Cannot add the same private member more than once") : r instanceof WeakSet ? r.add(i) : r.set(i, t), o = (i, r, t, e) => (g(i, r, "write to private field"), e ? e.call(i, t) : r.set(i, t), t), d = (i, r, t) => (g(i, r, "access private method"), t);
+const v = "script[xslt-onload]", m = "xslt-template", A = "xslt-transformed", F = "filter-list", f = "filter-list-list", w = "filter-list-item", I = "filter-list-input", E = "filter-list-searchable";
+var a, p, b;
 class $ {
   constructor() {
-    a(this, p);
-    a(this, l);
-    o(this, l, /* @__PURE__ */ new Map());
+    l(this, p);
+    l(this, a);
+    o(this, a, /* @__PURE__ */ new Map());
   }
   setup() {
     let r = htmx.findAll(v);
     for (let t of r)
-      f(this, p, x).call(this, t);
+      d(this, p, b).call(this, t);
   }
   hookupHTMX() {
     htmx.on("htmx:load", (r) => {
@@ -22,27 +22,27 @@ class $ {
     });
   }
 }
-l = new WeakMap(), p = new WeakSet(), x = function(r) {
+a = new WeakMap(), p = new WeakSet(), b = function(r) {
   if (r.getAttribute(A) === "true" || !r.hasAttribute(m))
     return;
-  let t = "#" + r.getAttribute(m), e = c(this, l).get(t);
+  let t = "#" + r.getAttribute(m), e = c(this, a).get(t);
   if (!e) {
     let u = htmx.find(t);
     if (u) {
-      let b = u.innerHTML ? new DOMParser().parseFromString(u.innerHTML, "application/xml") : u.contentDocument;
-      e = new XSLTProcessor(), e.importStylesheet(b), c(this, l).set(t, e);
+      let S = u.innerHTML ? new DOMParser().parseFromString(u.innerHTML, "application/xml") : u.contentDocument;
+      e = new XSLTProcessor(), e.importStylesheet(S), c(this, a).set(t, e);
     } else
       throw new Error("Unknown XSLT template: " + t);
   }
-  let s = new DOMParser().parseFromString(r.innerHTML, "application/xml"), L = e.transformToFragment(s, document), S = new XMLSerializer().serializeToString(L);
-  r.outerHTML = S;
+  let s = new DOMParser().parseFromString(r.innerHTML, "application/xml"), L = e.transformToFragment(s, document), x = new XMLSerializer().serializeToString(L);
+  r.outerHTML = x;
 };
 var n, h, T;
 class k extends HTMLElement {
   constructor() {
     super();
-    a(this, h);
-    a(this, n, !1);
+    l(this, h);
+    l(this, n, !1);
     this._items = [], this._url = "", this._filterstart = !1, this._placeholder = "Liste filtern...", this.render();
   }
   static get observedAttributes() {
@@ -84,7 +84,7 @@ class k extends HTMLElement {
   mark() {
     if (typeof Mark != "function")
       return;
-    let t = this.querySelector("#" + d);
+    let t = this.querySelector("#" + f);
     if (!t)
       return;
     let e = new Mark(t.querySelectorAll("." + E));
@@ -127,19 +127,19 @@ class k extends HTMLElement {
     return e === "" ? "" : `<span class="${E}">${e}</span>`;
   }
   renderList() {
-    let t = this.querySelector("#" + d);
+    let t = this.querySelector("#" + f);
     t && (t.outerHTML = this.List()), this.mark();
   }
   render() {
     this.innerHTML = `
-            <div class="font-serif text-base">
+            <div class="font-serif text-base shadow-inner border border-stone-100">
 							${this.Input()}
 							${this.List()}
             </div>
         `;
   }
   ActiveDot(t) {
-    return f(this, h, T).call(this, t), "";
+    return d(this, h, T).call(this, t), "";
   }
   NoItems(t) {
     return t.length === 0 ? '<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>' : "";
@@ -147,12 +147,12 @@ class k extends HTMLElement {
   Input() {
     return `
 			<div class="flex w-full py-0.5 border-b border-zinc-600 bg-stone-50">
-						<i class="ri-arrow-right-s-line mr-1 pl-2"></i>
+						<i class="ri-arrow-right-s-line pl-2"></i>
 						<div class="grow">
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${w} w-full placeholder:italic px-2 py-0.5" />
+								class="${I} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -167,13 +167,13 @@ class k extends HTMLElement {
         t = this._items.filter((s) => e.every((L) => this.getSearchText(s).toLowerCase().includes(L.toLowerCase())));
       }
     return `
-							<div id="${d}" class="${d} pt-1 min-h-72 max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${c(this, n) ? "hidden" : ""}">
+							<div id="${f}" class="${f} pt-1 min-h-[19rem] max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${c(this, n) ? "hidden" : ""}">
 								${t.map(
       (e, s) => `
 									<a
 										href="${this._url}${this.getHREF(e)}"
-										class="${I} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
-										${f(this, h, T).call(this, e) ? 'aria-current="page"' : ""}>
+										class="${w} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										${d(this, h, T).call(this, e) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(e)}
 										${this.getLinkText(e)}
 									</a>

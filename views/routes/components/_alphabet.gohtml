@@ -37,9 +37,10 @@
 					name="search"
 					value="{{ $model.search }}"
 					x-model="search"
-					placeholder="Almanach-Nr od. Suchbegriff"
+					placeholder="Almanach-Nr oder Suchbegriff"
 					hx-get=""
-					hx-trigger="input changed delay:=200ms, keyup[key=='Enter']"
+					hx-trigger="input changed delay=1000ms, keyup[key=='Enter']"
+					hx-sync="this:replace"
 					hx-select="#searchcontent"
 					hx-target="#searchcontent"
 					autocomplete="off" />
