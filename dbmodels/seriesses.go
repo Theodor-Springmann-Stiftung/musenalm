@@ -50,13 +50,34 @@ func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error)
 		return nil, nil, err
 	}
 
-	altseries, err := AltSearchSeries(app, query)
+	// INFO: Needing to differentiate matches
+	altids, err := FTS5SearchSeries(app, query)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	/// INFO: this is inefficient, but it only happens when there are matches longer than 3 characters, so we should be fine
+	ids := []any{}
+outer_loop:
+	for _, id := range altids {
+		for _, i := range series {
+			sid := i.Id
+			if sid == id.ID {
+				continue outer_loop
+			}
+		}
+		ids = append(ids, id.ID)
+	}
+
+	altseries, err := SeriessesForIds(app, ids)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return series, altseries, nil
 }
 
+// INFO: expects a normalized query string
 func TitleSearchSeries(app core.App, query string) ([]*Series, error) {
 	series := []*Series{}
 	queries := strings.Split(query, " ")
@@ -65,10 +86,7 @@ func TitleSearchSeries(app core.App, query string) ([]*Series, error) {
 
 	if len(queries) > 1 {
 		for _, que := range queries[1:] {
-			que = strings.TrimSpace(que)
-			if que != "" {
-				q.AndWhere(dbx.Like(SERIES_TITLE_FIELD, que).Match(true, true))
-			}
+			q.AndWhere(dbx.Like(SERIES_TITLE_FIELD, que).Match(true, true))
 		}
 	}
 
@@ -82,17 +100,33 @@ func TitleSearchSeries(app core.App, query string) ([]*Series, error) {
 	return series, nil
 }
 
-func AltSearchSeries(app core.App, query string) ([]*Series, error) {
-	series := []*Series{}
-	err := app.RecordQuery(SERIES_TABLE).
-		Where(dbx.Like(ANNOTATION_FIELD, query).Match(true, true)).
-		OrderBy(SERIES_TITLE_FIELD).
-		All(&series)
+// INFO: expects a normalized query string
+// Returns all ids that match the query
+func FTS5SearchSeries(app core.App, query string) ([]*FTS5IDQueryResult, error) {
+	seriesids := []*FTS5IDQueryResult{}
+	q := NewFTS5Query().
+		From(SERIES_TABLE).
+		SelectID()
+
+	queries := strings.Split(query, " ")
+	for _, que := range queries {
+		que := datatypes.NormalizeString(que)
+		if len(que) >= 3 {
+			q.AndMatch([]string{SERIES_TITLE_FIELD, ANNOTATION_FIELD, REFERENCES_FIELD}, que)
+		}
+	}
+
+	querystring := q.Query()
+	if querystring == "" {
+		return seriesids, nil
+	}
+
+	err := app.DB().NewQuery(querystring).All(&seriesids)
 	if err != nil {
 		return nil, err
 	}
 
-	return series, nil
+	return seriesids, nil
 }
 
 func IDsForSeriesses(series []*Series) []any {
@@ -295,4 +329,16 @@ func SeriesForId(app core.App, id string) (*Series, error) {
 	}
 
 	return s, nil
+}
+
+func SeriessesForIds(app core.App, ids []any) ([]*Series, error) {
+	series := []*Series{}
+	err := app.RecordQuery(SERIES_TABLE).
+		Where(dbx.HashExp{ID_FIELD: ids}).
+		All(&series)
+	if err != nil {
+		return nil, err
+	}
+
+	return series, nil
 }

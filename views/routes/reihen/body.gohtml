@@ -31,7 +31,7 @@ let mark_instance = new Mark(elements);
 		{{ if and .search .idseries }}
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := .idseries }}
-					{{ template "_reihe" (Arr $model $r true) }}
+					{{ template "_reihe" (Arr $model $r true false) }}
 				{{ end }}
 			</div>
 		{{ end }}
@@ -39,7 +39,7 @@ let mark_instance = new Mark(elements);
 		{{ if .series }}
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := .series }}
-					{{ template "_reihe" (Arr $model $r false) }}
+					{{ template "_reihe" (Arr $model $r false false) }}
 				{{ end }}
 			</div>
 		{{ end }}
@@ -57,11 +57,11 @@ let mark_instance = new Mark(elements);
 				</div>
 			{{ end }}
 			<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
-				Treffer in Anmerkungen, Verweisen etc. &darr;
+				Treffer in allen Feldern (Anmerkungen, Verweisen etc.) &darr;
 			</div>
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := .altseries }}
-					{{ template "_reihe" (Arr $model $r false) }}
+					{{ template "_reihe" (Arr $model $r false true) }}
 				{{ end }}
 			</div>
 		{{ end }}

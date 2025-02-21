@@ -150,8 +150,6 @@ func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *co
 	return p.Get(e, engine, data)
 }
 
-// BUG: alternative treffer haben keine relations
-// TODO: Suche nach Musenalm-ID
 // TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
 // TODO: FTS-Suche für alt. Ergebnisse
 func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
