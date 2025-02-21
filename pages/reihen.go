@@ -151,7 +151,6 @@ func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *co
 }
 
 // TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
-// TODO: FTS-Suche für alt. Ergebnisse
 func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	data := map[string]interface{}{}

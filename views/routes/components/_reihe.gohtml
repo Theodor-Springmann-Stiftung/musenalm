@@ -1,9 +1,10 @@
-{{ $model := index . 0 }}
-{{ $r := index . 1 }}
-{{ $showidseries := index . 2 }}
-{{ $markar := index . 3 }}
+{{ $r := index . 0 }}
+{{ $entries := index .	1 }}
+{{ $relations := index . 2 }}
+{{ $showidseries := index . 3 }}
+{{ $markar := index . 4 }}
 
-{{ $bds := index $model.relations $r.Id }}
+{{ $bds := index $relations $r.Id }}
 
 
 <div class="flex flex-row mb-1.5">
@@ -18,7 +19,7 @@
 				<div class="font-sans text-sm px-2 py-1 bg-stone-100 searchable my-0.5">
 					Almanach-Nr.
 					<span class="reihen-text">
-						{{ (index $model.entries
+						{{ (index $entries
 							$rel.Entry).MusenalmID
 						}}
 					</span>
@@ -41,20 +42,7 @@
 		</div>
 		<div></div>
 		<div class="ml-3">
-			{{ if $bds }}
-				{{ range $_, $rel := $bds }}
-					{{ $bd := index $model.entries $rel.Entry }}
-					{{ if $bd }}
-						<a href="/almanach/{{ $bd.MusenalmID }}">
-							{{ if ne $bd.Year 0 }}
-								{{ $bd.Year }}
-							{{ else }}
-								[o.J.]
-							{{ end }} </a
-						>&ensp;
-					{{ end }}
-				{{ end }}
-			{{ end }}
+			{{ template "_reiherelations" (Arr $r $bds $entries false) }}
 		</div>
 	</div>
 </div>

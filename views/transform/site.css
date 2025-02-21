@@ -113,7 +113,7 @@
 	}
 
 	.headingcontainer {
-		@apply mt-10 border-r border-zinc-300 relative;
+		@apply mt-16 border-r border-zinc-300 relative;
 	}
 
 	.headingcontainer h1 {
@@ -122,5 +122,21 @@
 
 	.filter-list-list .filter-list-item[aria-current="page"] {
 		@apply border-l-4 border-zinc-300 font-bold;
+	}
+
+	.headingcontainer .notifier {
+		@apply bg-stone-100 text-center text-base px-2.5 py-1 font-sans rounded;
+	}
+
+	.headingcontainer .notifier i {
+		@apply inline-block pr-0.5;
+	}
+
+	.headingcontainer .notifier .filterterm {
+		@apply font-bold;
+	}
+
+	.headingcontainer .backbutton {
+		@apply ml-4 bg-stone-100 py-0.5 px-2.5 rounded font-sans text-base text-center;
 	}
 }
