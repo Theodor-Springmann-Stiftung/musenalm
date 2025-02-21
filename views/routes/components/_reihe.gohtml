@@ -1,6 +1,7 @@
 {{ $model := index . 0 }}
 {{ $r := index . 1 }}
 {{ $showidseries := index . 2 }}
+{{ $markar := index . 3 }}
 
 {{ $bds := index $model.relations $r.Id }}
 
@@ -8,7 +9,9 @@
 <div class="flex flex-row mb-1.5">
 	<div class="grow-0 shrink-0 w-[12rem] flex flex-col">
 		{{ if $r.References }}
-			<div class="text-sm font-sans px-2 py-1 bg-stone-100">{{ $r.References }}</div>
+			<div class="text-sm font-sans px-2 py-1 bg-stone-100 {{ if $markar }}reihen-text{{ end }}">
+				{{ $r.References }}
+			</div>
 		{{ end }}
 		{{ if $showidseries }}
 			{{ range $_, $rel := $bds }}
@@ -29,11 +32,11 @@
 		</div>
 	</div>
 	<div class="grow-0 ml-8 -indent-3">
-		<div class="reihen-text contents">
-			<span class="font-bold">{{ $r.Title }}</span>
+		<div class="contents">
+			<span class="font-bold reihen-text">{{ $r.Title }}</span>
 			{{ if $r.Annotation }}
 				<span>&ensp;&middot;&ensp;</span>
-				<span class="">{{ Safe $r.Annotation }}</span>
+				<span class="{{ if $markar }}reihen-text{{ end }}">{{ Safe $r.Annotation }}</span>
 			{{ end }}
 		</div>
 		<div></div>
