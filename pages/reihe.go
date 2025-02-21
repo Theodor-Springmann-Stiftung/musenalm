@@ -43,7 +43,7 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 			return Error404(e, engine, err, data)
 		}
 
-		data["relations"] = rmap
+		data["relations"] = rmap[reihe.Id]
 		data["entries"] = emap
 
 		return p.Get(e, engine, data)

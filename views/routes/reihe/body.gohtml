@@ -1,6 +1,24 @@
-{{ if .series }}
-	{{ .series.Title }}
-	<div>
-		{{ Safe .series.Annotation }}
+{{ $model := . }}
+{{ $r := $model.series }}
+
+
+<div class="flex flex-col font-serif mt-16">
+	<div class="grow-0 max-w-[48rem]">
+		<div>
+			<span class="font-bold">{{ $r.Title }}</span>
+			{{ if $r.References }}
+				<div class="text-sm font-sans px-2 py-1 ml-2 bg-stone-100 w-max inline-block">
+					{{ $r.References }}
+				</div>
+			{{ end }}
+		</div>
+		{{ if $r.Annotation }}
+			<div class="max-w-[48rem]">
+				<span class="">{{ Safe $r.Annotation }}</span>
+			</div>
+		{{ end }}
+		<div class="">
+			{{ template "_reiherelations" (Arr $r $model.relations $model.entries true) }}
+		</div>
 	</div>
-{{ end }}
+</div>

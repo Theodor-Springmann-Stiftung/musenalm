@@ -1,9 +1,7 @@
 {{ $model := . }}
 
 {{ if $model.letters }}
-	<div
-		class="flex flex-row border-b px-3 border-zinc-300 items-end min-h-14"
-		x-data="{ search : '{{ $model.search }}' }">
+	<div class="flex flex-row border-b px-3 border-zinc-300 items-end min-h-14">
 		<div id="alphabet" class="alphabet flex flex-row items-end text-xl">
 			{{ range $id, $r := .letters }}
 				<a
@@ -23,10 +21,7 @@
 
 		<div class="flex-grow"></div>
 
-		<div
-			class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative"
-			:class="search ?
-		'activesearch' : ''">
+		<div class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative">
 			<div class="pb-0">
 				<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
 			</div>
@@ -36,14 +31,16 @@
 					type="search"
 					name="search"
 					value="{{ $model.search }}"
-					x-model="search"
 					placeholder="Almanach-Nr oder Suchbegriff"
+					x-model="search"
 					hx-get=""
-					hx-trigger="input changed delay=1000ms, keyup[key=='Enter']"
+					hx-trigger="input changed delay=500ms, keyup[key=='Enter']"
 					hx-sync="this:replace"
 					hx-select="#searchcontent"
 					hx-target="#searchcontent"
-					autocomplete="off" />
+					autocomplete="off"
+					{{ if $model.active }}autofocus="true"{{ end }}
+					{{ if $model.search }}disabled="true"{{ end }} />
 			</div>
 			<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
 				<a

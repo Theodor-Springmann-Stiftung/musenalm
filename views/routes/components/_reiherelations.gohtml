@@ -1,0 +1,22 @@
+{{ $reihe := index . 0 }}
+{{ $rels := index . 1 }}
+{{ $entries := index . 2 }}
+{{ $shownos := index . 3 }}
+
+{{ if $rels }}
+	{{ range $_, $rel := $rels }}
+		{{ $bd := index $entries $rel.Entry }}
+		{{ if $bd }}
+			<a href="/almanach/{{ $bd.MusenalmID }}">
+				{{ if ne $bd.Year 0 }}
+					{{ $bd.Year }}
+				{{ else }}
+					[o.J.]
+				{{ end }} </a
+			>&ensp;
+			{{ if $shownos }}
+				{{ $bd.MusenalmID }}
+			{{ end }}
+		{{ end }}
+	{{ end }}
+{{ end }}
