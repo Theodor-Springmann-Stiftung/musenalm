@@ -13,7 +13,7 @@ import (
 
 func init() {
 	ip := &IndexPage{
-		Page: pagemodels.Page{
+		DefaultPage: pagemodels.DefaultPage{
 			Name: pagemodels.P_INDEX_NAME,
 		},
 	}
@@ -21,9 +21,10 @@ func init() {
 }
 
 type IndexPage struct {
-	pagemodels.Page
+	pagemodels.DefaultPage
 }
 
+// TODO:
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET("/{$}", func(e *core.RequestEvent) error {
 		var builder strings.Builder

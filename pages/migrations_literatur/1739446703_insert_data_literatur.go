@@ -122,7 +122,7 @@ func init() {
 			return err
 		}
 
-		record := pagemodels.NewDefaultPage(core.NewRecord(collection))
+		record := pagemodels.NewTextPage(core.NewRecord(collection))
 		record.SetTitle("Literatur")
 		record.SetText(START)
 

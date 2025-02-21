@@ -16,15 +16,18 @@ const (
 
 func init() {
 	rp := &ReihePage{
-		Page: pagemodels.Page{
-			Name: pagemodels.P_REIHEN_NAME,
+		StaticPage: pagemodels.StaticPage{
+			Name:     pagemodels.P_REIHEN_NAME,
+			URL:      URL_REIHE,
+			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			Template: TEMPLATE_REIHE,
 		},
 	}
 	app.Register(rp)
 }
 
 type ReihePage struct {
-	pagemodels.Page
+	pagemodels.StaticPage
 }
 
 // TODO: data richtig seutzen, damit die Reihe mit dem template _reihe angezeigt wird
@@ -34,13 +37,13 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 		data := make(map[string]interface{})
 		reihe, err := dbmodels.SeriesForId(app, id)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["series"] = reihe
 
 		rmap, emap, err := dbmodels.EntriesForSeriesses(app, []*dbmodels.Series{reihe})
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 
 		data["relations"] = rmap[reihe.Id]

@@ -9,27 +9,31 @@
 
 		{{ if .isDev }}
 			<link rel="icon" href="/assets/logo/dev_favicon.png" />
+			<meta name="robots" content="noindex" />
 		{{ else }}
+			{{ if .url }}
+				<link rel="canonical" href="{{ .url }}" />
+			{{ end }}
 			<link rel="icon" href="/assets/logo/favicon.png" />
 		{{ end }}
 
 
-		<link href="/assets/css/remixicon.css" rel="stylesheet" />
+		<script type="module" src="/assets/scripts.js"></script>
+
 		<script src="/assets/js/alpine.min.js" defer></script>
 		<script src="/assets/js/htmx.min.js" defer></script>
 		<script src="/assets/js/htmx-response-targets.js" defer></script>
 		<script src="/assets/js/client-side-templates.js" defer></script>
 		<script src="/assets/js/mark.min.js" defer></script>
 
-		<script type="module" src="/assets/scripts.js"></script>
-
+		<link href="/assets/css/remixicon.css" rel="stylesheet" />
 		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
 		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
 	</head>
 
 	<body class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
-		<div class="container flex flex-col min-h-screen max-w-(--breakpoint-xl) mx-auto px-3 py-3.5">
-			<header class="" id="header">
+		<div class="flex flex-col min-h-screen w-full">
+			<header class="container-normal" id="header">
 				{{ block "_menu" . }}
 					<!-- Default app menu... -->
 				{{ end }}
@@ -41,7 +45,7 @@
 				{{ end }}
 			</main>
 
-			<footer>
+			<footer class="container-normal">
 				{{ block "_footer" . }}
 				{{ end }}
 			</footer>

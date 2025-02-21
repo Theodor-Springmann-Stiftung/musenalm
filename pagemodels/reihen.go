@@ -55,6 +55,10 @@ func (r *Reihen) Image() string {
 	return r.GetString(F_IMAGE)
 }
 
+func (r *Reihen) ImagePath() string {
+	return "/api/files/" + r.TableName() + "/" + r.Id + "/" + r.Image()
+}
+
 func (r *Reihen) SetImage(image *filesystem.File) {
 	r.Set(F_IMAGE, image)
 }

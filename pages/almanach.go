@@ -16,7 +16,7 @@ const (
 
 func init() {
 	rp := &AlmanachPage{
-		Page: pagemodels.Page{
+		StaticPage: pagemodels.StaticPage{
 			Name: pagemodels.P_REIHEN_NAME,
 		},
 	}
@@ -24,7 +24,7 @@ func init() {
 }
 
 type AlmanachPage struct {
-	pagemodels.Page
+	pagemodels.StaticPage
 }
 
 func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
@@ -33,13 +33,13 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 		data := make(map[string]interface{})
 		entry, err := dbmodels.EntryForMusenalmID(app, id)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["entry"] = entry
 
 		series, srelations, _, err := dbmodels.SeriesForEntries(app, []*dbmodels.Entry{entry})
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 
 		s := map[string]*dbmodels.Series{}
@@ -52,26 +52,26 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 
 		places, err := dbmodels.PlacesForEntry(app, entry)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["places"] = places
 
 		contents, err := dbmodels.ContentsForEntry(app, entry)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["contents"] = contents
 
 		agents, arelations, err := dbmodels.AgentsForEntries(app, []*dbmodels.Entry{entry})
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["arelations"] = arelations
 
 		if len(contents) > 0 {
 			cagents, crelations, err := dbmodels.AgentsForContents(app, contents)
 			if err != nil {
-				return Error404(e, engine, err, data)
+				return engine.Response404(e, err, data)
 			}
 			data["crelations"] = crelations
 			for k, v := range cagents {
