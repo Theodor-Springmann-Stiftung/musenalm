@@ -16,7 +16,7 @@ const (
 
 func init() {
 	rp := &PersonenPage{
-		Page: pagemodels.Page{
+		StaticPage: pagemodels.StaticPage{
 			Name: pagemodels.P_REIHEN_NAME,
 		},
 	}
@@ -24,7 +24,7 @@ func init() {
 }
 
 type PersonenPage struct {
-	pagemodels.Page
+	pagemodels.StaticPage
 }
 
 func (p *PersonenPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
@@ -87,7 +87,7 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	}
 
 	if err != nil {
-		return Error404(e, engine, err, data)
+		return engine.Response404(e, err, data)
 	}
 	dbmodels.SortAgentsByName(agents)
 	data["agents"] = agents
@@ -103,7 +103,7 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 
 	agents, altagents, err := dbmodels.BasicSearchAgents(app, search)
 	if err != nil {
-		return Error404(e, engine, err, data)
+		return engine.Response404(e, err, data)
 	}
 
 	dbmodels.SortAgentsByName(agents)
@@ -126,7 +126,7 @@ func (p *PersonenPage) LetterRequest(app core.App, engine *templating.Engine, e 
 
 	agents, err := dbmodels.AgentsForLetter(app, letter)
 	if err != nil {
-		return Error404(e, engine, err, data)
+		return engine.Response404(e, err, data)
 	}
 	dbmodels.SortAgentsByName(agents)
 	data["agents"] = agents
@@ -137,7 +137,7 @@ func (p *PersonenPage) LetterRequest(app core.App, engine *templating.Engine, e 
 func (p *PersonenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	err := p.CommonData(request.App, data)
 	if err != nil {
-		return Error404(request, engine, err, data)
+		return engine.Response404(request, err, data)
 	}
 
 	return engine.Response200(request, URL_PERSONEN, data)

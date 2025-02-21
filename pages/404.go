@@ -13,7 +13,7 @@ const URL_ERROR_500 = "/errors/500/"
 
 func init() {
 	rp := &ErrorPage{
-		Page: pagemodels.Page{
+		StaticPage: pagemodels.StaticPage{
 			Name: URL_ERROR_404,
 		},
 	}
@@ -21,7 +21,7 @@ func init() {
 }
 
 type ErrorPage struct {
-	pagemodels.Page
+	pagemodels.StaticPage
 }
 
 func (p *ErrorPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
@@ -32,8 +32,4 @@ func (p *ErrorPage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 		return engine.Response500(e, nil, nil)
 	})
 	return nil
-}
-
-func Error404(e *core.RequestEvent, engine *templating.Engine, err error, data map[string]interface{}) error {
-	return engine.Response404(e, err, data)
 }

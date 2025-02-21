@@ -12,6 +12,7 @@ const FILTER_LIST_INPUT = "filter-list-input";
 const FILTER_LIST_SEARCHABLE = "filter-list-searchable";
 
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
+const TOOLTIP_ELEMENT = "tool-tip";
 
 class XSLTParseProcess {
 	#processors;
@@ -395,10 +396,7 @@ class ScrollButton extends HTMLElement {
 
 		this._button = this.querySelector(".scroll-to-top");
 
-		// Listen for scroll events
 		window.addEventListener("scroll", this.handleScroll);
-
-		// Listen for clicks on the button
 		this._button.addEventListener("click", this.scrollToTop);
 	}
 
@@ -408,24 +406,152 @@ class ScrollButton extends HTMLElement {
 	}
 
 	handleScroll() {
-		// Show/hide button based on scroll position
 		const scrollTop = window.scrollY || document.documentElement.scrollTop;
 		if (scrollTop > 300) {
-			// Remove 'hidden' so it becomes visible
 			this._button.classList.remove("hidden");
 		} else {
-			// Add 'hidden' so it's not displayed
 			this._button.classList.add("hidden");
 		}
 	}
 
 	scrollToTop() {
-		// Smoothly scroll back to top
 		window.scrollTo({ top: 0, behavior: "smooth" });
+	}
+}
+
+class ToolTip extends HTMLElement {
+	static get observedAttributes() {
+		return ["position"];
+	}
+
+	constructor() {
+		super();
+		this._tooltipBox = null;
+	}
+
+	connectedCallback() {
+		this.style.position = "relative";
+		const dataTipElem = this.querySelector(".data-tip");
+		const tipContent = dataTipElem ? dataTipElem.innerHTML : "Tooltip";
+
+		if (dataTipElem) {
+			dataTipElem.remove();
+		}
+
+		this._tooltipBox = document.createElement("div");
+		this._tooltipBox.innerHTML = tipContent;
+		this._tooltipBox.className = [
+			"opacity-0",
+			"hidden",
+			"absolute",
+			"px-2",
+			"py-1",
+			"text-sm",
+			"text-white",
+			"bg-gray-900",
+			"rounded",
+			"shadow",
+			"z-10",
+			"whitespace-nowrap",
+			"transition-all",
+			"duration-200",
+			"font-sans",
+		].join(" ");
+
+		this.appendChild(this._tooltipBox);
+
+		this._updatePosition();
+
+		this.addEventListener("mouseenter", () => this._showTooltip());
+		this.addEventListener("mouseleave", () => this._hideTooltip());
+	}
+
+	attributeChangedCallback(name, oldValue, newValue) {
+		if (name === "position" && this._tooltipBox) {
+			this._updatePosition();
+		}
+	}
+
+	_showTooltip() {
+		this._tooltipBox.classList.remove("hidden");
+		setTimeout(() => {
+			this._tooltipBox.classList.remove("opacity-0");
+			this._tooltipBox.classList.add("opacity-100");
+		}, 16);
+	}
+
+	_hideTooltip() {
+		setTimeout(() => {
+			this._tooltipBox.classList.remove("opacity-100");
+			this._tooltipBox.classList.add("opacity-0");
+			setTimeout(() => {
+				this._tooltipBox.classList.add("hidden");
+			}, 200);
+		}, 100);
+	}
+
+	_updatePosition() {
+		this._tooltipBox.classList.remove(
+			"bottom-full",
+			"left-1/2",
+			"-translate-x-1/2",
+			"mb-2", // top
+			"top-full",
+			"mt-2", // bottom
+			"right-full",
+			"-translate-y-1/2",
+			"mr-2",
+			"top-1/2", // left
+			"left-full",
+			"ml-2", // right
+		);
+
+		const pos = this.getAttribute("position") || "top";
+
+		switch (pos) {
+			case "bottom":
+				this._tooltipBox.classList.add(
+					"top-full",
+					"left-1/2",
+					"transform",
+					"-translate-x-1/2",
+					"mt-0.5",
+				);
+				break;
+			case "left":
+				this._tooltipBox.classList.add(
+					"right-full",
+					"top-1/2",
+					"transform",
+					"-translate-y-1/2",
+					"mr-0.5",
+				);
+				break;
+			case "right":
+				this._tooltipBox.classList.add(
+					"left-full",
+					"top-1/2",
+					"transform",
+					"-translate-y-1/2",
+					"ml-0.5",
+				);
+				break;
+			case "top":
+			default:
+				// top as default
+				this._tooltipBox.classList.add(
+					"bottom-full",
+					"left-1/2",
+					"transform",
+					"-translate-x-1/2",
+					"mb-0.5",
+				);
+		}
 	}
 }
 
 customElements.define(FILTER_LIST_ELEMENT, FilterList);
 customElements.define(SCROLL_BUTTON_ELEMENT, ScrollButton);
+customElements.define(TOOLTIP_ELEMENT, ToolTip);
 
 export { XSLTParseProcess, FilterList, ScrollButton };

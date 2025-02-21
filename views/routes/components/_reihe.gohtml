@@ -7,7 +7,7 @@
 {{ $bds := index $relations $r.Id }}
 
 
-<div class="flex flex-row mb-1.5">
+<div class="flex flex-col lg:flex-row mb-1.5">
 	<div class="grow-0 shrink-0 w-[12rem] flex flex-col">
 		{{ if $r.References }}
 			<div class="text-sm font-sans px-2 py-1 bg-stone-100 {{ if $markar }}reihen-text{{ end }}">
@@ -32,7 +32,7 @@
 			</a>
 		</div>
 	</div>
-	<div class="grow-0 ml-8 -indent-3">
+	<div class="grow-0 lg:px-0 ml-3 lg:ml-8 -indent-3">
 		<div class="contents">
 			<span class="font-bold reihen-text">{{ $r.Title }}</span>
 			{{ if $r.Annotation }}

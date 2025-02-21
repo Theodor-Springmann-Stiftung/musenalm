@@ -6,7 +6,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-type DefaultPage struct {
+type TextPage struct {
 	core.BaseRecordProxy
 	Name     string
 	Template string
@@ -14,45 +14,53 @@ type DefaultPage struct {
 	URL      string
 }
 
-func NewDefaultPage(record *core.Record) *DefaultPage {
-	i := &DefaultPage{}
+func NewTextPage(record *core.Record) *TextPage {
+	i := &TextPage{}
 	i.SetProxyRecord(record)
 	return i
 }
 
-func (r *DefaultPage) Title() string {
+func (r *TextPage) Title() string {
 	return r.GetString(F_TITLE)
 }
 
-func (r *DefaultPage) SetTitle(titel string) {
+func (r *TextPage) SetTitle(titel string) {
 	r.Set(F_TITLE, titel)
 }
 
-func (r *DefaultPage) Description() string {
+func (r *TextPage) Description() string {
 	return r.GetString(F_DESCRIPTION)
 }
 
-func (r *DefaultPage) SetDescription(beschreibung string) {
+func (r *TextPage) SetDescription(beschreibung string) {
 	r.Set(F_DESCRIPTION, beschreibung)
 }
 
-func (r *DefaultPage) Keywords() string {
+func (r *TextPage) Keywords() string {
 	return r.GetString(F_TAGS)
 }
 
-func (r *DefaultPage) SetKeywords(keywords string) {
+func (r *TextPage) SetKeywords(keywords string) {
 	r.Set(F_TAGS, keywords)
 }
 
-func (r *DefaultPage) Up(app core.App, engine *templating.Engine) error {
+func (r *TextPage) Text() string {
+	return r.GetString(F_TEXT)
+}
+
+func (r *TextPage) SetText(text string) {
+	r.Set(F_TEXT, text)
+}
+
+func (r *TextPage) Up(app core.App, engine *templating.Engine) error {
 	return nil
 }
 
-func (r *DefaultPage) Down(app core.App, engine *templating.Engine) error {
+func (r *TextPage) Down(app core.App, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *DefaultPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *TextPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		data := make(map[string]interface{})
 
@@ -71,7 +79,7 @@ func (p *DefaultPage) Setup(router *router.Router[*core.RequestEvent], app core.
 	return nil
 }
 
-func (p *DefaultPage) Get(e *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
+func (p *TextPage) Get(e *core.RequestEvent, data map[string]interface{}, engine *templating.Engine) error {
 	err := p.SetCommonData(e.App, data)
 	if err != nil {
 		return engine.Response404(e, err, data)
@@ -80,7 +88,7 @@ func (p *DefaultPage) Get(e *core.RequestEvent, engine *templating.Engine, data 
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *DefaultPage) SetCommonData(app core.App, data map[string]interface{}) error {
+func (p *TextPage) SetCommonData(app core.App, data map[string]interface{}) error {
 	record, err := p.GetLatestData(app)
 	if err != nil {
 		return err
@@ -90,7 +98,7 @@ func (p *DefaultPage) SetCommonData(app core.App, data map[string]interface{}) e
 	return nil
 }
 
-func (p *DefaultPage) GetLatestData(app core.App) (*core.Record, error) {
+func (p *TextPage) GetLatestData(app core.App) (*core.Record, error) {
 	record := &core.Record{}
 	tn := GeneratePageTableName(p.Name)
 	err := app.RecordQuery(tn).OrderBy("created").Limit(1).One(record)

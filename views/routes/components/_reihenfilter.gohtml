@@ -1,7 +1,7 @@
 {{ $model := . }}
 <div
-	class="min-w-[32rem] max-w-[32rem] float-right ml-6 flex flex-col gap-y-8 [&>*]:pb-12
-	[&>*]:px-12 [&>*]:pt-8 -mr-36 [&>*]:bg-slate-100">
+	class="hidden lg:flex min-w-[32rem] max-w-[32rem] float-right ml-6 flex-col gap-y-8 [&>*]:pb-12
+	[&>*]:px-12 [&>*]:pt-8 [&>*]:bg-slate-100">
 	{{ if .agents }}
 		<div class="">
 			<h2 class="mb-6">Herausgeber:innen, Verlage &amp; Druckereien</h2>
@@ -22,7 +22,7 @@
 			agentList.setLinkTextFunc((item) => {
 				return `
 						<span class="filter-list-searchable">${item.name}</span>
-						<span class="text-xs text-stone-500 whitespace-nowrap">
+						<span class="text-xs text-stone-500 whitespace-nowrap font-sans">
 							${item.corporate_body ? "Verlag/Druck/Vertrieb" : item.biographical_data}
 						</span>
 						`;

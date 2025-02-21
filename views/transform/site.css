@@ -44,8 +44,10 @@
 }
 
 @layer components {
-	html {
-		font-size: 16.5px;
+	@media screen and (min-width: 96rem) {
+		html {
+			font-size: 16px;
+		}
 	}
 
 	body {
@@ -113,7 +115,7 @@
 	}
 
 	.headingcontainer {
-		@apply mt-16 border-r border-zinc-300 relative;
+		@apply mt-16 border-r border-zinc-300 relative w-full max-w-(--breakpoint-xl) mx-auto;
 	}
 
 	.headingcontainer h1 {
@@ -138,5 +140,61 @@
 
 	.headingcontainer .backbutton {
 		@apply ml-4 bg-stone-100 py-0.5 px-2.5 rounded font-sans text-base text-center;
+	}
+
+	.container-normal {
+		@apply w-full max-w-(--breakpoint-xl) mx-auto px-3 py-4 relative;
+	}
+
+	.container-oversize {
+		@apply w-full max-w-(--breakpoint-2xl) mx-auto px-3 py-4 relative;
+	}
+
+	.container-extraoversize {
+		@apply w-full max-w-[112rem] mx-auto relative;
+	}
+
+	.text {
+		@apply font-serif max-w-[48rem];
+	}
+
+	.text p {
+		@apply text-lg hyphens-auto;
+	}
+
+	.text p:first-of-type {
+		@apply mt-0;
+	}
+
+	.text p:last-of-type {
+		@apply mb-0;
+	}
+
+	.text p + p {
+		@apply mt-1;
+	}
+
+	.text p + ul {
+		@apply mt-1;
+	}
+
+	.text p + ol {
+		@apply mt-1;
+	}
+
+	.text p + blockquote {
+		@apply mt-1;
+	}
+
+	.text p + pre {
+		@apply mt-1;
+	}
+
+	.text p + p:not(.indented p, p:first-of-type) {
+		@apply indent-3.5;
+	}
+
+	.indented p {
+		@apply -indent-3.5 ml-3.5;
 	}
 }

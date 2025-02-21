@@ -43,14 +43,17 @@
 					{{ if $model.search }}disabled="true"{{ end }} />
 			</div>
 			<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
-				<a
-					:href="'/reihen/?search=' + search"
-					x-show="search"
-					class="inline-block px-1
+				<tool-tip position="right" x-show="search">
+					<a
+						:href="'/reihen/?search=' + search"
+						x-show="search"
+						class="inline-block px-1
 				text-white no-underline bg-stone-700 hover:bg-stone-900 rounded"
-					hx-boost="false">
-					<i class="ri-links-line"></i
-				></a>
+						hx-boost="false">
+						<i class="ri-links-line"></i
+					></a>
+					<div class="data-tip">Permalink zu dieser Suchanfrage</div>
+				</tool-tip>
 			</div>
 		</div>
 	</div>

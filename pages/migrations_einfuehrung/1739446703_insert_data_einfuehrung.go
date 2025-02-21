@@ -39,7 +39,7 @@ func init() {
 			return err
 		}
 
-		record := pagemodels.NewDefaultPage(core.NewRecord(collection))
+		record := pagemodels.NewTextPage(core.NewRecord(collection))
 		record.SetTitle("Einführung")
 		record.SetText(START)
 

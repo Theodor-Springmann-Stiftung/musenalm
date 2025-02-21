@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
-	"github.com/Theodor-Springmann-Stiftung/musenalm/cmd"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages"
@@ -30,7 +29,6 @@ func main() {
 	}
 
 	app := app.New(*cfg.Config)
-	app.PB.RootCmd.AddCommand(cmd.AddResetPagesCommand(app.PB, &app))
 
 	migratecmd.MustRegister(app.PB, app.PB.RootCmd, migratecmd.Config{
 		Automigrate:  false,

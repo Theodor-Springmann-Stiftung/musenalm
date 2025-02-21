@@ -16,15 +16,18 @@ const (
 
 func init() {
 	rp := &PersonPage{
-		Page: pagemodels.Page{
-			Name: URL_PERSON,
+		StaticPage: pagemodels.StaticPage{
+			Name:     URL_PERSON,
+			Template: TEMPLATE_PERSON,
+			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			URL:      URL_PERSON,
 		},
 	}
 	app.Register(rp)
 }
 
 type PersonPage struct {
-	pagemodels.Page
+	pagemodels.StaticPage
 }
 
 func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
@@ -35,13 +38,13 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 
 		agent, err := dbmodels.AgentForId(app, person)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["a"] = agent
 
 		series, relations, entries, err := dbmodels.SeriesForAgent(app, person)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 
 		dbmodels.SortSeriessesByTitle(series)
@@ -51,31 +54,27 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 
 		contents, err := dbmodels.ContentsForAgent(app, person)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 
 		agents, crelations, err := dbmodels.AgentsForContents(app, contents)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["agents"] = agents
 		data["crelations"] = crelations
 
 		centries, err := dbmodels.EntriesForContents(app, contents)
 		if err != nil {
-			return Error404(e, engine, err, data)
+			return engine.Response404(e, err, data)
 		}
 		data["centries"] = centries
 
 		dbmodels.SortContentsByEntryNumbering(contents, centries)
 		data["contents"] = contents
 
-		return p.Get(e, engine, data)
+		return engine.Response200(e, p.Template, data, p.Layout)
 	})
 
 	return nil
-}
-
-func (p *PersonPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	return engine.Response200(request, TEMPLATE_PERSON, data)
 }
