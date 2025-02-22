@@ -234,7 +234,14 @@ class C extends HTMLElement {
     super(), this._tooltipBox = null;
   }
   connectedCallback() {
-    this.style.position = "relative";
+    this.classList.add(
+      "w-full",
+      "h-full",
+      "relative",
+      "block",
+      "leading-none",
+      "[&>*]:leading-normal"
+    );
     const i = this.querySelector(".data-tip"), t = i ? i.innerHTML : "Tooltip";
     i && i.remove(), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = t, this._tooltipBox.className = [
       "opacity-0",

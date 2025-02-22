@@ -23,6 +23,7 @@ func RegisterStaticPage(url, name string) {
 	})
 }
 
+// TODO: mocve textpage to defaultpage with T = TextPageRecord
 func RegisterTextPage(url, name string) {
 	app.Register(&pagemodels.TextPage{
 		Name:     name,
@@ -33,10 +34,11 @@ func RegisterTextPage(url, name string) {
 }
 
 func RegisterDefaultPage(url string, name string) {
-	app.Register(&pagemodels.DefaultPage{
+	app.Register(&pagemodels.DefaultPage[*pagemodels.DefaultPageRecord]{
 		Name:     name,
 		Layout:   templating.DEFAULT_LAYOUT_NAME,
 		Template: url,
 		URL:      url,
+		Record:   &pagemodels.DefaultPageRecord{},
 	})
 }

@@ -430,7 +430,14 @@ class ToolTip extends HTMLElement {
 	}
 
 	connectedCallback() {
-		this.style.position = "relative";
+		this.classList.add(
+			"w-full",
+			"h-full",
+			"relative",
+			"block",
+			"leading-none",
+			"[&>*]:leading-normal",
+		);
 		const dataTipElem = this.querySelector(".data-tip");
 		const tipContent = dataTipElem ? dataTipElem.innerHTML : "Tooltip";
 

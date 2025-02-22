@@ -28,19 +28,36 @@ Modelle umwandeln (zzt RecordProxy)
 - Ersellen & Abfragen FTS5-Tabellen
 - Erstellen Textseiten
 
+- Technologie-Stack auf Server-Rendering / Go Templates umgestellt
+- Die Seiten sollten jetzt insgesamt schneller laden
 
-- Man kann auf der Startseit nach Almanach-Nummern suchen
+- Man kann auf der Startseite nach Almanach-Nummern suchen
 - Überall werden die Almanachnummer und Inhaltsnummer angezeigt
 - Die URL referenziert die Almanachnummern, nicht mher die DB-IDs
 
 - In der Almanach-Ansicht werden die Abkürzungen erklärt
-- In der Almanach-Ansicht können die Beiträge nach Sammlungen gruppiert werden
-- In der Almanach-Ansicht kann nach Inhalten frei gefiltert werden, oder nach Typ
+- In der Almanach- und Suchansicht werden Sammlungen abgehoben 
+- In der Almanach- und Suchansicht werden auch mehrere Bilder zu einem Eintrag angezeigt
+- In der Almanach- und Suchansicht kann nach Inhalten frei gefiltert werden, oder nach Typ
 
-- Es gibt neue URLs sowohl für die einzelne Reihe, als auch für den einzelnen Beitrag
+- Es gibt neue URLs, die fest verlinkt werden können für einzelne:
+    - Personen 
+    - Reihen
+    - Bände
+    - Beiträge
 
-- Die Suche ist klar nach Typ unterteilt
+- Die Suche ist klar nach Typ unterteilt und insgesamt zuverlässiger
 - Zusätzlich zur jetzigen Suchfunktion gibt es für jeden Typ noch eine Detailsuche
 - Suchergebnisse können nach Typ, Person, Jahr gefiltert werden
 - Suchergebnisse könnnen nach Jahr und Band, nach Band und Jahr (nach Personen) sortiert werden
 - Jede Suche hat eine eindeutige URL
+
+
+TODO danach:
+- Google-Suchoptimierung
+- Error Pages prüfen & error-Verhalten von HTMX
+- Stimmigere Page-Abstraktion
+- Weißraum in den Antworten
+- Antworten komprimieren
+- Cache?
+- Footer

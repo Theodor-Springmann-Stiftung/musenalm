@@ -13,7 +13,7 @@ import (
 
 func init() {
 	ip := &IndexPage{
-		DefaultPage: pagemodels.DefaultPage{
+		DefaultPage: pagemodels.DefaultPage[*pagemodels.IndexTexte]{
 			Name: pagemodels.P_INDEX_NAME,
 		},
 	}
@@ -21,7 +21,7 @@ func init() {
 }
 
 type IndexPage struct {
-	pagemodels.DefaultPage
+	pagemodels.DefaultPage[*pagemodels.IndexTexte]
 }
 
 // TODO:

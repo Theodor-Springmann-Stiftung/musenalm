@@ -22,15 +22,19 @@ const (
 
 func init() {
 	rp := &ReihenPage{
-		DefaultPage: pagemodels.DefaultPage{
-			Name: pagemodels.P_REIHEN_NAME,
+		DefaultPage: pagemodels.DefaultPage[*pagemodels.DefaultPageRecord]{
+			Name:     pagemodels.P_REIHEN_NAME,
+			URL:      URL_REIHEN,
+			Template: URL_REIHEN,
+			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			Record:   &pagemodels.DefaultPageRecord{},
 		},
 	}
 	app.Register(rp)
 }
 
 type ReihenPage struct {
-	pagemodels.DefaultPage
+	pagemodels.DefaultPage[*pagemodels.DefaultPageRecord]
 }
 
 func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {

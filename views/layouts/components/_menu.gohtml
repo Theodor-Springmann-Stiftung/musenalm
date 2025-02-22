@@ -1,5 +1,6 @@
 {{ $model := . }}
 <div
+	id="mainmenu"
 	class="pb-1.5 border-b border-zinc-300"
 	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
 	<div class="flex flex-row justify-between">
@@ -13,7 +14,7 @@
 
 		<nav
 			class="self-end font-serif font-bold flex flex-row gap-x-4 [&>a]:no-underline
-		 [&>*]:px-1.5 [&>*]:pt-1 [&>*]:-mb-1.5">
+		 [&>*]:px-2 [&>*]:pt-1 [&>*]:-mb-1.5">
 			<a
 				href="/reihen/"
 				{{ if and $model.page (HasPrefix $model.page.Path "/reihe") -}}
