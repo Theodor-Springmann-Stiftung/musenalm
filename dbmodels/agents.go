@@ -103,16 +103,64 @@ func AgentsForContents(app core.App, contents []*Content) (map[string]*Agent, Ag
 	return agentsMap, relationMap, nil
 }
 
-func LettersForAgents(app core.App) ([]string, error) {
+func LettersForAgents(app core.App, filter string) ([]string, error) {
 	letters := []core.Record{}
 	ids := []string{}
 
-	err := app.RecordQuery(AGENTS_TABLE).
-		Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
-		Distinct(true).
-		All(&letters)
-	if err != nil {
-		return nil, err
+	if filter == "" || filter == "noorg" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.HashExp{AGENTS_CORP_FIELD: false}).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
+	} else if filter == "org" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.HashExp{AGENTS_CORP_FIELD: true}).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
+	} else if filter == "musik" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Musik").Match(true, true)).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
+	} else if filter == "autor" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Text").Match(true, true)).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
+	} else if filter == "graphik" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Graphik").Match(true, true)).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
+	} else if filter == "hrsg" {
+		err := app.RecordQuery(AGENTS_TABLE).
+			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
+			Distinct(true).
+			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Hrsg").Match(true, true)).
+			All(&letters)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for _, l := range letters {

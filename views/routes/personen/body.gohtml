@@ -1,88 +1,203 @@
 {{ $model := . }}
 
-{{ template "_alphabet" Dict "active" .letter "letters" .letters }}
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
+{{ $isMusik := and $model.filter (eq $model.filter "musik") }}
+
+{{ $isAutor := and $model.filter (eq $model.filter "autor") }}
+
+{{ $isGraphik := and $model.filter (eq $model.filter "graphik") }}
+
+{{ $isHrsg := and $model.filter (eq $model.filter "hrsg") }}
 
 
-<input
-	class="form-control"
-	type="search"
-	name="search"
-	placeholder="Suche"
-	hx-get="/personen"
-	hx-trigger="input changed delay:200ms, keyup[key=='Enter']"
-	hx-select="#agents"
-	hx-target="#agents" />
+<div class="container-normal mt-4" x-data="{ search : '{{ $model.search }}'}">
+	{{- if not $model.search -}}
+		<div
+			id="persontype"
+			class="flex flex-row justify-end align-right text-right mr-4 gap-x-3"
+			:class="search ? 'inactive' : ''">
+			<a
+				href="/personen{{ if .letter }}?letter={{ .letter }}{{ end }}"
+				{{ if $isPerson -}}aria-current="page"{{- end -}}
+				>Personen</a
+			>
 
-<div>
-	<a href="/personen{{ if .letter }}?letter={{ .letter }}{{ end }}">Alle</a>
-	<a href="/personen?filter=org{{ if .letter }}&letter={{ .letter }}{{ end }}"
-		>Verlage u. Druckereien</a
-	>
-	<a href="/personen?filter=noorg{{ if .letter }}&letter={{ .letter }}{{ end }}">Personen</a>
-	<a href="/personen?filter=musik{{ if .letter }}&letter={{ .letter }}{{ end }}">Musiker:innen</a>
-	<a href="/personen?filter=autor{{ if .letter }}&letter={{ .letter }}{{ end }}">Autor:innen</a>
-	<a href="/personen?filter=graphik{{ if .letter }}&letter={{ .letter }}{{ end }}"
-		>Graphiker:innen</a
-	>
-	<a href="/personen?filter=hrsg{{ if .letter }}&letter={{ .letter }}{{ end }}"
-		>Herausgeber:innen</a
-	>
-</div>
+			<a
+				href="/personen?filter=org{{ if .letter }}&letter={{ .letter }}{{ end }}"
+				{{ if $isOrg -}}aria-current="page"{{- end -}}
+				>Verlage, Druckereien &amp; Vertriebe</a
+			>
+		</div>
+	{{- end -}}
 
-<div id="agents">
-	{{ if or .agents .altagents }}
-		{{ if .agents }}
-			<table class="w-full [&_td]:!align-top">
-				{{ range $count, $agent := .agents }}
-					<tr>
-						<td>
-							<a href="/person/{{ $agent.Id }}">
-								{{ $agent.Name }}
-								{{ if $agent.Pseudonyms }}
-									<br />
-									({{ $agent.Pseudonyms }})
+
+	<div class="flex flex-row">
+		{{- if and $model.letters (not $model.search) -}}
+			<div id="personalphabet" class="flex flex-col text-xl pt-8 relative">
+				{{- range $id, $r := .letters -}}
+					<a
+						class="odd:bg-stone-100 even:bg-zinc-100 mb-1 border-zinc-300 border-y border-l [&>a[aria-current='page']]:font-bold
+				px-2 no-underline transition-all duration-75
+				{{ if not $model.letter -}}inactive{{- end -}}"
+						:class="search ? 'inactive' : 'active'"
+						href="?letter={{ $r }}{{- if $model.filter }}&filter={{ $model.filter }}{{- end -}}"
+						{{ if eq $model.letter $r }}aria-current="page"{{ end }}
+						hx-select="main"
+						hx-target="main"
+						hx-swap="outerHTML scroll:#pageheading:top"
+						>{{ $r }}</a
+					>
+				{{- end -}}
+			</div>
+		{{- end -}}
+
+
+		<div class="w-full">
+			<div id="personheader" class="border-t border-r border-zinc-300 relative w-full">
+						<h1
+							class="text-3xl font-bold px-3 relative -translate-y-[55%] w-min whitespace-nowrap bg-stone-50 ml-24 z-20">
+							<span x-show="!search">
+								{{- if $isPerson -}}
+									Personen
+								{{- else if $isOrg -}}
+									Verlage, Druckereien &amp; Vertriebe
+								{{- end -}}
+							</span>
+							<span x-show="search"> Suche &middot; Alle Personen &amp; Körperschaften </span>
+						</h1>
+
+				<div class="flex flex-row justify-between">
+					<div class="w-[60%] shrink-0 grow-0">
+					<div class="min-w-[22.5rem] max-w-96 flex flex-row relative mt-9 ml-auto">
+						<div class="">
+							<i class="ri-search-line"></i
+							><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
+						</div>
+						<div class="pb-0 border-b-4 border-zinc-300 grow">
+							<input
+								class="px-1.5 font-serif placeholder:italic w-full"
+								type="search"
+								name="search"
+								value="{{ $model.search }}"
+								placeholder="Suchbegriff"
+								x-model="search"
+								hx-get=""
+								hx-trigger="input changed delay=500ms, keyup[key=='Enter']"
+								hx-sync="this:replace"
+								hx-select="#searchresults"
+								hx-target="#searchresults"
+								autocomplete="off"
+								{{ if $model.active }}autofocus="true"{{ end }}
+								{{ if $model.search }}disabled="true"{{ end }} />
+						</div>
+						<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
+							<tool-tip position="right" x-show="search">
+								<a
+									:href="'/personen/?search=' + search"
+									x-show="search"
+									class="inline-block px-1
+				text-white no-underline bg-stone-700 hover:bg-stone-900 rounded"
+									hx-boost="false">
+									<i class="ri-links-line"></i
+								></a>
+								<div class="data-tip">Link zu dieser Suchanfrage</div>
+							</tool-tip>
+						</div>
+					</div>
+					</div>
+
+					{{- if $isPerson -}}
+						<div x-show="!search" class="flex flex-row gap-x-3 font-serif mr-6 items-end">
+							<label
+								for="filter"
+								class="align-bottom h-min self-end pb-1 text-sm	font-sans text-stone-700"
+								>Anzeige:</label
+							>
+							<select
+								class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
+								name="filter"
+								id="filter"
+								hx-get="/personen{{- if .letter -}}?letter={{ .letter }}{{- end -}}"
+								trigger="change"
+								hx-push-url="true"
+								hx-select="main"
+								hx-target="main">
+								<option value="noorg" {{ if $isNoOrg }}selected{{ end }}>Alle Personen</option>
+								<option value="musik" {{ if $isMusik }}selected{{ end }}>Musiker:innen</option>
+								<option value="autor" {{ if $isAutor }}selected{{ end }}>Autor:innen</option>
+								<option value="graphik" {{ if $isGraphik }}selected{{ end }}>
+									Graphiker:innen
+								</option>
+								<option value="hrsg" {{ if $isHrsg }}selected{{ end }}>Herausgeber:innen</option>
+							</select>
+						</div>
+					{{- end -}}
+					</div>
+				</div>
+
+				<div class="mt-4 ml-4 font-serif font-lg" id="searchresults">
+					{{ if or .agents .altagents }}
+						{{ if .agents }}
+							<table class="w-full [&_td]:!align-top">
+								{{ range $count, $agent := .agents }}
+									<tr>
+										<td>
+											<a href="/person/{{ $agent.Id }}" class="font-bold">
+												{{ $agent.Name }}
+												{{ if $agent.Pseudonyms }}
+													<br />
+													({{ $agent.Pseudonyms }})
+												{{ end }}
+											</a>
+										</td>
+										<td>
+											{{ if $agent.CorporateBody }}
+												Körperschaft
+											{{ else }}
+												{{ $agent.Profession }},
+												{{ $agent.BiographicalData }}
+											{{ end }}
+										</td>
+										<td>{{ $agent.References }}</td>
+									</tr>
 								{{ end }}
-							</a>
-						</td>
-						<td>
-							{{ if $agent.CorporateBody }}
-								Körperschaft
-							{{ else }}
-								{{ $agent.Profession }},
-								{{ $agent.BiographicalData }}
-							{{ end }}
-						</td>
-						<td>{{ $agent.References }}</td>
-					</tr>
-				{{ end }}
 
-			</table>
-		{{ end }}
-		{{ if .altagents }}
-			<table class="w-full mt-6">
-				{{ range $count, $agent := .altagents }}
-					<tr>
-						<td>
-							{{ $agent.Name }}
-							{{ if $agent.Pseudonyms }}
-								<br />
-								({{ $agent.Pseudonyms }})
-							{{ end }}
-						</td>
-						<td>
-							{{ if $agent.CorporateBody }}
-								Körperschaft
-							{{ else }}
-								{{ $agent.Profession }},
-								{{ $agent.BiographicalData }}
-							{{ end }}
-						</td>
-						<td>{{ $agent.References }}</td>
-					</tr>
-				{{ end }}
-			</table>
-		{{ end }}
-	{{ else }}
-		<p>Keine Personen gefunden.</p>
-	{{ end }}
+							</table>
+						{{ end }}
+						{{ if .altagents }}
+							<table class="w-full mt-6">
+								{{ range $count, $agent := .altagents }}
+									<tr>
+										<td>
+											{{ $agent.Name }}
+											{{ if $agent.Pseudonyms }}
+												<br />
+												({{ $agent.Pseudonyms }})
+											{{ end }}
+										</td>
+										<td>
+											{{ if $agent.CorporateBody }}
+												Körperschaft
+											{{ else }}
+												{{ $agent.Profession }},
+												{{ $agent.BiographicalData }}
+											{{ end }}
+										</td>
+										<td>{{ $agent.References }}</td>
+									</tr>
+								{{ end }}
+							</table>
+						{{ end }}
+					{{ else }}
+						<p>Keine Personen gefunden.</p>
+					{{ end }}
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

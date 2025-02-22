@@ -199,7 +199,7 @@
 	}
 
 	#searchnav > a:nth-of-type(1) {
-		@apply ml-12;
+		@apply ml-6;
 	}
 
 	#searchnav > a {
@@ -250,5 +250,27 @@
 
 	#searchform .selectgroup .selectgroup-option label {
 		@apply whitespace-nowrap;
+	}
+
+	#searchform .selectgroup input:not(:checked) + label {
+		@apply decoration-slate-900 line-through;
+	}
+
+	#persontype a {
+		@apply px-1.5 border-b-[5px] border-zinc-300 no-underline font-serif mx-2.5;
+	}
+
+	#persontype a[aria-current="page"]:not(#persontype.inactive a) {
+		@apply font-bold;
+	}
+
+	#personheader:before {
+		content: "";
+		@apply bg-zinc-300 w-[50%] absolute bottom-0 left-[50%] h-[1px];
+	}
+
+	#personalphabet:after {
+		content: "";
+		@apply absolute right-0 top-0 h-[44em] border-r border-zinc-300;
 	}
 }
