@@ -4,7 +4,11 @@
 <div id="searchcontrol" class="container-normal">
 	<div id="searchheading" class="flex flex-row justify-between min-h-14 items-end relative">
 		<nav id="searchnav" class="flex flex-row items-end">
-			<div class="align-bottom h-min self-end pb-0.5 hidden">Durchsuchen:</div>
+			<div
+				class="align-bottom text-lg h-min self-end pb-0.5 italic font-bold
+			text-zinc-800">
+				Suche nach:
+			</div>
 			<a
 				href="/suche/reihen"
 				class="block no-underline"
@@ -15,13 +19,13 @@
 				href="/suche/baende"
 				class="block no-underline"
 				{{ if eq $model.type "baende" }}aria-current="page"{{- end -}}
-				>Bände</a
+				>Bänden</a
 			>
 			<a
 				href="/suche/beitraege"
 				class="block no-underline"
 				{{ if eq $model.type "beitraege" }}aria-current="page"{{- end -}}
-				>Beiträge</a
+				>Beiträgen</a
 			>
 			<a
 				href="/suche/personen"

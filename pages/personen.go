@@ -32,22 +32,14 @@ func (p *PersonenPage) Setup(router *router.Router[*core.RequestEvent], app core
 		if e.Request.URL.Query().Get(PARAM_SEARCH) != "" {
 			return p.SearchRequest(app, engine, e)
 		}
-		if e.Request.URL.Query().Get(PARAM_FILTER) != "" {
-			return p.FilterRequest(app, engine, e)
-		}
 
-		return p.LetterRequest(app, engine, e)
+		return p.FilterRequest(app, engine, e)
 	})
 
 	return nil
 }
 
 func (p *PersonenPage) CommonData(app core.App, data map[string]interface{}) error {
-	letters, err := dbmodels.LettersForAgents(app)
-	if err != nil {
-		return err
-	}
-	data["letters"] = letters
 
 	return nil
 }
@@ -58,6 +50,11 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	if letter == "" {
 		letter = "A"
 	}
+
+	if filter == "" {
+		filter = "noorg"
+	}
+
 	data := map[string]interface{}{}
 
 	var err error = nil
@@ -94,6 +91,13 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	data["filter"] = filter
 	data["letter"] = letter
 
+	letters, err := dbmodels.LettersForAgents(app, filter)
+	if err != nil {
+		return engine.Response404(e, err, data)
+	}
+
+	data["letters"] = letters
+
 	return p.Get(e, engine, data)
 }
 
@@ -112,24 +116,6 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 	data["search"] = search
 	data["agents"] = agents
 	data["altagents"] = altagents
-
-	return p.Get(e, engine, data)
-}
-
-func (p *PersonenPage) LetterRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	letter := e.Request.URL.Query().Get(PARAM_LETTER)
-	if letter == "" {
-		letter = "A"
-	}
-	data := map[string]interface{}{}
-	data["letter"] = letter
-
-	agents, err := dbmodels.AgentsForLetter(app, letter)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-	dbmodels.SortAgentsByName(agents)
-	data["agents"] = agents
 
 	return p.Get(e, engine, data)
 }

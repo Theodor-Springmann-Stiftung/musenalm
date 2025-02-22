@@ -37,22 +37,22 @@
 					<div class="selectgroup-option">
 						<input
 							type="checkbox"
-							name="annotations"
-							id="annotations"
-							{{ if $includeAnnotations -}}
-								checked
-							{{- end -}} />
-						<label for="annotations">Anmerkungen</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
 							name="references"
 							id="references"
 							{{ if $includeReferences -}}
 								checked
 							{{- end -}} />
 						<label for="references">Nachweise</label>
+					</div>
+					<div class="selectgroup-option">
+						<input
+							type="checkbox"
+							name="annotations"
+							id="annotations"
+							{{ if $includeAnnotations -}}
+								checked
+							{{- end -}} />
+						<label for="annotations">Anmerkungen</label>
 					</div>
 				</fieldset>
 				{{ template "infotextsimple" false }}
@@ -80,12 +80,12 @@
 						<label for="profession">Beruf(e)</label>
 					</div>
 					<div class="selectgroup-option">
-						<input type="checkbox" name="annotations" id="annotations" checked />
-						<label for="annotations">Anmerkungen</label>
-					</div>
-					<div class="selectgroup-option">
 						<input type="checkbox" name="references" id="references" checked />
 						<label for="references">Nachweise</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations" checked />
+						<label for="annotations">Anmerkungen</label>
 					</div>
 				</fieldset>
 				{{ template "infotextsimple" false }}
