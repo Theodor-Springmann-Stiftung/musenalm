@@ -6,6 +6,11 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 )
 
+type FTS5QueryRequest struct {
+	Fields []string
+	Query  []string
+}
+
 type FTS5IDQueryResult struct {
 	ID string `db:"id"`
 }

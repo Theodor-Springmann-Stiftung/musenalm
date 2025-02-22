@@ -13,16 +13,16 @@
 				<img src="{{ .record.ImagePath }}" />
 			</div>
 		</div>
-		<div class="absolute top-0 right-0 p-4">
+		<div class="absolute top-0 right-0 m-4 mr-8">
 			<tool-tip position="left">
+				<div class="data-tip">Hinweis schließen</div>
 				<button
 					@click="open = false"
-					class="text-xl p-2 text-stone-500 opacity-85 hover:opacity-100 transition-opacity
-					duration-200 hover:text-stone-900
+					class="text-3xl text-stone-500 opacity-85 hover:opacity-100 transition-opacity
+					duration-200 hover:text-stone-900 leading-none
 			hover:cursor-pointer">
 					<i class="ri-close-circle-fill"></i>
 				</button>
-				<div class="data-tip">Hinweis schließen</div>
 			</tool-tip>
 		</div>
 	</div>
@@ -138,7 +138,7 @@
 				{{ if and .search .idseries }}
 					<div class="mb-1 max-w-[60rem] hyphens-auto">
 						{{ range $id, $r := .idseries }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations true false) }}
+							{{ template "_reihe" (Arr $r $model.entries $model.relations true false false) }}
 						{{ end }}
 					</div>
 				{{ end }}
@@ -146,7 +146,9 @@
 				{{ if .series }}
 					<div class="mb-1 max-w-[60rem] hyphens-auto">
 						{{ range $id, $r := .series }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations false false) }}
+							{{ template "_reihe" (Arr $r $model.entries $model.relations false false
+								false)
+							}}
 						{{ end }}
 					</div>
 				{{ end }}
@@ -171,11 +173,11 @@
 						</div>
 					{{ end }}
 					<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
-						Treffer in allen Feldern (Anmerkungen, Verweisen etc.) &darr;
+						Treffer in allen Feldern (inkl. Anmerkungen &amp; Verweise) &darr;
 					</div>
 					<div class="mb-1 max-w-[60rem] hyphens-auto">
 						{{ range $id, $r := .altseries }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations false true) }}
+							{{ template "_reihe" (Arr $r $model.entries $model.relations false true true) }}
 						{{ end }}
 					</div>
 				{{ end }}

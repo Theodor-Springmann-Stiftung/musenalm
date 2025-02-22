@@ -73,23 +73,23 @@
 		@apply ml-14 list-disc;
 	}
 
-	nav > a {
+	#mainmenu nav > a {
 		@apply hover:!border-zinc-200;
 	}
 
-	nav > * {
+	#mainmenu nav > * {
 		@apply border-b-4 border-transparent;
 	}
 
-	nav > button[aria-current="true"] {
+	#mainmenu nav > button[aria-current="true"] {
 		@apply !bg-slate-200;
 	}
 
-	nav a[aria-current="page"] {
+	#mainmenu nav a[aria-current="page"] {
 		@apply text-slate-800;
 	}
 
-	nav a[aria-current="page"] {
+	#mainmenu nav a[aria-current="page"] {
 		@apply !border-zinc-300;
 	}
 
@@ -196,5 +196,59 @@
 
 	.indented p {
 		@apply -indent-3.5 ml-3.5;
+	}
+
+	#searchnav > a:nth-of-type(1) {
+		@apply ml-12;
+	}
+
+	#searchnav > a {
+		@apply odd:bg-stone-100 even:bg-zinc-100 mx-1.5 border-zinc-300 border-x border-t px-2.5 no-underline transition-all duration-75 py-0.5;
+	}
+
+	#searchnav > a[aria-current="page"]:not(.inactive) {
+		@apply font-bold italic !bg-stone-50 relative -bottom-3 border-b z-20;
+	}
+
+	#searchnav > a:hover:not([aria-current="page"]:not(.inactive)) {
+		@apply pb-2 !bg-stone-50 relative;
+	}
+
+	#searchheading:before {
+		content: "";
+		@apply bg-zinc-300 w-[80%] absolute bottom-0 right-[20%] h-[1px] z-10;
+	}
+
+	#searchform:before {
+		content: "";
+		@apply bg-zinc-300 w-[30%] absolute bottom-0 right-[70%] h-[1px] z-10;
+	}
+
+	#searchform input {
+		@apply w-full mx-auto px-2 py-1 border-zinc-600 border;
+	}
+
+	#searchform button {
+		@apply bg-stone-100 text-base px-2.5 py-1 rounded font-sans transition-all duration-75;
+	}
+
+	#searchform button:hover:not(:disabled) {
+		@apply cursor-pointer bg-stone-200;
+	}
+
+	#searchform button:disabled {
+		@apply bg-stone-400 cursor-not-allowed;
+	}
+
+	#searchform .selectgroup {
+		@apply col-span-12 w-full flex flex-row gap-x-6;
+	}
+
+	#searchform .selectgroup .selectgroup-option {
+		@apply flex flex-row select-none gap-x-1.5;
+	}
+
+	#searchform .selectgroup .selectgroup-option label {
+		@apply whitespace-nowrap;
 	}
 }

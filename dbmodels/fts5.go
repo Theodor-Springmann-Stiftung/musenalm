@@ -8,6 +8,8 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -92,6 +94,52 @@ var CONTENTS_FTS5_FIELDS = []string{
 	MUSENALMID_FIELD,
 	ANNOTATION_FIELD,
 	COMMENT_FIELD,
+}
+
+var ErrInvalidQuery = errors.New("invalid input into the search function")
+
+func NormalizeQuery(query string) []string {
+	query = datatypes.NormalizeString(query)
+	query = datatypes.DeleteTags(query)
+	query = datatypes.RemovePunctuation(query)
+	query = cases.Lower(language.German).String(query)
+	// TODO: how to normalize, which unicode normalization to use?
+
+	split := strings.Split(query, " ")
+	res := []string{}
+	for _, s := range split {
+		if len(s) > 2 {
+			res = append(res, s)
+		}
+	}
+
+	return res
+}
+
+func FTS5Search(app core.App, table string, mapfq ...FTS5QueryRequest) ([]*FTS5IDQueryResult, error) {
+	if mapfq == nil || len(mapfq) == 0 || table == "" {
+		return nil, ErrInvalidQuery
+	}
+
+	q := NewFTS5Query().From(table).SelectID()
+	for _, v := range mapfq {
+		for _, que := range v.Query {
+			q.AndMatch(v.Fields, que)
+		}
+	}
+
+	querystring := q.Query()
+	if querystring == "" {
+		return nil, ErrInvalidQuery
+	}
+
+	res := []*FTS5IDQueryResult{}
+	err := app.DB().NewQuery(querystring).All(&res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func CreateFTS5TableQuery(tablename string, fields ...string) string {

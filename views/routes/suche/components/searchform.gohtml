@@ -1,0 +1,193 @@
+{{ $model := . }}
+{{- $includeReferences := true -}}
+{{- $includeAnnotations := true -}}
+{{- $includeTitle := true -}}
+
+{{- if eq $model.type "reihen" -}}
+	{{- if $model.options -}}
+		{{- $includeReferences = not (and $model.q (not (index $model.options "references"))) -}}
+		{{- $includeAnnotations = not (and $model.q (not (index $model.options "annotations"))) -}}
+		{{- $includeTitle = not (and $model.q (not (index $model.options "title"))) -}}
+	{{- end -}}
+{{- end -}}
+
+
+<form
+	id="searchform"
+	class="w-full font-serif"
+	method="get"
+	action="/suche/{{- $model.type -}}"
+	autocomplete="off">
+	{{- if eq $model.type "reihen" -}}
+		<!-- INFO: Reihen -->
+		{{- if not $model.extended -}}
+			<div class="grid grid-cols-12 gap-y-3 w-full gap-x-4">
+				{{ template "searchboxsimple" Arr . false }}
+				<fieldset class="selectgroup">
+					<div class="selectgroup-option">
+						<input
+							type="checkbox"
+							name="title"
+							id="title"
+							{{ if $includeTitle -}}
+								checked
+							{{- end -}} />
+						<label for="title">Titel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input
+							type="checkbox"
+							name="annotations"
+							id="annotations"
+							{{ if $includeAnnotations -}}
+								checked
+							{{- end -}} />
+						<label for="annotations">Anmerkungen</label>
+					</div>
+					<div class="selectgroup-option">
+						<input
+							type="checkbox"
+							name="references"
+							id="references"
+							{{ if $includeReferences -}}
+								checked
+							{{- end -}} />
+						<label for="references">Nachweise</label>
+					</div>
+				</fieldset>
+				{{ template "infotextsimple" false }}
+			</div>
+		{{- else -}}
+			Extended search Reihen
+		{{- end -}}
+		<!-- INFO: Ende Reihen -->
+	{{- else if eq $model.type "personen" -}}
+		<!-- INFO: Personen -->
+		{{- if not $model.extended -}}
+			<div class="grid grid-cols-12 gap-y-3 w-full gap-x-4">
+				{{ template "searchboxsimple" Arr . false }}
+				<fieldset class="selectgroup">
+					<div class="selectgroup-option">
+						<input type="checkbox" name="names" id="names" checked />
+						<label for="names">Namen &amp; Pseudonyme</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="biographical" id="biographical" checked />
+						<label for="biographical">Lebensdaten</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="profession" id="profession" checked />
+						<label for="profession">Beruf(e)</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations" checked />
+						<label for="annotations">Anmerkungen</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="references" id="references" checked />
+						<label for="references">Nachweise</label>
+					</div>
+				</fieldset>
+				{{ template "infotextsimple" false }}
+			</div>
+		{{- else -}}
+			Extended search Personen
+		{{- end -}}
+		<!-- INFO: Ende Personen -->
+	{{- else if eq $model.type "baende" -}}
+		<!-- INFO: Bände -->
+		{{- if not $model.extended -}}
+			<div class="grid grid-cols-12 gap-y-3 w-full gap-x-4">
+				{{ template "searchboxsimple" Arr . true }}
+				<fieldset class="selectgroup">
+					<div class="selectgroup-option">
+						<input type="checkbox" name="number" id="number" checked />
+						<label for="number">Almanach-Nr.</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="title" id="title" checked />
+						<label for="title">Titel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="series" id="series" checked />
+						<label for="series">Reihentitel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="person" id="person" checked />
+						<label for="person">Personen &amp; Verlage</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="pubdata" id="pubdata" checked />
+						<label for="pubdata">Orte</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="year" id="year" checked />
+						<label for="year">Jahr</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="references" id="references" checked />
+						<label for="references">Nachweise</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations" checked />
+						<label for="annotations">Anmerkungen</label>
+					</div>
+				</fieldset>
+				{{ template "infotextsimple" true }}
+			</div>
+		{{- else -}}
+			Extended search Bände
+		{{- end -}}
+		<!-- INFO: Ende Bände -->
+	{{- else if eq $model.type "beitraege" -}}
+		<!-- INFO: Beiträge -->
+		{{- if not $model.extended -}}
+			<div class="grid grid-cols-12 gap-y-3 w-full gap-x-4">
+				{{ template "searchboxsimple" Arr . true }}
+				<fieldset class="selectgroup">
+					<div class="selectgroup-option">
+						<input type="checkbox" name="number" id="number" checked />
+						<label for="number">Almanach-Nr.</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="title" id="title" checked />
+						<label for="title">Titelinformationen</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="entry" id="entry" checked />
+						<label for="entry">Bandtitel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="person" id="person" checked />
+						<label for="person">Personen &amp; Pseudonyme</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations" checked />
+						<label for="annotations">Anmerkungen</label>
+					</div>
+				</fieldset>
+				{{ template "infotextsimple" true }}
+			</div>
+		{{- else -}}
+			Extended search Beiträge
+		{{- end -}}
+	{{- end -}}
+</form>
+
+<script type="module">
+	let fieldset = document.querySelector("fieldset.selectgroup");
+	let checkboxes = Array.from(fieldset.querySelectorAll('input[type="checkbox"]'));
+	fieldset.addEventListener("change", (event) => {
+		let target = event.target;
+		if (target.type === "checkbox") {
+			let name = target.name;
+			let checked = target.checked;
+			if (!checked) {
+				let allchecked = checkboxes.filter((checkbox) => checkbox.checked);
+				if (allchecked.length === 0) {
+					target.checked = true;
+				}
+			}
+		}
+	});
+</script>

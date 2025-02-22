@@ -88,3 +88,13 @@ func (t *IndexTexte) Abs2() string {
 func (t *IndexTexte) SetAbs2(abs2 string) {
 	t.Set(F_INDEX_TEXTE_ABS2, abs2)
 }
+
+func (t *IndexTexte) Collection(pagename string) *core.Collection {
+	coll := BasePageCollection(pagename)
+	coll.Fields = append(coll.Fields, StandardPageFields()...)
+	coll.Fields = append(coll.Fields, core.NewFieldsList(
+		EditorField(F_INDEX_TEXTE_ABS1),
+		EditorField(F_INDEX_TEXTE_ABS2),
+	)...)
+	return coll
+}

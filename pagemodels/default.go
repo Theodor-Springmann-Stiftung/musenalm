@@ -1,58 +1,43 @@
 package pagemodels
 
 import (
+	"database/sql"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-type DefaultPage struct {
-	core.BaseRecordProxy
+type DefaultPage[T IPageCollection] struct {
+	Record   T
 	Name     string
 	Template string
 	Layout   string
 	URL      string
 }
 
-func NewDefaultPage(record *core.Record) *DefaultPage {
-	i := &DefaultPage{}
-	i.SetProxyRecord(record)
-	return i
-}
+func (r *DefaultPage[T]) Up(app core.App, engine *templating.Engine) error {
+	_, err := app.FindCollectionByNameOrId(GeneratePageTableName(r.Name))
+	if err == sql.ErrNoRows {
+		collection := r.Record.Collection(r.Name)
+		err = app.Save(collection)
+		if err != nil {
+			app.Logger().Error("Error saving collection", "Name", GeneratePageTableName(r.Name), "Error", err, "Collection", collection)
+			return err
+		}
+	} else if err != nil {
+		app.Logger().Error("Error finding collection %s: %s", GeneratePageTableName(r.Name), err)
+		return err
+	}
 
-func (r *DefaultPage) Title() string {
-	return r.GetString(F_TITLE)
-}
-
-func (r *DefaultPage) SetTitle(titel string) {
-	r.Set(F_TITLE, titel)
-}
-
-func (r *DefaultPage) Description() string {
-	return r.GetString(F_DESCRIPTION)
-}
-
-func (r *DefaultPage) SetDescription(beschreibung string) {
-	r.Set(F_DESCRIPTION, beschreibung)
-}
-
-func (r *DefaultPage) Keywords() string {
-	return r.GetString(F_TAGS)
-}
-
-func (r *DefaultPage) SetKeywords(keywords string) {
-	r.Set(F_TAGS, keywords)
-}
-
-func (r *DefaultPage) Up(app core.App, engine *templating.Engine) error {
 	return nil
 }
 
-func (r *DefaultPage) Down(app core.App, engine *templating.Engine) error {
+func (r *DefaultPage[T]) Down(app core.App, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *DefaultPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *DefaultPage[T]) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		data := make(map[string]interface{})
 
@@ -64,14 +49,14 @@ func (p *DefaultPage) Setup(router *router.Router[*core.RequestEvent], app core.
 			return engine.Response404(e, err, data)
 		}
 
-		p.SetProxyRecord(record)
+		p.Record.SetProxyRecord(record)
 		data["record"] = p
 		return engine.Response200(e, p.Template, data, p.Layout)
 	})
 	return nil
 }
 
-func (p *DefaultPage) Get(e *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
+func (p *DefaultPage[T]) Get(e *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	err := p.SetCommonData(e.App, data)
 	if err != nil {
 		return engine.Response404(e, err, data)
@@ -80,17 +65,17 @@ func (p *DefaultPage) Get(e *core.RequestEvent, engine *templating.Engine, data 
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *DefaultPage) SetCommonData(app core.App, data map[string]interface{}) error {
+func (p *DefaultPage[T]) SetCommonData(app core.App, data map[string]interface{}) error {
 	record, err := p.GetLatestData(app)
 	if err != nil {
 		return err
 	}
-	p.SetProxyRecord(record)
-	data["page"] = p
+	p.Record.SetProxyRecord(record)
+	data["page"] = p.Record
 	return nil
 }
 
-func (p *DefaultPage) GetLatestData(app core.App) (*core.Record, error) {
+func (p *DefaultPage[T]) GetLatestData(app core.App) (*core.Record, error) {
 	record := &core.Record{}
 	tn := GeneratePageTableName(p.Name)
 	err := app.RecordQuery(tn).OrderBy("created").Limit(1).One(record)

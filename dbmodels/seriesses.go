@@ -51,7 +51,15 @@ func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error)
 	}
 
 	// INFO: Needing to differentiate matches
-	altids, err := FTS5SearchSeries(app, query)
+	querysplit := NormalizeQuery(query)
+	if len(querysplit) == 0 {
+		return series, []*Series{}, nil
+	}
+
+	altids, err := FTS5Search(app, SERIES_TABLE, FTS5QueryRequest{
+		Fields: []string{SERIES_TITLE_FIELD, ANNOTATION_FIELD, REFERENCES_FIELD},
+		Query:  querysplit,
+	})
 	if err != nil {
 		return nil, nil, err
 	}

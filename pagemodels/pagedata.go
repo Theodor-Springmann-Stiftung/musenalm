@@ -3,6 +3,8 @@ package pagemodels
 const (
 	P_DATENSCHUTZ_NAME = "datenschutz"
 
+	P_SUCHE_NAME = "suche"
+
 	P_INDEX_NAME   = "index"
 	T_INDEX_BILDER = "bilder"
 	T_INDEX_TEXTE  = "texte"
