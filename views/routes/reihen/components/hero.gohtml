@@ -1,0 +1,26 @@
+{{ $model := . }}
+<div
+	class="bg-[url(/assets/hintergrund.png)] w-full border-t border-b py-8 mt-9 relative"
+	x-data="{ open: true }"
+	x-show="open">
+	<div class="container-extraoversize flex flex-row gap-x-8">
+		<div class="max-w-[52rem] font-serif text-lg hyphens-auto">
+			{{ Safe $model.record.Text }}
+		</div>
+		<div class="-mr-16 pt-2 grow-0 shrink-0">
+			<img src="{{ $model.record.ImagePath }}" />
+		</div>
+	</div>
+	<div class="absolute top-0 right-0 m-4 mr-8">
+		<tool-tip position="left">
+			<div class="data-tip">Hinweis schließen</div>
+			<button
+				@click="open = false"
+				class="text-3xl text-stone-500 opacity-85 hover:opacity-100 transition-opacity
+					duration-200 hover:text-stone-900 leading-none
+			hover:cursor-pointer">
+				<i class="ri-close-circle-fill"></i>
+			</button>
+		</tool-tip>
+	</div>
+</div>

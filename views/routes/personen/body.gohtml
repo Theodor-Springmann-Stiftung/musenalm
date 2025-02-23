@@ -1,203 +1,102 @@
 {{ $model := . }}
 
-{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
 
-{{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
-
-{{ $isOrg := and $model.filter (eq $model.filter "org") }}
-
-{{ $isMusik := and $model.filter (eq $model.filter "musik") }}
-
-{{ $isAutor := and $model.filter (eq $model.filter "autor") }}
-
-{{ $isGraphik := and $model.filter (eq $model.filter "graphik") }}
-
-{{ $isHrsg := and $model.filter (eq $model.filter "hrsg") }}
-
-
+<!-- INFO: 1. Container -->
 <div class="container-normal mt-4" x-data="{ search : '{{ $model.search }}'}">
-	{{- if not $model.search -}}
-		<div
-			id="persontype"
-			class="flex flex-row justify-end align-right text-right mr-4 gap-x-3"
-			:class="search ? 'inactive' : ''">
-			<a
-				href="/personen{{ if .letter }}?letter={{ .letter }}{{ end }}"
-				{{ if $isPerson -}}aria-current="page"{{- end -}}
-				>Personen</a
-			>
-
-			<a
-				href="/personen?filter=org{{ if .letter }}&letter={{ .letter }}{{ end }}"
-				{{ if $isOrg -}}aria-current="page"{{- end -}}
-				>Verlage, Druckereien &amp; Vertriebe</a
-			>
-		</div>
-	{{- end -}}
+	{{ template "menu" . }}
 
 
+	<!-- INFO: 2. Spalten-Layout -->
 	<div class="flex flex-row">
-		{{- if and $model.letters (not $model.search) -}}
-			<div id="personalphabet" class="flex flex-col text-xl pt-8 relative">
-				{{- range $id, $r := .letters -}}
-					<a
-						class="odd:bg-stone-100 even:bg-zinc-100 mb-1 border-zinc-300 border-y border-l [&>a[aria-current='page']]:font-bold
-				px-2 no-underline transition-all duration-75
-				{{ if not $model.letter -}}inactive{{- end -}}"
-						:class="search ? 'inactive' : 'active'"
-						href="?letter={{ $r }}{{- if $model.filter }}&filter={{ $model.filter }}{{- end -}}"
-						{{ if eq $model.letter $r }}aria-current="page"{{ end }}
-						hx-select="main"
-						hx-target="main"
-						hx-swap="outerHTML scroll:#pageheading:top"
-						>{{ $r }}</a
-					>
-				{{- end -}}
-			</div>
-		{{- end -}}
+		{{ template "alphabet" . }}
 
 
+		<!-- INFO: 3. rechte Spalte -->
 		<div class="w-full">
+			<!-- INFO: 4. Header -->
 			<div id="personheader" class="border-t border-r border-zinc-300 relative w-full">
-						<h1
-							class="text-3xl font-bold px-3 relative -translate-y-[55%] w-min whitespace-nowrap bg-stone-50 ml-24 z-20">
-							<span x-show="!search">
-								{{- if $isPerson -}}
-									Personen
-								{{- else if $isOrg -}}
-									Verlage, Druckereien &amp; Vertriebe
-								{{- end -}}
-							</span>
-							<span x-show="search"> Suche &middot; Alle Personen &amp; Körperschaften </span>
-						</h1>
+				{{ template "heading" . }}
 
-				<div class="flex flex-row justify-between">
-					<div class="w-[60%] shrink-0 grow-0">
-					<div class="min-w-[22.5rem] max-w-96 flex flex-row relative mt-9 ml-auto">
-						<div class="">
-							<i class="ri-search-line"></i
-							><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
-						</div>
-						<div class="pb-0 border-b-4 border-zinc-300 grow">
-							<input
-								class="px-1.5 font-serif placeholder:italic w-full"
-								type="search"
-								name="search"
-								value="{{ $model.search }}"
-								placeholder="Suchbegriff"
-								x-model="search"
-								hx-get=""
-								hx-trigger="input changed delay=500ms, keyup[key=='Enter']"
-								hx-sync="this:replace"
-								hx-select="#searchresults"
-								hx-target="#searchresults"
-								autocomplete="off"
-								{{ if $model.active }}autofocus="true"{{ end }}
-								{{ if $model.search }}disabled="true"{{ end }} />
-						</div>
-						<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
-							<tool-tip position="right" x-show="search">
-								<a
-									:href="'/personen/?search=' + search"
-									x-show="search"
-									class="inline-block px-1
-				text-white no-underline bg-stone-700 hover:bg-stone-900 rounded"
-									hx-boost="false">
-									<i class="ri-links-line"></i
-								></a>
-								<div class="data-tip">Link zu dieser Suchanfrage</div>
-							</tool-tip>
-						</div>
-					</div>
-					</div>
 
-					{{- if $isPerson -}}
-						<div x-show="!search" class="flex flex-row gap-x-3 font-serif mr-6 items-end">
-							<label
-								for="filter"
-								class="align-bottom h-min self-end pb-1 text-sm	font-sans text-stone-700"
-								>Anzeige:</label
-							>
-							<select
-								class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
-								name="filter"
-								id="filter"
-								hx-get="/personen{{- if .letter -}}?letter={{ .letter }}{{- end -}}"
-								trigger="change"
-								hx-push-url="true"
-								hx-select="main"
-								hx-target="main">
-								<option value="noorg" {{ if $isNoOrg }}selected{{ end }}>Alle Personen</option>
-								<option value="musik" {{ if $isMusik }}selected{{ end }}>Musiker:innen</option>
-								<option value="autor" {{ if $isAutor }}selected{{ end }}>Autor:innen</option>
-								<option value="graphik" {{ if $isGraphik }}selected{{ end }}>
-									Graphiker:innen
-								</option>
-								<option value="hrsg" {{ if $isHrsg }}selected{{ end }}>Herausgeber:innen</option>
-							</select>
-						</div>
-					{{- end -}}
-					</div>
-				</div>
-
-				<div class="mt-4 ml-4 font-serif font-lg" id="searchresults">
-					{{ if or .agents .altagents }}
-						{{ if .agents }}
-							<table class="w-full [&_td]:!align-top">
-								{{ range $count, $agent := .agents }}
-									<tr>
-										<td>
-											<a href="/person/{{ $agent.Id }}" class="font-bold">
-												{{ $agent.Name }}
-												{{ if $agent.Pseudonyms }}
-													<br />
-													({{ $agent.Pseudonyms }})
-												{{ end }}
-											</a>
-										</td>
-										<td>
-											{{ if $agent.CorporateBody }}
-												Körperschaft
-											{{ else }}
-												{{ $agent.Profession }},
-												{{ $agent.BiographicalData }}
-											{{ end }}
-										</td>
-										<td>{{ $agent.References }}</td>
-									</tr>
-								{{ end }}
-
-							</table>
-						{{ end }}
-						{{ if .altagents }}
-							<table class="w-full mt-6">
-								{{ range $count, $agent := .altagents }}
-									<tr>
-										<td>
-											{{ $agent.Name }}
-											{{ if $agent.Pseudonyms }}
-												<br />
-												({{ $agent.Pseudonyms }})
-											{{ end }}
-										</td>
-										<td>
-											{{ if $agent.CorporateBody }}
-												Körperschaft
-											{{ else }}
-												{{ $agent.Profession }},
-												{{ $agent.BiographicalData }}
-											{{ end }}
-										</td>
-										<td>{{ $agent.References }}</td>
-									</tr>
-								{{ end }}
-							</table>
-						{{ end }}
-					{{ else }}
-						<p>Keine Personen gefunden.</p>
-					{{ end }}
+				<div class="flex flex-row justify-end">
+					{{ template "professionselectbox" . }}
+					{{ template "searchbox" . }}
 				</div>
 			</div>
+
+			<!-- INFO: 4. Personenliste -->
+			<div class="mt-7 ml-9 mr-5 font-serif font-lg" id="searchresults">
+				{{ if or .agents .altagents }}
+					{{ if .agents }}
+						<div class="w-full flex flex-col">
+							{{ range $count, $agent := .agents }}
+								<div class="flex flex-row odd:bg-stone-100 even:bg-stone-50 px-3 py-0.5">
+									<div class="grow">
+										<a href="/person/{{ $agent.Id }}" class="search-result font-bold">
+											{{ $agent.Name }}
+										</a>
+										<span class="inline-block font-sans text-sm">
+											{{ if not $agent.CorporateBody }}
+												{{ $agent.BiographicalData }}
+											{{ end }}
+										</span>
+
+										{{ if $agent.Pseudonyms }}
+											<p class="italic indent-3">
+												auch:
+												<span class="search-result">
+													{{ $agent.Pseudonyms }}
+												</span>
+											</p>
+										{{ end }}
+									</div>
+
+									<div class="w-48 text-right shrink-0">
+										{{- if $agent.CorporateBody -}}
+											<span class="text-sm font-sans text-gray-500">Körperschaft</span>
+										{{ else }}
+											{{- $parr := $agent.ProfessionArray -}}
+											{{- if $parr -}}
+												{{- range $i, $p := $parr -}}
+													<div
+														class="inline-block px-2 py-0.5 text-sm font-sans
+													bg-slate-200 rounded ml-2">
+														{{ $p }}
+													</div>
+												{{- end -}}
+											{{- end -}}
+										{{- end -}}
+									</div>
+
+									<div class="w-64 ml-4 shrink-0">{{ $agent.References }}</div>
+								</div>
+							{{ end }}
+
+						</div>
+					{{ end }}
+					{{ if .altagents }}
+					{{ end }}
+				{{ else }}
+					<p>Keine Personen gefunden.</p>
+				{{ end }}
+
+				{{ if .search }}
+					<script type="module">
+					let elements = document.querySelectorAll('.search-result');
+					let mark_instance = new Mark(elements);
+					// INFO: we wait a little bit before marking, to settle everything
+						setTimeout(() => {
+							mark_instance.mark('{{ $model.search }}', {
+								"seperateWordSearch": true,
+							});
+						}, 200);
+					</script>
+				{{ end }}
+				<!-- INFO: Ende Personenliste -->
+			</div>
+			<!-- INFO: Ende rechte Spalte -->
 		</div>
+		<!-- INFO: Ende Spalten-Layout -->
 	</div>
+	<!-- INFO: Ende Container -->
 </div>

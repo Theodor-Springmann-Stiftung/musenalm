@@ -1,0 +1,20 @@
+{{ $model := . }}
+
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
+
+<h1
+	class="text-3xl font-bold px-3 relative -translate-y-[55%] w-min whitespace-nowrap bg-stone-50 ml-24 z-20">
+	<span x-show="!search">
+		{{- if $isPerson -}}
+			Personen
+		{{- else if $isOrg -}}
+			Verlage, Druckereien &amp; Vertriebe
+		{{- end -}}
+	</span>
+	<span x-show="search"> Suche &middot; Alle Personen &amp; Körperschaften </span>
+</h1>

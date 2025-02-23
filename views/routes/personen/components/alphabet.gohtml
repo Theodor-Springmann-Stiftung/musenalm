@@ -1,0 +1,18 @@
+{{ $model := . }}
+
+{{- if and $model.letters (not $model.search) -}}
+	<div id="personalphabet" class="flex flex-col text-xl pt-20 relative">
+		{{- range $id, $r := .letters -}}
+			<a
+				class="{{ if not $model.letter -}}inactive{{- end -}}"
+				:class="search ? 'inactive' : 'active'"
+				href="?letter={{ $r }}{{- if $model.filter }}&filter={{ $model.filter }}{{- end -}}"
+				{{ if eq $model.letter $r }}aria-current="page"{{ end }}
+				hx-select="main"
+				hx-target="main"
+				hx-swap="outerHTML scroll:#pageheading:top"
+				>{{ $r }}</a
+			>
+		{{- end -}}
+	</div>
+{{- end -}}

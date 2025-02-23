@@ -44,9 +44,17 @@
 }
 
 @layer components {
-	@media screen and (min-width: 96rem) {
+	html {
+		font-size: 16px;
+	}
+	@media (max-width: 1280px) {
 		html {
-			font-size: 16px;
+			font-size: 14px;
+		}
+	}
+	@media (max-width: 640px) {
+		html {
+			font-size: 12px;
 		}
 	}
 
@@ -101,12 +109,16 @@
 		@apply font-variant-small-caps;
 	}
 
-	.alphabet a[aria-current="page"]:not(.inactive) {
+	#alphabet a[aria-current="page"]:not(.inactive) {
 		@apply pb-3 pt-2 font-bold italic !bg-stone-50 relative -bottom-3 border-b;
 	}
 
-	.alphabet a:hover:not([aria-current="page"]:not(.inactive)) {
-		@apply pb-1 pt-0.5 !bg-stone-50 relative;
+	#alphabet a:hover:not([aria-current="page"]:not(.inactive)) {
+		@apply pb-1 pt-0.5 !bg-stone-50 relative !text-stone-900;
+	}
+
+	#alphabet a.inactive {
+		@apply !text-gray-400;
 	}
 
 	.headingcontainer:before {
@@ -203,11 +215,11 @@
 	}
 
 	#searchnav > a {
-		@apply odd:bg-stone-100 even:bg-zinc-100 mx-1.5 border-zinc-300 border-x border-t px-2.5 no-underline transition-all duration-75 py-0.5;
+		@apply odd:bg-stone-100 even:bg-zinc-100 mx-1.5 border-zinc-300 border-x border-t px-2.5 no-underline transition-all duration-75 py-0.5 text-lg;
 	}
 
 	#searchnav > a[aria-current="page"]:not(.inactive) {
-		@apply font-bold italic !bg-stone-50 relative -bottom-3 border-b z-20;
+		@apply font-bold italic !bg-stone-50 relative -bottom-2 border-b z-20;
 	}
 
 	#searchnav > a:hover:not([aria-current="page"]:not(.inactive)) {
@@ -237,7 +249,7 @@
 	}
 
 	#searchform button:disabled {
-		@apply bg-stone-400 cursor-not-allowed;
+		@apply bg-stone-300 text-gray-500 cursor-not-allowed;
 	}
 
 	#searchform .selectgroup {
@@ -264,6 +276,10 @@
 		@apply font-bold;
 	}
 
+	#persontype.inactive a {
+		@apply text-gray-500;
+	}
+
 	#personheader:before {
 		content: "";
 		@apply bg-zinc-300 w-[50%] absolute bottom-0 left-[50%] h-[1px];
@@ -271,6 +287,29 @@
 
 	#personalphabet:after {
 		content: "";
-		@apply absolute right-0 top-0 h-[44em] border-r border-zinc-300;
+		@apply absolute right-0 top-0 h-full border-r border-zinc-300;
+	}
+
+	#personalphabet a {
+		@apply box-border odd:bg-stone-100 even:bg-zinc-100 mb-1 border-zinc-300 border-y border-l pl-2 pr-3 no-underline transition-all duration-75 text-center text-lg overflow-visible relative;
+	}
+
+	#personalphabet a[aria-current="page"]:not(.inactive) {
+		@apply font-bold italic !bg-stone-50 relative -mr-4 border-r border-b pl-3 z-20 text-xl;
+	}
+
+	#personalphabet a[aria-current="page"]:not(.inactive):before {
+		aspect-ratio: 1;
+		clip-path: polygon(100% 66%, 66% 100%, 100% 100%);
+		content: " ";
+		@apply bg-red-600 absolute -bottom-[1px] -right-[1px] h-full z-30;
+	}
+
+	#personalphabet a:hover:not([aria-current="page"]:not(.inactive)) {
+		@apply !bg-stone-50 -ml-2 relative;
+	}
+
+	#personalphabet a.inactive {
+		@apply !text-gray-400;
 	}
 }

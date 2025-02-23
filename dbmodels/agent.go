@@ -1,6 +1,8 @@
 package dbmodels
 
 import (
+	"strings"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -62,6 +64,35 @@ func (a *Agent) SetBiographicalData(biographicalData string) {
 
 func (a *Agent) Profession() string {
 	return a.GetString(AGENTS_PROFESSION_FIELD)
+}
+
+func (a *Agent) ProfessionArray() []string {
+	profession := a.Profession()
+	if profession == "" {
+		return []string{}
+	}
+
+	ret := []string{}
+	profarr := strings.Split(profession, " ")
+	for _, p := range profarr {
+		if p == "" {
+			continue
+		}
+		plow := strings.ToLower(p)
+		if strings.Contains(plow, "text") {
+			ret = append(ret, "Text")
+		} else if strings.Contains(plow, "musik") {
+			ret = append(ret, "Musik")
+		} else if strings.Contains(plow, "graphik") {
+			ret = append(ret, "Graphik")
+		} else if strings.Contains(plow, "hrsg") {
+			ret = append(ret, "Hrsg")
+		} else if strings.Contains(plow, "sonst") {
+			ret = append(ret, "Sonst")
+		}
+	}
+
+	return ret
 }
 
 func (a *Agent) SetProfession(profession string) {
