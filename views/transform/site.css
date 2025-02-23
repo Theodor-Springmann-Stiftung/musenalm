@@ -312,4 +312,19 @@
 	#personalphabet a.inactive {
 		@apply !text-gray-400;
 	}
+
+	#entrydata .fieldlabel {
+		@apply font-bold text-base font-sans whitespace-nowrap w-60 grow-0 shrink-0 pt-0.5;
+	}
+
+	#entrydata .fieldvalue {
+		@apply font-serif text-left grow align-top max-w-[60ch];
+	}
+
+	#entrydata .entryrow {
+		@apply flex flex-row gap-x-3.5 items-start py-0.5 px-4;
+	}
+
+	#entrydata {
+	}
 }

@@ -7,25 +7,25 @@
 
 
 	<!-- INFO: 2. Spalten-Layout -->
-	<div class="flex flex-row">
+	<div class="flex flex-row items-stretch">
 		{{ template "alphabet" . }}
 
 
 		<!-- INFO: 3. rechte Spalte -->
-		<div class="w-full">
+		<div class="w-full self-stretch {{ if not .search -}}border-b border-zinc-300{{- end -}}">
 			<!-- INFO: 4. Header -->
 			<div id="personheader" class="border-t border-r border-zinc-300 relative w-full">
 				{{ template "heading" . }}
 
 
-				<div class="flex flex-row justify-end">
+				<div class="flex flex-row justify-end mt-12">
 					{{ template "professionselectbox" . }}
 					{{ template "searchbox" . }}
 				</div>
 			</div>
 
 			<!-- INFO: 4. Personenliste -->
-			<div class="mt-7 ml-9 mr-5 font-serif font-lg" id="searchresults">
+			<div class="mt-7 pl-9 pr-5 font-serif font-lg pb-7" id="searchresults">
 				{{ if or .agents .altagents }}
 					{{ if .agents }}
 						<div class="w-full flex flex-col">

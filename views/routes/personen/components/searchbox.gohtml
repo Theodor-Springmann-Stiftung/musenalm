@@ -2,7 +2,7 @@
 
 
 <div class="ml-12 shrink-0 grow-0 mr-2.5">
-	<div class="min-w-[22.5rem] max-w-96 flex flex-row relative mt-9 ml-auto">
+	<div class="min-w-[22.5rem] max-w-96 flex flex-row relative ml-auto">
 		<div class="">
 			<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
 		</div>
@@ -19,8 +19,8 @@
 				hx-sync="this:replace"
 				hx-select="#searchresults"
 				hx-target="#searchresults"
+				hx-swap="outerHTML"
 				autocomplete="off"
-				{{ if $model.active }}autofocus="true"{{ end }}
 				{{ if $model.search }}disabled="true"{{ end }} />
 		</div>
 		<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">

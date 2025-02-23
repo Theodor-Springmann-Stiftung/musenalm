@@ -1,3 +1,169 @@
 {{ $model := . }}
+{{ $isGer := false }}
+{{ $isFra := false }}
+{{ $isEng := false }}
 
-{{ $model.entry.TitleStmt }}
+
+<div class="container-normal" id="">
+	<div class="flex flex-col" id="entrydata">
+		<div class="entryrow">
+			<div class="fieldlabel">Almanach-Nummer</div>
+			<div class="fieldvalue">{{ $model.entry.MusenalmID }}</div>
+		</div>
+		{{- if $model.entry.PreferredTitle -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Kurztitel</div>
+				<div class="fieldvalue">{{ $model.entry.PreferredTitle }}</div>
+			</div>
+		{{- end -}}
+		{{- if $model.entry.TitleStmt -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Titel</div>
+				<div class="fieldvalue">{{ $model.entry.TitleStmt }}</div>
+			</div>
+		{{- end -}}
+		<div class="entryrow">
+			<div class="fieldlabel">Jahr</div>
+			<div class="fieldvalue">
+				{{- if $model.entry.Year -}}
+					<a href="/reihen?year={{ $model.entry.Year }}&hidden=true">{{ $model.entry.Year }}</a>
+				{{- else -}}
+					[keine Angabe]
+				{{- end -}}
+			</div>
+		</div>
+		{{- if $model.entry.ResponsibilityStmt -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Herausgeber</div>
+				<div class="fieldvalue">{{ $model.entry.ResponsibilityStmt }}</div>
+			</div>
+		{{- end -}}
+		{{- if $model.entry.Extent -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Umfang</div>
+				<div class="fieldvalue">
+					<abbrev-tooltips data-text="{{ $model.entry.Extent }}"></abbrev-tooltips>
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.entry.Language -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Sprache</div>
+				<div class="fieldvalue">
+					{{- range $i, $lang := $model.entry.Language -}}
+						{{- if $i -}},{{- end -}}
+						{{- if eq $lang "ger" -}}
+							{{ $isGer = true }}
+							Deutsch
+						{{- else if eq $lang "eng" -}}
+							{{ $isEng = true }}
+							Englisch
+						{{- else if eq $lang "fre" -}}
+							{{ $isFra = true }}
+							Französisch
+						{{- else if eq $lang "ita" -}}
+							Italienisch
+						{{- else if eq $lang "lat" -}}
+							Latein
+						{{- else -}}
+							{{ $lang }}
+						{{- end -}}
+					{{- end -}}
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.entry.References -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Nachweise</div>
+				<div class="fieldvalue">
+					{{- $model.entry.References -}}
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.series -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Reihen</div>
+				<div class="fieldvalue">
+					{{- range $i, $s := $model.series -}}
+						<div>
+							{{- $rel := index $model.srelations $s.Id -}}
+							{{- if $rel -}}
+								{{- $crel := index $rel 0 -}}
+								{{- if not (eq $crel.Type "Bevorzugter Reihentitel") -}}
+									<span class="text-sm font-sans mr-2">
+										{{- if eq $crel.Type "Früherer Reihentitel" -}}
+											hat Titelauflage s.a.
+										{{- else if eq $crel.Type "Späterer Reihentitel" -}}
+											ist Titelauflage von, s.a.
+										{{- else if eq $crel.Type "In anderer Sprache" -}}
+											{{- if $isFra -}}
+												In deutscher Sprache s.a.
+											{{- else -}}
+												In französischer Sprache s.a.
+											{{- end -}}
+										{{- else if eq $crel.Type "Alternatives Titelblatt" -}}
+											alternatives Titelblatt, s.a.
+										{{- end -}}
+									</span>
+								{{- end -}}
+							{{- end -}}
+							<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Title }}</a>
+						</div>
+					{{- end -}}
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.places -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Orte</div>
+				<div class="fieldvalue">
+					{{- range $i, $p := $model.places -}}
+						<div>
+							<a href="/reihen?place={{ $p.Id }}&hidden=true">{{ $p.Name }}</a>
+						</div>
+					{{- end -}}
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.arelations -}}
+			{{- $rels := index $model.arelations $model.entry.Id -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Personen</div>
+				<div class="fieldvalue">
+					{{- range $i, $r := $rels -}}
+						{{- $a := index $model.agents $r.Agent -}}
+						{{- if $a -}}
+							<div>
+								<a href="/person/{{ $a.Id }}">
+									{{ $a.Name }}
+								</a>
+								<span class="ml-2 px-2 py-0.5 rounded text-sm font-sans bg-slate-200 inline-block">
+									{{- $r.Type -}}
+								</span>
+							</div>
+						{{- end -}}
+					{{- end -}}
+				</div>
+			</div>
+		{{- end -}}
+		{{- if $model.entry.Annotation -}}
+			<div class="entryrow">
+				<div class="fieldlabel">Anmerkungen</div>
+				<div class="fieldvalue">
+					{{- Safe $model.entry.Annotation -}}
+				</div>
+			</div>
+		{{- end -}}
+	</div>
+</div>
+
+<script type="module">
+	let abbrevs = {{- $model.abbrs -}};
+	let ats = document.querySelectorAll('abbrev-tooltips');
+	if (ats) {
+		ats.forEach((at) => {
+				at.setAbbrevMap(abbrevs);
+		});
+	}
+
+</script>
