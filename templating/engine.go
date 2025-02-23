@@ -51,6 +51,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("Arr", functions.Arr)
 	e.AddFunc("HasPrefix", strings.HasPrefix)
 	e.AddFunc("Dict", functions.Dict)
+	e.AddFunc("Contains", functions.Contains)
 	return nil
 }
 

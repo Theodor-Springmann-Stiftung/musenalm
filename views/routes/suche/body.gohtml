@@ -9,12 +9,14 @@
 			text-zinc-800">
 				Suche nach:
 			</div>
+			<!--
 			<a
 				href="/suche/reihen"
 				class="block no-underline"
 				{{ if eq $model.type "reihen" }}aria-current="page"{{- end -}}
 				>Reihen</a
 			>
+			-->
 			<a
 				href="/suche/baende"
 				class="block no-underline"
@@ -27,12 +29,14 @@
 				{{ if eq $model.type "beitraege" }}aria-current="page"{{- end -}}
 				>Beiträgen</a
 			>
+			<!--
 			<a
 				href="/suche/personen"
 				class="block no-underline"
 				{{ if eq $model.type "personen" }}aria-current="page"{{- end -}}
 				>Personen</a
 			>
+			-->
 		</nav>
 		<h1
 			class="text-3xl font-bold px-3 relative translate-y-[45%] w-min whitespace-nowrap

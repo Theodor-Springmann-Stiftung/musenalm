@@ -18,6 +18,7 @@ const (
 	PARAM_PERSON = "agent"
 	PARAM_PLACE  = "place"
 	PARAM_YEAR   = "year"
+	PARAM_HIDDEN = "hidden"
 )
 
 func init() {
@@ -65,6 +66,7 @@ func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 func (p *ReihenPage) YearRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	year := e.Request.URL.Query().Get(PARAM_YEAR)
 	data := map[string]interface{}{}
+	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 	data[PARAM_YEAR] = year
 
 	y, err := strconv.Atoi(year)
@@ -86,6 +88,7 @@ func (p *ReihenPage) YearRequest(app core.App, engine *templating.Engine, e *cor
 func (p *ReihenPage) LetterRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	letter := e.Request.URL.Query().Get(PARAM_LETTER)
 	data := map[string]interface{}{}
+	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 	if letter == "" {
 		data["startpage"] = true
 		letter = "A"
@@ -114,6 +117,7 @@ func (p *ReihenPage) PersonRequest(app core.App, engine *templating.Engine, e *c
 	person := e.Request.URL.Query().Get(PARAM_PERSON)
 	data := map[string]interface{}{}
 	data[PARAM_PERSON] = person
+	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 
 	agent, err := dbmodels.AgentForId(app, person)
 	if err != nil {
@@ -137,6 +141,7 @@ func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *co
 	place := e.Request.URL.Query().Get(PARAM_PLACE)
 	data := map[string]interface{}{}
 	data[PARAM_PLACE] = place
+	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 
 	pl, err := dbmodels.PlaceForId(app, place)
 	if err != nil {
@@ -160,6 +165,7 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	data := map[string]interface{}{}
 	data[PARAM_SEARCH] = search
+
 	// INFO: normalization happens in the db query
 	series, altseries, err := dbmodels.BasicSearchSeries(app, search)
 

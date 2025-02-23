@@ -31,3 +31,19 @@ func (a *Abk) Bedeutung() string {
 func (a *Abk) SetBedeutung(bedeutung string) {
 	a.Set(F_BEDEUTUNG, bedeutung)
 }
+
+func GetAbks(app core.App) (map[string]string, error) {
+	ret := make(map[string]string)
+	abks := []*Abk{}
+
+	err := app.RecordQuery(GeneratePageTableName(P_DOK_NAME, T_ABK_NAME)).All(&abks)
+	if err != nil {
+		return ret, err
+	}
+
+	for _, abk := range abks {
+		ret[abk.Abk()] = abk.Bedeutung()
+	}
+
+	return ret, nil
+}

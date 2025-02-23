@@ -1,14 +1,57 @@
 {{ $model := . }}
 
-{{ if .entries }}
-	<h2>Bände nach Riehentiteln</h2>
-	{{ range $id, $r := .series }}
-		<div>
-			{{ template "_reihe" (Arr $model $r) }}
+
+<div class="container-normal font-serif">
+	{{ if $model.a.CorporateBody }}
+		<div class="notifier font-sans">
+			<i class="ri-team-line"></i>
+			<span class="filtercategory">Verlag, Druckerei oder Vertrieb</span>
+		</div>
+	{{ else }}
+		<div class="notifier font-sans">
+			<i class="ri-user-line"></i>
+			<span class="filtercategory">Person</span>
 		</div>
 	{{ end }}
-{{ else }}
-	<div>Keine Bände</div>
+	<h1 class="text-3xl font-bold">{{ $model.a.Name }}</h1>
+	<div>
+		<span class="">
+			{{ $model.a.BiographicalData }}
+		</span>
+		<span class="">
+			{{- $arr := $model.a.ProfessionArray -}}
+			{{- if $arr -}}
+				{{- range $i, $p := $arr -}}
+					<div
+						class="inline-block align-middle bg-slate-200 px-2 font-sans text-sm py-0.5 rounded mx-1">
+						{{- $p -}}
+					</div>
+				{{- end -}}
+			{{- end -}}
+		</span>
+	</div>
+</div>
+
+{{ if .entries }}
+	<div class="container-normal flex flex-col font-serif mt-7 gap-y-6">
+		<h2>Bände nach Reihentiteln</h2>
+		{{ range $id, $r := .series }}
+			<div class="grow-0 max-w-[48rem]">
+				<div>
+					<span class="font-bold">{{ $r.Title }}</span>
+				</div>
+				{{ if $r.Annotation }}
+					<div class="max-w-[48rem]">
+						<span class="">{{ Safe $r.Annotation }}</span>
+					</div>
+				{{ end }}
+				<div class="">
+					{{- $bds := index $model.relations $r.Id -}}
+					{{ template "reiherelations" (Arr $r $bds $model.entries true $model.relations) }}
+				</div>
+			</div>
+		{{ end }}
+	</div>
 {{ end }}
 
 {{ if .contents }}

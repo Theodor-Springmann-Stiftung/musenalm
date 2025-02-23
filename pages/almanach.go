@@ -48,7 +48,7 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 		}
 
 		data["srelations"] = srelations
-		data["series"] = s
+		data["series"] = series
 
 		places, err := dbmodels.PlacesForEntry(app, entry)
 		if err != nil {
@@ -80,9 +80,24 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 		}
 		data["agents"] = agents
 
+		err = p.getAbbr(app, data)
+		if err != nil {
+			return engine.Response404(e, err, data)
+		}
+
 		return p.Get(e, engine, data)
 	})
 
+	return nil
+}
+
+func (p *AlmanachPage) getAbbr(app core.App, data map[string]interface{}) error {
+	abbrs, err := pagemodels.GetAbks(app)
+	if err != nil {
+		return err
+	}
+
+	data["abbrs"] = abbrs
 	return nil
 }
 

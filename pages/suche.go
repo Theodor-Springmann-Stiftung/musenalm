@@ -20,7 +20,7 @@ type SuchePage struct {
 const (
 	URL_SUCHE      = "/suche/{type}"
 	URL_SUCHE_ALT  = "/suche/{$}"
-	DEFAULT_SUCHE  = "/suche/reihen"
+	DEFAULT_SUCHE  = "/suche/baende"
 	PARAM_QUERY    = "q"
 	PARAM_EXTENDED = "extended"
 	TEMPLATE_SUCHE = "/suche/"

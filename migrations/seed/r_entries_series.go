@@ -42,7 +42,7 @@ func RecordsFromRelationBändeReihen(
 		case "1":
 			record.SetType("Bevorzugter Reihentitel")
 		case "2":
-			record.SetType("Alternativer Reihentitel")
+			record.SetType("Alternatives Titelblatt")
 		case "3":
 			record.SetType("In anderer Sprache")
 		case "4":
@@ -50,11 +50,11 @@ func RecordsFromRelationBändeReihen(
 			_ = app.Save(entry)
 			record.SetType("In anderer Sprache")
 		case "5":
-			record.SetType("Alternativer Reihentitel")
+			record.SetType("Alternatives Titelblatt")
 		case "6":
-			record.SetType("Früherer Reihentitel")
-		case "7":
 			record.SetType("Späterer Reihentitel")
+		case "7":
+			record.SetType("Früherer Reihentitel")
 		}
 
 		rel := record.Type()
