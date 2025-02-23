@@ -29,6 +29,29 @@
 		<link href="/assets/css/remixicon.css" rel="stylesheet" />
 		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
 		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
+
+		{{ if .isDev -}}
+			{{/* INFO: this runs airs injected script on page load, in dev mode */}}
+			{{/* INFO: Make sure airs proxy runs on port 8081 */}}
+			<script type="module">
+				function hookupAIR() {
+					const port = window.location.port;
+					if (!port || port !== "8081") {
+						return;
+					}
+					document.body.addEventListener("htmx:afterSwap", (event) => {
+						if (event.detail.target === document.body) {
+							const scriptEl = document.querySelector("body > script:last-of-type");
+							if (scriptEl && scriptEl.textContent.trim()) {
+								new Function(scriptEl.textContent)();
+							}
+						}
+					});
+				}
+
+				hookupAIR();
+			</script>
+		{{- end }}
 	</head>
 
 	<body class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
