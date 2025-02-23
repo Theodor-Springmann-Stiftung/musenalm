@@ -1,0 +1,25 @@
+{{ $model := . }}
+
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
+{{- if not $model.search -}}
+	{{/* INFO: We always redrect to letter = A bc some letters dont exist for other types */}}
+	<div
+		id="persontype"
+		class="flex flex-row justify-end align-right text-right mr-4 gap-x-3"
+		:class="search ? 'inactive' : ''">
+		<a
+			href="/personen?letter=A"
+			{{ if $isPerson -}}aria-current="page"{{- end -}}
+			>Personen</a
+		>
+
+		<a
+			href="/personen?filter=org"
+			{{ if $isOrg -}}aria-current="page"{{- end -}}
+			>Verlage, Druckereien &amp; Vertriebe</a
+		>
+	</div>
+{{- end -}}

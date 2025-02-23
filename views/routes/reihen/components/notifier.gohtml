@@ -1,0 +1,71 @@
+{{ $model := . }}
+
+
+<div class="flex flex-row justify-center ">
+	{{ if .letter }}
+		<div class="notifier" x-show="!search">
+			<i class="ri-sort-alphabet-asc"></i>
+			<span class="filtercategory">Alle Reihen</span> &middot;
+			<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+		</div>
+	{{ end }}
+
+
+	<div class="notifier" x-show="search">
+		<i class="ri-search-line"></i>
+		<span class="filtercategory">Suche</span>
+		&middot; <span class="filterterm" x-text="search"></span>
+	</div>
+
+	{{ if .search }}
+		<div class="notifier" x-show="search">
+			<i class="ri-links-line"></i>
+			<span class="filtercategory">Link</span>
+			&middot; <span class="filterterm" x-text="window.location.href"></span>
+		</div>
+	{{ end }}
+
+	{{ if .a }}
+		<div class="notifier" x-show="!search">
+			{{ if .a.CorporateBody }}
+				<i class="ri-team-line"></i>
+				<span class="filtercategory">Verlag, Druckerei oder Vertrieb</span> &middot;
+			{{ else }}
+				<i class="ri-user-line"></i>
+				<span class="filtercategory">Herausgeber:in</span> &middot;
+			{{ end }}
+			<span class="filterterm">{{ .a.Name }}</span>
+		</div>
+	{{ end }}
+
+	{{ if .p }}
+		<div class="notifier" x-show="!search">
+			<i class="ri-map-pin-line"></i>
+			<span class="filtercategory">Erscheinungsort</span> &middot;
+			<span class="filterterm">{{ .p.Name }}</span>
+		</div>
+	{{ end }}
+
+	{{ if .year }}
+		<div class="notifier" x-show="!search">
+			<i class="ri-calendar-line"></i>
+			<span class="filtercategory">Geltungsjahr</span> &middot;
+			<span class="filterterm">{{ .year }}</span>
+		</div>
+	{{ end }}
+
+	{{ if not .letter }}
+		<div class="notifier ml-2" x-show="!search">
+			<a href="/reihen" class="no-underline">
+				<i class="ri-arrow-left-long-line"></i> Alle Reihen anzeigen
+			</a>
+		</div>
+	{{ end }}
+
+
+	<div class="notifier ml-2" x-show="search">
+		<a href="/reihen" class="no-underline">
+			<i class="ri-arrow-left-long-line"></i> Alle Reihen anzeigen
+		</a>
+	</div>
+</div>

@@ -1,187 +1,81 @@
 {{ $model := . }}
 
 {{ if and .startpage .record }}
-	<div
-		class="bg-[url(/assets/hintergrund.png)] w-full border-t border-b py-8 mt-9 relative"
-		x-data="{ open: true }"
-		x-show="open">
-		<div class="container-extraoversize flex flex-row gap-x-8">
-			<div class="max-w-[52rem] font-serif text-lg hyphens-auto">
-				{{ Safe .record.Text }}
-			</div>
-			<div class="-mr-16 pt-2 grow-0 shrink-0">
-				<img src="{{ .record.ImagePath }}" />
-			</div>
-		</div>
-		<div class="absolute top-0 right-0 m-4 mr-8">
-			<tool-tip position="left">
-				<div class="data-tip">Hinweis schließen</div>
-				<button
-					@click="open = false"
-					class="text-3xl text-stone-500 opacity-85 hover:opacity-100 transition-opacity
-					duration-200 hover:text-stone-900 leading-none
-			hover:cursor-pointer">
-					<i class="ri-close-circle-fill"></i>
-				</button>
-			</tool-tip>
-		</div>
-	</div>
+	{{ template "hero" . }}
 {{ end }}
 
 
+<!-- INFO: 1. Container -->
 <div x-data="{ search : '{{ $model.search }}' }" :class="search ? 'searchfilter' : ''">
+	<!-- INFO: 2. Header -->
 	<div id="pageheading" class="headingcontainer">
 		<h1 class="heading">Bände nach Reihentiteln</h1>
-
-		<div class="flex flex-row justify-center ">
-			{{ if .letter }}
-				<div class="notifier" x-show="!search">
-					<i class="ri-sort-alphabet-asc"></i>
-					<span class="filtercategory">Alle Reihen</span> &middot;
-					<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
-				</div>
-			{{ end }}
-
-
-			<div class="notifier" x-show="search">
-				<i class="ri-search-line"></i>
-				<span class="filtercategory">Suche</span>
-				&middot; <span class="filterterm" x-text="search"></span>
-			</div>
-
-			{{ if .search }}
-				<div class="notifier" x-show="search">
-					<i class="ri-links-line"></i>
-					<span class="filtercategory">Link</span>
-					&middot; <span class="filterterm" x-text="window.location.href"></span>
-				</div>
-			{{ end }}
-
-			{{ if .a }}
-				<div class="notifier" x-show="!search">
-					{{ if .a.CorporateBody }}
-						<i class="ri-team-line"></i>
-						<span class="filtercategory">Verlag, Druckerei oder Vertrieb</span> &middot;
-					{{ else }}
-						<i class="ri-user-line"></i>
-						<span class="filtercategory">Herausgeber:in</span> &middot;
-					{{ end }}
-					<span class="filterterm">{{ .a.Name }}</span>
-				</div>
-			{{ end }}
-
-			{{ if .p }}
-				<div class="notifier" x-show="!search">
-					<i class="ri-map-pin-line"></i>
-					<span class="filtercategory">Erscheinungsort</span> &middot;
-					<span class="filterterm">{{ .p.Name }}</span>
-				</div>
-			{{ end }}
-
-			{{ if .year }}
-				<div class="notifier" x-show="!search">
-					<i class="ri-calendar-line"></i>
-					<span class="filtercategory">Geltungsjahr</span> &middot;
-					<span class="filterterm">{{ .year }}</span>
-				</div>
-			{{ end }}
-
-			{{ if not .letter }}
-				<div class="notifier ml-2" x-show="!search">
-					<a href="/reihen" class="no-underline">
-						<i class="ri-arrow-left-long-line"></i> Alle Reihen anzeigen
-					</a>
-				</div>
-			{{ end }}
-
-
-			<div class="notifier ml-2" x-show="search">
-				<a href="/reihen" class="no-underline">
-					<i class="ri-arrow-left-long-line"></i> Alle Reihen anzeigen
-				</a>
-			</div>
-		</div>
+		{{ template "notifier" . }}
 
 		{{ if not .search }}
 			<div class="mt-2">
-				{{ template "_alphabet" Dict "active" .letter "letters" .letters "search" .search }}
+				{{ template "alphabet" Dict "active" .letter "letters" .letters "search" .search }}
 			</div>
 		{{ else }}
 			<div class="mt-2 border-b border-zinc-300 w-full"></div>
 		{{ end }}
 	</div>
 
+	<!-- INFO: 2. Breite Anzeige -->
 	<div class="container-oversize mt-4">
 		{{ if not .search }}
-			<div class="">
-				{{ template "_reihenfilter" . }}
-			</div>
+			{{ template "filter" . }}
 		{{ end }}
 
 
+		<!-- INFO: 3. Treffer -->
 		<div id="searchcontent" class="font-serif">
-			{{ if $model.search }}
-		<script type="module">
-		let elements = document.querySelectorAll('.reihen-text');
-		let mark_instance = new Mark(elements);
-		// INFO: we wait a little bit before marking, to settle everything
-			setTimeout(() => {
-				mark_instance.mark('{{ $model.search }}', {
-					"seperateWordSearch": true,
-				});
-			}, 200);
-		</script>
+			{{ if and .search .idseries }}
+				<div class="mb-1 max-w-[60rem] hyphens-auto">
+					{{ range $id, $r := .idseries }}
+						{{ template "_reihe" (Arr $r $model.entries $model.relations true false false) }}
+					{{ end }}
+				</div>
 			{{ end }}
 
+			{{ if .series }}
+				<div class="mb-1 max-w-[60rem] hyphens-auto">
+					{{ range $id, $r := .series }}
+						{{ template "_reihe" (Arr $r $model.entries $model.relations false false
+							false)
+						}}
+					{{ end }}
+				</div>
+			{{ end }}
 
-			<div class="">
-				{{ if and .search .idseries }}
-					<div class="mb-1 max-w-[60rem] hyphens-auto">
-						{{ range $id, $r := .idseries }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations true false false) }}
-						{{ end }}
+			{{ if and .search .altseries }}
+				{{ if .idseries }}
+					<div class="border-b text-sm font-sans text-right pb-0.5">
+						Treffer in Almanach-Nummer &uarr;
 					</div>
 				{{ end }}
 
 				{{ if .series }}
-					<div class="mb-1 max-w-[60rem] hyphens-auto">
-						{{ range $id, $r := .series }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations false false
-								false)
-							}}
-						{{ end }}
+					<div class="border-b text-sm font-sans text-right pb-0.5">
+						Treffer in Reihentiteln &uarr;
 					</div>
 				{{ end }}
 
-				{{ if and .search .altseries }}
-					{{ if .idseries }}
-						<div class="border-b text-sm font-sans text-right pb-0.5">
-							Treffer in Almanach-Nummer &uarr;
-						</div>
-					{{ end }}
-
-					{{ if .series }}
-						<div class="border-b text-sm font-sans text-right pb-0.5">
-							Treffer in Reihentiteln &uarr;
-						</div>
-					{{ end }}
-
-					{{ if not (or .series .idseries) }}
-						<div class="border-b text-sm font-sans text-right pb-0.5">
-							Keine Treffer im Reihentitel
-							<i class="ri-forbid-line inline-bloc -mr-0.5"></i>
-						</div>
-					{{ end }}
-					<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
-						Treffer in allen Feldern (inkl. Anmerkungen &amp; Verweise) &darr;
-					</div>
-					<div class="mb-1 max-w-[60rem] hyphens-auto">
-						{{ range $id, $r := .altseries }}
-							{{ template "_reihe" (Arr $r $model.entries $model.relations false true true) }}
-						{{ end }}
+				{{ if not (or .series .idseries) }}
+					<div class="border-b text-sm font-sans text-right pb-0.5">
+						Keine Treffer im Reihentitel
+						<i class="ri-forbid-line inline-bloc -mr-0.5"></i>
 					</div>
 				{{ end }}
-			</div>
+				<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
+					Treffer in allen Feldern (inkl. Anmerkungen &amp; Verweise) &darr;
+				</div>
+				<div class="mb-1 max-w-[60rem] hyphens-auto">
+					{{ range $id, $r := .altseries }}
+						{{ template "_reihe" (Arr $r $model.entries $model.relations false true true) }}
+					{{ end }}
+				</div>
+			{{ end }}
 			{{ if not (or .series .altseries .idseries) }}
 				<div class="mt-8">
 					Keine Reihen
@@ -189,6 +83,26 @@
 					gefunden.
 				</div>
 			{{ end }}
+
+			{{ if $model.search }}
+				<script type="module">
+				let elements = document.querySelectorAll('.reihen-text');
+				let mark_instance = new Mark(elements);
+				// INFO: we wait a little bit before marking, to settle everything
+					setTimeout(() => {
+						mark_instance.mark('{{ $model.search }}', {
+							"seperateWordSearch": true,
+						});
+					}, 200);
+				</script>
+			{{ end }}
+
+
+			<!-- INFO: Ende 3. Treffer -->
 		</div>
+
+		<!-- INFO: Ende 2. Breite Anzeige -->
 	</div>
+
+	<!-- INFO: Ende 1. Container -->
 </div>

@@ -1,0 +1,40 @@
+{{ $model := . }}
+
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
+{{ $isMusik := and $model.filter (eq $model.filter "musik") }}
+
+{{ $isAutor := and $model.filter (eq $model.filter "autor") }}
+
+{{ $isGraphik := and $model.filter (eq $model.filter "graphik") }}
+
+{{ $isHrsg := and $model.filter (eq $model.filter "hrsg") }}
+
+{{- if $isPerson -}}
+	<div x-show="!search" class="flex flex-row gap-x-3 font-serif mr-6 items-end">
+		<label for="filter" class="align-bottom h-min self-end pb-1 text-sm	font-sans text-stone-700"
+			>Berufe</label
+		>
+
+		{{/* INFO:  We always redrect to letter = A bc some letters dont exist for other professions */}}
+		<select
+			class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
+			name="filter"
+			id="filter"
+			hx-get="/personen?letter=A"
+			trigger="change"
+			hx-push-url="true"
+			hx-select="main"
+			hx-target="main">
+			<option value="noorg" {{ if $isNoOrg }}selected{{ end }}>Alle</option>
+			<option value="musik" {{ if $isMusik }}selected{{ end }}>Musiker:innen</option>
+			<option value="autor" {{ if $isAutor }}selected{{ end }}>Autor:innen</option>
+			<option value="graphik" {{ if $isGraphik }}selected{{ end }}>Graphiker:innen</option>
+			<option value="hrsg" {{ if $isHrsg }}selected{{ end }}>Herausgeber:innen</option>
+		</select>
+	</div>
+{{- end -}}
