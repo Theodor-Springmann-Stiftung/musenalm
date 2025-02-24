@@ -31,9 +31,9 @@ Modelle umwandeln (zzt RecordProxy)
 - Technologie-Stack auf Server-Rendering / Go Templates umgestellt
 - Die Seiten sollten jetzt insgesamt schneller laden
 
-- Man kann auf der Startseite nach Almanach-Nummern suchen
+- Man kann auf der Startseite und in der Suche nach Almanach-Nummern suchen
 - Überall werden die Almanachnummer und Inhaltsnummer angezeigt
-- Die URL referenziert die Almanachnummern, nicht mher die DB-IDs
+- Die URL referenziert die Almanachnummern, nicht mher die Datenbank-IDs
 
 - In der Almanach-Ansicht werden die Abkürzungen erklärt
 - In der Almanach- und Suchansicht werden Sammlungen abgehoben 

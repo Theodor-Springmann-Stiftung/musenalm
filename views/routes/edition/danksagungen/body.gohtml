@@ -1,5 +1,8 @@
-<div class="container-normal">
+<div class="container-normal relative">
 	<div class="text">
-		{{ Safe .record.Text }}
+		{{ if .record.Title }}<h1 class="mb-12">{{ .record.Title }}</h1>{{ end }}
+		<div class="text [&_*]:!indent-0 [&_p]:mt-2">
+			{{ Safe .record.Text }}
+		</div>
 	</div>
 </div>

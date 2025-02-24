@@ -12,6 +12,7 @@ func init() {
 	RegisterTextPage("/edition/danksagungen/", pagemodels.P_DANK_NAME)
 	RegisterTextPage("/edition/literatur/", pagemodels.P_LIT_NAME)
 	RegisterTextPage("/edition/einfuehrung/", pagemodels.P_EINFUEHRUNG_NAME)
+	RegisterTextPage("/edition/dokumentation/", pagemodels.P_DOK_NAME)
 }
 
 func RegisterStaticPage(url, name string) {

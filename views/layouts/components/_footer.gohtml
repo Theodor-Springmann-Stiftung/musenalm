@@ -1,1 +1,22 @@
-<div class="mt-12 pt-3 border-t">Datenschutz, Impressum.</div>
+{{- $date := Today -}}
+<footer class="container-normal pb-1.5 text-base text-gray-800">
+	<div class="mt-12 pt-3 flex flex-row justify-between">
+		<div>
+			<i class="ri-creative-commons-line"></i>
+			<i class="ri-creative-commons-by-line"></i>
+			<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+			<span>&middot;</span>
+			<span>{{- (GetMonth $date).Name }} {{ $date.Year }}</span>
+		</div>
+
+		<div>
+			<span>{{- .site.title }} &ndash; ein Projekt der</span>
+			<a href="https://theodor-springmann-stiftung.de">Theodor Springmann Stiftung</a>
+			<span>&middot;</span>
+			<a href="/datenschutz/">Impressum &amp; Datenschutz</a>
+			<span>&middot;</span>
+			<i class="ri-code-line"></i>
+			<a href="https://github.com/Theodor-Springmann-Stiftung/musenalm">Code</a>
+		</div>
+	</div>
+</footer>
