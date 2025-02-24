@@ -14,6 +14,7 @@ const FILTER_LIST_SEARCHABLE = "filter-list-searchable";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
 const TOOLTIP_ELEMENT = "tool-tip";
 const ABBREV_TOOLTIPS_ELEMENT = "abbrev-tooltips";
+const INT_LINK_ELEMENT = "int-link";
 
 class XSLTParseProcess {
 	#processors;
@@ -738,6 +739,35 @@ class AbbreviationTooltips extends HTMLElement {
 	}
 }
 
+class IntLink extends HTMLElement {
+	constructor() {
+		super();
+	}
+
+	connectedCallback() {
+		// Basic styling to mimic a link.
+		this.style.cursor = "pointer";
+		this.addEventListener("click", this.handleClick);
+	}
+
+	disconnectedCallback() {
+		this.removeEventListener("click", this.handleClick);
+	}
+
+	handleClick(event) {
+		const selector = this.getAttribute("data-jump");
+		if (selector) {
+			const target = document.querySelector(selector);
+			if (target) {
+				target.scrollIntoView({ behavior: "smooth" });
+			} else {
+				console.warn(`No element found for selector: ${selector}`);
+			}
+		}
+	}
+}
+
+customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
 customElements.define(FILTER_LIST_ELEMENT, FilterList);
 customElements.define(SCROLL_BUTTON_ELEMENT, ScrollButton);

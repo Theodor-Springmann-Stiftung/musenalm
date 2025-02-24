@@ -167,11 +167,19 @@
 	}
 
 	.text {
-		@apply font-serif max-w-[48rem];
+		@apply font-serif  hyphens-auto;
 	}
 
 	.text p {
-		@apply text-lg hyphens-auto;
+		@apply text-lg hyphens-auto max-w-[70ch];
+	}
+
+	.text ul {
+		@apply list-disc ml-0 max-w-[70ch];
+	}
+
+	.text ol {
+		@apply list-decimal ml-0 max-w-[70ch];
 	}
 
 	.text p:first-of-type {
@@ -190,6 +198,18 @@
 		@apply mt-1;
 	}
 
+	.text h1 {
+		@apply text-3xl font-bold mt-6 mb-1.5 hyphens-none leading-normal;
+	}
+
+	.text h2 {
+		@apply text-xl font-bold mt-3 mb-1.5 hyphens-none;
+	}
+
+	.text h3 {
+		@apply text-lg font-bold mt-3 mb-1.5 hyphens-none;
+	}
+
 	.text p + ol {
 		@apply mt-1;
 	}
@@ -203,7 +223,7 @@
 	}
 
 	.text p + p:not(.indented p, p:first-of-type) {
-		@apply indent-3.5;
+		@apply indent-6;
 	}
 
 	.indented p {
@@ -326,5 +346,9 @@
 	}
 
 	#entrydata {
+	}
+
+	int-link {
+		@apply text-slate-700 hover:text-slate-900 underline decoration-dotted hover:decoration-solid;
 	}
 }

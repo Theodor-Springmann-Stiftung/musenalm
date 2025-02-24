@@ -6,8 +6,8 @@ func Arr(els ...any) []any {
 	return els
 }
 
+// Must have even number of args: key, value, key, value, ...
 func Dict(values ...interface{}) (map[string]interface{}, error) {
-	// Must have even number of args: key, value, key, value, ...
 	if len(values)%2 != 0 {
 		return nil, fmt.Errorf("invalid dict call: must have even number of args")
 	}

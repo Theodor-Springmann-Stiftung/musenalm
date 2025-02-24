@@ -1,5 +1,20 @@
-<div class="container-normal">
+{{ $toc := TOCFromHTML .record.Text }}
+
+
+<div class="container-normal relative">
 	<div class="text indented">
-		{{ Safe .record.Text }}
+		{{ if .record.Title }}<h1 class="mb-12">{{ .record.Title }}</h1>{{ end }}
+		<div class="flex flex-row gap-x-6 justify-between">
+			<div class="jumptext grow shrink-0">
+				{{ Safe .record.Text }}
+			</div>
+			<div>
+				{{- if $toc -}}
+					<div class="xl:sticky xl:top-8  grow-0">
+						{{- template "_toc" $toc -}}
+					</div>
+				{{- end -}}
+			</div>
+		</div>
 	</div>
 </div>

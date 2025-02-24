@@ -47,11 +47,25 @@ func NewEngine(layouts, templates *fs.FS) *Engine {
 func (e *Engine) funcs() error {
 	e.mu.Lock()
 	e.mu.Unlock()
+
+	// Passing HTML
 	e.AddFunc("Safe", functions.Safe)
+	// Creating an array or dict (to pass to a template)
 	e.AddFunc("Arr", functions.Arr)
-	e.AddFunc("HasPrefix", strings.HasPrefix)
 	e.AddFunc("Dict", functions.Dict)
+
+	// Datatype Functions
+	e.AddFunc("HasPrefix", strings.HasPrefix)
 	e.AddFunc("Contains", functions.Contains)
+	e.AddFunc("Add", functions.Add)
+
+	// Time & Date Functions
+	e.AddFunc("Today", functions.Today)
+	e.AddFunc("GetMonth", functions.GetMonth)
+
+	// TOC
+	e.AddFunc("TOCFromHTML", functions.TOCFromHTML)
+
 	return nil
 }
 

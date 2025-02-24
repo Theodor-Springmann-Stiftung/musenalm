@@ -1,0 +1,50 @@
+{{ $toc := . }}
+
+{{- if $toc -}}
+	<div class="block border text-base w-max">
+		<div class="text-sm py-1.5 italic bg-slate-100 px-4 border-b">Auf dieser Seite:</div>
+		{{- $h1cnt := 0 -}}
+		{{- $h2cnt := 0 -}}
+		{{- $h3cnt := 0 -}}
+		{{- $h4cnt := 0 -}}
+		{{- $h5cnt := 0 -}}
+		{{- $h6cnt := 0 -}}
+		<div class="py-2 px-4">
+			{{- range $i, $t := $toc -}}
+				<div class="">
+					{{- if eq $t.Level 1 -}}
+						{{- $h1cnt = Add $h1cnt 1 -}}
+						<int-link data-jump=".jumptext h1:nth-of-type({{- $h1cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- else if eq $t.Level 2 -}}
+						{{- $h2cnt = Add $h2cnt 1 -}}
+						<int-link data-jump=".jumptext h2:nth-of-type({{- $h2cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- else if eq $t.Level 3 -}}
+						{{- $h3cnt = Add $h3cnt 1 -}}
+						<int-link data-jump=".jumptext h3:nth-of-type({{- $h3cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- else if eq $t.Level 4 -}}
+						{{- $h4cnt = Add $h4cnt 1 -}}
+						<int-link data-jump=".jumptext h4:nth-of-type({{- $h4cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- else if eq $t.Level 5 -}}
+						{{- $h5cnt = Add $h5cnt 1 -}}
+						<int-link data-jump=".jumptext h5:nth-of-type({{- $h5cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- else if eq $t.Level 6 -}}
+						{{- $h6cnt = Add $h6cnt 1 -}}
+						<int-link data-jump=".jumptext h6:nth-of-type({{- $h6cnt -}})" class="font-serif"
+							>{{ $t.Title }}</int-link
+						>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</div>
+	</div>
+{{- end -}}

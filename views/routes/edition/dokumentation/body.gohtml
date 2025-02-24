@@ -1,0 +1,8 @@
+<div class="container-normal relative">
+	<div class="text">
+		{{ if .record.Title }}<h1 class="mb-12">{{ .record.Title }}</h1>{{ end }}
+		<div class="text">
+			{{ Safe .record.Text }}
+		</div>
+	</div>
+</div>
