@@ -70,9 +70,9 @@ func (p *SuchePage) SimpleSearchRequest(app core.App, engine *templating.Engine,
 	if t == "reihen" {
 		return p.SimpleSearchReihenRequest(app, engine, e)
 	}
-	// if t == "baende" {
-	// 	return p.SimpleSearchBaendeRequest(app, engine, e)
-	// }
+	if t == "baende" {
+		return p.SimpleSearchBaendeRequest(app, engine, e)
+	}
 	// if t == "beitraege" {
 	// 	return p.SimpleSearchBeitraegeRequest(app, engine, e)
 	// }
@@ -82,14 +82,20 @@ func (p *SuchePage) SimpleSearchRequest(app core.App, engine *templating.Engine,
 	return engine.Response404(e, nil, nil)
 }
 
+const (
+	REIHEN_PARAM_TITLE       = "title"
+	REIHEN_PARAM_ANNOTATIONS = "annotations"
+	REIHEN_PARAM_REFERENCES  = "references"
+)
+
 func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	q := e.Request.URL.Query().Get(PARAM_QUERY)
 	data := p.CommonData(app, engine, e)
 	data["q"] = q
 
-	hasTitle := e.Request.URL.Query().Get("title") == "on"
-	hasAnnotations := e.Request.URL.Query().Get("annotations") == "on"
-	hasReferences := e.Request.URL.Query().Get("references") == "on"
+	hasTitle := e.Request.URL.Query().Get(REIHEN_PARAM_TITLE) == "on"
+	hasAnnotations := e.Request.URL.Query().Get(REIHEN_PARAM_ANNOTATIONS) == "on"
+	hasReferences := e.Request.URL.Query().Get(REIHEN_PARAM_REFERENCES) == "on"
 
 	if !hasTitle && !hasAnnotations && !hasReferences {
 		engine.Response404(e, nil, nil)
@@ -99,15 +105,15 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 	options := map[string]bool{}
 	if hasTitle {
 		fields = append(fields, dbmodels.SERIES_TITLE_FIELD)
-		options["title"] = true
+		options[REIHEN_PARAM_TITLE] = true
 	}
 	if hasAnnotations {
 		fields = append(fields, dbmodels.ANNOTATION_FIELD)
-		options["annotations"] = true
+		options[REIHEN_PARAM_ANNOTATIONS] = true
 	}
 	if hasReferences {
 		fields = append(fields, dbmodels.REFERENCES_FIELD)
-		options["references"] = true
+		options[REIHEN_PARAM_REFERENCES] = true
 	}
 	data["options"] = options
 
@@ -145,6 +151,38 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
+
+const (
+	BAENDE_PARAM_ALM_NR      = "alm"
+	BAENDE_PARAM_TITLE       = "title"
+	BAENDE_PARAM_SERIES      = "series"
+	BAENDE_PARAM_PERSONS     = "persons"
+	BAENDE_PARAM_PLACES      = "places"
+	BAENDE_PARAM_REFS        = "references"
+	BAENDE_PARAM_ANNOTATIONS = "annotations"
+	// INFO: this is expanded search only:
+	BAENDE_PARAM_PSEUDONYMS = "pseudonyms"
+	// INFO: this is a filter type & expanded search:
+	BAENDE_PARAM_STATE = "state" // STATE: "full" "partial" "none"
+)
+
+func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
+
+	return engine.Response404(e, nil, nil)
+}
+
+const (
+	BEITRAEGE_PARAM_ALM_NR      = "nr"
+	BEITRAEGE_PARAM_TITLE       = "title"
+	BEITRAEGE_PARAM_INCIPT      = "incipit"
+	BEITRAEGE_PARAM_PERSONS     = "persons"
+	BEITRAEGE_PARAM_ANNOTATIONS = "annotations"
+	// INFO: this is expanded search only:
+	BEITRAEGE_PARAM_PSEUDONYMS = "pseudonyms"
+	// INFO: these are filter types & expanded search:
+	BEITRAEGE_PARAM_TYPE  = "type"
+	BEITRAEGE_PARAM_SCANS = "scans"
+)
 
 func (p *SuchePage) DefaultRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	data := p.CommonData(app, engine, e)
