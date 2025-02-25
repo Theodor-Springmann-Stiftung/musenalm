@@ -23,6 +23,37 @@ func AgentForId(app core.App, id string) (*Agent, error) {
 	return agent, nil
 }
 
+func FTS5SearchAgents(app core.App, query string) ([]*Agent, error) {
+	a := []*Agent{}
+	q := NormalizeQuery(query)
+	if len(q) == 0 {
+		return a, nil
+	}
+
+	ids, err := FTS5Search(app, AGENTS_TABLE, FTS5QueryRequest{
+		Fields: []string{AGENTS_NAME_FIELD, AGENTS_PSEUDONYMS_FIELD, REFERENCES_FIELD, AGENTS_BIOGRAPHICAL_DATA_FIELD, ANNOTATION_FIELD},
+		Query:  q,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	idany := []any{}
+	for _, id := range ids {
+		idany = append(idany, id.ID)
+	}
+
+	err = app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.HashExp{ID_FIELD: idany}).
+		All(&a)
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
 func AgentsForEntries(app core.App, entries []*Entry) (map[string]*Agent, AgentsEntries, error) {
 	eids := []any{}
 	for _, e := range entries {

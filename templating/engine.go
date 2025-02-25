@@ -58,6 +58,10 @@ func (e *Engine) funcs() error {
 	e.AddFunc("HasPrefix", strings.HasPrefix)
 	e.AddFunc("Contains", functions.Contains)
 	e.AddFunc("Add", functions.Add)
+	e.AddFunc("Len", functions.Length)
+
+	// String Functions
+	e.AddFunc("ReplaceSlashParen", functions.ReplaceSlashParen)
 
 	// Time & Date Functions
 	e.AddFunc("Today", functions.Today)

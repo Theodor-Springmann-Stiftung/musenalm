@@ -35,7 +35,9 @@
 	</div>
 	<div class="grow lg:px-0 ml-3 lg:ml-8">
 		<div class="-indent-3">
-			<span class="font-bold reihen-text">{{ $r.Title }}</span>
+			<span class="font-bold reihen-text">
+				{{ $r.Title }}
+			</span>
 			{{ if $r.Annotation }}
 				<span>&ensp;&middot;&ensp;</span>
 				<span class="{{ if $marka }}reihen-text{{ end }}">{{ Safe $r.Annotation }}</span>

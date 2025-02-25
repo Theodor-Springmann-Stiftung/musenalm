@@ -1,0 +1,70 @@
+{{ $reihe := index . 0 }}
+{{ $rels := index . 1 }}
+{{ $entries := index . 2 }}
+{{ $shownos := index . 3 }}
+{{ $relations := index . 4 }}
+
+{{- if $rels -}}
+	<div class="reiherelations flex flex-col text-base font-sans w-full pt-1 -ml-3">
+		{{- range $_, $rel := $rels -}}
+			{{- $bd := index $entries $rel.Entry -}}
+			{{- $arels := index $relations $rel.Entry -}}
+
+			{{- if $bd -}}
+				<div class="flex flex-row odd:bg-zinc-100 pr-3 py-0.5  w-full items-start">
+					{{- if $arels -}}
+						<div class="min-w-32">
+							{{- range $i, $arel := $arels -}}
+								<div
+									class="inline font-bold text-sm font-sans bg-slate-200 pl-2 pr-3 py-0.5
+							rounded-r-full mr-1.5 ">
+									{{- $arel.Type -}}
+								</div>
+							{{- end -}}
+						</div>
+					{{- end -}}
+					<div>
+						<a
+							href="/almanach/{{ $bd.MusenalmID }}"
+							class="no-underline {{ if eq
+								$bd.EditState "Edited"
+							-}}
+								font-bold
+							{{- end -}}">
+							{{- if $bd.PreferredTitle -}}
+								{{ $bd.PreferredTitle }}
+							{{- else if ne $bd.Year 0 -}}
+								{{- $bd.Year -}}
+							{{- else -}}
+								[o.J.]
+							{{- end -}}
+							{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
+								<div class="text-xs whitespace-nowrap">
+									{{- if eq $rel.Type "Früherer Reihentitel" -}}
+										Titelauflage aus einer anderen Reihe
+									{{- else if eq $rel.Type "Späterer Reihentitel" -}}
+										Titelauflage
+									{{- else if eq $rel.Type "In anderer Sprache" -}}
+										{{- if Contains $bd.Language "ger" -}}
+											In deutscher Sprache
+										{{- else -}}
+											In französischer Sprache
+										{{- end -}}
+									{{- else -}}
+										{{ $rel.Type }}
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</a>
+					</div>
+					<div class="whitespace-nowrap align-top grow text-right">
+						Alm
+						{{ $bd.MusenalmID }}
+					</div>
+				</div>
+			{{- end -}}
+
+		{{- end -}}
+
+	</div>
+{{- end -}}

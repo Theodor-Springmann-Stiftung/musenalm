@@ -1,0 +1,91 @@
+{{ $model := . }}
+
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isProfession := and $model.filter (or (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+
+{{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
+{{ $isMusik := and $model.filter (eq $model.filter "musik") }}
+
+{{ $isAutor := and $model.filter (eq $model.filter "autor") }}
+
+{{ $isGraphik := and $model.filter (eq $model.filter "graphik") }}
+
+{{ $isHrsg := and $model.filter (eq $model.filter "hrsg") }}
+
+
+<div class="justify-self-start grow flex flex-row px-3 ml-6 mt-2 mr-2">
+	{{ if .letter }}
+		{{- if $isNoOrg -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Alle Personen</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- else if $isMusik -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Musiker:innen</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- else if $isAutor -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Autor:innen</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- else if $isGraphik -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Graphiker:innen</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- else if $isHrsg -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Herausgeber:innen</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- else if $isOrg -}}
+			<div class="notifier" x-show="!search">
+				<i class="ri-sort-alphabet-asc"></i>
+				<span class="filtercategory">Verlage, Druckereien &amp; Vertriebe</span> &middot;
+				<span class="">Anfangsbuchstabe <span class="filterterm">{{ .letter }}</span></span>
+			</div>
+		{{- end -}}
+
+	{{ end }}
+
+
+	<div class="notifier" x-show="search">
+		<i class="ri-search-line"></i>
+		<span class="filtercategory">Suche</span>
+		&middot; <span class="filterterm" x-text="search"></span>
+	</div>
+
+	{{ if .search }}
+		<div class="notifier" x-show="search">
+			<i class="ri-links-line"></i>
+			<span class="filtercategory">Link</span>
+			&middot; <span class="filterterm" x-text="window.location.href"></span>
+		</div>
+	{{ end }}
+
+	{{ if or (not .letter) $isProfession }}
+		<div class="notifier ml-2" x-show="!search">
+			<a href="/personen/" class="no-underline">
+				<i class="ri-arrow-left-long-line"></i> Alle Personen
+			</a>
+		</div>
+	{{ end }}
+
+
+	<div class="notifier ml-2" x-show="search">
+		<a href="/personen/" class="no-underline">
+			<i class="ri-arrow-left-long-line"></i> Alle Personen
+		</a>
+	</div>
+</div>

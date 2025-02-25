@@ -103,6 +103,17 @@ func EntryForId(app core.App, id string) (*Entry, error) {
 	return entry, nil
 }
 
+func EntriesForIds(app core.App, ids []any) ([]*Entry, error) {
+	entries := []*Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.HashExp{ID_FIELD: ids}).
+		All(&entries)
+	if err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
 func EntryForMusenalmID(app core.App, id string) (*Entry, error) {
 	entry := &Entry{}
 	err := app.RecordQuery(ENTRIES_TABLE).

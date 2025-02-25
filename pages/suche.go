@@ -141,7 +141,7 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 		return engine.Response500(e, err, nil)
 	}
 
-	dbmodels.SortSeriessesByTitle(series)
+	dbmodels.Sort_Series_Title(series)
 	data["series"] = series
 	data["relations"] = rmap
 	data["entries"] = bmap

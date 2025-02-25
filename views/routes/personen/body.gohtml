@@ -16,9 +16,8 @@
 			<!-- INFO: 4. Header -->
 			<div id="personheader" class="border-t border-r border-zinc-300 relative w-full">
 				{{ template "heading" . }}
-
-
-				<div class="flex flex-row justify-end mt-12">
+				<div class="flex flex-row justify-end mt-12 items-end">
+{{ template "notifier" . }}
 					{{ template "professionselectbox" . }}
 					{{ template "searchbox" . }}
 				</div>
@@ -35,7 +34,11 @@
 										<a href="/person/{{ $agent.Id }}" class="search-result font-bold">
 											{{ $agent.Name }}
 										</a>
-										<span class="inline-block font-sans text-sm">
+										<span
+											class="inline-block font-sans text-sm
+											{{ if $model.FTS -}}
+												search-result
+											{{- end -}}">
 											{{ if not $agent.CorporateBody }}
 												{{ $agent.BiographicalData }}
 											{{ end }}
@@ -68,7 +71,9 @@
 										{{- end -}}
 									</div>
 
-									<div class="w-64 ml-4 shrink-0">{{ $agent.References }}</div>
+									<div class="w-64 ml-4 shrink-0 {{ if $model.FTS -}}search-result{{- end -}}">
+										{{ $agent.References }}
+									</div>
 								</div>
 							{{ end }}
 

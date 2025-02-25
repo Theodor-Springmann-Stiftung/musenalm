@@ -31,6 +31,7 @@ var AGENTS_FTS5_FIELDS = []string{
 	AGENTS_PSEUDONYMS_FIELD,
 	ANNOTATION_FIELD,
 	COMMENT_FIELD,
+	REFERENCES_FIELD,
 }
 
 var PLACES_FTS5_FIELDS = []string{
@@ -384,6 +385,7 @@ func FTS5ValuesAgent(agent *Agent) []string {
 		agent.Pseudonyms(),
 		datatypes.DeleteTags(agent.Annotation()),
 		datatypes.DeleteTags(agent.Comment()),
+		agent.References(),
 	}
 }
 
