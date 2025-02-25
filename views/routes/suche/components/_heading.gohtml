@@ -1,0 +1,53 @@
+{{- $model := . -}}
+<div id="searchheading" class="flex flex-row justify-between min-h-14 items-end relative">
+	<nav id="searchnav" class="flex flex-row items-end">
+		<div
+			class="align-bottom text-lg h-min self-end pb-0.5 italic font-bold
+			text-zinc-800">
+			Suche nach:
+		</div>
+		<!--
+			<a
+				href="/suche/reihen"
+				class="block no-underline"
+				{{ if eq $model.Collection "reihen" }}aria-current="page"{{- end -}}
+				>Reihen</a
+			>
+			-->
+		<a
+			href="/suche/baende"
+			class="block no-underline"
+			{{ if eq $model.Collection "baende" }}aria-current="page"{{- end -}}
+			>Bänden</a
+		>
+		<a
+			href="/suche/beitraege"
+			class="block no-underline"
+			{{ if eq $model.Collection "beitraege" }}aria-current="page"{{- end -}}
+			>Beiträgen</a
+		>
+		<!--
+			<a
+				href="/suche/personen"
+				class="block no-underline"
+				{{ if eq $model.Collection "personen" }}aria-current="page"{{- end -}}
+				>Personen</a
+			>
+			-->
+	</nav>
+	<h1
+		class="text-3xl font-bold px-3 relative translate-y-[45%] w-min whitespace-nowrap
+		bg-stone-50 mr-24 z-20">
+		Suche&nbsp;&middot;&nbsp;<span class="">
+			{{- if eq $model.Collection "reihen" -}}
+				Reihen
+			{{- else if eq $model.Collection "personen" -}}
+				Personen &amp; Körperschaften
+			{{- else if eq $model.Collection "baende" -}}
+				Bände
+			{{- else if eq $model.Collection "beitraege" -}}
+				Beiträge
+			{{- end -}}
+		</span>
+	</h1>
+</div>

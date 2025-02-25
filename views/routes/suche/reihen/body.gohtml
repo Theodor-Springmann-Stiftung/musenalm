@@ -1,0 +1,96 @@
+{{ $model := . }}
+
+
+<div id="searchcontrol" class="container-normal">
+	<div id="searchheading" class="flex flex-row justify-between min-h-14 items-end relative">
+		<nav id="searchnav" class="flex flex-row items-end">
+			<div
+				class="align-bottom text-lg h-min self-end pb-0.5 italic font-bold
+			text-zinc-800">
+				Suche nach:
+			</div>
+			<!--
+			<a
+				href="/suche/reihen"
+				class="block no-underline"
+				{{ if eq $model.type "reihen" }}aria-current="page"{{- end -}}
+				>Reihen</a
+			>
+			-->
+			<a
+				href="/suche/baende"
+				class="block no-underline"
+				{{ if eq $model.type "baende" }}aria-current="page"{{- end -}}
+				>Bänden</a
+			>
+			<a
+				href="/suche/beitraege"
+				class="block no-underline"
+				{{ if eq $model.type "beitraege" }}aria-current="page"{{- end -}}
+				>Beiträgen</a
+			>
+			<!--
+			<a
+				href="/suche/personen"
+				class="block no-underline"
+				{{ if eq $model.type "personen" }}aria-current="page"{{- end -}}
+				>Personen</a
+			>
+			-->
+		</nav>
+		<h1
+			class="text-3xl font-bold px-3 relative translate-y-[45%] w-min whitespace-nowrap
+		bg-stone-50 mr-24 z-20">
+			Suche&nbsp;&middot;&nbsp;<span class="">
+				{{- if eq $model.type "reihen" -}}
+					Reihen
+				{{- else if eq $model.type "personen" -}}
+					Personen &amp; Körperschaften
+				{{- else if eq $model.type "baende" -}}
+					Bände
+				{{- else if eq $model.type "beitraege" -}}
+					Beiträge
+				{{- end -}}
+			</span>
+		</h1>
+	</div>
+	<div id="" class="border-l border-zinc-300 px-8 py-10 relative">
+		{{ template "searchform" $model }}
+	</div>
+</div>
+
+{{- if $model.q -}}
+	<div id="searchresults">
+		{{- if eq $model.type "reihen" -}}
+			<!-- INFO: Resultate Reihen -->
+			<div id="" class="container-normal mt-4">
+				{{- if $model.series -}}
+					{{- $includeReferences := index $model.options "references" -}}
+					{{- $includeAnnotations := index $model.options "annotations" -}}
+					<div class="mb-1 max-w-[60rem] hyphens-auto">
+						{{- range $id, $r := $model.series -}}
+							{{- template "_reihe" (Arr $r $model.entries $model.relations false
+								$includeAnnotations $includeReferences)
+							-}}
+						{{- end -}}
+					</div>
+				{{ else }}
+				{{- end -}}
+			</div>
+			<script type="module">
+			let elements = document.querySelectorAll('.reihen-text');
+			let mark_instance = new Mark(elements);
+			// INFO: we wait a little bit before marking, to settle everything
+				setTimeout(() => {
+					let word = '{{ $model.q }}';
+					word = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+					mark_instance.mark(word, {
+						"seperateWordSearch": true,
+						"ignorePunctuation": [""],
+					});
+				}, 200);
+			</script>
+			<!-- INFO: Resultate Reihen Ende -->
+		{{- end -}}
+	</div>
+{{- end -}}

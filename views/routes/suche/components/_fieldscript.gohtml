@@ -1,0 +1,17 @@
+<script type="module">
+	let fieldset = document.querySelector("fieldset.selectgroup");
+	let checkboxes = Array.from(fieldset.querySelectorAll('input[type="checkbox"]'));
+	fieldset.addEventListener("change", (event) => {
+		let target = event.target;
+		if (target.type === "checkbox") {
+			let name = target.name;
+			let checked = target.checked;
+			if (!checked) {
+				let allchecked = checkboxes.filter((checkbox) => checkbox.checked);
+				if (allchecked.length === 0) {
+					target.checked = true;
+				}
+			}
+		}
+	});
+</script>

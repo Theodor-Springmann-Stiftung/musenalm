@@ -8,6 +8,8 @@ full_bin = "./tmp/musenalm --dir ./pb_data serve"
 cmd = "go build -tags=dev,fts5,sqlite_icu -o ./tmp/musenalm ."
 delay = 400
 exclude_dir = [
+	"views/routes",
+	"views/layouts",
 	"views/assets",
 	"views/node_modules",
 	"tmp",
@@ -32,7 +34,7 @@ log = "build-errors.log"
 poll = false
 poll_interval = 0
 post_cmd = []
-pre_cmd = ["npm --prefix views/ run build"]
+pre_cmd = [""]
 rerun = false
 rerun_delay = 250
 send_interrupt = true

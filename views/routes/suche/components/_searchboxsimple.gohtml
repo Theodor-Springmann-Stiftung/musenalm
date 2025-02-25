@@ -1,0 +1,45 @@
+{{ $parameters := index . 0 }}
+{{ $extendable := index . 1 }}
+{{ $q := index . 2 }}
+
+
+<label for="q" class="hidden">Suchbegriffe</label>
+<input
+	{{ if $q }}value="{{ $q }}"{{- end -}}
+	type="search"
+	name="q"
+	minlength="3"
+	required
+	placeholder="Suchbegriff (min. 3 Zeichen)"
+	class="w-full col-span-8
+			placeholder:italic" />
+<button id="submitbutton" type="submit" class="col-span-2">Suchen</button>
+
+{{ if $extendable }}
+	<a
+		href="/suche/{{ $parameters.Collection }}?extended=true"
+		class="whitespace-nowrap self-end block col-span-2">
+		<i class="ri-arrow-right-long-line"></i> Erweiterte Suche
+	</a>
+{{ end }}
+
+
+<script type="module">
+	const form = document.getElementById("searchform");
+	const submitBtn = document.getElementById("submitbutton");
+
+	function checkValidity() {
+		if (form.checkValidity()) {
+			submitBtn.disabled = false;
+		} else {
+			submitBtn.disabled = true;
+		}
+	}
+
+	checkValidity();
+	if (form && submitBtn) {
+		form.addEventListener("input", (event) => {
+			checkValidity();
+		});
+	}
+</script>

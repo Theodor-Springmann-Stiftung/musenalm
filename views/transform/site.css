@@ -295,6 +295,10 @@
 		@apply decoration-slate-900 line-through;
 	}
 
+	#searchform .searchformcolumn {
+		@apply grid grid-cols-12 gap-y-3 w-full gap-x-4;
+	}
+
 	#persontype a {
 		@apply px-1.5 border-b-[5px] border-transparent hover:border-zinc-200 no-underline font-serif mx-2.5;
 	}

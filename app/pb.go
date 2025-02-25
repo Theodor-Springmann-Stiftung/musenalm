@@ -120,20 +120,21 @@ func (app *App) Serve() error {
 
 	// INFO: hot reloading for poor people
 	if app.MAConfig.Debug {
-		watcher, err := fsnotify.NewWatcher()
+		watcher, err := EngineWatcher(engine)
 		if err != nil {
-			return fmt.Errorf("Failed to create watcher: %w.", err)
+			app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)
+		} else {
+			watcher.AddRecursive(LAYOUT_DIR)
+			watcher.AddRecursive(ROUTES_DIR)
+			engine.Debug()
+			rwatcher, err := RefreshWatcher(engine)
+			if err != nil {
+				app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)
+			} else {
+				rwatcher.Add("./views/assets")
+			}
 		}
-		defer watcher.Close()
 
-		go app.watchFN(watcher, engine)
-		if err := watcher.Add(LAYOUT_DIR); err != nil {
-			return fmt.Errorf("Failed to watch layout directory: %w.", err)
-		}
-
-		if err := watcher.Add(ROUTES_DIR); err != nil {
-			return fmt.Errorf("Failed to watch routes directory: %w.", err)
-		}
 	}
 
 	app.PB.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {

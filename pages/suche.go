@@ -1,12 +1,13 @@
 package pages
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
@@ -47,82 +48,41 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 	})
 
 	router.GET(URL_SUCHE, func(e *core.RequestEvent) error {
-		if !slices.Contains(availableTypes, e.Request.PathValue("type")) {
-			return engine.Response404(e, nil, nil)
+		paras, err := NewParameters(e)
+		if err != nil {
+			return engine.Response404(e, err, nil)
 		}
 
-		q := e.Request.URL.Query().Get(PARAM_QUERY)
-		q = strings.TrimSpace(q)
-		if q != "" {
-			return p.SimpleSearchRequest(app, engine, e)
-		}
-		// if e.Request.URL.Query().Get(PARAM_QUERY) != "" {
-		// 	return p.SearchRequest(app, engine, e)
-		// }
-		return p.DefaultRequest(app, engine, e)
+		data := make(map[string]interface{})
+		data["parameters"] = paras
+		return engine.Response200(e, p.Template+paras.Collection+"/", data, p.Layout)
 	})
 
 	return nil
 }
 
-func (p *SuchePage) SimpleSearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	t := e.Request.PathValue("type")
-	if t == "reihen" {
-		return p.SimpleSearchReihenRequest(app, engine, e)
-	}
-	if t == "baende" {
-		return p.SimpleSearchBaendeRequest(app, engine, e)
-	}
-	// if t == "beitraege" {
-	// 	return p.SimpleSearchBeitraegeRequest(app, engine, e)
-	// }
-	// if t == "personen" {
-	// 	return p.SimpleSearchPersonenRequest(app, engine, e)
-	// }
+func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	return engine.Response404(e, nil, nil)
 }
 
-const (
-	REIHEN_PARAM_TITLE       = "title"
-	REIHEN_PARAM_ANNOTATIONS = "annotations"
-	REIHEN_PARAM_REFERENCES  = "references"
-)
+func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, pp Parameters) error {
+	data := make(map[string]interface{})
+	params, err := NewSimpleParameters(e, pp)
+	if err != nil {
+		return engine.Response404(e, err, nil)
+	}
 
-func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	q := e.Request.URL.Query().Get(PARAM_QUERY)
-	data := p.CommonData(app, engine, e)
-	data["q"] = q
-
-	hasTitle := e.Request.URL.Query().Get(REIHEN_PARAM_TITLE) == "on"
-	hasAnnotations := e.Request.URL.Query().Get(REIHEN_PARAM_ANNOTATIONS) == "on"
-	hasReferences := e.Request.URL.Query().Get(REIHEN_PARAM_REFERENCES) == "on"
-
-	if !hasTitle && !hasAnnotations && !hasReferences {
+	query := dbmodels.NormalizeQuery(params.Query)
+	if len(query) == 0 {
 		engine.Response404(e, nil, nil)
 	}
 
-	fields := []string{}
-	options := map[string]bool{}
-	if hasTitle {
-		fields = append(fields, dbmodels.SERIES_TITLE_FIELD)
-		options[REIHEN_PARAM_TITLE] = true
-	}
-	if hasAnnotations {
-		fields = append(fields, dbmodels.ANNOTATION_FIELD)
-		options[REIHEN_PARAM_ANNOTATIONS] = true
-	}
-	if hasReferences {
-		fields = append(fields, dbmodels.REFERENCES_FIELD)
-		options[REIHEN_PARAM_REFERENCES] = true
-	}
-	data["options"] = options
-
-	query := dbmodels.NormalizeQuery(q)
-	if len(q) == 0 {
+	fields := params.FieldSetBaende()
+	if len(fields) == 0 {
 		return engine.Response404(e, nil, nil)
 	}
 
-	ids, err := dbmodels.FTS5Search(app, dbmodels.SERIES_TABLE, dbmodels.FTS5QueryRequest{
+	ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, dbmodels.FTS5QueryRequest{
 		Fields: fields,
 		Query:  query,
 	})
@@ -130,43 +90,20 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 		return engine.Response500(e, err, nil)
 	}
 
-	idsany := []any{}
-	for _, id := range ids {
-		idsany = append(idsany, id.ID)
-	}
-
-	series, err := dbmodels.SeriessesForIds(app, idsany)
-	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
+	idsany := datatypes.ToAny(ids)
+	entries, err := dbmodels.Entries_IDs(app, idsany)
 	if err != nil {
 		return engine.Response500(e, err, nil)
 	}
 
-	dbmodels.Sort_Series_Title(series)
-	data["series"] = series
-	data["relations"] = rmap
-	data["entries"] = bmap
+	dbmodels.Sort_Entries_Title_Year(entries)
+	data["entries"] = entries
+	data["count"] = len(entries)
 
-	data["count"] = len(series)
-	// TODO: get relavant agents, years and places
-
-	return engine.Response200(e, p.Template, data, p.Layout)
-}
-
-const (
-	BAENDE_PARAM_ALM_NR      = "alm"
-	BAENDE_PARAM_TITLE       = "title"
-	BAENDE_PARAM_SERIES      = "series"
-	BAENDE_PARAM_PERSONS     = "persons"
-	BAENDE_PARAM_PLACES      = "places"
-	BAENDE_PARAM_REFS        = "references"
-	BAENDE_PARAM_ANNOTATIONS = "annotations"
-	// INFO: this is expanded search only:
-	BAENDE_PARAM_PSEUDONYMS = "pseudonyms"
-	// INFO: this is a filter type & expanded search:
-	BAENDE_PARAM_STATE = "state" // STATE: "full" "partial" "none"
-)
-
-func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
+	eids := []any{}
+	for _, entry := range entries {
+		eids = append(eids, entry.Id)
+	}
 
 	return engine.Response404(e, nil, nil)
 }
@@ -182,19 +119,125 @@ const (
 	// INFO: these are filter types & expanded search:
 	BEITRAEGE_PARAM_TYPE  = "type"
 	BEITRAEGE_PARAM_SCANS = "scans"
+
+	REIHEN_PARAM_TITLE       = "title"
+	REIHEN_PARAM_ANNOTATIONS = "annotations"
+	REIHEN_PARAM_REFERENCES  = "references"
+
+	BAENDE_PARAM_ALM_NR      = "alm"
+	BAENDE_PARAM_TITLE       = "title"
+	BAENDE_PARAM_SERIES      = "series"
+	BAENDE_PARAM_PERSONS     = "persons"
+	BAENDE_PARAM_PLACES      = "pubdata"
+	BAENDE_PARAM_REFS        = "references"
+	BAENDE_PARAM_ANNOTATIONS = "annotations"
+	BAENDE_PARAM_YEAR        = "year"
+	// INFO: this is expanded search only:
+	BAENDE_PARAM_PSEUDONYMS = "pseudonyms"
+	// INFO: this is a filter type & expanded search:
+	BAENDE_PARAM_STATE = "state" // STATE: "full" "partial" "none"
 )
 
-func (p *SuchePage) DefaultRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	data := p.CommonData(app, engine, e)
-	return engine.Response200(e, p.Template, data, p.Layout)
+var ErrInvalidCollectionType = fmt.Errorf("Invalid collection type")
+var ErrNoQuery = fmt.Errorf("No query")
+
+type Parameters struct {
+	Extended   bool
+	Collection string
+	Query      string
 }
 
-func (p *SuchePage) CommonData(app core.App, engine *templating.Engine, e *core.RequestEvent) map[string]interface{} {
-	data := map[string]interface{}{}
-	data["type"] = e.Request.PathValue("type")
-	data[PARAM_EXTENDED] = false
-	if e.Request.URL.Query().Get(PARAM_EXTENDED) == "true" {
-		data[PARAM_EXTENDED] = true
+func NewParameters(e *core.RequestEvent) (*Parameters, error) {
+	collection := e.Request.PathValue("type")
+	if !slices.Contains(availableTypes, collection) {
+		return nil, ErrInvalidCollectionType
 	}
-	return data
+
+	extended := false
+	if e.Request.URL.Query().Get(PARAM_EXTENDED) == "true" {
+		extended = true
+	}
+
+	return &Parameters{
+		Collection: collection,
+		Extended:   extended,
+		Query:      e.Request.URL.Query().Get(PARAM_QUERY),
+	}, nil
+}
+
+type SimpleParameters struct {
+	Parameters
+	Annotations bool
+	Persons     bool
+	Title       bool
+	Alm         bool
+	Series      bool
+	Places      bool
+	Refs        bool
+	Year        bool
+}
+
+func NewSimpleParameters(e *core.RequestEvent, p Parameters) (*SimpleParameters, error) {
+	q := e.Request.URL.Query().Get(PARAM_QUERY)
+	if q == "" {
+		return nil, ErrNoQuery
+	}
+
+	alm := e.Request.URL.Query().Get(BAENDE_PARAM_ALM_NR) == "on"
+	title := e.Request.URL.Query().Get(BAENDE_PARAM_TITLE) == "on"
+	series := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES) == "on"
+	persons := e.Request.URL.Query().Get(BAENDE_PARAM_PERSONS) == "on"
+	places := e.Request.URL.Query().Get(BAENDE_PARAM_PLACES) == "on"
+	refs := e.Request.URL.Query().Get(BAENDE_PARAM_REFS) == "on"
+	annotations := e.Request.URL.Query().Get(BAENDE_PARAM_ANNOTATIONS) == "on"
+	year := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR) == "on"
+
+	// TODO: sanity check here if any single field is selected
+
+	return &SimpleParameters{
+		Parameters:  p,
+		Alm:         alm,
+		Title:       title,
+		Series:      series,
+		Persons:     persons,
+		Places:      places,
+		Refs:        refs,
+		Annotations: annotations,
+		Year:        year,
+	}, nil
+}
+
+func (p SimpleParameters) FieldSetBaende() []string {
+	fields := []string{}
+	if p.Alm {
+		fields = append(fields, dbmodels.MUSENALMID_FIELD)
+	}
+	if p.Title {
+		fields = append(fields,
+			dbmodels.TITLE_STMT_FIELD,
+			dbmodels.SUBTITLE_STMT_FIELD,
+			dbmodels.INCIPIT_STMT_FIELD,
+			dbmodels.VARIANT_TITLE_FIELD,
+			dbmodels.PARALLEL_TITLE_FIELD,
+		)
+	}
+	if p.Series {
+		fields = append(fields, dbmodels.SERIES_TABLE)
+	}
+	if p.Persons {
+		fields = append(fields, dbmodels.RESPONSIBILITY_STMT_FIELD, dbmodels.AGENTS_TABLE)
+	}
+	if p.Places {
+		fields = append(fields, dbmodels.PLACE_STMT_FIELD, dbmodels.PLACES_TABLE, dbmodels.PUBLICATION_STMT_FIELD)
+	}
+	if p.Refs {
+		fields = append(fields, dbmodels.REFERENCES_FIELD)
+	}
+	if p.Annotations {
+		fields = append(fields, dbmodels.ANNOTATION_FIELD)
+	}
+	if p.Year {
+		fields = append(fields, dbmodels.YEAR_FIELD)
+	}
+	return fields
 }

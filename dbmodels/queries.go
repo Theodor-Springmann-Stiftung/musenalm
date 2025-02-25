@@ -22,6 +22,15 @@ func REntriesAgents_Agent(app core.App, id string) ([]*REntriesAgents, error) {
 	)
 }
 
+func REntriesAgents_Entry(app core.App, id string) ([]*REntriesAgents, error) {
+	return TableByField[[]*REntriesAgents](
+		app,
+		RelationTableName(ENTRIES_TABLE, AGENTS_TABLE),
+		ENTRIES_TABLE,
+		id,
+	)
+}
+
 func RContentsAgents_Agent(app core.App, id string) ([]*RContentsAgents, error) {
 	return TableByField[[]*RContentsAgents](
 		app,
