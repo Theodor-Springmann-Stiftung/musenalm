@@ -1,25 +1,54 @@
+{{/* .result:
+	type AgentResult struct {
+	Agent *dbmodels.Agent
+
+	BResult       []*dbmodels.Series                    // Sorted
+	Entries       map[string]*dbmodels.Entry            // KEY: Entry ID
+	EntriesSeries map[string][]*dbmodels.REntriesSeries // KEY: Series ID
+	EntriesAgents map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
+
+	CResult        []*dbmodels.Entry                      /// Sorted
+	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
+	ContentsAgents map[string][]*dbmodels.RContentsAgents // KEY: Content ID
+	}
+*/}}
+
 {{ $model := . }}
 
 
-<div class="container-normal font-serif">
-	{{ if $model.a.CorporateBody }}
-		<div class="notifier font-sans">
+<div id="breadcrumbs">
+	<div>
+		<div>
+			Personen und Körperschaften <i class="ri-arrow-right-wide-line"></i> Einzelansicht
+			<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Agent.Name }}</b>
+		</div>
+		<div class="backbutton">
+			<a href="/personen/" class="no-underline">
+				<i class="ri-arrow-left-long-line"></i> Alle Personen &amp; Körperschaften
+			</a>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal font-serif mt-12">
+	{{ if $model.result.Agent.CorporateBody }}
+		<div class="font-sans">
 			<i class="ri-team-line"></i>
-			<span class="filtercategory">Verlag, Druckerei oder Vertrieb</span>
+			<span class="filtercategory">Körperschaft</span>
 		</div>
 	{{ else }}
-		<div class="notifier font-sans">
+		<div class="font-sans">
 			<i class="ri-user-line"></i>
 			<span class="filtercategory">Person</span>
 		</div>
 	{{ end }}
-	<h1 class="text-3xl font-bold">{{ $model.a.Name }}</h1>
+	<h1 class="text-3xl font-bold">{{ $model.result.Agent.Name }}</h1>
 	<div>
 		<span class="">
-			{{ $model.a.BiographicalData }}
+			{{ $model.result.Agent.BiographicalData }}
 		</span>
 		<span class="">
-			{{- $arr := $model.a.ProfessionArray -}}
+			{{- $arr := $model.result.Agent.ProfessionArray -}}
 			{{- if $arr -}}
 				{{- range $i, $p := $arr -}}
 					<div
@@ -32,10 +61,25 @@
 	</div>
 </div>
 
-{{ if .entries }}
+{{- if .result.BResult -}}
 	<div class="container-normal flex flex-col font-serif mt-7 gap-y-6">
-		<h2>Bände nach Reihentiteln</h2>
-		{{ range $id, $r := .series }}
+		<h2 class="font-bold">
+			<i class="ri-information-2-line"></i>
+			{{ if eq $model.result.LenEntries 1 }}
+				Ein Band
+			{{- else }}
+				{{- $model.result.LenEntries }}
+				Bände
+			{{- end }}
+			in
+			{{- if eq $model.result.LenSeries 1 }}
+				einer Reihe
+			{{- else }}
+				{{ $model.result.LenSeries }} Reihen
+			{{- end }}
+			gefunden:
+		</h2>
+		{{ range $id, $r := .result.BResult }}
 			<div class="grow-0 max-w-[48rem]">
 				<div>
 					<span class="font-bold">{{ $r.Title }}</span>
@@ -46,14 +90,18 @@
 					</div>
 				{{ end }}
 				<div class="">
-					{{- $bds := index $model.relations $r.Id -}}
-					{{ template "reiherelations" (Arr $r $bds $model.entries true $model.relations) }}
+					{{- $bds := index $model.result.EntriesSeries $r.Id -}}
+					{{ template "personreiherelations" (Arr $r $bds $model.result.Entries true
+						$model.result.EntriesAgents)
+					}}
 				</div>
 			</div>
 		{{ end }}
 	</div>
 {{ end }}
 
+
+<!--
 {{ if .contents }}
 	<h2>Inhalte</h2>
 	{{ range $id, $c := .contents }}
@@ -65,3 +113,4 @@
 		</div>
 	{{ end }}
 {{ end }}
+-->

@@ -4,7 +4,35 @@
 {{ $isEng := false }}
 
 
-<div class="container-normal" id="">
+<div id="breadcrumbs">
+	{{- range $i, $s := $model.series -}}
+		<div>
+			<div class="{{ if $i -}}opacity-0 pointer-events-none select-none{{- end -}}">
+				Reihentitel <i class="ri-arrow-right-wide-line"></i>
+			</div>
+			<div>
+				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Title }}</a>
+			</div>
+			<div>
+				{{- if $model.entry.Year -}}
+					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.entry.Year }}</b>
+				{{- else -}}
+					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.entry.PreferredTitle }}</b>
+				{{- end -}}
+			</div>
+			<div class="grow"></div>
+			{{- if not $i -}}
+				<div class="backbutton">
+					<a href="/reihen/?letter=A" class="no-underline">
+						<i class="ri-arrow-left-long-line"></i> Alle Bände nach Reihentiteln
+					</a>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</div>
+
+<div class="container-normal mt-12" id="">
 	<div class="flex flex-col" id="entrydata">
 		<div class="entryrow">
 			<div class="fieldlabel">Almanach-Nummer</div>
@@ -150,7 +178,7 @@
 			<div class="entryrow">
 				<div class="fieldlabel">Anmerkungen</div>
 				<div class="fieldvalue">
-					{{- Safe $model.entry.Annotation -}}
+					{{- Safe (ReplaceSlashParen $model.entry.Annotation) -}}
 				</div>
 			</div>
 		{{- end -}}

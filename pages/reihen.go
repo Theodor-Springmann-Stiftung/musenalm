@@ -100,7 +100,7 @@ func (p *ReihenPage) LetterRequest(app core.App, engine *templating.Engine, e *c
 		return engine.Response404(e, err, data)
 	}
 	// INFO: We sort again since the query can't sort german umlauts correctly
-	dbmodels.SortSeriessesByTitle(series)
+	dbmodels.Sort_Series_Title(series)
 	data["series"] = series
 
 	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
@@ -129,7 +129,7 @@ func (p *ReihenPage) PersonRequest(app core.App, engine *templating.Engine, e *c
 	if err != nil {
 		return engine.Response404(e, err, data)
 	}
-	dbmodels.SortSeriessesByTitle(series)
+	dbmodels.Sort_Series_Title(series)
 	data["series"] = series
 	data["relations"] = relations
 	data["entries"] = entries
@@ -172,8 +172,8 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 	if err != nil {
 		return engine.Response404(e, err, data)
 	}
-	dbmodels.SortSeriessesByTitle(series)
-	dbmodels.SortSeriessesByTitle(altseries)
+	dbmodels.Sort_Series_Title(series)
+	dbmodels.Sort_Series_Title(altseries)
 	data["series"] = series
 	data["altseries"] = altseries
 
@@ -208,7 +208,7 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 				return engine.Response404(e, err, data)
 			}
 
-			dbmodels.SortSeriessesByTitle(idseries)
+			dbmodels.Sort_Series_Title(idseries)
 			data["idseries"] = idseries
 
 			if err != nil {

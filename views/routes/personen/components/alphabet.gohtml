@@ -1,7 +1,7 @@
 {{ $model := . }}
 
 {{- if and $model.letters (not $model.search) -}}
-	<div id="personalphabet" class="flex flex-col text-xl pt-[4.875rem] pb-4 relative">
+	<div id="personalphabet" class="flex flex-col text-xl pt-[5.875rem] pb-4 relative">
 		{{- range $id, $r := .letters -}}
 			<a
 				class="{{ if not $model.letter -}}inactive{{- end -}}"

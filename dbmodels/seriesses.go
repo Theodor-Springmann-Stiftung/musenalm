@@ -8,18 +8,10 @@ import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/text/cases"
-	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
 
 type SeriesEntries map[string][]*REntriesSeries
-
-func SortSeriessesByTitle(series []*Series) {
-	collator := collate.New(language.German)
-	slices.SortFunc(series, func(i, j *Series) int {
-		return collator.CompareString(i.Title(), j.Title())
-	})
-}
 
 func MusenalmIDSearchSeries(app core.App, query string) ([]*Series, error) {
 	series := []*Series{}
