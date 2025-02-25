@@ -1,0 +1,61 @@
+{{ $model := . }}
+
+
+<div id="searchcontrol" class="container-normal">
+	{{- template "_heading" $model.parameters.Parameters -}}
+	<div id="" class="border-l border-zinc-300 px-8 py-10 relative">
+		{{- if not $model.parameters.Extended -}}
+		<form
+			id="searchform"
+			class="w-full font-serif"
+			method="get"
+			action="/suche/baende"
+			autocomplete="off">
+			<div class="searchformcolumn">
+				{{- $q := "" }}
+				{{- if $model.parameters.Query -}}
+					{{- q = $model.parameters.Query -}}
+				{{- end -}}
+				{{ template "_searchboxsimple" Arr $model.parameters.Parameters true $q }}
+				<fieldset class="selectgroup">
+					<div class="selectgroup-option">
+						<input type="checkbox" name="alm" id="alm" checked />
+						<label for="alm">Almanach-Nr.</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="title" id="title" checked />
+						<label for="title">Titel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="series" id="series" checked />
+						<label for="series">Reihentitel</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="persons" id="persons" checked />
+						<label for="persons">Personen &amp; Verlage</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="pubdata" id="pubdata" checked />
+						<label for="pubdata">Orte</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="year" id="year" checked />
+						<label for="year">Jahr</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="references" id="references" checked />
+						<label for="references">Nachweise</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations" checked />
+						<label for="annotations">Anmerkungen</label>
+					</div>
+				</fieldset>
+				{{ template "infotextsimple" true }}
+			</div>
+		</form>
+	</div>
+</div>
+
+
+{{- template "_fieldscript" -}}

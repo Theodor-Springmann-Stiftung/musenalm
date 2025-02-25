@@ -104,3 +104,13 @@ func (p *AlmanachPage) getAbbr(app core.App, data map[string]interface{}) error 
 func (p *AlmanachPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	return engine.Response200(request, TEMPLATE_ALMANACH, data)
 }
+
+type AlmanachResult struct {
+	Entry    *dbmodels.Entry
+	Places   []*dbmodels.Place
+	Series   []*dbmodels.Series
+	Contents []*dbmodels.Content
+}
+
+type AlmanachData struct {
+}

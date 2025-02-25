@@ -5,20 +5,64 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/net/websocket"
 )
 
 const (
 	ASSETS_URL_PREFIX = "/assets"
+	RELOAD_TEMPLATE   = `
+<script type="module">
+(function () {
+	let relto = -1;
+  const scheme = location.protocol === "https:" ? "wss" : "ws";
+  // Hardcode port 9000 here:
+  const url = scheme + "://" + location.hostname + ":9000/pb/reload";
+
+  function connect() {
+    const socket = new WebSocket(url);
+
+    socket.addEventListener("open", function () {
+      console.log("Reload socket connected (port 9000).");
+    });
+
+    socket.addEventListener("message", function (evt) {
+      if (evt.data === "reload") {
+        console.log("Received reload signal. Reloading...");
+				if (relto !== -1) clearTimeout(relto);
+				relto = setTimeout(() => location.reload(), 0);	
+      }
+    });
+
+    socket.addEventListener("close", function () {
+      console.log("Reload socket closed. Reconnecting in 3 seconds...");
+      setTimeout(connect, 3000);
+    });
+
+    socket.addEventListener("error", function (err) {
+      console.error("Reload socket error:", err);
+      // We'll let onclose handle reconnection.
+    });
+  }
+
+  // Initiate the first connection attempt.
+  connect();
+})();
+</script>
+`
 )
 
 type Engine struct {
-	regmu *sync.Mutex
+	regmu  *sync.Mutex
+	debug  bool
+	ws     *WsServer
+	onceWS sync.Once
 
 	// NOTE: LayoutRegistry and TemplateRegistry have their own syncronization & cache and do not require a mutex here
 	LayoutRegistry   *LayoutRegistry
@@ -42,6 +86,26 @@ func NewEngine(layouts, templates *fs.FS) *Engine {
 	}
 	e.funcs()
 	return &e
+}
+
+func (e *Engine) Debug() {
+	e.debug = true
+
+	e.onceWS.Do(func() {
+		e.ws = NewWsServer()
+		go e.startWsServerOnPort9000()
+	})
+}
+
+func (e *Engine) startWsServerOnPort9000() {
+	// We'll create a basic default mux here and mount /pb/reload
+	mux := http.NewServeMux()
+	mux.Handle("/pb/reload", websocket.Handler(e.ws.Handler))
+
+	log.Println("[Engine Debug] Starting separate WebSocket server on :9000 for live reload...")
+	if err := http.ListenAndServe(":9000", mux); err != nil {
+		log.Println("[Engine Debug] WebSocket server error:", err)
+	}
 }
 
 func (e *Engine) funcs() error {
@@ -111,6 +175,12 @@ func (e *Engine) Reload() {
 	e.LayoutRegistry = e.LayoutRegistry.Reset()
 	e.TemplateRegistry = e.TemplateRegistry.Reset()
 	e.Load()
+}
+
+func (e *Engine) Refresh() {
+	if e.debug && e.ws != nil {
+		e.ws.BroadcastReload()
+	}
 }
 
 // INFO: fn is a function that returns either one value or two values, the second one being an error
@@ -234,7 +304,15 @@ func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[str
 		return e.Response500(request, err, ld)
 	}
 
-	return request.HTML(http.StatusOK, builder.String())
+	tstring := builder.String()
+	if e.debug {
+		idx := strings.LastIndex(tstring, "</body>")
+		if idx != -1 {
+			tstring = tstring[:idx] + RELOAD_TEMPLATE + tstring[idx:]
+		}
+	}
+
+	return request.HTML(http.StatusOK, tstring)
 }
 
 func requestData(request *core.RequestEvent) map[string]interface{} {

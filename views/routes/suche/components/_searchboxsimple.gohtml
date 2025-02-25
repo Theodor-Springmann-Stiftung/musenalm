@@ -1,10 +1,11 @@
-{{ $model := index . 0 }}
+{{ $parameters := index . 0 }}
 {{ $extendable := index . 1 }}
+{{ $q := index . 2 }}
 
 
 <label for="q" class="hidden">Suchbegriffe</label>
 <input
-	{{ if $model.q }}value="{{ $model.q }}"{{- end -}}
+	{{ if $q }}value="{{ $q }}"{{- end -}}
 	type="search"
 	name="q"
 	minlength="3"
@@ -16,7 +17,7 @@
 
 {{ if $extendable }}
 	<a
-		href="/suche/{{ $model.type }}?extended=true"
+		href="/suche/{{ $parameters.Collection }}?extended=true"
 		class="whitespace-nowrap self-end block col-span-2">
 		<i class="ri-arrow-right-long-line"></i> Erweiterte Suche
 	</a>

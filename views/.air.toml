@@ -4,14 +4,12 @@ tmp_dir = "tmp"
 
 [build]
 args_bin = []
-full_bin = "./tmp/musenalm --dir ./pb_data serve"
-cmd = "go build -tags=dev,fts5,sqlite_icu -o ./tmp/musenalm ."
+full_bin = ""
+cmd = "npm run build"
 delay = 400
 exclude_dir = [
-	"views/routes",
-	"views/layouts",
-	"views/assets",
-	"views/node_modules",
+	"assets",
+	"node_modules",
 	"tmp",
 	"vendor",
 	"testdata",
@@ -56,7 +54,7 @@ clean_on_exit = true
 
 [proxy]
 app_port = 8090
-enabled = true
+enabled = false
 proxy_port = 8081
 
 [screen]

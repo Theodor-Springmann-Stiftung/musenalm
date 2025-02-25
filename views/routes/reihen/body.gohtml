@@ -1,5 +1,4 @@
 {{ $model := . }}
-
 {{ if and .startpage .record }}
 	{{ template "hero" . }}
 {{ end }}
@@ -17,7 +16,7 @@
 				{{ template "alphabet" Dict "active" .letter "letters" .letters "search" .search }}
 			</div>
 		{{ else }}
-			<div class="mt-2 border-b border-zinc-300 w-full"></div>
+			<div class="mt-2 border-b w-full"></div>
 		{{ end }}
 	</div>
 
@@ -42,7 +41,6 @@
 					{{ end }}
 				</div>
 			{{ end }}
-
 			{{ if .series }}
 				<div class="mb-1 max-w-[60rem] hyphens-auto">
 					{{ range $id, $r := .series }}
