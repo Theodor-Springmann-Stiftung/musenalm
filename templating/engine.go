@@ -61,6 +61,9 @@ func (e *Engine) funcs() error {
 	e.AddFunc("Len", functions.Length)
 
 	// String Functions
+	e.AddFunc("Lower", functions.Lower)
+	e.AddFunc("Upper", functions.Upper)
+	e.AddFunc("First", functions.First)
 	e.AddFunc("ReplaceSlashParen", functions.ReplaceSlashParen)
 
 	// Time & Date Functions

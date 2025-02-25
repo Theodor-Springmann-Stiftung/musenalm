@@ -43,6 +43,12 @@
 		</div>
 	{{ end }}
 	<h1 class="text-3xl font-bold">{{ $model.result.Agent.Name }}</h1>
+	{{- if $model.result.Agent.Pseudonyms -}}
+		<p class="italic">
+			auch:
+			<span class="">{{ $model.result.Agent.Pseudonyms }}</span>
+		</p>
+	{{- end -}}
 	<div>
 		<span class="">
 			{{ $model.result.Agent.BiographicalData }}
@@ -51,10 +57,12 @@
 			{{- $arr := $model.result.Agent.ProfessionArray -}}
 			{{- if $arr -}}
 				{{- range $i, $p := $arr -}}
-					<div
-						class="inline-block align-middle bg-slate-200 px-2 font-sans text-sm py-0.5 rounded mx-1">
+					<a
+						href="/personen/?letter={{- Upper (First $model.result.Agent.Name) -}}&filter={{ Lower $p }}#{{- $model.result.Agent.Id -}}"
+						class="inline-block align-middle bg-slate-200 px-2 font-sans text-sm py-0.5 rounded mx-1
+						hover:text-slate-900 no-underline">
 						{{- $p -}}
-					</div>
+					</a>
 				{{- end -}}
 			{{- end -}}
 		</span>
