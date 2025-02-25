@@ -1,3 +1,30 @@
+{{/* .common
+	type CommonReihenData struct {
+	Years   []int
+	Places  []*dbmodels.Place
+	Letters []string
+	Agents  []*dbmodels.Agent
+	}
+
+	.result
+	type SeriesListResult struct {
+	Series        []*dbmodels.Series
+	Entries       map[string]*dbmodels.Entry            // <-- Key is Entry.ID
+	EntriesSeries map[string][]*dbmodels.REntriesSeries // <-- Key is Series.ID
+
+	// Only on agent request
+	Agent         *dbmodels.Agent
+	EntriesAgents map[string][]*dbmodels.REntriesAgents // <-- Key is Entry.ID
+
+	// Only on search request
+	IDSeries  []*dbmodels.Series
+	AltSeries []*dbmodels.Series
+
+	// Only on place request
+	Place *dbmodels.Place
+	}
+	*/}}
+
 {{ $model := . }}
 {{ if and .startpage .record }}
 	{{ template "hero" . }}
@@ -13,7 +40,7 @@
 
 		{{ if not (or .search .hidden) }}
 			<div class="mt-2">
-				{{ template "alphabet" Dict "active" .letter "letters" .letters "search" .search }}
+				{{ template "alphabet" Dict "active" .letter "letters" $model.common.Letters "search" .search }}
 			</div>
 		{{ else }}
 			<div class="mt-2 border-b w-full"></div>
@@ -34,25 +61,26 @@
 
 		<!-- INFO: 3. Treffer -->
 		<div id="searchcontent" class="font-serif">
-			{{ if and .search .idseries }}
+			{{ if and .search $model.result.IDSeries }}
 				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := .idseries }}
-						{{ template "_reihe" (Arr $r $model.entries $model.relations true false false) }}
+					{{ range $id, $r := $model.result.IDSeries }}
+						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries true false false) }}
 					{{ end }}
 				</div>
 			{{ end }}
-			{{ if .series }}
+
+			{{ if $model.result.Series }}
 				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := .series }}
-						{{ template "_reihe" (Arr $r $model.entries $model.relations false false
+					{{ range $id, $r := $model.result.Series }}
+						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries false false
 							false)
 						}}
 					{{ end }}
 				</div>
 			{{ end }}
 
-			{{ if and .search .altseries }}
-				{{ if .idseries }}
+			{{ if and .search $model.result.AltSeries }}
+				{{ if $model.result.IDSeries }}
 					<div class="border-b text-sm font-sans text-right pb-0.5">
 						Treffer in Almanach-Nummer &uarr;
 					</div>
@@ -64,7 +92,7 @@
 					</div>
 				{{ end }}
 
-				{{ if not (or .series .idseries) }}
+				{{ if not (or $model.result.Series $model.result.IDSeries) }}
 					<div class="border-b text-sm font-sans text-right pb-0.5">
 						Keine Treffer im Reihentitel
 						<i class="ri-forbid-line inline-bloc -mr-0.5"></i>
@@ -74,12 +102,12 @@
 					Treffer in allen Feldern (inkl. Anmerkungen &amp; Verweise) &darr;
 				</div>
 				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := .altseries }}
-						{{ template "_reihe" (Arr $r $model.entries $model.relations false true true) }}
+					{{ range $id, $r := $model.result.AltSeries }}
+						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries false true true) }}
 					{{ end }}
 				</div>
 			{{ end }}
-			{{ if not (or .series .altseries .idseries) }}
+			{{ if not (or $model.result.Series $model.result.AltSeries $model.result.IDSeries) }}
 				<div class="mt-8">
 					Keine Reihen
 					{{ if .search }}für {{ .search }}{{ end }}
