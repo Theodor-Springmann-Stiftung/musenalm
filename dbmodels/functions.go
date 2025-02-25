@@ -2,6 +2,14 @@ package dbmodels
 
 import "github.com/pocketbase/pocketbase/core"
 
+func Ids[T core.RecordProxy](records []T) []any {
+	ids := []any{}
+	for _, r := range records {
+		ids = append(ids, r.ProxyRecord().Id)
+	}
+	return ids
+}
+
 func SetBasicPublicRules(collection *core.Collection) {
 	collection.ViewRule = PUBLIC_VIEW_RULE
 	collection.ListRule = PUBLIC_LIST_RULE
