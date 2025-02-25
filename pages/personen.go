@@ -71,7 +71,7 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 		agents, err = dbmodels.AgentsForProfession(app, "Musik", letter)
 	}
 
-	if filter == "autor" {
+	if filter == "text" {
 		agents, err = dbmodels.AgentsForProfession(app, "Text", letter)
 	}
 

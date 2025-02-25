@@ -1,6 +1,8 @@
 {{ $model := . }}
 
-{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq $model.filter "autor") (eq $model.filter "graphik") (eq $model.filter "hrsg")) }}
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq
+	$model.filter "text") (eq $model.filter "graphik") (eq $model.filter "hrsg"))
+}}
 
 {{ $isNoOrg := and $model.filter (eq $model.filter "noorg") }}
 

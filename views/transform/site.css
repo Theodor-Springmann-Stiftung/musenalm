@@ -340,6 +340,10 @@
 		@apply text-gray-400;
 	}
 
+	#personlist [aria-current="location"] a {
+		@apply !text-red-700;
+	}
+
 	#entrydata .fieldlabel {
 		@apply font-bold text-base font-sans whitespace-nowrap min-w-48 grow-0 shrink-0 pt-0.5;
 	}

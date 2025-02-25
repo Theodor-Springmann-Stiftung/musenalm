@@ -165,7 +165,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else if filter == "autor" {
+	} else if filter == "text" {
 		err := app.RecordQuery(AGENTS_TABLE).
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
