@@ -67,6 +67,15 @@ func REntriesSeries_Entry(app core.App, id string) ([]*REntriesSeries, error) {
 	)
 }
 
+func REntriesSeries_Seriess(app core.App, ids []any) ([]*REntriesSeries, error) {
+	return TableByFields[[]*REntriesSeries](
+		app,
+		RelationTableName(ENTRIES_TABLE, SERIES_TABLE),
+		SERIES_TABLE,
+		ids,
+	)
+}
+
 func Agents_ID(app core.App, id string) (*Agent, error) {
 	r, err := TableByID[Agent](app, AGENTS_TABLE, id)
 	return &r, err
@@ -109,4 +118,9 @@ func Contents_Entry(app core.App, id string) ([]*Content, error) {
 		ENTRIES_TABLE,
 		id,
 	)
+}
+
+func Places_ID(app core.App, id string) (*Place, error) {
+	ret, err := TableByField[Place](app, PLACES_TABLE, ID_FIELD, id)
+	return &ret, err
 }
