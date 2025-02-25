@@ -1,11 +1,23 @@
 {{ $model := . }}
+{{/* .result:
+	type AlmanachResult struct {
+	Entry          *dbmodels.Entry
+	Places         []*dbmodels.Place
+	Series         []*dbmodels.Series
+	Contents       []*dbmodels.Content
+	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
+	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents  []*dbmodels.REntriesAgents
+	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	}
+*/}}
 {{ $isGer := false }}
 {{ $isFra := false }}
 {{ $isEng := false }}
 
 
 <div id="breadcrumbs">
-	{{- range $i, $s := $model.series -}}
+	{{- range $i, $s := $model.result.Series -}}
 		<div>
 			<div class="{{ if $i -}}opacity-0 pointer-events-none select-none{{- end -}}">
 				Reihentitel <i class="ri-arrow-right-wide-line"></i>
@@ -14,10 +26,10 @@
 				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Title }}</a>
 			</div>
 			<div>
-				{{- if $model.entry.Year -}}
-					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.entry.Year }}</b>
+				{{- if $model.result.Entry.Year -}}
+					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Entry.Year }}</b>
 				{{- else -}}
-					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.entry.PreferredTitle }}</b>
+					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Entry.PreferredTitle }}</b>
 				{{- end -}}
 			</div>
 			<div class="grow"></div>
@@ -36,49 +48,51 @@
 	<div class="flex flex-col" id="entrydata">
 		<div class="entryrow">
 			<div class="fieldlabel">Almanach-Nummer</div>
-			<div class="fieldvalue">{{ $model.entry.MusenalmID }}</div>
+			<div class="fieldvalue">{{ $model.result.Entry.MusenalmID }}</div>
 		</div>
-		{{- if $model.entry.PreferredTitle -}}
+		{{- if $model.result.Entry.PreferredTitle -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Kurztitel</div>
-				<div class="fieldvalue">{{ $model.entry.PreferredTitle }}</div>
+				<div class="fieldvalue">{{ $model.result.Entry.PreferredTitle }}</div>
 			</div>
 		{{- end -}}
-		{{- if $model.entry.TitleStmt -}}
+		{{- if $model.result.Entry.TitleStmt -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Titel</div>
-				<div class="fieldvalue">{{ $model.entry.TitleStmt }}</div>
+				<div class="fieldvalue">{{ $model.result.Entry.TitleStmt }}</div>
 			</div>
 		{{- end -}}
 		<div class="entryrow">
 			<div class="fieldlabel">Jahr</div>
 			<div class="fieldvalue">
-				{{- if $model.entry.Year -}}
-					<a href="/reihen?year={{ $model.entry.Year }}&hidden=true">{{ $model.entry.Year }}</a>
+				{{- if $model.result.Entry.Year -}}
+					<a href="/reihen?year={{ $model.result.Entry.Year }}&hidden=true"
+						>{{ $model.result.Entry.Year }}</a
+					>
 				{{- else -}}
 					[keine Angabe]
 				{{- end -}}
 			</div>
 		</div>
-		{{- if $model.entry.ResponsibilityStmt -}}
+		{{- if $model.result.Entry.ResponsibilityStmt -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Herausgeber</div>
-				<div class="fieldvalue">{{ $model.entry.ResponsibilityStmt }}</div>
+				<div class="fieldvalue">{{ $model.result.Entry.ResponsibilityStmt }}</div>
 			</div>
 		{{- end -}}
-		{{- if $model.entry.Extent -}}
+		{{- if $model.result.Entry.Extent -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Umfang</div>
 				<div class="fieldvalue">
-					<abbrev-tooltips data-text="{{ $model.entry.Extent }}"></abbrev-tooltips>
+					<abbrev-tooltips data-text="{{ $model.result.Entry.Extent }}"></abbrev-tooltips>
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.entry.Language -}}
+		{{- if $model.result.Entry.Language -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Sprache</div>
 				<div class="fieldvalue">
-					{{- range $i, $lang := $model.entry.Language -}}
+					{{- range $i, $lang := $model.result.Entry.Language -}}
 						{{- if $i -}},{{- end -}}
 						{{- if eq $lang "ger" -}}
 							{{ $isGer = true }}
@@ -100,36 +114,35 @@
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.entry.References -}}
+		{{- if $model.result.Entry.References -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Nachweise</div>
 				<div class="fieldvalue">
-					{{- $model.entry.References -}}
+					{{- $model.result.Entry.References -}}
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.series -}}
+		{{- if $model.result.Series -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Reihen</div>
 				<div class="fieldvalue">
-					{{- range $i, $s := $model.series -}}
+					{{- range $i, $s := $model.result.Series -}}
 						<div>
-							{{- $rel := index $model.srelations $s.Id -}}
+							{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 							{{- if $rel -}}
-								{{- $crel := index $rel 0 -}}
-								{{- if not (eq $crel.Type "Bevorzugter Reihentitel") -}}
+								{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
 									<span class="text-sm font-sans mr-2">
-										{{- if eq $crel.Type "Früherer Reihentitel" -}}
+										{{- if eq $rel.Type "Früherer Reihentitel" -}}
 											hat Titelauflage s.a.
-										{{- else if eq $crel.Type "Späterer Reihentitel" -}}
+										{{- else if eq $rel.Type "Späterer Reihentitel" -}}
 											ist Titelauflage von, s.a.
-										{{- else if eq $crel.Type "In anderer Sprache" -}}
+										{{- else if eq $rel.Type "In anderer Sprache" -}}
 											{{- if $isFra -}}
 												In deutscher Sprache s.a.
 											{{- else -}}
 												In französischer Sprache s.a.
 											{{- end -}}
-										{{- else if eq $crel.Type "Alternatives Titelblatt" -}}
+										{{- else if eq $rel.Type "Alternatives Titelblatt" -}}
 											alternatives Titelblatt, s.a.
 										{{- end -}}
 									</span>
@@ -141,11 +154,11 @@
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.places -}}
+		{{- if $model.result.Places -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Orte</div>
 				<div class="fieldvalue">
-					{{- range $i, $p := $model.places -}}
+					{{- range $i, $p := $model.result.Places -}}
 						<div>
 							<a href="/reihen?place={{ $p.Id }}&hidden=true">{{ $p.Name }}</a>
 						</div>
@@ -153,13 +166,12 @@
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.arelations -}}
-			{{- $rels := index $model.arelations $model.entry.Id -}}
+		{{- if $model.result.EntriesAgents -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Personen</div>
 				<div class="fieldvalue">
-					{{- range $i, $r := $rels -}}
-						{{- $a := index $model.agents $r.Agent -}}
+					{{- range $i, $r := $model.result.EntriesAgents -}}
+						{{- $a := index $model.result.Agents $r.Agent -}}
 						{{- if $a -}}
 							<div>
 								<a href="/person/{{ $a.Id }}">
@@ -174,11 +186,11 @@
 				</div>
 			</div>
 		{{- end -}}
-		{{- if $model.entry.Annotation -}}
+		{{- if $model.result.Entry.Annotation -}}
 			<div class="entryrow">
 				<div class="fieldlabel">Anmerkungen</div>
 				<div class="fieldvalue">
-					{{- Safe (ReplaceSlashParen $model.entry.Annotation) -}}
+					{{- Safe (ReplaceSlashParen $model.result.Entry.Annotation) -}}
 				</div>
 			</div>
 		{{- end -}}

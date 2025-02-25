@@ -65,7 +65,7 @@ type AgentResult struct {
 }
 
 func NewAgentResult(app core.App, id string) (*AgentResult, error) {
-	agent, err := dbmodels.AgentForId(app, id)
+	agent, err := dbmodels.Agents_ID(app, id)
 	if err != nil {
 		return nil, err
 	}

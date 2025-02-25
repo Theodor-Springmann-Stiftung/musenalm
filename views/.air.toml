@@ -4,7 +4,7 @@ tmp_dir = "tmp"
 
 [build]
 args_bin = []
-full_bin = ""
+full_bin = "true"
 cmd = "npm run build"
 delay = 400
 exclude_dir = [
