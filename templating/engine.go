@@ -129,6 +129,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("Upper", functions.Upper)
 	e.AddFunc("First", functions.First)
 	e.AddFunc("ReplaceSlashParen", functions.ReplaceSlashParen)
+	e.AddFunc("ReplaceSlashParenSlash", functions.ReplaceSlashParenSlash)
 
 	// Time & Date Functions
 	e.AddFunc("Today", functions.Today)
@@ -263,7 +264,7 @@ func (e *Engine) Response404(request *core.RequestEvent, err error, data map[str
 	data["page"] = requestData(request)
 
 	err2 := e.Render(&sb, "/errors/404/", data)
-	if err != nil {
+	if err2 != nil {
 		return e.Response500(request, errors.Join(err, err2), data)
 	}
 

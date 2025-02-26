@@ -1,0 +1,192 @@
+{{- $model := index . 0 -}}
+{{- $entry := index . 1 -}}
+{{- $series := index . 2 -}}
+{{/* .parameters
+	type SearchParameters struct {
+	Parameters
+	Sort string
+
+	Annotations bool
+	Persons     bool
+	Title       bool
+	Alm         bool
+	Series      bool
+	Places      bool
+	Refs        bool
+	Year        bool
+
+	AnnotationsString string
+	PersonsString     string
+	TitleString       string
+	AlmString         string
+	SeriesString      string
+	PlacesString      string
+	RefsString        string
+	YearString        string
+
+	TypeFilter string
+	}
+	type Parameters struct {
+	Query    string
+	Collection string
+	Extended bool
+	}
+	type SearchResultBaende struct {
+	// these are the sorted IDs for hits
+	Hits    []string
+	Series  map[string]*dbmodels.Series // <- Key: Series ID
+	Entries map[string]*dbmodels.Entry  // <- Key: Entry ID
+	Places  map[string]*dbmodels.Place  // <- All places, Key: Place IDs
+	Agents  map[string]*dbmodels.Agent  // <- Key: Agent IDs
+
+	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Whatever the Hit IDs are
+	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
+	}
+	*/}}
+
+{{- $isAlm := or $model.parameters.Alm $model.parameters.AlmString -}}
+{{- $isTitle := or $model.parameters.Title $model.parameters.TitleString -}}
+{{- $isRefs := or $model.parameters.Refs $model.parameters.RefsString -}}
+{{- $isPlaces := or $model.parameters.Places $model.parameters.PlacesString -}}
+{{- $isYear := or $model.parameters.Year $model.parameters.YearString -}}
+{{- $isSeries := or $model.parameters.Series $model.parameters.SeriesString -}}
+{{- $isPersons := or $model.parameters.Persons $model.parameters.PersonsString -}}
+{{- $isAnnotations := or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
+
+
+<div class="flex flex-row max-w-[60rem]">
+	<div class="w-32 grow-0 shrink-0 border-r border-zinc-300 pr-3 pt-4">
+		<div class="flex flex-col items-end pt-1">
+			<div class="flex flex-row gap-x-1">
+				<div class="inline-block ml-1 whitespace-nowrap">
+					{{- if not $entry.TitleStmt -}}
+						<tool-tip position="right">
+							<i class="ri-forbid-line"></i>
+							<div class="data-tip">Keine nähere Erfassung</div>
+						</tool-tip>
+					{{- else if eq $entry.EditState "Edited" -}}
+						<tool-tip position="right">
+							<i class="ri-checkbox-circle-line"></i>
+							<div class="data-tip">Mit erfassten Beiträgen</div>
+						</tool-tip>
+					{{- else -}}
+						<tool-tip position="right">
+							<i class="ri-information-line"></i>
+							<div class="data-tip">Mit genaueren Titelangaben</div>
+						</tool-tip>
+					{{- end -}}
+				</div>
+				<div
+					class="px-2 font-sans font-bold text-sm bg-stone-100 py-0.5 w-max rounded
+				{{ if $isAlm }}search-text{{- end -}}">
+					<a
+						href="/almanach/{{ $entry.MusenalmID }}"
+						class="no-underline rounded bg-stone-100 px-1.5">
+						Alm
+						{{ $entry.MusenalmID -}}
+					</a>
+				</div>
+			</div>
+
+			{{ if $entry.References }}
+				<div
+					class="text-sm font-sans px-2 py-1 bg-stone-100 mt-1.5
+					{{ if $isRefs -}}
+						search-text
+					{{- end -}}">
+					{{ $entry.References }}
+				</div>
+			{{ end }}
+
+		</div>
+	</div>
+	<div class="font-serif ml-3 pt-4">
+		<div class="font-bold">
+			<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline rounded ">
+				{{- $entry.PreferredTitle -}}
+			</a>
+		</div>
+		{{- if $entry.TitleStmt -}}
+			<div class="italic {{ if $isTitle -}}search-text{{- end -}}">{{- $entry.TitleStmt -}}</div>
+		{{- end -}}
+		{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
+			<div class="italic {{ if $isPersons -}}search-text{{- end -}}">
+				{{ $entry.ResponsibilityStmt -}}
+			</div>
+		{{- end -}}
+		<div class="">
+			{{- if $entry.Places -}}
+				{{- range $_, $placeid := $entry.Places -}}
+					{{- $place := index $model.result.Places $placeid -}}
+					{{- if $place -}}
+						<div class="inline pr-1 {{ if $isPlaces -}}search-text{{- end -}}">
+							<a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a>,
+						</div>
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}
+			<a href="/reihen/?year={{ $entry.Year }}&hidden=true">
+				{{- if $entry.Year -}}
+					<div class="inline {{ if $isYear -}}search-text{{- end -}}">{{ $entry.Year }}</div>
+				{{- else -}}
+					<div class="inline">o.J.</div>
+				{{- end -}}
+			</a>
+		</div>
+		{{- $srels := index $model.result.EntriesSeries $entry.Id -}}
+		{{- if $srels -}}
+			<div class="flex flex-row flex-wrap py-1 gap-y-1">
+				{{- range $_, $srel := $srels -}}
+					{{- $series := index $model.result.Series $srel.Series -}}
+					{{- if $series -}}
+						<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
+							<span class="border-r pr-2 border-gray-300">Reihentitel</span
+							><a
+								href="/reihe/{{ $series.MusenalmID }}"
+								class="no-underline pl-2 block {{ if
+									$isSeries
+								-}}
+									search-text
+								{{- end -}}">
+								<b>{{- $series.Title -}}</b>
+							</a>
+						</div>
+					{{- end -}}
+				{{- end -}}
+			</div>
+		{{- end -}}
+		{{- $arels := index $model.result.EntriesAgents $entry.Id -}}
+		{{- if $arels -}}
+			<div class="flex flex-row flex-wrap py-1 gap-y-1">
+				{{- range $_, $arel := $arels -}}
+					{{- $agent := index $model.result.Agents $arel.Agent -}}
+					{{- if $agent -}}
+						<div class="inline-block text-base font-sans bg-slate-100 rounded mr-2">
+							<span class="border-r px-2 border-gray-300"> {{- $arel.Type -}} </span
+							><a
+								href="/person/{{ $agent.Id }}"
+								class="no-underline px-1.5 {{ if
+									$isPersons
+								-}}
+									search-text
+								{{- end -}}">
+								<b>{{- $agent.Name -}}</b>
+							</a>
+						</div>
+					{{- end -}}
+				{{- end -}}
+			</div>
+		{{- end -}}
+		{{- if $entry.Annotation -}}
+			<div class="text-base hyphens-auto">
+				<b>Anm.: </b
+				><span class="{{- if $isAnnotations -}}search-text{{- end -}}"
+					>{{- Safe
+						(ReplaceSlashParenSlash $entry.Annotation)
+					-}}</span
+				>
+			</div>
+		{{- end -}}
+		<div class="pb-4"></div>
+	</div>
+</div>
