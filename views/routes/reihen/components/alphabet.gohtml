@@ -37,6 +37,7 @@
 					hx-trigger="input changed delay=1500ms, keyup[key=='Enter']"
 					hx-select="#searchcontent"
 					hx-target="#searchcontent"
+					hx-swap="outerHTML"
 					autocomplete="off"
 					{{ if $model.search }}disabled="true"{{ end }} />
 			</div>

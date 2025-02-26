@@ -37,27 +37,25 @@ Modelle umwandeln (zzt RecordProxy)
 
 - In der Almanach-Ansicht werden die Abkürzungen erklärt
 - In der Almanach- und Suchansicht werden Sammlungen abgehoben 
-- In der Almanach- und Suchansicht werden auch mehrere Bilder zu einem Eintrag angezeigt
+- In der Almanach- und Suchansicht werden auch mehrere Bilder zu einem Eintrag angezeigt, falls vorhanden
 - In der Almanach- und Suchansicht kann nach Inhalten frei gefiltert werden, oder nach Typ
 
-- Es gibt neue URLs, die fest verlinkt werden können für einzelne:
+- Es gibt URLs, die fest verlinkt werden können für einzelne:
     - Personen 
     - Reihen
     - Bände
     - Beiträge
+		- Alle Suchanfragen
 
 - Die Suche ist klar nach Typ unterteilt und insgesamt zuverlässiger
-- Zusätzlich zur jetzigen Suchfunktion gibt es für jeden Typ noch eine Detailsuche
+- Zusätzlich zur jetzigen Suchfunktion gibt es für Beiträge und Bände noch eine Detailsuche
 - Suchergebnisse können nach Typ, Person, Jahr gefiltert werden
 - Suchergebnisse könnnen nach Jahr und Band, nach Band und Jahr (nach Personen) sortiert werden
-- Jede Suche hat eine eindeutige URL
 
 
 TODO danach:
 - Google-Suchoptimierung
 - Error Pages prüfen & error-Verhalten von HTMX
-- Stimmigere Page-Abstraktion
 - Weißraum in den Antworten
 - Antworten komprimieren
 - Cache?
-- Footer

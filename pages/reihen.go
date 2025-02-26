@@ -2,6 +2,7 @@ package pages
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -150,6 +151,10 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 
 func (p *ReihenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	data["common"] = NewCommonReihenData(request.App)
+	record, _ := p.GetLatestData(request.App)
+	if record != nil {
+		data["record"] = pagemodels.NewReihen(record)
+	}
 	return engine.Response200(request, URL_REIHEN, data)
 }
 
@@ -278,15 +283,10 @@ func NewSeriesListResult_Letter(app core.App, letter string) (*SeriesListResult,
 		entriesMap[e.Id] = e
 	}
 
-	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
-	if err != nil {
-		return nil, err
-	}
-
 	return &SeriesListResult{
 		Series:        series,
-		Entries:       bmap,
-		EntriesSeries: rmap,
+		Entries:       entriesMap,
+		EntriesSeries: relationsMap,
 	}, nil
 }
 
@@ -445,56 +445,121 @@ func NewSeriesResult_Search(app core.App, search string) (*SeriesListResult, err
 	dbmodels.Sort_Series_Title(series)
 	dbmodels.Sort_Series_Title(altseries)
 
-	rmap, bmap, err := dbmodels.EntriesForSeriesses(app, series)
+	keys := []any{}
+	keys = append(keys, dbmodels.Ids(series)...)
+	keys = append(keys, dbmodels.Ids(altseries)...)
+
+	entries, relations, err := Entries_Series_IDs(app, keys)
 	if err != nil {
 		return nil, err
 	}
 
-	rmap2, bmap2, err := dbmodels.EntriesForSeriesses(app, altseries)
-	if err != nil {
-		return nil, err
+	relationsMap := make(map[string][]*dbmodels.REntriesSeries)
+	entriesMap := make(map[string]*dbmodels.Entry)
+	for _, v := range relations {
+		relationsMap[v.Series()] = append(relationsMap[v.Series()], v)
 	}
 
-	for k, v := range rmap2 {
-		rmap[k] = v
-	}
-	for k, v := range bmap2 {
-		bmap[k] = v
+	for _, v := range entries {
+		entriesMap[v.Id] = v
 	}
 
-	ids := []*dbmodels.Series{}
-	if searchint, err := strconv.Atoi(search); err == nil {
-		identries, err := dbmodels.EntriesForID(app, searchint)
+	ret := &SeriesListResult{
+		Series:        series,
+		AltSeries:     altseries,
+		Entries:       entriesMap,
+		EntriesSeries: relationsMap,
+	}
+
+	if _, err := strconv.Atoi(strings.TrimSpace(search)); err == nil {
+		identries := []*dbmodels.Entry{}
+		err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+			Where(dbx.HashExp{dbmodels.MUSENALMID_FIELD: search}).
+			All(&identries)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(identries) != 0 {
-
-			idseries, rmap3, bmap3, err := dbmodels.SeriesForEntries(app, identries)
+			app.Logger().Info("Found entries by musenalmid", "count", len(identries))
+			idseries, idrelations, err := Series_Entries(app, identries)
 			if err != nil {
 				return nil, err
 			}
 
-			ids = idseries
-
 			dbmodels.Sort_Series_Title(idseries)
+			ret.IDSeries = idseries
 
-			for k, v := range rmap3 {
-				rmap[k] = v
+			for _, v := range idrelations {
+				ret.EntriesSeries[v.Series()] = append(relationsMap[v.Series()], v)
 			}
 
-			for k, v := range bmap3 {
-				bmap[k] = v
+			for _, v := range identries {
+				ret.Entries[v.Id] = v
 			}
 		}
 	}
 
-	return &SeriesListResult{
-		Series:        series,
-		Entries:       bmap,
-		EntriesSeries: rmap,
-		IDSeries:      ids,
-		AltSeries:     altseries,
-	}, nil
+	return ret, nil
+}
+
+func (r *SeriesListResult) Count() int {
+	return len(r.Series) + len(r.AltSeries) + len(r.IDSeries)
+}
+
+func Entries_Series(app core.App, series []*dbmodels.Series) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
+	relations, err := dbmodels.REntriesSeries_Seriess(app, dbmodels.Ids(series))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	eids := []any{}
+	for _, r := range relations {
+		eids = append(eids, r.Entry())
+	}
+
+	entries, err := dbmodels.Entries_IDs(app, eids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return entries, relations, nil
+}
+
+func Entries_Series_IDs(app core.App, ids []any) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
+	relations, err := dbmodels.REntriesSeries_Seriess(app, ids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	eids := []any{}
+	for _, r := range relations {
+		eids = append(eids, r.Entry())
+	}
+
+	entries, err := dbmodels.Entries_IDs(app, eids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return entries, relations, nil
+}
+
+func Series_Entries(app core.App, entries []*dbmodels.Entry) ([]*dbmodels.Series, []*dbmodels.REntriesSeries, error) {
+	relations, err := dbmodels.REntriesSeries_Entries(app, dbmodels.Ids(entries))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sids := []any{}
+	for _, r := range relations {
+		sids = append(sids, r.Series())
+	}
+
+	series, err := dbmodels.Series_IDs(app, sids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return series, relations, nil
 }

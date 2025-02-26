@@ -103,6 +103,11 @@ func Series_IDs(app core.App, ids []any) ([]*Series, error) {
 	return TableByIDs[[]*Series](app, SERIES_TABLE, ids)
 }
 
+func Series_ID(app core.App, id string) (*Series, error) {
+	ret, err := TableByID[Series](app, SERIES_TABLE, id)
+	return &ret, err
+}
+
 func Places_IDs(app core.App, ids []any) ([]*Place, error) {
 	return TableByIDs[[]*Place](app, PLACES_TABLE, ids)
 }

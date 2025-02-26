@@ -4,10 +4,26 @@
 	x-data="{ open: true }"
 	x-show="open">
 	<div class="container-extraoversize flex flex-row gap-x-8">
-		<div class="max-w-[52rem] font-serif text-lg hyphens-auto">
-			{{ Safe $model.record.Text }}
+		<div
+			class="max-w-[52rem] font-serif text-base hyphens-auto bg-gray-50 py-8 border-r
+		border-b">
+			<div class="px-8">
+				{{ Safe $model.record.Text }}
+				<div class="pt-3">
+					<a href="/edition/einfuehrung">Einführung</i></a>
+					<i class="ri-seedling-line px-1.5"></i>
+					<a href="/edition/dokumentation">Dokumentation </a>
+				</div>
+
+				<div class="mt-4 py-2 px-3 rounded bg-orange-100 border border-orange-200
+				text-orange-950 font-sans font-bold">
+					Bitte beachten Sie, dass es sich hier noch um eine öffentliche Testversion
+					handelt. Über Rückmeldungen und Anregungen freuen wir uns [&rarr; <a
+						href="/edition//kontakt">Kontakt</a>]
+				</div>
+			</div>
 		</div>
-		<div class="-mr-16 pt-2 grow-0 shrink-0">
+		<div class="-mr-16 pt-2 grow-0">
 			<img src="{{ $model.record.ImagePath }}" />
 		</div>
 	</div>
