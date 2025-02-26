@@ -378,4 +378,8 @@
 	#breadcrumbs .backbutton {
 		@apply ml-4 bg-stone-100 py-0.5 px-2.5 rounded font-sans text-base text-center mr-1.5;
 	}
+
+	input:disabled {
+		@apply italic text-gray-500;
+	}
 }
