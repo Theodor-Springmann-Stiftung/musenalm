@@ -27,7 +27,7 @@ const (
 	TEMPLATE_SUCHE = "/suche/"
 )
 
-var availableTypes = []string{"reihen", "baende", "beitraege", "personen"}
+var availableTypes = []string{"baende", "beitraege"}
 
 func init() {
 	rp := &SuchePage{
@@ -72,7 +72,7 @@ func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.E
 		return engine.Response404(e, err, nil)
 	}
 
-	query := dbmodels.NormalizeQuery(params.Query)
+	query := params.NormalizeQuery()
 	if len(query) == 0 {
 		engine.Response404(e, nil, nil)
 	}
@@ -165,6 +165,10 @@ func NewParameters(e *core.RequestEvent) (*Parameters, error) {
 	}, nil
 }
 
+func (p *Parameters) NormalizeQuery() []string {
+	return dbmodels.NormalizeQuery(p.Query)
+}
+
 type SimpleParameters struct {
 	Parameters
 	Annotations bool
@@ -195,15 +199,18 @@ func NewSimpleParameters(e *core.RequestEvent, p Parameters) (*SimpleParameters,
 	// TODO: sanity check here if any single field is selected
 
 	return &SimpleParameters{
-		Parameters:  p,
+		Parameters: p,
+		// INFO: Common parameters
 		Alm:         alm,
 		Title:       title,
-		Series:      series,
 		Persons:     persons,
-		Places:      places,
-		Refs:        refs,
 		Annotations: annotations,
-		Year:        year,
+
+		// INFO: Baende parameters
+		Places: places,
+		Refs:   refs,
+		Year:   year,
+		Series: series,
 	}, nil
 }
 

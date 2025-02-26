@@ -349,7 +349,7 @@
 	}
 
 	#entrydata .fieldlabel {
-		@apply font-bold text-base font-sans whitespace-nowrap min-w-48 grow-0 shrink-0 pt-0.5;
+		@apply font-bold font-serif text-base whitespace-nowrap min-w-48 grow-0 shrink-0 pt-0.5;
 	}
 
 	#entrydata .fieldvalue {

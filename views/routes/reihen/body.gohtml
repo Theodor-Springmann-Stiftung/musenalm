@@ -23,7 +23,18 @@
 	// Only on place request
 	Place *dbmodels.Place
 	}
-	*/}}
+
+	// Parameters:
+	.letter
+	.search
+	.hidden
+
+	.record
+	.record.Image(Path)
+	.record.Text
+
+	.startpage
+*/}}
 
 {{ $model := . }}
 {{ if and .startpage .record }}
@@ -86,7 +97,7 @@
 					</div>
 				{{ end }}
 
-				{{ if .series }}
+				{{ if $model.result.Series }}
 					<div class="border-b text-sm font-sans text-right pb-0.5">
 						Treffer in Reihentiteln &uarr;
 					</div>

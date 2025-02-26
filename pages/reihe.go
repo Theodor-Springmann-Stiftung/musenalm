@@ -35,15 +35,25 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 	router.GET(URL_REIHE, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})
-		reihe, err := dbmodels.SeriesForId(app, id)
+		reihe, err := dbmodels.Series_ID(app, id)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
 		data["series"] = reihe
 
-		rmap, emap, err := dbmodels.EntriesForSeriesses(app, []*dbmodels.Series{reihe})
+		entries, relations, err := Entries_Series_IDs(app, []any{id})
 		if err != nil {
 			return engine.Response404(e, err, data)
+		}
+
+		emap := make(map[string]*dbmodels.Entry)
+		for _, entry := range entries {
+			emap[entry.Id] = entry
+		}
+
+		rmap := make(map[string][]*dbmodels.REntriesSeries)
+		for _, relation := range relations {
+			rmap[relation.Series()] = append(rmap[relation.Series()], relation)
 		}
 
 		data["relations"] = rmap[reihe.Id]
