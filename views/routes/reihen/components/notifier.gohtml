@@ -25,24 +25,24 @@
 		</div>
 	{{ end }}
 
-	{{ if .a }}
+	{{ if $model.result.Agent }}
 		<div class="notifier" x-show="!search">
-			{{ if .a.CorporateBody }}
+			{{ if $model.result.Agent.CorporateBody }}
 				<i class="ri-team-line"></i>
 				<span class="filtercategory">Verlag, Druckerei oder Vertrieb</span> &middot;
 			{{ else }}
 				<i class="ri-user-line"></i>
 				<span class="filtercategory">Herausgeber:in</span> &middot;
 			{{ end }}
-			<span class="filterterm">{{ .a.Name }}</span>
+			<span class="filterterm">{{ $model.result.Agent.Name }}</span>
 		</div>
 	{{ end }}
 
-	{{ if .p }}
+	{{ if $model.result.Place }}
 		<div class="notifier" x-show="!search">
 			<i class="ri-map-pin-line"></i>
 			<span class="filtercategory">Erscheinungsort</span> &middot;
-			<span class="filterterm">{{ .p.Name }}</span>
+			<span class="filterterm">{{ $model.result.Place.Name }}</span>
 		</div>
 	{{ end }}
 

@@ -34,25 +34,26 @@
 					placeholder="Almanach-Nr oder Suchbegriff"
 					x-model="search"
 					hx-get=""
-					hx-trigger="input changed delay=500ms, keyup[key=='Enter']"
-					hx-sync="this:replace"
+					hx-trigger="input changed delay=1500ms, keyup[key=='Enter']"
 					hx-select="#searchcontent"
 					hx-target="#searchcontent"
 					autocomplete="off"
 					{{ if $model.search }}disabled="true"{{ end }} />
 			</div>
 			<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
-				<tool-tip position="right" x-show="search">
-					<a
-						:href="'/reihen/?search=' + search"
-						x-show="search"
-						class="inline-block px-1
+				{{- if not $model.search -}}
+					<tool-tip position="right" x-show="search">
+						<a
+							:href="'/reihen/?search=' + search"
+							x-show="search"
+							class="inline-block px-1
 				text-white no-underline bg-stone-700 hover:bg-stone-900 rounded"
-						hx-boost="false">
-						<i class="ri-links-line"></i
-					></a>
-					<div class="data-tip">Link zu dieser Suchanfrage</div>
-				</tool-tip>
+							hx-boost="false">
+							<i class="ri-links-line"></i
+						></a>
+						<div class="data-tip">Link zu dieser Suchanfrage</div>
+					</tool-tip>
+				{{- end -}}
 			</div>
 		</div>
 	</div>
