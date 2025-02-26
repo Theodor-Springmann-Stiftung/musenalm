@@ -19,6 +19,10 @@ func ReplaceSlashParen(s string) string {
 	return strings.ReplaceAll(s, "/)", "<p>")
 }
 
+func ReplaceSlashParenSlash(s string) string {
+	return strings.ReplaceAll(s, "/)", "/")
+}
+
 func Lower(s string) string {
 	return cases.Lower(language.German).String(s)
 }

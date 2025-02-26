@@ -7,7 +7,6 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
@@ -53,6 +52,15 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 			return engine.Response404(e, err, nil)
 		}
 
+		if paras.Query != "" {
+			switch paras.Collection {
+			case "baende":
+				return p.SimpleSearchBaendeRequest(app, engine, e, *paras)
+			case "beitraege":
+				return p.SimpleSearchReihenRequest(app, engine, e)
+			}
+		}
+
 		data := make(map[string]interface{})
 		data["parameters"] = paras
 		return engine.Response200(e, p.Template+paras.Collection+"/", data, p.Layout)
@@ -67,45 +75,19 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 
 func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, pp Parameters) error {
 	data := make(map[string]interface{})
-	params, err := NewSimpleParameters(e, pp)
+	params, err := NewSearchParameters(e, pp)
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
 
-	query := params.NormalizeQuery()
-	if len(query) == 0 {
-		engine.Response404(e, nil, nil)
-	}
-
-	fields := params.FieldSetBaende()
-	if len(fields) == 0 {
-		return engine.Response404(e, nil, nil)
-	}
-
-	ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, dbmodels.FTS5QueryRequest{
-		Fields: fields,
-		Query:  query,
-	})
+	result, err := SimpleSearchBaende(app, *params)
 	if err != nil {
-		return engine.Response500(e, err, nil)
+		return engine.Response404(e, err, nil)
 	}
 
-	idsany := datatypes.ToAny(ids)
-	entries, err := dbmodels.Entries_IDs(app, idsany)
-	if err != nil {
-		return engine.Response500(e, err, nil)
-	}
-
-	dbmodels.Sort_Entries_Title_Year(entries)
-	data["entries"] = entries
-	data["count"] = len(entries)
-
-	eids := []any{}
-	for _, entry := range entries {
-		eids = append(eids, entry.Id)
-	}
-
-	return engine.Response404(e, nil, nil)
+	data["parameters"] = params
+	data["result"] = result
+	return engine.Response200(e, p.Template+pp.Collection+"/", data, p.Layout)
 }
 
 const (
@@ -128,7 +110,7 @@ const (
 	BAENDE_PARAM_TITLE       = "title"
 	BAENDE_PARAM_SERIES      = "series"
 	BAENDE_PARAM_PERSONS     = "persons"
-	BAENDE_PARAM_PLACES      = "pubdata"
+	BAENDE_PARAM_PLACES      = "places"
 	BAENDE_PARAM_REFS        = "references"
 	BAENDE_PARAM_ANNOTATIONS = "annotations"
 	BAENDE_PARAM_YEAR        = "year"
@@ -169,8 +151,10 @@ func (p *Parameters) NormalizeQuery() []string {
 	return dbmodels.NormalizeQuery(p.Query)
 }
 
-type SimpleParameters struct {
+type SearchParameters struct {
 	Parameters
+	Sort string
+
 	Annotations bool
 	Persons     bool
 	Title       bool
@@ -179,9 +163,20 @@ type SimpleParameters struct {
 	Places      bool
 	Refs        bool
 	Year        bool
+
+	AnnotationsString string
+	PersonsString     string
+	TitleString       string
+	AlmString         string
+	SeriesString      string
+	PlacesString      string
+	RefsString        string
+	YearString        string
+
+	TypeFilter string
 }
 
-func NewSimpleParameters(e *core.RequestEvent, p Parameters) (*SimpleParameters, error) {
+func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters, error) {
 	q := e.Request.URL.Query().Get(PARAM_QUERY)
 	if q == "" {
 		return nil, ErrNoQuery
@@ -196,10 +191,14 @@ func NewSimpleParameters(e *core.RequestEvent, p Parameters) (*SimpleParameters,
 	annotations := e.Request.URL.Query().Get(BAENDE_PARAM_ANNOTATIONS) == "on"
 	year := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR) == "on"
 
-	// TODO: sanity check here if any single field is selected
+	sort := e.Request.URL.Query().Get("sort")
+	if sort == "" {
+		sort = "year"
+	}
 
-	return &SimpleParameters{
+	return &SearchParameters{
 		Parameters: p,
+		Sort:       sort,
 		// INFO: Common parameters
 		Alm:         alm,
 		Title:       title,
@@ -214,37 +213,319 @@ func NewSimpleParameters(e *core.RequestEvent, p Parameters) (*SimpleParameters,
 	}, nil
 }
 
-func (p SimpleParameters) FieldSetBaende() []string {
-	fields := []string{}
-	if p.Alm {
-		fields = append(fields, dbmodels.MUSENALMID_FIELD)
+func (p SearchParameters) ToQueryParams() string {
+	if !p.Extended {
+		q := fmt.Sprintf("?q=%s", p.Query)
+		if p.Alm {
+			q += "&alm=on"
+		}
+		if p.Title {
+			q += "&title=on"
+		}
+		if p.Persons {
+			q += "&persons=on"
+		}
+		if p.Annotations {
+			q += "&annotations=on"
+		}
+		if p.Series {
+			q += "&series=on"
+		}
+		if p.Places {
+			q += "&places=on"
+		}
+		if p.Refs {
+			q += "&references=on"
+		}
+		if p.Year {
+			q += "&year=on"
+		}
+		return q
 	}
-	if p.Title {
-		fields = append(fields,
-			dbmodels.TITLE_STMT_FIELD,
-			dbmodels.SUBTITLE_STMT_FIELD,
-			dbmodels.INCIPIT_STMT_FIELD,
-			dbmodels.VARIANT_TITLE_FIELD,
-			dbmodels.PARALLEL_TITLE_FIELD,
-		)
+	return ""
+}
+
+func (p SearchParameters) IsBeandeSearch() bool {
+	return p.Collection == "baende" && (p.Query != "" || (p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.AlmString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != ""))
+}
+
+func (p SearchParameters) FieldSetBaende() []dbmodels.FTS5QueryRequest {
+	ret := []dbmodels.FTS5QueryRequest{}
+	if p.Query != "" {
+		fields := []string{dbmodels.ID_FIELD}
+		if p.Alm {
+			fields = append(fields, dbmodels.MUSENALMID_FIELD)
+		}
+		if p.Title {
+			// INFO: Preferred Title is not here to avoid hitting the Reihentitel
+			fields = append(fields,
+				dbmodels.TITLE_STMT_FIELD,
+				dbmodels.SUBTITLE_STMT_FIELD,
+				dbmodels.INCIPIT_STMT_FIELD,
+				dbmodels.VARIANT_TITLE_FIELD,
+				dbmodels.PARALLEL_TITLE_FIELD,
+			)
+		}
+		if p.Series {
+			fields = append(fields, dbmodels.SERIES_TABLE)
+		}
+		if p.Persons {
+			fields = append(fields, dbmodels.RESPONSIBILITY_STMT_FIELD, dbmodels.AGENTS_TABLE)
+		}
+		if p.Places {
+			fields = append(fields, dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD)
+		}
+		if p.Refs {
+			fields = append(fields, dbmodels.REFERENCES_FIELD)
+		}
+		if p.Annotations {
+			fields = append(fields, dbmodels.ANNOTATION_FIELD)
+		}
+		if p.Year {
+			fields = append(fields, dbmodels.YEAR_FIELD)
+		}
+
+		que := p.NormalizeQuery()
+
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: fields,
+				Query:  p.NormalizeQuery(),
+			})
+		}
 	}
-	if p.Series {
-		fields = append(fields, dbmodels.SERIES_TABLE)
+
+	if p.IsExtendedSearch() {
+		if p.AnnotationsString != "" {
+			que := dbmodels.NormalizeQuery(p.AnnotationsString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.ANNOTATION_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.PersonsString != "" {
+			que := dbmodels.NormalizeQuery(p.PersonsString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.AGENTS_TABLE, dbmodels.RESPONSIBILITY_STMT_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.TitleString != "" {
+			que := dbmodels.NormalizeQuery(p.TitleString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.TITLE_STMT_FIELD, dbmodels.SUBTITLE_STMT_FIELD, dbmodels.INCIPIT_STMT_FIELD, dbmodels.VARIANT_TITLE_FIELD, dbmodels.PARALLEL_TITLE_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.AlmString != "" {
+			que := dbmodels.NormalizeQuery(p.AlmString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.MUSENALMID_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.SeriesString != "" {
+			que := dbmodels.NormalizeQuery(p.SeriesString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.SERIES_TABLE},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.PlacesString != "" {
+			que := dbmodels.NormalizeQuery(p.PlacesString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.RefsString != "" {
+			que := dbmodels.NormalizeQuery(p.RefsString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.REFERENCES_FIELD},
+					Query:  que,
+				})
+			}
+		}
+
+		if p.YearString != "" {
+			que := dbmodels.NormalizeQuery(p.YearString)
+			if len(que) > 0 {
+				ret = append(ret, dbmodels.FTS5QueryRequest{
+					Fields: []string{dbmodels.YEAR_FIELD},
+					Query:  dbmodels.NormalizeQuery(p.YearString),
+				})
+			}
+		}
 	}
-	if p.Persons {
-		fields = append(fields, dbmodels.RESPONSIBILITY_STMT_FIELD, dbmodels.AGENTS_TABLE)
+
+	return ret
+}
+
+func (p SearchParameters) IsExtendedSearch() bool {
+	return p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.AlmString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != ""
+}
+
+func (p SearchParameters) NormalizeQuery() []string {
+	return dbmodels.NormalizeQuery(p.Query)
+}
+
+type SearchResultBaende struct {
+	// these are the sorted IDs for hits
+	Hits    []string
+	Series  map[string]*dbmodels.Series // <- Key: Series ID
+	Entries map[string]*dbmodels.Entry  // <- Key: Entry ID
+	Places  map[string]*dbmodels.Place  // <- All places, Key: Place IDs
+	Agents  map[string]*dbmodels.Agent  // <- Key: Agent IDs
+
+	// INFO: this is as they say doppelt gemoppelt bc of a logic error i made while tired
+	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Entry ID
+	SeriesEntries map[string][]*dbmodels.REntriesSeries // <- Key: Series ID
+	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
+}
+
+func SimpleSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende, error) {
+	fields := params.FieldSetBaende()
+	if len(fields) == 0 {
+		return nil, ErrNoQuery
 	}
-	if p.Places {
-		fields = append(fields, dbmodels.PLACE_STMT_FIELD, dbmodels.PLACES_TABLE, dbmodels.PUBLICATION_STMT_FIELD)
+
+	ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, fields...)
+	if err != nil {
+		return nil, err
 	}
-	if p.Refs {
-		fields = append(fields, dbmodels.REFERENCES_FIELD)
+
+	resultids := []any{}
+	for _, id := range ids {
+		resultids = append(resultids, id.ID)
 	}
-	if p.Annotations {
-		fields = append(fields, dbmodels.ANNOTATION_FIELD)
+
+	entries, err := dbmodels.Entries_IDs(app, resultids)
+	if err != nil {
+		return nil, err
 	}
-	if p.Year {
-		fields = append(fields, dbmodels.YEAR_FIELD)
+
+	entriesmap := make(map[string]*dbmodels.Entry)
+	for _, entry := range entries {
+		entriesmap[entry.Id] = entry
 	}
-	return fields
+
+	series, relations, err := Series_Entries(app, entries)
+	if err != nil {
+		return nil, err
+	}
+
+	seriesmap := make(map[string]*dbmodels.Series)
+	for _, s := range series {
+		seriesmap[s.Id] = s
+	}
+
+	relationsmap := make(map[string][]*dbmodels.REntriesSeries)
+	invrelationsmap := make(map[string][]*dbmodels.REntriesSeries)
+	for _, r := range relations {
+		invrelationsmap[r.Series()] = append(invrelationsmap[r.Series()], r)
+		relationsmap[r.Entry()] = append(relationsmap[r.Entry()], r)
+	}
+
+	agents, arelations, err := Agents_Entries_IDs(app, resultids)
+	if err != nil {
+		return nil, err
+	}
+
+	agentsmap := make(map[string]*dbmodels.Agent)
+	for _, a := range agents {
+		agentsmap[a.Id] = a
+	}
+
+	relationsagentsmap := make(map[string][]*dbmodels.REntriesAgents)
+	for _, r := range arelations {
+		relationsagentsmap[r.Entry()] = append(relationsagentsmap[r.Entry()], r)
+	}
+
+	placesids := []any{}
+	for _, entry := range entries {
+		for _, place := range entry.Places() {
+			placesids = append(placesids, place)
+		}
+	}
+
+	places, err := dbmodels.Places_IDs(app, placesids)
+	if err != nil {
+		return nil, err
+	}
+
+	placesmap := make(map[string]*dbmodels.Place)
+	for _, place := range places {
+		placesmap[place.Id] = place
+	}
+
+	hits := []string{}
+	if params.Sort == "series" {
+		dbmodels.Sort_Series_Title(series)
+		for _, s := range series {
+			hits = append(hits, s.Id)
+		}
+	} else {
+		dbmodels.Sort_Entries_Year_Title(entries)
+		for _, e := range entries {
+			hits = append(hits, e.Id)
+		}
+	}
+
+	return &SearchResultBaende{
+		Hits:          hits,
+		Series:        seriesmap,
+		Entries:       entriesmap,
+		Places:        placesmap,
+		Agents:        agentsmap,
+		EntriesSeries: relationsmap,
+		SeriesEntries: invrelationsmap,
+		EntriesAgents: relationsagentsmap,
+	}, nil
+
+}
+
+func (r SearchResultBaende) Count() int {
+	return len(r.Entries)
+}
+
+func (r SearchResultBaende) SeriesCount() int {
+	return len(r.Series)
+}
+
+func Agents_Entries_IDs(app core.App, ids []any) ([]*dbmodels.Agent, []*dbmodels.REntriesAgents, error) {
+	relations, err := dbmodels.REntriesAgents_Entries(app, ids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentids := []any{}
+	for _, r := range relations {
+		agentids = append(agentids, r.Agent())
+	}
+
+	agents, err := dbmodels.Agents_IDs(app, agentids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return agents, relations, nil
 }

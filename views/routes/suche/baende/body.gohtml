@@ -1,12 +1,9 @@
 {{ $model := . }}
 {{/* .parameters
-	type Parameters struct {
-	Extended   bool
-	Collection string
-	Query      string
-	}
-	type SimpleParameters struct {
+	type SearchParameters struct {
 	Parameters
+	Sort string
+
 	Annotations bool
 	Persons     bool
 	Title       bool
@@ -15,8 +12,60 @@
 	Places      bool
 	Refs        bool
 	Year        bool
+
+	AnnotationsString string
+	PersonsString     string
+	TitleString       string
+	AlmString         string
+	SeriesString      string
+	PlacesString      string
+	RefsString        string
+	YearString        string
+
+	TypeFilter string
+	}
+	type Parameters struct {
+	Query    string
+	Collection string
+	Extended bool
+	}
+	type SearchResultBaende struct {
+	// these are the sorted IDs for hits
+	Hits    []string
+	Series  map[string]*dbmodels.Series // <- Key: Series ID
+	Entries map[string]*dbmodels.Entry  // <- Key: Entry ID
+	Places  map[string]*dbmodels.Place  // <- All places, Key: Place IDs
+	Agents  map[string]*dbmodels.Agent  // <- Key: Agent IDs
+
+	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Whatever the Hit IDs are
+	SeriesEntries map[string][]*dbmodels.REntriesSeries // <- Key: Whatever the Hit IDs are
+	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
 	}
 	*/}}
+
+{{ $isAlm := false }}
+{{ $isTitle := false }}
+{{ $isRefs := false }}
+{{ $isPlaces := false }}
+{{ $isYear := false }}
+{{ $isSeries := false }}
+{{ $isPersons := false }}
+{{ $isAnnotations := false }}
+
+{{ if $model.parameters.Query }}
+	{{- $isAlm = or $model.parameters.Alm $model.parameters.AlmString -}}
+	{{- $isTitle = or $model.parameters.Title $model.parameters.TitleString -}}
+	{{- $isRefs = or $model.parameters.Refs $model.parameters.RefsString -}}
+	{{- $isPlaces = or $model.parameters.Places $model.parameters.PlacesString -}}
+	{{- $isYear = or $model.parameters.Year $model.parameters.YearString -}}
+	{{- $isSeries = or $model.parameters.Series $model.parameters.SeriesString -}}
+	{{- $isPersons = or $model.parameters.Persons $model.parameters.PersonsString -}}
+	{{- $isAnnotations = or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
+{{ end }}
+
+{{- $isBase := not (or $isAlm $isTitle $isRefs $isPlaces $isYear $isSeries $isPersons
+	$isAnnotations)
+-}}
 
 
 <div id="searchcontrol" class="container-normal">
@@ -37,35 +86,79 @@
 					{{ template "_searchboxsimple" Arr $model.parameters true $q }}
 					<fieldset class="selectgroup">
 						<div class="selectgroup-option">
-							<input type="checkbox" name="alm" id="alm" checked />
+							<input
+								type="checkbox"
+								name="alm"
+								id="alm"
+								{{ if or $isBase $isAlm -}}checked{{- end -}} />
 							<label for="alm">Almanach-Nr.</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="title" id="title" checked />
+							<input
+								type="checkbox"
+								name="title"
+								id="title"
+								{{ if or $isBase $isTitle -}}checked{{- end -}} />
 							<label for="title">Titel</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="series" id="series" checked />
+							<input
+								type="checkbox"
+								name="series"
+								id="series"
+								{{ if or $isBase $isSeries -}}checked{{- end -}} />
 							<label for="series">Reihentitel</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="persons" id="persons" checked />
+							<input
+								type="checkbox"
+								name="persons"
+								id="persons"
+								{{ if or $isBase
+									$isPersons
+								-}}
+									checked
+								{{- end -}} />
 							<label for="persons">Personen &amp; Verlage</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="pubdata" id="pubdata" checked />
-							<label for="pubdata">Orte</label>
+							<input
+								type="checkbox"
+								name="places"
+								id="places"
+								{{ if or $isBase $isPlaces -}}checked{{- end -}} />
+							<label for="places">Orte</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="year" id="year" checked />
+							<input
+								type="checkbox"
+								name="year"
+								id="year"
+								{{ if or $isBase $isYear -}}checked{{- end -}} />
 							<label for="year">Jahr</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="references" id="references" checked />
+							<input
+								type="checkbox"
+								name="references"
+								id="references"
+								{{ if or $isBase
+									$isRefs
+								-}}
+									checked
+								{{- end -}} />
 							<label for="references">Nachweise</label>
 						</div>
 						<div class="selectgroup-option">
-							<input type="checkbox" name="annotations" id="annotations" checked />
+							<input
+								type="checkbox"
+								name="annotations"
+								id="annotations"
+								{{ if or $isBase
+									$isAnnotations
+								-}}
+									checked
+								{{- end -}} />
 							<label for="annotations">Anmerkungen</label>
 						</div>
 					</fieldset>
@@ -77,3 +170,94 @@
 </div>
 
 {{- template "_fieldscript" -}}
+
+{{- if $model.parameters.Query -}}
+	<div class="container-normal" id="searchresults">
+		<div class="border-b border-zinc-300 flex flex-row justify-between">
+			<div>
+				Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+				<i class="ri-book-line"></i>
+				{{ if eq $model.result.Count 1 -}}
+					Ein Band
+				{{ else -}}
+					{{ $model.result.Count }} Bände
+				{{- end }}
+				in
+				{{ if eq ($model.result.Series | len) 1 -}}
+					einer Reihe
+				{{ else -}}
+					{{ $model.result.Series | len }} Reihen
+				{{- end -}}
+			</div>
+			<div>
+				<label
+					for="sort"
+					class="align-baseline h-min self-end pb-1 mr-2 text-sm	font-sans
+				text-stone-700"
+					>Sortierung</label
+				>
+
+				{{/* INFO:  We always redrect to letter = A bc some letters dont exist for other professions */}}
+				<select
+					class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
+					name="sort"
+					id="sort"
+					hx-get="{{- $model.parameters.ToQueryParams -}}"
+					trigger="change"
+					hx-push-url="true"
+					hx-select="main"
+					auto-complete="off"
+					hx-target="main">
+					<option
+						value="year"
+						{{ if eq $model.parameters.Sort "year" -}}
+							selected
+						{{- end -}}>
+						Erscheinungsjahr
+					</option>
+					<option value="series" {{ if eq $model.parameters.Sort "series" -}}selected{{- end -}}>
+						Reihentitel A-Z
+					</option>
+				</select>
+			</div>
+		</div>
+
+		{{- if $model.result.Hits -}}
+			{{- if eq .parameters.Sort "series" -}}
+				<div class="mt-4">
+					{{- range $_, $hit := $model.result.Hits -}}
+						{{- $series := index $model.result.Series $hit -}}
+						<div class="font-serif font-bold py-1 border  border-zinc-300 px-3 mt-6">
+							<span class="text-base font-sans pr-2  border-zinc-300">Reihe</span>
+							<span class="pl-2">{{ $series.Title }}</span>
+						</div>
+						{{- range $_, $rel := index $model.result.SeriesEntries $hit -}}
+							{{- $entry := index $model.result.Entries $rel.Entry -}}
+							{{- template "band" (Arr $model $entry $series.Id) -}}
+						{{- end -}}
+					{{- end -}}
+				</div>
+			{{- else -}}
+				{{- range $_, $hit := $model.result.Hits -}}
+					{{- $entry := index $model.result.Entries $hit -}}
+					{{- template "band" (Arr $model $entry false) -}}
+				{{- end -}}
+			{{- end -}}
+		{{- end -}}
+
+	<script type="module">
+	let elements = document.querySelectorAll('.search-text');
+	let mark_instance = new Mark(elements);
+	// INFO: we wait a little bit before marking, to settle everything
+		setTimeout(() => {
+			mark_instance.mark('{{ $model.parameters.Query }}', {
+				"seperateWordSearch": true,
+			});
+		}, 200);
+	</script>
+	</div>
+
+	{{- if not $model.result.Hits -}}
+		Keine Bände gefunden.
+	{{- end -}}
+{{- end -}}

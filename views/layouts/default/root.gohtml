@@ -29,6 +29,17 @@
 		<link href="/assets/css/remixicon.css" rel="stylesheet" />
 		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
 		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
+
+		<script type="module">
+			document.body.addEventListener("htmx:responseError", function (event) {
+				const config = event.detail.requestConfig;
+				if (config.boosted) {
+					document.body.innerHTML = event.detail.xhr.responseText;
+					const newUrl = event.detail.xhr.responseURL || config.url;
+					window.history.pushState(null, "", newUrl);
+				}
+			});
+		</script>
 	</head>
 
 	<body class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
