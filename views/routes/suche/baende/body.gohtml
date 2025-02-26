@@ -52,16 +52,14 @@
 {{ $isPersons := false }}
 {{ $isAnnotations := false }}
 
-{{ if $model.parameters.Query }}
-	{{- $isAlm = or $model.parameters.Alm $model.parameters.AlmString -}}
-	{{- $isTitle = or $model.parameters.Title $model.parameters.TitleString -}}
-	{{- $isRefs = or $model.parameters.Refs $model.parameters.RefsString -}}
-	{{- $isPlaces = or $model.parameters.Places $model.parameters.PlacesString -}}
-	{{- $isYear = or $model.parameters.Year $model.parameters.YearString -}}
-	{{- $isSeries = or $model.parameters.Series $model.parameters.SeriesString -}}
-	{{- $isPersons = or $model.parameters.Persons $model.parameters.PersonsString -}}
-	{{- $isAnnotations = or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
-{{ end }}
+{{- $isAlm = or $model.parameters.Alm $model.parameters.AlmString -}}
+{{- $isTitle = or $model.parameters.Title $model.parameters.TitleString -}}
+{{- $isRefs = or $model.parameters.Refs $model.parameters.RefsString -}}
+{{- $isPlaces = or $model.parameters.Places $model.parameters.PlacesString -}}
+{{- $isYear = or $model.parameters.Year $model.parameters.YearString -}}
+{{- $isSeries = or $model.parameters.Series $model.parameters.SeriesString -}}
+{{- $isPersons = or $model.parameters.Persons $model.parameters.PersonsString -}}
+{{- $isAnnotations = or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
 
 {{- $isBase := not (or $isAlm $isTitle $isRefs $isPlaces $isYear $isSeries $isPersons
 	$isAnnotations)
@@ -71,13 +69,13 @@
 <div id="searchcontrol" class="container-normal">
 	{{- template "_heading" $model.parameters -}}
 	<div id="" class="border-l border-zinc-300 px-8 py-10 relative">
-		{{- if not $model.parameters.Extended -}}
-			<form
-				id="searchform"
-				class="w-full font-serif"
-				method="get"
-				action="/suche/baende"
-				autocomplete="off">
+		<form
+			id="searchform"
+			class="w-full font-serif"
+			method="get"
+			action="/suche/baende"
+			autocomplete="off">
+			{{- if not $model.parameters.Extended -}}
 				<div class="searchformcolumn">
 					{{- $q := "" }}
 					{{- if $model.parameters.Query -}}
@@ -164,18 +162,75 @@
 					</fieldset>
 					{{ template "_infotextsimple" true }}
 				</div>
-			</form>
-		{{- end -}}
+				{{- template "_fieldscript" -}}
+			{{- else -}}
+				<div id="extendedsearchcolumn" class="">
+					<input type="hidden" name="extended" value="true" />
+					<label for="titlestring">Titel</label>
+					<input
+						type="search"
+						name="titlestring"
+						id="titlestring"
+						value="{{ $model.parameters.TitleString }}" />
+					<label for="almstring">Almanach-Nr.</label>
+					<input
+						type="search"
+						name="almstring"
+						id="almstring"
+						value="{{ $model.parameters.AlmString }}" />
+					<label for="seriesstring">Reihentitel</label>
+					<input
+						type="search"
+						name="seriesstring"
+						id="seriesstring"
+						value="{{ $model.parameters.SeriesString }}" />
+					<label for="personsstring">Personen &amp; Verlage</label>
+					<input
+						type="search"
+						name="personsstring"
+						id="personsstring"
+						value="{{ $model.parameters.PersonsString }}" />
+					<label for="placesstring">Orte</label>
+					<input
+						type="search"
+						name="placesstring"
+						id="placesstring"
+						value="{{ $model.parameters.PlacesString }}" />
+					<label for="yearstring">Jahr</label>
+					<input
+						type="search"
+						name="yearstring"
+						id="yearstring"
+						value="{{ $model.parameters.YearString }}" />
+					<label for="refsstring">Nachweise</label>
+					<input
+						type="search"
+						name="refsstring"
+						id="refsstring"
+						value="{{ $model.parameters.RefsString }}" />
+					<label for="annotationsstring">Anmerkungen</label>
+					<input
+						type="search"
+						name="annotationsstring"
+						id="annotationsstring"
+						value="{{ $model.parameters.AnnotationsString }}" />
+					<button id="submitbutton" type="submit" class="">Suchen</button>
+					<a href="/suche/baende" class="whitespace-nowrap"
+						><i class="ri-arrow-left-long-line"></i> Zurück zur einfachen Suche</a
+					>
+				</div>
+			{{- end -}}
+		</form>
 	</div>
 </div>
 
-{{- template "_fieldscript" -}}
-
-{{- if $model.parameters.Query -}}
+{{- if $model.parameters.IsBaendeSearch -}}
 	<div class="container-normal" id="searchresults">
 		<div class="border-b border-zinc-300 flex flex-row justify-between">
 			<div>
-				Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+				{{ if $model.parameters.Query -}}
+					Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+				{{- end -}}
 				<i class="ri-book-line"></i>
 				{{ if eq $model.result.Count 1 -}}
 					Ein Band
@@ -189,6 +244,7 @@
 					{{ $model.result.Series | len }} Reihen
 				{{- end -}}
 			</div>
+
 			<div>
 				<label
 					for="sort"
@@ -250,7 +306,7 @@
 	let mark_instance = new Mark(elements);
 	// INFO: we wait a little bit before marking, to settle everything
 		setTimeout(() => {
-			mark_instance.mark('{{ $model.parameters.Query }}', {
+			mark_instance.mark('{{ $model.parameters.AllSearchTerms }}', {
 				"seperateWordSearch": true,
 			});
 		}, 200);
@@ -258,6 +314,6 @@
 	</div>
 
 	{{- if not $model.result.Hits -}}
-		Keine Bände gefunden.
+		<div class="container-normal">Keine Bände gefunden.</div>
 	{{- end -}}
 {{- end -}}

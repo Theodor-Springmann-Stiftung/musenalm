@@ -52,17 +52,14 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 			return engine.Response404(e, err, nil)
 		}
 
-		if paras.Query != "" {
-			switch paras.Collection {
-			case "baende":
-				return p.SimpleSearchBaendeRequest(app, engine, e, *paras)
-			case "beitraege":
-				return p.SimpleSearchReihenRequest(app, engine, e)
-			}
+		allparas, _ := NewSearchParameters(e, *paras)
+
+		if paras.Query != "" || allparas.IsBaendeSearch() {
+			return p.SearchBaendeRequest(app, engine, e, *allparas)
 		}
 
 		data := make(map[string]interface{})
-		data["parameters"] = paras
+		data["parameters"] = allparas
 		return engine.Response200(e, p.Template+paras.Collection+"/", data, p.Layout)
 	})
 
@@ -73,21 +70,17 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 	return engine.Response404(e, nil, nil)
 }
 
-func (p *SuchePage) SimpleSearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, pp Parameters) error {
+func (p *SuchePage) SearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
 	data := make(map[string]interface{})
-	params, err := NewSearchParameters(e, pp)
-	if err != nil {
-		return engine.Response404(e, err, nil)
-	}
 
-	result, err := SimpleSearchBaende(app, *params)
+	result, err := SimpleSearchBaende(app, params)
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
 
 	data["parameters"] = params
 	data["result"] = result
-	return engine.Response200(e, p.Template+pp.Collection+"/", data, p.Layout)
+	return engine.Response200(e, p.Template+params.Collection+"/", data, p.Layout)
 }
 
 const (
@@ -177,11 +170,6 @@ type SearchParameters struct {
 }
 
 func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters, error) {
-	q := e.Request.URL.Query().Get(PARAM_QUERY)
-	if q == "" {
-		return nil, ErrNoQuery
-	}
-
 	alm := e.Request.URL.Query().Get(BAENDE_PARAM_ALM_NR) == "on"
 	title := e.Request.URL.Query().Get(BAENDE_PARAM_TITLE) == "on"
 	series := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES) == "on"
@@ -190,6 +178,15 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 	refs := e.Request.URL.Query().Get(BAENDE_PARAM_REFS) == "on"
 	annotations := e.Request.URL.Query().Get(BAENDE_PARAM_ANNOTATIONS) == "on"
 	year := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR) == "on"
+
+	almstring := e.Request.URL.Query().Get(BAENDE_PARAM_ALM_NR + "string")
+	titlestring := e.Request.URL.Query().Get(BAENDE_PARAM_TITLE + "string")
+	seriesstring := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES + "string")
+	personsstring := e.Request.URL.Query().Get(BAENDE_PARAM_PERSONS + "string")
+	placesstring := e.Request.URL.Query().Get(BAENDE_PARAM_PLACES + "string")
+	refsstring := e.Request.URL.Query().Get(BAENDE_PARAM_REFS + "string")
+	annotationsstring := e.Request.URL.Query().Get(BAENDE_PARAM_ANNOTATIONS + "string")
+	yearstring := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR + "string")
 
 	sort := e.Request.URL.Query().Get("sort")
 	if sort == "" {
@@ -210,42 +207,90 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 		Refs:   refs,
 		Year:   year,
 		Series: series,
+
+		// INFO: Expanded search
+		AlmString:         almstring,
+		TitleString:       titlestring,
+		SeriesString:      seriesstring,
+		PersonsString:     personsstring,
+		PlacesString:      placesstring,
+		RefsString:        refsstring,
+		AnnotationsString: annotationsstring,
+		YearString:        yearstring,
 	}, nil
 }
 
-func (p SearchParameters) ToQueryParams() string {
-	if !p.Extended {
-		q := fmt.Sprintf("?q=%s", p.Query)
-		if p.Alm {
-			q += "&alm=on"
-		}
-		if p.Title {
-			q += "&title=on"
-		}
-		if p.Persons {
-			q += "&persons=on"
-		}
-		if p.Annotations {
-			q += "&annotations=on"
-		}
-		if p.Series {
-			q += "&series=on"
-		}
-		if p.Places {
-			q += "&places=on"
-		}
-		if p.Refs {
-			q += "&references=on"
-		}
-		if p.Year {
-			q += "&year=on"
-		}
-		return q
-	}
-	return ""
+func (p SearchParameters) AllSearchTerms() string {
+	q := p.Query + " " + p.AnnotationsString + " " + p.PersonsString + " " + p.TitleString + " " + p.AlmString + " " + p.SeriesString + " " + p.PlacesString + " " + p.RefsString + " " + p.YearString
+	return q
 }
 
-func (p SearchParameters) IsBeandeSearch() bool {
+func (p SearchParameters) ToQueryParams() string {
+	q := "?"
+
+	// TODO: use variables, url escape
+	if p.Extended {
+		q += "extended=true"
+	}
+
+	if p.Query != "" {
+		q += fmt.Sprintf("q=%s", p.Query)
+	}
+
+	if p.Alm {
+		q += "&alm=on"
+	}
+	if p.Title {
+		q += "&title=on"
+	}
+	if p.Persons {
+		q += "&persons=on"
+	}
+	if p.Annotations {
+		q += "&annotations=on"
+	}
+	if p.Series {
+		q += "&series=on"
+	}
+	if p.Places {
+		q += "&places=on"
+	}
+	if p.Refs {
+		q += "&references=on"
+	}
+	if p.Year {
+		q += "&year=on"
+	}
+
+	if p.YearString != "" {
+		q += fmt.Sprintf("&yearstring=%s", p.YearString)
+	}
+	if p.AnnotationsString != "" {
+		q += fmt.Sprintf("&annotationsstring=%s", p.AnnotationsString)
+	}
+	if p.PersonsString != "" {
+		q += fmt.Sprintf("&personsstring=%s", p.PersonsString)
+	}
+	if p.TitleString != "" {
+		q += fmt.Sprintf("&titlestring=%s", p.TitleString)
+	}
+	if p.AlmString != "" {
+		q += fmt.Sprintf("&almstring=%s", p.AlmString)
+	}
+	if p.SeriesString != "" {
+		q += fmt.Sprintf("&seriesstring=%s", p.SeriesString)
+	}
+	if p.PlacesString != "" {
+		q += fmt.Sprintf("&placesstring=%s", p.PlacesString)
+	}
+	if p.RefsString != "" {
+		q += fmt.Sprintf("&refsstring=%s", p.RefsString)
+	}
+
+	return q
+}
+
+func (p SearchParameters) IsBaendeSearch() bool {
 	return p.Collection == "baende" && (p.Query != "" || (p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.AlmString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != ""))
 }
 
@@ -295,85 +340,83 @@ func (p SearchParameters) FieldSetBaende() []dbmodels.FTS5QueryRequest {
 		}
 	}
 
-	if p.IsExtendedSearch() {
-		if p.AnnotationsString != "" {
-			que := dbmodels.NormalizeQuery(p.AnnotationsString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.ANNOTATION_FIELD},
-					Query:  que,
-				})
-			}
+	if p.AnnotationsString != "" {
+		que := dbmodels.NormalizeQuery(p.AnnotationsString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.ANNOTATION_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.PersonsString != "" {
-			que := dbmodels.NormalizeQuery(p.PersonsString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.AGENTS_TABLE, dbmodels.RESPONSIBILITY_STMT_FIELD},
-					Query:  que,
-				})
-			}
+	if p.PersonsString != "" {
+		que := dbmodels.NormalizeQuery(p.PersonsString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.AGENTS_TABLE, dbmodels.RESPONSIBILITY_STMT_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.TitleString != "" {
-			que := dbmodels.NormalizeQuery(p.TitleString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.TITLE_STMT_FIELD, dbmodels.SUBTITLE_STMT_FIELD, dbmodels.INCIPIT_STMT_FIELD, dbmodels.VARIANT_TITLE_FIELD, dbmodels.PARALLEL_TITLE_FIELD},
-					Query:  que,
-				})
-			}
+	if p.TitleString != "" {
+		que := dbmodels.NormalizeQuery(p.TitleString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.TITLE_STMT_FIELD, dbmodels.SUBTITLE_STMT_FIELD, dbmodels.INCIPIT_STMT_FIELD, dbmodels.VARIANT_TITLE_FIELD, dbmodels.PARALLEL_TITLE_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.AlmString != "" {
-			que := dbmodels.NormalizeQuery(p.AlmString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.MUSENALMID_FIELD},
-					Query:  que,
-				})
-			}
+	if p.AlmString != "" {
+		que := dbmodels.NormalizeQuery(p.AlmString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.MUSENALMID_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.SeriesString != "" {
-			que := dbmodels.NormalizeQuery(p.SeriesString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.SERIES_TABLE},
-					Query:  que,
-				})
-			}
+	if p.SeriesString != "" {
+		que := dbmodels.NormalizeQuery(p.SeriesString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.SERIES_TABLE},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.PlacesString != "" {
-			que := dbmodels.NormalizeQuery(p.PlacesString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD},
-					Query:  que,
-				})
-			}
+	if p.PlacesString != "" {
+		que := dbmodels.NormalizeQuery(p.PlacesString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.RefsString != "" {
-			que := dbmodels.NormalizeQuery(p.RefsString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.REFERENCES_FIELD},
-					Query:  que,
-				})
-			}
+	if p.RefsString != "" {
+		que := dbmodels.NormalizeQuery(p.RefsString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.REFERENCES_FIELD},
+				Query:  que,
+			})
 		}
+	}
 
-		if p.YearString != "" {
-			que := dbmodels.NormalizeQuery(p.YearString)
-			if len(que) > 0 {
-				ret = append(ret, dbmodels.FTS5QueryRequest{
-					Fields: []string{dbmodels.YEAR_FIELD},
-					Query:  dbmodels.NormalizeQuery(p.YearString),
-				})
-			}
+	if p.YearString != "" {
+		que := dbmodels.NormalizeQuery(p.YearString)
+		if len(que) > 0 {
+			ret = append(ret, dbmodels.FTS5QueryRequest{
+				Fields: []string{dbmodels.YEAR_FIELD},
+				Query:  dbmodels.NormalizeQuery(p.YearString),
+			})
 		}
 	}
 

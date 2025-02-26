@@ -382,4 +382,28 @@
 	input:disabled {
 		@apply italic text-gray-500;
 	}
+
+	#extendedsearchcolumn {
+		@apply grid grid-cols-12 gap-y-3 w-full gap-x-4;
+	}
+
+	#extendedsearchcolumn input {
+		@apply w-full px-2 py-1 border-zinc-600 border col-span-9;
+	}
+
+	#extendedsearchcolumn button {
+		@apply bg-stone-100 text-base px-2.5 py-1 rounded font-sans transition-all duration-75 col-start-4 col-span-4;
+	}
+
+	#extendedsearchcolumn button:hover:not(:disabled) {
+		@apply cursor-pointer bg-stone-200;
+	}
+
+	#extendedsearchcolumn button:disabled {
+		@apply bg-stone-300 text-gray-500 cursor-not-allowed;
+	}
+
+	#extendedsearchcolumn label {
+		@apply col-span-3 bg-stone-200 align-middle px-2.5 text-slate-900 items-center flex text-base;
+	}
 }
