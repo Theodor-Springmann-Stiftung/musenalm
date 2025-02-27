@@ -58,6 +58,15 @@ func RContentsAgents_Contents(app core.App, id []any) ([]*RContentsAgents, error
 	)
 }
 
+func RContentsAgents_Content(app core.App, id string) ([]*RContentsAgents, error) {
+	return TableByFields[[]*RContentsAgents](
+		app,
+		RelationTableName(CONTENTS_TABLE, AGENTS_TABLE),
+		CONTENTS_TABLE,
+		id,
+	)
+}
+
 func REntriesSeries_Entries(app core.App, ids []any) ([]*REntriesSeries, error) {
 	return TableByFields[[]*REntriesSeries](
 		app,
@@ -137,6 +146,11 @@ func Contents_Entry(app core.App, id string) ([]*Content, error) {
 		ENTRIES_TABLE,
 		id,
 	)
+}
+
+func Contents_MusenalmID(app core.App, id string) (*Content, error) {
+	ret, err := TableByField[Content](app, CONTENTS_TABLE, MUSENALMID_FIELD, id)
+	return &ret, err
 }
 
 func Places_ID(app core.App, id string) (*Place, error) {

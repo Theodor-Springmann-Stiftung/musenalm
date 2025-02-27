@@ -18,7 +18,10 @@ const (
 func init() {
 	rp := &AlmanachPage{
 		StaticPage: pagemodels.StaticPage{
-			Name: pagemodels.P_REIHEN_NAME,
+			Name:     pagemodels.P_REIHEN_NAME,
+			URL:      URL_ALMANACH,
+			Template: TEMPLATE_ALMANACH,
+			Layout:   templating.DEFAULT_LAYOUT_NAME,
 		},
 	}
 	app.Register(rp)
@@ -29,38 +32,24 @@ type AlmanachPage struct {
 }
 
 func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
-	router.GET(URL_ALMANACH, func(e *core.RequestEvent) error {
+	router.GET(p.URL, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})
 		result, err := NewAlmanachResult(app, id)
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
-
 		data["result"] = result
-		err = p.getAbbr(app, data)
-		if err != nil {
-			return engine.Response404(e, err, data)
+
+		abbrs, err := pagemodels.GetAbks(app)
+		if err == nil {
+			data["abbrs"] = abbrs
 		}
 
-		return p.Get(e, engine, data)
+		return engine.Response200(e, p.Template, data)
 	})
 
 	return nil
-}
-
-func (p *AlmanachPage) getAbbr(app core.App, data map[string]interface{}) error {
-	abbrs, err := pagemodels.GetAbks(app)
-	if err != nil {
-		return err
-	}
-
-	data["abbrs"] = abbrs
-	return nil
-}
-
-func (p *AlmanachPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	return engine.Response200(request, TEMPLATE_ALMANACH, data)
 }
 
 type AlmanachResult struct {
