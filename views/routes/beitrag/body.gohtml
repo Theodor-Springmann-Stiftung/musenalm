@@ -1,0 +1,64 @@
+{{- $model := . }}
+{{/* type BeitragResult struct {
+	Entry          *dbmodels.Entry
+	Places         []*dbmodels.Place
+	Series         []*dbmodels.Series
+	Content        *dbmodels.Content
+	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
+	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents  []*dbmodels.REntriesAgents
+	ContentsAgents []*dbmodels.RContentsAgents // <- Key is content id
+	}
+*/}}
+
+
+<div id="breadcrumbs">
+	<div>
+		<div class="">Almanache <i class="ri-arrow-right-wide-line"></i></div>
+		<div>
+			<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}">
+				{{- $model.result.Entry.PreferredTitle -}}
+			</a>
+		</div>
+		<div>
+			<i class="ri-arrow-right-wide-line"></i>Beitrag Nr.
+			<b>{{ $model.result.Content.MusenalmID }}</b>
+		</div>
+		<div class="grow"></div>
+		<div class="backbutton">
+			<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}" class="no-underline">
+				<i class="ri-arrow-left-long-line"></i> Zum Almanach
+			</a>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mt-12 flex flex-col font-serif">
+	<div class="font-sans"><i class="ri-article-line"></i> Einzelbeitrag</div>
+	<h1 class="text-3xl font-bold">
+		{{ $model.result.Entry.PreferredTitle }},
+		{{ if $model.result.Content.Extent -}}
+			S.
+			{{ $model.result.Content.Extent }}
+		{{ else -}}
+			Nr.
+			{{ $model.result.Content.MusenalmID }}
+		{{- end -}}
+	</h1>
+	<span class="">
+		{{- $arr := $model.result.Content.MusenalmType -}}
+		{{- if $arr -}}
+			{{- range $i, $p := $arr -}}
+				<span
+					class="inline-block align-middle bg-slate-200 px-2 font-sans text-sm py-0.5
+					rounded mx-1 mt-1.5 hover:text-slate-900 no-underline">
+					{{- $p -}}
+				</span>
+			{{- end -}}
+		{{- end -}}
+	</span>
+
+	<div class="mt-7">
+		{{- template "_content"  Arr $model.result.Content $model.result.Entry $model.result.ContentsAgents $model.result.Agents true -}}
+	</div>
+</div>

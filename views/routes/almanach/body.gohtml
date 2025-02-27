@@ -60,13 +60,26 @@
 
 {{ template "entrydata" $model }}
 
-
-<div class="container-oversize" id="almanachcontents">
-	{{- range $i, $c := $model.result.Contents -}}
-		{{- $rels := index $model.result.ContentsAgents $c.Id -}}
-		{{- $coll := index $model.result.CInfoByContent $c.MusenalmID -}}
-		{{- if and $coll (index $coll 0) -}}
-		{{- end -}}
-		{{- template "_content" Arr $c $model.result.Entry $rels $model.result.Agents -}}
-	{{- end -}}
-</div>
+{{- if $model.result.Contents | len -}}
+	<div class="container-oversize mt-0 pt-0" id="almanachcontents">
+		<div class="flex relative justify-center">
+			<div class="-translate-y-[50%] flex flex-col items-center">
+				<h2 class="relative  bg-stone-50 px-5 font-bold text-3xl w-max mb-1">Inhalt</h2>
+				<div class="bg-stone-200 text-sm px-3 py-0.5 rounded mt-1">
+					<b>{{- len $model.result.Contents }}</b> erfasste Beiträge &middot;
+					<i class="ri-sort-number-asc"></i> Anzeige nach Reihenfolge
+				</div>
+			</div>
+		</div>
+		<div class="flex justify-center"></div>
+		<div class="mt-8">
+			{{- range $i, $c := $model.result.Contents -}}
+				{{- $rels := index $model.result.ContentsAgents $c.Id -}}
+				{{- $coll := index $model.result.CInfoByContent $c.MusenalmID -}}
+				{{- if and $coll (index $coll 0) -}}
+				{{- end -}}
+				{{- template "_content" Arr $c $model.result.Entry $rels $model.result.Agents -}}
+			{{- end -}}
+		</div>
+	</div>
+{{- end -}}

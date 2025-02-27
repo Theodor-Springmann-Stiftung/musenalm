@@ -361,6 +361,25 @@
 	}
 
 	#entrydata {
+		@apply relative;
+	}
+
+	#entrydata:not(#entrydata.contentsentrydata) {
+		@apply border border-zinc-300;
+	}
+
+	#entrydata.contentsentrydata {
+		@apply border-t border-r border-zinc-300 pb-16;
+	}
+
+	#entrydata.contentsentrydata:after {
+		content: "";
+		@apply absolute top-0 left-0 w-[1px] h-[50%] bg-zinc-300;
+	}
+
+	#entrydata.contentsentrydata:before {
+		content: "";
+		@apply absolute bottom-0 right-0 h-[1px] w-[50%] bg-zinc-300;
 	}
 
 	int-link {

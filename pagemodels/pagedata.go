@@ -1,6 +1,7 @@
 package pagemodels
 
 const (
+	P_BEITRAG_NAME     = "beitrag"
 	P_DATENSCHUTZ_NAME = "datenschutz"
 
 	P_SUCHE_NAME = "suche"
