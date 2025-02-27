@@ -26,14 +26,13 @@ func AgentForId(app core.App, id string) (*Agent, error) {
 func FTS5SearchAgents(app core.App, query string) ([]*Agent, error) {
 	a := []*Agent{}
 	q := NormalizeQuery(query)
-	if len(q) == 0 {
+	req := IntoQueryRequests([]string{AGENTS_NAME_FIELD, AGENTS_PSEUDONYMS_FIELD, REFERENCES_FIELD, AGENTS_BIOGRAPHICAL_DATA_FIELD, ANNOTATION_FIELD}, q)
+
+	if len(req) == 0 {
 		return a, nil
 	}
 
-	ids, err := FTS5Search(app, AGENTS_TABLE, FTS5QueryRequest{
-		Fields: []string{AGENTS_NAME_FIELD, AGENTS_PSEUDONYMS_FIELD, REFERENCES_FIELD, AGENTS_BIOGRAPHICAL_DATA_FIELD, ANNOTATION_FIELD},
-		Query:  q,
-	})
+	ids, err := FTS5Search(app, AGENTS_TABLE, req...)
 
 	if err != nil {
 		return nil, err

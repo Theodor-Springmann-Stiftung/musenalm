@@ -112,6 +112,11 @@ func Series_IDs(app core.App, ids []any) ([]*Series, error) {
 	return TableByIDs[[]*Series](app, SERIES_TABLE, ids)
 }
 
+func Series_MusenalmID(app core.App, id string) (*Series, error) {
+	ret, err := TableByField[Series](app, SERIES_TABLE, MUSENALMID_FIELD, id)
+	return &ret, err
+}
+
 func Series_ID(app core.App, id string) (*Series, error) {
 	ret, err := TableByID[Series](app, SERIES_TABLE, id)
 	return &ret, err

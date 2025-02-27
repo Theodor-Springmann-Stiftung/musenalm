@@ -25,8 +25,10 @@
 
 
 <script type="module">
-	const form = document.getElementById("searchform");
-	const submitBtn = document.getElementById("submitbutton");
+	const form = document.getElementById("simplesearchform");
+	if (form) {
+		const submitBtn = form.getElementById("submitbutton");
+	}
 
 	function checkValidity() {
 		if (form.checkValidity()) {

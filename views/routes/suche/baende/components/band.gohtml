@@ -9,7 +9,6 @@
 	Annotations bool
 	Persons     bool
 	Title       bool
-	Alm         bool
 	Series      bool
 	Places      bool
 	Refs        bool
@@ -44,7 +43,7 @@
 	}
 	*/}}
 
-{{- $isAlm := or $model.parameters.Alm $model.parameters.AlmString -}}
+{{- $isAlm := $model.parameters.AlmString -}}
 {{- $isTitle := or $model.parameters.Title $model.parameters.TitleString -}}
 {{- $isRefs := or $model.parameters.Refs $model.parameters.RefsString -}}
 {{- $isPlaces := or $model.parameters.Places $model.parameters.PlacesString -}}
@@ -61,7 +60,7 @@
 				<div class="inline-block ml-1 whitespace-nowrap">
 					{{- if not $entry.TitleStmt -}}
 						<tool-tip position="right">
-							<i class="ri-forbid-line"></i>
+							<i class="ri-forbid-2-line"></i>
 							<div class="data-tip">Keine nähere Erfassung</div>
 						</tool-tip>
 					{{- else if eq $entry.EditState "Edited" -}}

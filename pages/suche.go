@@ -1,9 +1,11 @@
 package pages
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -54,7 +56,7 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 
 		allparas, _ := NewSearchParameters(e, *paras)
 
-		if paras.Query != "" || allparas.IsBaendeSearch() {
+		if allparas.IsBaendeSearch() {
 			return p.SearchBaendeRequest(app, engine, e, *allparas)
 		}
 
@@ -140,7 +142,7 @@ func NewParameters(e *core.RequestEvent) (*Parameters, error) {
 	}, nil
 }
 
-func (p *Parameters) NormalizeQuery() []string {
+func (p *Parameters) NormalizeQuery() dbmodels.Query {
 	return dbmodels.NormalizeQuery(p.Query)
 }
 
@@ -151,7 +153,6 @@ type SearchParameters struct {
 	Annotations bool
 	Persons     bool
 	Title       bool
-	Alm         bool
 	Series      bool
 	Places      bool
 	Refs        bool
@@ -170,7 +171,6 @@ type SearchParameters struct {
 }
 
 func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters, error) {
-	alm := e.Request.URL.Query().Get(BAENDE_PARAM_ALM_NR) == "on"
 	title := e.Request.URL.Query().Get(BAENDE_PARAM_TITLE) == "on"
 	series := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES) == "on"
 	persons := e.Request.URL.Query().Get(BAENDE_PARAM_PERSONS) == "on"
@@ -180,13 +180,18 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 	year := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR) == "on"
 
 	almstring := e.Request.URL.Query().Get(BAENDE_PARAM_ALM_NR + "string")
+
 	titlestring := e.Request.URL.Query().Get(BAENDE_PARAM_TITLE + "string")
 	seriesstring := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES + "string")
 	personsstring := e.Request.URL.Query().Get(BAENDE_PARAM_PERSONS + "string")
 	placesstring := e.Request.URL.Query().Get(BAENDE_PARAM_PLACES + "string")
-	refsstring := e.Request.URL.Query().Get(BAENDE_PARAM_REFS + "string")
 	annotationsstring := e.Request.URL.Query().Get(BAENDE_PARAM_ANNOTATIONS + "string")
 	yearstring := e.Request.URL.Query().Get(BAENDE_PARAM_YEAR + "string")
+
+	refss := e.Request.URL.Query().Get(BAENDE_PARAM_REFS + "string")
+	if refss != "" {
+		refss = "\"" + refss + "\""
+	}
 
 	sort := e.Request.URL.Query().Get("sort")
 	if sort == "" {
@@ -197,7 +202,6 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 		Parameters: p,
 		Sort:       sort,
 		// INFO: Common parameters
-		Alm:         alm,
 		Title:       title,
 		Persons:     persons,
 		Annotations: annotations,
@@ -214,15 +218,36 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 		SeriesString:      seriesstring,
 		PersonsString:     personsstring,
 		PlacesString:      placesstring,
-		RefsString:        refsstring,
+		RefsString:        refss,
 		AnnotationsString: annotationsstring,
 		YearString:        yearstring,
 	}, nil
 }
 
 func (p SearchParameters) AllSearchTerms() string {
-	q := p.Query + " " + p.AnnotationsString + " " + p.PersonsString + " " + p.TitleString + " " + p.AlmString + " " + p.SeriesString + " " + p.PlacesString + " " + p.RefsString + " " + p.YearString
-	return q
+	res := []string{}
+	res = append(res, p.includedParams(p.Query)...)
+	res = append(res, p.includedParams(p.AnnotationsString)...)
+	res = append(res, p.includedParams(p.PersonsString)...)
+	res = append(res, p.includedParams(p.TitleString)...)
+	res = append(res, p.includedParams(p.SeriesString)...)
+	res = append(res, p.includedParams(p.PlacesString)...)
+	res = append(res, p.includedParams(p.RefsString)...)
+	res = append(res, p.includedParams(p.YearString)...)
+	res = append(res, p.AlmString)
+	return strings.Join(res, " ")
+}
+
+func (p SearchParameters) includedParams(q string) []string {
+	res := []string{}
+	que := dbmodels.NormalizeQuery(q)
+	for _, qq := range que.Include {
+		res = append(res, qq)
+	}
+	for _, qq := range que.UnsafeI {
+		res = append(res, qq)
+	}
+	return res
 }
 
 func (p SearchParameters) ToQueryParams() string {
@@ -235,31 +260,28 @@ func (p SearchParameters) ToQueryParams() string {
 
 	if p.Query != "" {
 		q += fmt.Sprintf("q=%s", p.Query)
-	}
 
-	if p.Alm {
-		q += "&alm=on"
-	}
-	if p.Title {
-		q += "&title=on"
-	}
-	if p.Persons {
-		q += "&persons=on"
-	}
-	if p.Annotations {
-		q += "&annotations=on"
-	}
-	if p.Series {
-		q += "&series=on"
-	}
-	if p.Places {
-		q += "&places=on"
-	}
-	if p.Refs {
-		q += "&references=on"
-	}
-	if p.Year {
-		q += "&year=on"
+		if p.Title {
+			q += "&title=on"
+		}
+		if p.Persons {
+			q += "&persons=on"
+		}
+		if p.Annotations {
+			q += "&annotations=on"
+		}
+		if p.Series {
+			q += "&series=on"
+		}
+		if p.Places {
+			q += "&places=on"
+		}
+		if p.Refs {
+			q += "&references=on"
+		}
+		if p.Year {
+			q += "&year=on"
+		}
 	}
 
 	if p.YearString != "" {
@@ -273,9 +295,6 @@ func (p SearchParameters) ToQueryParams() string {
 	}
 	if p.TitleString != "" {
 		q += fmt.Sprintf("&titlestring=%s", p.TitleString)
-	}
-	if p.AlmString != "" {
-		q += fmt.Sprintf("&almstring=%s", p.AlmString)
 	}
 	if p.SeriesString != "" {
 		q += fmt.Sprintf("&seriesstring=%s", p.SeriesString)
@@ -291,16 +310,13 @@ func (p SearchParameters) ToQueryParams() string {
 }
 
 func (p SearchParameters) IsBaendeSearch() bool {
-	return p.Collection == "baende" && (p.Query != "" || (p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.AlmString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != ""))
+	return p.Collection == "baende" && (p.Query != "" || p.AlmString != "" || p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != "")
 }
 
 func (p SearchParameters) FieldSetBaende() []dbmodels.FTS5QueryRequest {
 	ret := []dbmodels.FTS5QueryRequest{}
 	if p.Query != "" {
 		fields := []string{dbmodels.ID_FIELD}
-		if p.Alm {
-			fields = append(fields, dbmodels.MUSENALMID_FIELD)
-		}
 		if p.Title {
 			// INFO: Preferred Title is not here to avoid hitting the Reihentitel
 			fields = append(fields,
@@ -331,93 +347,50 @@ func (p SearchParameters) FieldSetBaende() []dbmodels.FTS5QueryRequest {
 		}
 
 		que := p.NormalizeQuery()
-
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: fields,
-				Query:  p.NormalizeQuery(),
-			})
-		}
+		req := dbmodels.IntoQueryRequests(fields, que)
+		ret = append(ret, req...)
 	}
 
 	if p.AnnotationsString != "" {
 		que := dbmodels.NormalizeQuery(p.AnnotationsString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.ANNOTATION_FIELD},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.ANNOTATION_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.PersonsString != "" {
 		que := dbmodels.NormalizeQuery(p.PersonsString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.AGENTS_TABLE, dbmodels.RESPONSIBILITY_STMT_FIELD},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.AGENTS_TABLE, dbmodels.RESPONSIBILITY_STMT_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.TitleString != "" {
 		que := dbmodels.NormalizeQuery(p.TitleString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.TITLE_STMT_FIELD, dbmodels.SUBTITLE_STMT_FIELD, dbmodels.INCIPIT_STMT_FIELD, dbmodels.VARIANT_TITLE_FIELD, dbmodels.PARALLEL_TITLE_FIELD},
-				Query:  que,
-			})
-		}
-	}
-
-	if p.AlmString != "" {
-		que := dbmodels.NormalizeQuery(p.AlmString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.MUSENALMID_FIELD},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.TITLE_STMT_FIELD, dbmodels.SUBTITLE_STMT_FIELD, dbmodels.INCIPIT_STMT_FIELD, dbmodels.VARIANT_TITLE_FIELD, dbmodels.PARALLEL_TITLE_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.SeriesString != "" {
 		que := dbmodels.NormalizeQuery(p.SeriesString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.SERIES_TABLE},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.SERIES_TABLE}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.PlacesString != "" {
 		que := dbmodels.NormalizeQuery(p.PlacesString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.PLACES_TABLE, dbmodels.PLACE_STMT_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.RefsString != "" {
 		que := dbmodels.NormalizeQuery(p.RefsString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.REFERENCES_FIELD},
-				Query:  que,
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.REFERENCES_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	if p.YearString != "" {
 		que := dbmodels.NormalizeQuery(p.YearString)
-		if len(que) > 0 {
-			ret = append(ret, dbmodels.FTS5QueryRequest{
-				Fields: []string{dbmodels.YEAR_FIELD},
-				Query:  dbmodels.NormalizeQuery(p.YearString),
-			})
-		}
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.YEAR_FIELD}, que)
+		ret = append(ret, req...)
 	}
 
 	return ret
@@ -427,11 +400,13 @@ func (p SearchParameters) IsExtendedSearch() bool {
 	return p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.AlmString != "" || p.SeriesString != "" || p.PlacesString != "" || p.RefsString != "" || p.YearString != ""
 }
 
-func (p SearchParameters) NormalizeQuery() []string {
+func (p SearchParameters) NormalizeQuery() dbmodels.Query {
 	return dbmodels.NormalizeQuery(p.Query)
 }
 
 type SearchResultBaende struct {
+	Queries []dbmodels.FTS5QueryRequest
+
 	// these are the sorted IDs for hits
 	Hits    []string
 	Series  map[string]*dbmodels.Series // <- Key: Series ID
@@ -445,25 +420,57 @@ type SearchResultBaende struct {
 	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
 }
 
-func SimpleSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende, error) {
-	fields := params.FieldSetBaende()
-	if len(fields) == 0 {
-		return nil, ErrNoQuery
+func EmptyResultBaende() *SearchResultBaende {
+	return &SearchResultBaende{
+		Hits:          []string{},
+		Series:        make(map[string]*dbmodels.Series),
+		Entries:       make(map[string]*dbmodels.Entry),
+		Places:        make(map[string]*dbmodels.Place),
+		Agents:        make(map[string]*dbmodels.Agent),
+		EntriesSeries: make(map[string][]*dbmodels.REntriesSeries),
+		SeriesEntries: make(map[string][]*dbmodels.REntriesSeries),
+		EntriesAgents: make(map[string][]*dbmodels.REntriesAgents),
 	}
+}
 
-	ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, fields...)
-	if err != nil {
-		return nil, err
+func SimpleSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende, error) {
+	entries := []*dbmodels.Entry{}
+	queries := params.FieldSetBaende()
+
+	if params.AlmString != "" {
+		e, err := dbmodels.Entries_MusenalmID(app, params.AlmString)
+		if err != nil && err == sql.ErrNoRows {
+			return EmptyResultBaende(), nil
+		} else if err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, e)
+	} else {
+		if len(queries) == 0 {
+			return nil, ErrNoQuery
+		}
+
+		ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, queries...)
+		if err != nil {
+			return nil, err
+		}
+
+		resultids := []any{}
+		for _, id := range ids {
+			resultids = append(resultids, id.ID)
+		}
+
+		e, err := dbmodels.Entries_IDs(app, resultids)
+		if err != nil {
+			return nil, err
+		}
+		entries = e
 	}
 
 	resultids := []any{}
-	for _, id := range ids {
-		resultids = append(resultids, id.ID)
-	}
-
-	entries, err := dbmodels.Entries_IDs(app, resultids)
-	if err != nil {
-		return nil, err
+	for _, entry := range entries {
+		resultids = append(resultids, entry.Id)
 	}
 
 	entriesmap := make(map[string]*dbmodels.Entry)

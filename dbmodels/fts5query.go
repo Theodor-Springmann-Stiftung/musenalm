@@ -9,6 +9,7 @@ import (
 type FTS5QueryRequest struct {
 	Fields []string
 	Query  []string
+	OP     Operator
 }
 
 type FTS5IDQueryResult struct {
