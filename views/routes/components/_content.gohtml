@@ -1,0 +1,118 @@
+{{ $model := . }}
+{{/* .1 - *Content
+	.2 - *Entry
+	.3 - []*RContentsAgents
+	.4 - map[string]*Agent
+*/}}
+
+{{- $content := index . 0 -}}
+{{- $entry := index . 1 -}}
+{{- $rcas := index . 2 -}}
+{{- $agents := index . 3 -}}
+
+
+<div class="content flex flex-row font-serif" id="{{- $content.Id -}}">
+	<div class="w-36 shrink-0 grow-0 flex flex-col items-end columnone">
+		{{- if $content.Extent -}}
+			<div>
+				<span class="font-sans text-sm">S. </span>
+				<b>{{- $content.Extent -}}</b>
+			</div>
+		{{- end -}}
+		{{- if $content.MusenalmType -}}
+			<div class="flex flex-col gap-y-1 items-end">
+				{{- range $_, $t := $content.MusenalmType -}}
+					<div class="font-sans text-sm bg-stone-100 px-1 py-0.5 rounded w-max">
+						{{- $t -}}
+					</div>
+				{{- end -}}
+			</div>
+		{{- end -}}
+
+	</div>
+
+	<div class="grow columntwo">
+		<div class="fields">
+			{{- if $content.TitleStmt -}}
+				<div class="fieldlabel">Titel</div>
+				<div class="italic fieldvalue">{{- $content.TitleStmt -}}</div>
+			{{- end -}}
+			{{- if $content.IncipitStmt -}}
+				<div class="fieldlabel">Incipit</div>
+				<div class="italic fieldvalue">{{ $content.IncipitStmt }}…</div>
+			{{- end -}}
+			{{- if $content.ResponsibilityStmt -}}
+				<div class="fieldlabel">Autorangabe</div>
+				<div class="fieldvalue italic">{{- $content.ResponsibilityStmt -}}</div>
+			{{- end -}}
+			{{- if $rcas -}}
+				<div class="fieldlabel">Personen</div>
+				<div class="fieldvalue">
+					{{- range $_, $rca := $rcas -}}
+						<div class="flex flex-col gap-y-2">
+							{{- $agent := index $agents $rca.Agent -}}
+							{{- if $agent -}}
+								<div class="font-sans text-base bg-stone-100 px-1 py-0.5 rounded w-max mb-1">
+									<a href="/person/{{- $agent.Id -}}">{{- $agent.Name -}}</a>
+									({{ $agent.BiographicalData -}})
+								</div>
+							{{- end -}}
+						</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+			{{- if $content.Annotation -}}
+				<div class="fieldlabel">Anmerkung</div>
+				<div class="fieldvalue">
+					{{- Safe (LinksAnnotation (ReplaceSlashParen
+						$content.Annotation))
+					-}}
+				</div>
+			{{- end -}}
+		</div>
+	</div>
+
+	{{- $scans := $content.ImagePaths -}}
+	{{- $slen := len $scans -}}
+	{{- $double := false -}}
+	{{- if gt $slen 2 -}}
+		{{- $double = true -}}
+	{{- end -}}
+	<div
+		class="{{- if $double }}
+			w-[20rem]
+		{{- else }}
+			w-[10rem]
+		{{- end }} grow-0 shrink-0 columnthree">
+		{{- if $scans -}}
+			<div class="{{- if $double -}}grid grid-cols-2{{- end -}}">
+				{{- range $_, $scan := $scans -}}
+					<div
+						class="border-6 hover:border-zinc-400 transition-all duration-75
+						border-zinc-100 overflow-hidden">
+						<popup-image data-image-url="{{- $scan -}}">
+							<img
+								src="{{- $scan -}}?thumb=300x0"
+								class="w-36 h-36 object-cover
+						cursor-pointer" />
+						</popup-image>
+					</div>
+				{{- end -}}
+			</div>
+		{{- end -}}
+	</div>
+
+	<div class="w-24 shrink-0 grow-0 items-end flex flex-col columnfour">
+		<div class="font-sans text-sm bg-stone-100 px-2 font-bold py-0.5 rounded w-max">
+			<span class="text-xs font-normal pr-1">NR</span>
+			{{ $content.MusenalmID -}}
+		</div>
+		<div class="font-sans py-0.5 text-xs">
+			<a
+				href="/beitreag/{{ $content.MusenalmID }}"
+				class="no-underline rounded bg-stone-100 px-1.5">
+				<i class="ri-links-line"></i> Permalink
+			</a>
+		</div>
+	</div>
+</div>

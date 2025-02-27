@@ -3,6 +3,7 @@ package dbmodels
 import (
 	"slices"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 )
@@ -39,5 +40,11 @@ func Sort_REntriesSeries_Year(entries []*REntriesSeries, entriesMap map[string]*
 		ientry := entriesMap[i.Entry()]
 		jentry := entriesMap[j.Entry()]
 		return ientry.Year() - jentry.Year()
+	})
+}
+
+func Sort_Contents_Numbering(contents []*Content) {
+	slices.SortFunc(contents, func(i, j *Content) int {
+		return datatypes.CompareFloat(i.Numbering(), j.Numbering())
 	})
 }

@@ -1,0 +1,23 @@
+{{ $model := . }}
+{{/* .result:
+	type AlmanachResult struct {
+	Entry          *dbmodels.Entry
+	Places         []*dbmodels.Place
+	Series         []*dbmodels.Series
+	Contents       []*dbmodels.Content
+	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
+	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents  []*dbmodels.REntriesAgents
+	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	}
+
+	.parameters {
+	Sort string
+	MusenalmID string
+	PersonFilter string
+	TitleFilter string
+	EntryFilter string
+	TypeFilter []string
+	Scanfilter bool
+	}
+	*/}}
