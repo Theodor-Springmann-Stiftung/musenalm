@@ -35,13 +35,13 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 	router.GET(URL_REIHE, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})
-		reihe, err := dbmodels.Series_ID(app, id)
-		if err != nil {
+		reihe, err := dbmodels.Series_MusenalmID(app, id)
+		if err != nil || reihe == nil || reihe.Id == "" {
 			return engine.Response404(e, err, data)
 		}
 		data["series"] = reihe
 
-		entries, relations, err := Entries_Series_IDs(app, []any{id})
+		entries, relations, err := Entries_Series_IDs(app, []any{reihe.Id})
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}

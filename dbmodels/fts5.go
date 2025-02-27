@@ -2,8 +2,10 @@ package dbmodels
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/pocketbase/dbx"
@@ -99,22 +101,125 @@ var CONTENTS_FTS5_FIELDS = []string{
 
 var ErrInvalidQuery = errors.New("invalid input into the search function")
 
-func NormalizeQuery(query string) []string {
-	query = datatypes.NormalizeString(query)
-	query = datatypes.DeleteTags(query)
-	query = datatypes.RemovePunctuation(query)
-	query = cases.Lower(language.German).String(query)
-	// TODO: how to normalize, which unicode normalization to use?
+type Query struct {
+	Include []string // Phrases that should be matched
+	Exclude []string // Phrases that should not be matched
+	UnsafeI []string // Phrases < 3 characters
+	UnsafeE []string // Phrases < 3 characters excluded
+}
 
-	split := strings.Split(query, " ")
-	res := []string{}
-	for _, s := range split {
-		if len(s) > 2 {
-			res = append(res, s)
+// Parses query strings like
+// word another "this is a phrase" -notthis aword -alsonotthis -"also not this"
+// into seperate phrases
+func NormalizeQuery(query string) Query {
+	query = datatypes.NormalizeString(query)
+	// TODO: how to normalize, which unicode normalization to use?
+	// query = datatypes.RemovePunctuation(query)
+	query = cases.Lower(language.German).String(query)
+
+	var include []string
+	var exclude []string
+	var unsafeI []string
+	var unsafeE []string
+
+	isInQuotes := false
+	isExcluded := false
+
+	var cToken strings.Builder
+
+	at := func() {
+		if cToken.Len() == 0 {
+			return
+		}
+
+		t := cToken.String()
+		if len(t) < 3 && isExcluded {
+			unsafeE = append(unsafeE, t)
+			return
+		} else if len(t) < 3 {
+			unsafeI = append(unsafeI, t)
+			return
+		}
+
+		if len(t) >= 3 && isExcluded {
+			exclude = append(exclude, t)
+			return
+		} else if len(t) >= 3 {
+			include = append(include, t)
+			return
 		}
 	}
 
-	return res
+	reset := func() {
+		isInQuotes = false
+		isExcluded = false
+		cToken.Reset()
+	}
+
+	addToken := func() {
+		at()
+		reset()
+	}
+
+	for _, r := range query {
+		fmt.Printf("Rune: %v\n", r)
+		if r == '"' {
+			if isInQuotes {
+				addToken()
+			} else if cToken.Len() == 0 {
+				isInQuotes = true
+			}
+			// INFO: - is punctuation, so the order of cases is important
+		} else if r == 45 && cToken.Len() == 0 {
+			isExcluded = true
+		} else if unicode.IsSpace(r) && !isInQuotes {
+			addToken()
+		} else if unicode.IsPunct(r) && !isInQuotes {
+			addToken()
+		} else {
+			cToken.WriteRune(r)
+		}
+	}
+
+	if cToken.Len() > 0 {
+		at()
+	}
+
+	fmt.Printf("Query: %v\n", query)
+	fmt.Printf("Include: %v\n", include)
+	fmt.Printf("Exclude: %v\n", exclude)
+	fmt.Printf("UnsafeI: %v\n", unsafeI)
+	fmt.Printf("UnsafeE: %v\n", unsafeE)
+
+	return Query{
+		Include: include,
+		Exclude: exclude,
+		UnsafeI: unsafeI,
+		UnsafeE: unsafeE,
+	}
+}
+
+// INFO: Takes in fields and a Query object
+func IntoQueryRequests(f []string, q Query) []FTS5QueryRequest {
+	ret := []FTS5QueryRequest{}
+
+	if len(q.Include) > 0 {
+		ret = append(ret, FTS5QueryRequest{
+			Fields: f,
+			Query:  q.Include,
+			OP:     OP_AND,
+		})
+	}
+
+	if len(q.Exclude) > 0 {
+		ret = append(ret, FTS5QueryRequest{
+			Fields: f,
+			Query:  q.Exclude,
+			OP:     OP_NOT,
+		})
+	}
+
+	return ret
 }
 
 func FTS5Search(app core.App, table string, mapfq ...FTS5QueryRequest) ([]*FTS5IDQueryResult, error) {
@@ -125,7 +230,16 @@ func FTS5Search(app core.App, table string, mapfq ...FTS5QueryRequest) ([]*FTS5I
 	q := NewFTS5Query().From(table).SelectID()
 	for _, v := range mapfq {
 		for _, que := range v.Query {
-			q.AndMatch(v.Fields, que)
+			switch v.OP {
+			case OP_AND:
+				q.AndMatch(v.Fields, que)
+			case OP_OR:
+				q.OrMatch(v.Fields, que)
+			case OP_NOT:
+				q.NotMatch(v.Fields, que)
+			case NONE:
+				q.AndMatch(v.Fields, que)
+			}
 		}
 	}
 

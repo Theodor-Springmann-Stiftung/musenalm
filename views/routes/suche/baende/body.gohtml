@@ -7,7 +7,6 @@
 	Annotations bool
 	Persons     bool
 	Title       bool
-	Alm         bool
 	Series      bool
 	Places      bool
 	Refs        bool
@@ -52,7 +51,7 @@
 {{ $isPersons := false }}
 {{ $isAnnotations := false }}
 
-{{- $isAlm = or $model.parameters.Alm $model.parameters.AlmString -}}
+{{- $isAlm = $model.parameters.AlmString -}}
 {{- $isTitle = or $model.parameters.Title $model.parameters.TitleString -}}
 {{- $isRefs = or $model.parameters.Refs $model.parameters.RefsString -}}
 {{- $isPlaces = or $model.parameters.Places $model.parameters.PlacesString -}}
@@ -61,16 +60,33 @@
 {{- $isPersons = or $model.parameters.Persons $model.parameters.PersonsString -}}
 {{- $isAnnotations = or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
 
-{{- $isBase := not (or $isAlm $isTitle $isRefs $isPlaces $isYear $isSeries $isPersons
+{{- $isBase := not (or $isTitle $isRefs $isPlaces $isYear $isSeries $isPersons
 	$isAnnotations)
 -}}
 
 
 <div id="searchcontrol" class="container-normal">
 	{{- template "_heading" $model.parameters -}}
-	<div id="" class="border-l border-zinc-300 px-8 py-10 relative">
+	<div id="searchform" class="border-l border-zinc-300 px-8 py-10 relative">
 		<form
-			id="searchform"
+			id="lookupform"
+			class="w-full font-serif grid grid-cols-12 gap-x-4 mb-4"
+			method="get"
+			action="/suche/baende"
+			autocomplete="off">
+			<label for="almstring" class="col-span-3 align-middle hidden">Almanach-Nummer:</label>
+			<input
+				autocomplete="off"
+				type="search"
+				name="almstring"
+				id="almstring"
+				value="{{ $model.parameters.AlmString }}"
+				placeholder="Alm-Nummer"
+				class="w-full col-span-3 placeholder:italic" />
+			<button id="submitbutton" type="submit" class="col-span-2">Nachschlagen</button>
+		</form>
+		<form
+			id="simplesearchform"
 			class="w-full font-serif"
 			method="get"
 			action="/suche/baende"
@@ -83,14 +99,6 @@
 					{{- end -}}
 					{{ template "_searchboxsimple" Arr $model.parameters true $q }}
 					<fieldset class="selectgroup">
-						<div class="selectgroup-option">
-							<input
-								type="checkbox"
-								name="alm"
-								id="alm"
-								{{ if or $isBase $isAlm -}}checked{{- end -}} />
-							<label for="alm">Almanach-Nr.</label>
-						</div>
 						<div class="selectgroup-option">
 							<input
 								type="checkbox"
@@ -172,12 +180,6 @@
 						name="titlestring"
 						id="titlestring"
 						value="{{ $model.parameters.TitleString }}" />
-					<label for="almstring">Almanach-Nr.</label>
-					<input
-						type="search"
-						name="almstring"
-						id="almstring"
-						value="{{ $model.parameters.AlmString }}" />
 					<label for="seriesstring">Reihentitel</label>
 					<input
 						type="search"
@@ -231,6 +233,9 @@
 				{{ if $model.parameters.Query -}}
 					Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
 				{{- end -}}
+				{{- if $isAlm -}}
+					Almanach-Nummer <b>»{{ $model.parameters.AlmString }}«</b> &middot;
+				{{- end -}}
 				<i class="ri-book-line"></i>
 				{{ if eq $model.result.Count 1 -}}
 					Ein Band
@@ -245,37 +250,39 @@
 				{{- end -}}
 			</div>
 
-			<div>
-				<label
-					for="sort"
-					class="align-baseline h-min self-end pb-1 mr-2 text-sm	font-sans
+			{{- if not $isAlm -}}
+				<div>
+					<label
+						for="sort"
+						class="align-baseline h-min self-end pb-1 mr-2 text-sm	font-sans
 				text-stone-700"
-					>Sortierung</label
-				>
+						>Sortierung</label
+					>
 
-				{{/* INFO:  We always redrect to letter = A bc some letters dont exist for other professions */}}
-				<select
-					class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
-					name="sort"
-					id="sort"
-					hx-get="{{- $model.parameters.ToQueryParams -}}"
-					trigger="change"
-					hx-push-url="true"
-					hx-select="main"
-					auto-complete="off"
-					hx-target="main">
-					<option
-						value="year"
-						{{ if eq $model.parameters.Sort "year" -}}
-							selected
-						{{- end -}}>
-						Erscheinungsjahr
-					</option>
-					<option value="series" {{ if eq $model.parameters.Sort "series" -}}selected{{- end -}}>
-						Reihentitel A-Z
-					</option>
-				</select>
-			</div>
+					{{/* INFO:  We always redrect to letter = A bc some letters dont exist for other professions */}}
+					<select
+						class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
+						name="sort"
+						id="sort"
+						hx-get="{{- $model.parameters.ToQueryParams -}}"
+						trigger="change"
+						hx-push-url="true"
+						hx-select="main"
+						auto-complete="off"
+						hx-target="main">
+						<option
+							value="year"
+							{{ if eq $model.parameters.Sort "year" -}}
+								selected
+							{{- end -}}>
+							Erscheinungsjahr
+						</option>
+						<option value="series" {{ if eq $model.parameters.Sort "series" -}}selected{{- end -}}>
+							Reihentitel A-Z
+						</option>
+					</select>
+				</div>
+			{{- end -}}
 		</div>
 
 		{{- if $model.result.Hits -}}
