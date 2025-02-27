@@ -406,4 +406,37 @@
 	#extendedsearchcolumn label {
 		@apply col-span-3 bg-stone-200 align-middle px-2.5 text-slate-900 items-center flex text-base;
 	}
+
+	.content .fields {
+		@apply grid grid-cols-10 gap-y-0.5 w-full gap-x-4;
+	}
+
+	.content .fieldlabel {
+		@apply col-span-1 font-bold whitespace-nowrap grow-0 shrink-0 font-sans text-sm align-baseline mt-1 text-right;
+	}
+
+	.content .fieldvalue {
+		@apply col-span-9 font-serif text-left grow align-top max-w-[60ch];
+	}
+
+	.content {
+		@apply text-base;
+	}
+
+	#almanachcontents .content {
+		@apply border-b-8 border-stone-50;
+	}
+
+	#almanachcontents .columnone {
+		@apply bg-stone-50 pt-2 pr-3 mr-1;
+	}
+
+	#almanachcontents .columntwo {
+		@apply bg-stone-100 py-4 pl-6 ml-1;
+	}
+
+	#almanachcontents .columnthree {
+		@apply bg-stone-100 pr-6 py-4;
+		/*direction: rtl;*/
+	}
 }

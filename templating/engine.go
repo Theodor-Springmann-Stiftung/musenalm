@@ -130,6 +130,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("First", functions.First)
 	e.AddFunc("ReplaceSlashParen", functions.ReplaceSlashParen)
 	e.AddFunc("ReplaceSlashParenSlash", functions.ReplaceSlashParenSlash)
+	e.AddFunc("LinksAnnotation", functions.LinksAnnotation)
 
 	// Time & Date Functions
 	e.AddFunc("Today", functions.Today)

@@ -72,6 +72,9 @@ type AlmanachResult struct {
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+
+	CInfoByCollection map[string]dbmodels.CollectionInfo
+	CInfoByContent    map[int][]dbmodels.CollectionInfo
 }
 
 func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
@@ -110,6 +113,8 @@ func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
 		return nil, err
 	}
 
+	dbmodels.Sort_Contents_Numbering(contents)
+
 	contentsagents, err := dbmodels.RContentsAgents_Contents(app, dbmodels.Ids(contents))
 	caids := []any{}
 	caMap := map[string][]*dbmodels.RContentsAgents{}
@@ -137,7 +142,7 @@ func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
 		agentsMap[a.Id] = a
 	}
 
-	return &AlmanachResult{
+	ret := &AlmanachResult{
 		Entry:          entry,
 		Places:         places,
 		Series:         series,
@@ -146,6 +151,35 @@ func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
 		EntriesSeries:  srelationsMap,
 		EntriesAgents:  entriesagents,
 		ContentsAgents: caMap,
-	}, nil
+	}
 
+	ret.Collections()
+	return ret, nil
+
+}
+
+func (r *AlmanachResult) Collections() {
+	ids := []int{}
+	collections := []*dbmodels.Content{}
+	for _, s := range r.Contents {
+		ids = append(ids, s.MusenalmID())
+		for _, t := range s.MusenalmType() {
+			if t == "Sammlung" {
+				collections = append(collections, s)
+			}
+		}
+	}
+
+	ccontentcollectionmap := map[int][]dbmodels.CollectionInfo{}
+	ccollectioncontentmap := map[string]dbmodels.CollectionInfo{}
+	for _, v := range collections {
+		cinfo := dbmodels.ParseAnnotation(v, v.Annotation(), ids)
+		ccollectioncontentmap[v.Id] = cinfo
+		for _, c := range cinfo.Singles {
+			ccontentcollectionmap[c] = append(ccontentcollectionmap[c], cinfo)
+		}
+	}
+
+	r.CInfoByCollection = ccollectioncontentmap
+	r.CInfoByContent = ccontentcollectionmap
 }

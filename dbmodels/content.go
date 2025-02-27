@@ -157,6 +157,14 @@ func (c *Content) SetScans(scans []*filesystem.File) {
 	c.Set(SCAN_FIELD, scans)
 }
 
+func (r *Content) ImagePaths() []string {
+	ret := []string{}
+	for _, s := range r.Scans() {
+		ret = append(ret, "/api/files/"+r.TableName()+"/"+r.Id+"/"+s)
+	}
+	return ret
+}
+
 func (c *Content) Numbering() float64 {
 	return c.GetFloat(NUMBERING_FIELD)
 }

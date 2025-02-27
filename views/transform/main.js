@@ -15,6 +15,7 @@ const SCROLL_BUTTON_ELEMENT = "scroll-button";
 const TOOLTIP_ELEMENT = "tool-tip";
 const ABBREV_TOOLTIPS_ELEMENT = "abbrev-tooltips";
 const INT_LINK_ELEMENT = "int-link";
+const POPUP_IMAGE_ELEMENT = "popup-image";
 
 class XSLTParseProcess {
 	#processors;
@@ -567,6 +568,88 @@ class ToolTip extends HTMLElement {
 	}
 }
 
+class PopupImage extends HTMLElement {
+	constructor() {
+		super();
+		this.overlay = null;
+		this._preview = null;
+		this._description = null;
+		this._imageURL = "";
+	}
+
+	connectedCallback() {
+		this._imageURL = this.getAttribute("data-image-url") || "";
+		this._preview = this.querySelector("img");
+		this._description = this.querySelector(".image-description");
+
+		if (this._preview) {
+			this._preview.addEventListener("click", () => {
+				this.showOverlay();
+			});
+		}
+	}
+
+	disconnectedCallback() {
+		// Optionally remove the overlay if the element is removed from the DOM
+		if (this.overlay && this.overlay.parentNode) {
+			this.overlay.parentNode.removeChild(this.overlay);
+		}
+	}
+
+	showOverlay() {
+		const descriptionHtml = this._description ? this._description.innerHTML : "";
+		this.overlay = document.createElement("div");
+		this.overlay.classList.add(
+			"fixed",
+			"inset-0",
+			"z-50",
+			"bg-black/70",
+			"flex",
+			"items-center",
+			"justify-center",
+			"p-4",
+		);
+
+		this.overlay.innerHTML = `
+      <div class="relative w-max max-w-dvw max-h-dvh shadow-lg flex flex-col items-center gap-4">
+        <button class="absolute top-0 -right-16 text-white hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup">
+          <i class="ri-close-fill text-4xl"></i>
+        </button>
+
+        <img
+          src="${this._imageURL}"
+          alt="Popup Image"
+          class="max-h-[90vh] max-w-[80vw] object-contain"
+        />
+
+        <div class="text-center text-gray-700 description-content">
+          ${descriptionHtml}
+        </div>
+      </div>
+    `;
+
+		const closeButton = this.overlay.querySelector("button");
+		if (closeButton) {
+			closeButton.addEventListener("click", () => {
+				this.hideOverlay();
+			});
+		}
+
+		this.overlay.addEventListener("click", (evt) => {
+			if (evt.target === this.overlay) {
+				this.hideOverlay();
+			}
+		});
+
+		document.body.appendChild(this.overlay);
+	}
+
+	hideOverlay() {
+		this.overlay.parentNode.removeChild(this.overlay);
+		this.overlay = null;
+	}
+}
+
 class AbbreviationTooltips extends HTMLElement {
 	static get observedAttributes() {
 		return ["data-text", "data-abbrevmap"];
@@ -772,5 +855,6 @@ customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
 customElements.define(FILTER_LIST_ELEMENT, FilterList);
 customElements.define(SCROLL_BUTTON_ELEMENT, ScrollButton);
 customElements.define(TOOLTIP_ELEMENT, ToolTip);
+customElements.define("popup-image", PopupImage);
 
 export { XSLTParseProcess, FilterList, ScrollButton, AbbreviationTooltips };
