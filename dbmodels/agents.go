@@ -290,3 +290,46 @@ func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
 
 	return agents, nil
 }
+
+type AgentCount struct {
+	Count int    `db:"count"`
+	ID    string `db:"id"`
+}
+
+func CountAgentsBaende(app core.App) (map[string]int, error) {
+	couns := []AgentCount{}
+	err := app.RecordQuery(RelationTableName(ENTRIES_TABLE, AGENTS_TABLE)).
+		Select("count(*) as count, " + AGENTS_TABLE + " as id").
+		GroupBy(AGENTS_TABLE).
+		All(&couns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make(map[string]int, len(couns))
+	for _, c := range couns {
+		ret[c.ID] = c.Count
+	}
+
+	return ret, nil
+}
+
+func CountAgentsContents(app core.App) (map[string]int, error) {
+	couns := []AgentCount{}
+	err := app.RecordQuery(RelationTableName(CONTENTS_TABLE, AGENTS_TABLE)).
+		Select("count(*) as count, " + AGENTS_TABLE + " as id").
+		GroupBy(AGENTS_TABLE).
+		All(&couns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make(map[string]int, len(couns))
+	for _, c := range couns {
+		ret[c.ID] = c.Count
+	}
+
+	return ret, nil
+}

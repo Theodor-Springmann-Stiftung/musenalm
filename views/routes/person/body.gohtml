@@ -10,6 +10,7 @@
 	CResult        []*dbmodels.Entry                      /// Sorted
 	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // KEY: Content ID
+	Agents         map[string]*dbmodels.Agent             // KEY: Agent ID
 	}
 */}}
 
@@ -108,17 +109,19 @@
 	</div>
 {{ end }}
 
-
-<!--
-{{ if .contents }}
-	<h2>Inhalte</h2>
-	{{ range $id, $c := .contents }}
-		<div>
-			{{ $e := index $model.centries $c.Entry }}
-			<a href="/almanach/{{ $e.MusenalmID }}">{{ $e.PreferredTitle }}</a>
-			{{ $c.PreferredTitle }}
-			{{ $c.Numbering }}
+{{- if len $model.result.CResult -}}
+	<div class="container-normal mt-0 pt-0" id="almanachcontents">
+		<div class="mt-8">
+			{{- range $_, $e := $model.result.CResult -}}
+				<div class="font-serif font-bold border-b pb-0.5 mb-2">{{ $e.PreferredTitle }}</div>
+				{{- $contents := index $model.result.Contents $e.Id -}}
+				<div class="mb-7">
+					{{- range $i, $c := $contents -}}
+						{{- $rels := index $model.result.ContentsAgents $c.Id -}}
+						{{- template "_content" Arr $c $e $rels $model.result.Agents  false true -}}
+					{{- end -}}
+				</div>
+			{{- end -}}
 		</div>
-	{{ end }}
-{{ end }}
--->
+	</div>
+{{- end -}}

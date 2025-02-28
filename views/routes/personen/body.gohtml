@@ -74,6 +74,19 @@
 										{{- end -}}
 									</div>
 
+									<div class="w-28 ml-4 shrink-0 font-sans text-sm text-right flex flex-row mt-1">
+										{{- if (index $model.bcount $agent.Id) -}}
+											<div class="mr-2">
+												<i class="ri-book-line"></i> {{ index $model.bcount $agent.Id }}
+											</div>
+										{{- end -}}
+										{{- if index $model.ccount $agent.Id -}}
+											<div class="">
+												<i class="ri-article-line"></i> {{ index $model.ccount $agent.Id }}
+											</div>
+										{{- end -}}
+									</div>
+
 									<div class="w-64 ml-4 shrink-0 {{ if $model.FTS -}}search-result{{- end -}}">
 										{{ $agent.References }}
 									</div>

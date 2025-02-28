@@ -290,7 +290,7 @@
 				<div class="mt-4">
 					{{- range $_, $hit := $model.result.Hits -}}
 						{{- $series := index $model.result.Series $hit -}}
-						<div class="font-serif font-bold py-1 border  border-zinc-300 px-3 mt-6">
+						<div class="font-serif font-bold py-1 border-b  border-zinc-300 px-3 mt-6">
 							<span class="text-base font-sans pr-2  border-zinc-300">Reihe</span>
 							<span class="pl-2">{{ $series.Title }}</span>
 						</div>

@@ -62,6 +62,7 @@ type AgentResult struct {
 	CResult        []*dbmodels.Entry                      /// Sorted
 	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // KEY: Content ID
+	Agents         map[string]*dbmodels.Agent             // KEY: Agent ID
 }
 
 func NewAgentResult(app core.App, id string) (*AgentResult, error) {
@@ -75,6 +76,11 @@ func NewAgentResult(app core.App, id string) (*AgentResult, error) {
 	}
 
 	err = res.FilterEntriesByPerson(app, id, res)
+	if err != nil {
+		return nil, err
+	}
+
+	err = res.FilterContentsByEntry(app, id, res)
 	if err != nil {
 		return nil, err
 	}
@@ -146,9 +152,8 @@ func (p *AgentResult) FilterEntriesByPerson(app core.App, id string, res *AgentR
 }
 
 func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentResult) error {
-	// 1. DB Hit
 	relations, err := dbmodels.RContentsAgents_Agent(app, id)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil {
 		return err
 	}
 
@@ -158,13 +163,24 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 
 	contentsagents := make(map[string][]*dbmodels.RContentsAgents)
 	contentIds := []any{}
+	agentids := []any{}
 	for _, r := range relations {
 		contentIds = append(contentIds, r.Content())
+		agentids = append(agentids, r.Agent())
 		contentsagents[r.Content()] = append(contentsagents[r.Content()], r)
 	}
 	res.ContentsAgents = contentsagents
 
-	// 2. DB Hit
+	agents, err := dbmodels.Agents_IDs(app, agentids)
+	if err != nil {
+		return err
+	}
+	aMap := make(map[string]*dbmodels.Agent, len(agents))
+	for _, a := range agents {
+		aMap[a.Id] = a
+	}
+	res.Agents = aMap
+
 	contents, err := dbmodels.Contents_IDs(app, contentIds)
 	if err != nil {
 		return err
@@ -178,7 +194,6 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 	}
 	res.Contents = contentMap
 
-	// 3. DB Hit
 	entries, err := dbmodels.Entries_IDs(app, entrykeys)
 	if err != nil {
 		return err
