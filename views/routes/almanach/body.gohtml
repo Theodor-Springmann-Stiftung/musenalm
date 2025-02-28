@@ -34,7 +34,8 @@
 	{{- range $i, $s := $model.result.Series -}}
 		<div>
 			<div class="{{ if $i -}}opacity-0 pointer-events-none select-none{{- end -}}">
-				Reihentitel <i class="ri-arrow-right-wide-line"></i>
+				<a href="/reihen/?letter={{- First $s.Title -}}" class="">Reihen</a>
+				<i class="ri-arrow-right-wide-line"></i>
 			</div>
 			<div>
 				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Title }}</a>

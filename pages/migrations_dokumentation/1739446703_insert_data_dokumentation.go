@@ -480,7 +480,7 @@ const START = `<h3>Sortierung der Reihentitel</h3>
 </tbody>
 </table>`
 
-const ABK_PATH = "data/abkuerzungen.txt"
+const ABK_PATH = "./import/data/abkuerzungen.txt"
 
 func init() {
 	m.Register(func(app core.App) error {

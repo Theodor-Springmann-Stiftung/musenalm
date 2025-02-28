@@ -291,6 +291,7 @@ func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
 	return agents, nil
 }
 
+// BUG: thesew functions are terribly inefficient, since they output way too much data
 type AgentCount struct {
 	Count int    `db:"count"`
 	ID    string `db:"id"`

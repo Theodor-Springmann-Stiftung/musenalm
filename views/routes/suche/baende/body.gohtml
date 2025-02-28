@@ -77,6 +77,8 @@
 			<label for="almstring" class="col-span-3 align-middle hidden">Almanach-Nummer:</label>
 			<input
 				autocomplete="off"
+				minlength="1"
+				required="true"
 				type="search"
 				name="almstring"
 				id="almstring"
@@ -324,3 +326,40 @@
 		<div class="container-normal">Keine Bände gefunden.</div>
 	{{- end -}}
 {{- end -}}
+
+
+<script type="module">
+	const form = document.getElementById("simplesearchform");
+	let submitBtn = null;
+	if (form) {
+		submitBtn = form.querySelector("#submitbutton");
+	}
+
+	function checkValidity(f, btn) {
+		if (f.checkValidity()) {
+			btn.disabled = false;
+		} else {
+			btn.disabled = true;
+		}
+	}
+
+	if (form && submitBtn) {
+		checkValidity(form, submitBtn);
+		form.addEventListener("input", (event) => {
+			checkValidity(form, submitBtn);
+		});
+	}
+
+	const lookupform = document.getElementById("lookupform");
+	let lookupsubmitBtn = null;
+	if (lookupform) {
+		lookupsubmitBtn = lookupform.querySelector("#submitbutton");
+	}
+
+	if (lookupform && lookupsubmitBtn) {
+		checkValidity(lookupform, lookupsubmitBtn);
+		lookupform.addEventListener("input", (event) => {
+			checkValidity(lookupform, lookupsubmitBtn);
+		});
+	}
+</script>

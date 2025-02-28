@@ -16,6 +16,7 @@ const TOOLTIP_ELEMENT = "tool-tip";
 const ABBREV_TOOLTIPS_ELEMENT = "abbrev-tooltips";
 const INT_LINK_ELEMENT = "int-link";
 const POPUP_IMAGE_ELEMENT = "popup-image";
+const TABLIST_ELEMENT = "tab-list";
 
 class XSLTParseProcess {
 	#processors;
@@ -612,14 +613,20 @@ class PopupImage extends HTMLElement {
 
 		this.overlay.innerHTML = `
       <div class="relative w-max max-w-dvw max-h-dvh shadow-lg flex flex-col items-center gap-4">
-        <button class="absolute top-0 -right-16 text-white hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup">
-          <i class="ri-close-fill text-4xl"></i>
-        </button>
+				<div class="absolute -right-16 top-0 text-white text-4xl flex flex-col">
+					<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup">
+						<i class="ri-close-fill text-4xl"></i>
+					</button>
+					<tool-tip position="right">
+					<a href="${this._imageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
+					<div class="data-tip">Bild herunterladen</div>
+					</tool-tip>
+				</div>
 
         <img
           src="${this._imageURL}"
           alt="Popup Image"
-          class="max-h-[90vh] max-w-[80vw] object-contain"
+          class="full max-h-[90vh] max-w-[80vw] object-contain"
         />
 
         <div class="text-center text-gray-700 description-content">
@@ -647,6 +654,119 @@ class PopupImage extends HTMLElement {
 	hideOverlay() {
 		this.overlay.parentNode.removeChild(this.overlay);
 		this.overlay = null;
+	}
+}
+
+class Tablist extends HTMLElement {
+	static get observedAttributes() {}
+
+	constructor() {
+		super();
+		this.shown = -1;
+		this._headings = [];
+		this._contents = [];
+	}
+
+	connectedCallback() {
+		this._headings = Array.from(this.querySelectorAll(".tab-list-head"));
+		this._contents = Array.from(this.querySelectorAll(".tab-list-panel"));
+		for (let heading of this._headings) {
+			heading.addEventListener("click", this.handleTabClick.bind(this));
+			heading.classList.add("cursor-pointer");
+			heading.classList.add("select-none");
+			heading.setAttribute("role", "button");
+			heading.setAttribute("aria-pressed", "false");
+			heading.setAttribute("tabindex", "0");
+		}
+
+		this.hideDependent();
+
+		if (this._headings.length === 1) {
+			this.expand(0);
+		}
+	}
+
+	expand(index) {
+		if (index < 0 || index >= this._headings.length) {
+			return;
+		}
+
+		this.shown = index;
+
+		this._contents.forEach((content, i) => {
+			if (i === index) {
+				content.classList.remove("hidden");
+				this._headings[i].setAttribute("aria-pressed", "true");
+			} else {
+				content.classList.add("hidden");
+				this._headings[i].setAttribute("aria-pressed", "false");
+			}
+		});
+	}
+
+	hideDependent() {
+		if (this.shown < 0) {
+			for (const el of this._headings) {
+				this._hideAllDep(el, false);
+			}
+		} else {
+			this._headings.forEach((el, i) => {
+				this._hideAllDep(el, i === this.shown);
+			});
+		}
+	}
+
+	_hideAllDep(element, opened) {
+		const el = element.querySelectorAll(".show-closed");
+		for (let e of el) {
+			if (opened) {
+				e.classList.add("hidden");
+			} else {
+				e.classList.remove("hidden");
+			}
+		}
+		const oel = Array.from(element.querySelectorAll(".show-opened"));
+		for (let e of oel) {
+			if (opened) {
+				e.classList.remove("hidden");
+			} else {
+				e.classList.add("hidden");
+			}
+		}
+	}
+
+	handleTabClick(event) {
+		if (!event.target) {
+			console.warn("Invalid event target");
+			return;
+		}
+
+		const parent = this.findParentWithClass(event.target, "tab-list-head");
+		if (!parent) {
+			console.warn("No parent found with class 'tab-list-head'");
+			return;
+		}
+
+		const index = this._headings.indexOf(parent);
+		if (index === this.shown) {
+			this._contents[index].classList.toggle("hidden");
+			this._headings[index].setAttribute("aria-pressed", "false");
+			this.shown = -1;
+		} else {
+			this.expand(index);
+		}
+
+		this.hideDependent();
+	}
+
+	findParentWithClass(element, className) {
+		while (element) {
+			if (element.classList && element.classList.contains(className)) {
+				return element;
+			}
+			element = element.parentElement;
+		}
+		return null;
 	}
 }
 
@@ -855,6 +975,7 @@ customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
 customElements.define(FILTER_LIST_ELEMENT, FilterList);
 customElements.define(SCROLL_BUTTON_ELEMENT, ScrollButton);
 customElements.define(TOOLTIP_ELEMENT, ToolTip);
-customElements.define("popup-image", PopupImage);
+customElements.define(POPUP_IMAGE_ELEMENT, PopupImage);
+customElements.define(TABLIST_ELEMENT, Tablist);
 
 export { XSLTParseProcess, FilterList, ScrollButton, AbbreviationTooltips };
