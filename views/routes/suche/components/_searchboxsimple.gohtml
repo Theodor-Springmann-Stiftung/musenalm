@@ -22,26 +22,3 @@
 		<i class="ri-arrow-right-long-line"></i> Erweiterte Suche
 	</a>
 {{ end }}
-
-
-<script type="module">
-	const form = document.getElementById("simplesearchform");
-	if (form) {
-		const submitBtn = form.getElementById("submitbutton");
-	}
-
-	function checkValidity() {
-		if (form.checkValidity()) {
-			submitBtn.disabled = false;
-		} else {
-			submitBtn.disabled = true;
-		}
-	}
-
-	checkValidity();
-	if (form && submitBtn) {
-		form.addEventListener("input", (event) => {
-			checkValidity();
-		});
-	}
-</script>

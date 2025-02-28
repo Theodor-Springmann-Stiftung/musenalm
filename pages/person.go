@@ -2,6 +2,8 @@ package pages
 
 import (
 	"database/sql"
+	"maps"
+	"slices"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -194,10 +196,15 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 	}
 	res.Contents = contentMap
 
+	for _, c := range contentMap {
+		dbmodels.Sort_Contents_Numbering(c)
+	}
+
 	entries, err := dbmodels.Entries_IDs(app, entrykeys)
 	if err != nil {
 		return err
 	}
+	dbmodels.Sort_Entries_Year_Title(entries)
 	res.CResult = entries
 
 	return nil
@@ -212,5 +219,24 @@ func (p *AgentResult) LenSeries() int {
 }
 
 func (p *AgentResult) LenContents() int {
-	return len(p.Contents)
+	i := 0
+	for _, c := range p.Contents {
+		i += len(c)
+	}
+	return i
+}
+
+func (p *AgentResult) Types() []string {
+	types := make(map[string]bool)
+
+	// INFO: this is just a handful of entries usuallly so we're fine
+	for _, c := range p.Contents {
+		for _, c := range c {
+			for _, c := range c.MusenalmType() {
+				types[c] = true
+			}
+		}
+	}
+
+	return slices.Collect(maps.Keys(types))
 }

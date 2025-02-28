@@ -61,17 +61,9 @@ TODO danach:
 - Cache?
 
 
-- Link größer Einzelansicht
-- Download button Lightbox
-- Personen Liste Inhalte Abstand
 - HTMX + Smooth scroll
-- Brreadcrumb link Reihentitel
-- Inhalt -> Beiträge
-
+- Personen: related
+- Inhaltsliste: Personen sehen komisch aus
+- Sammlungen neuer versuch
 - Inhaltsliste Personen
-    - Einklappen
-    - Linke Spalte weg
-    - Sortierung
     - Sortierung nach Band A-Z?
-
-- Sortierung Startseite

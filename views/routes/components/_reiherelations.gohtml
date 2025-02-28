@@ -19,6 +19,23 @@
 							{{- else -}}
 								[o.J.]
 							{{- end -}}
+
+							{{- if not $bd.TitleStmt -}}
+								<tool-tip position="right" class="inline">
+									<i class="ri-forbid-2-line"></i>
+									<div class="data-tip">Keine nähere Erfassung</div>
+								</tool-tip>
+							{{- else if eq $bd.EditState "Edited" -}}
+								<tool-tip position="right" class="inline">
+									<i class="ri-checkbox-circle-line"></i>
+									<div class="data-tip">Mit erfassten Beiträgen</div>
+								</tool-tip>
+							{{- else -}}
+								<tool-tip position="right" class="inline">
+									<i class="ri-information-line"></i>
+									<div class="data-tip">Mit genaueren Titelangaben</div>
+								</tool-tip>
+							{{- end -}}
 						</div>
 						{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
 							<div class="text-xs whitespace-nowrap">

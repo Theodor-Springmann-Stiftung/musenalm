@@ -8,6 +8,7 @@ full_bin = "./tmp/musenalm --dir ./pb_data serve"
 cmd = "go build -tags=dev,fts5,sqlite_icu -o ./tmp/musenalm ."
 delay = 400
 exclude_dir = [
+	"import",
 	"views/assets",
 	"views/transform",
 	"views/routes",

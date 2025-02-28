@@ -70,7 +70,7 @@
 	}
 
 	a {
-		@apply hyphens-none underline decoration-dotted hover:decoration-solid text-slate-700 hover:text-slate-900;
+		@apply hyphens-none underline decoration-dotted hover:decoration-solid text-slate-700 hover:text-slate-900 underline-offset-3;
 	}
 
 	ul {

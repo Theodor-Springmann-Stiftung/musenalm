@@ -283,6 +283,10 @@ func NewSeriesListResult_Letter(app core.App, letter string) (*SeriesListResult,
 		entriesMap[e.Id] = e
 	}
 
+	for _, r := range relationsMap {
+		dbmodels.Sort_REntriesSeries_Year(r, entriesMap)
+	}
+
 	return &SeriesListResult{
 		Series:        series,
 		Entries:       entriesMap,

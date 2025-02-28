@@ -44,6 +44,7 @@ func RecordsFromInhalte(
 		record.SetExtent(NormalizeString(inhalt.Seite))
 		record.SetTitleStmt(NormalizeString(inhalt.Titelangabe))
 		record.SetIncipitStmt(NormalizeString(inhalt.Incipit))
+		record.SetYear(band.Year())
 
 		counting, ok := dbmodels.MUSENALM_PAGINATION_VALUES[inhalt.Paginierung]
 		if ok {

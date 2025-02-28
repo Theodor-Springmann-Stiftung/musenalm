@@ -1,11 +1,12 @@
 pb_data/
+_tmp/
+import/Almanach-Bilder/
 musenalm
 node_modules
 tmp/
 bin/
 cache/
 data_bilder/
-Almanach-Bilder/
 config.json
 out.log
 *.log

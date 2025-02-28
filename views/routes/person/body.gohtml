@@ -20,7 +20,9 @@
 <div id="breadcrumbs">
 	<div>
 		<div>
-			Personen und Körperschaften <i class="ri-arrow-right-wide-line"></i> Einzelansicht
+			<a href="/personen?letter={{- First $model.result.Agent.Name -}}"
+				>Personen &amp; Körperschaften</a
+			>
 			<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Agent.Name }}</b>
 		</div>
 		<div class="backbutton">
@@ -72,21 +74,34 @@
 
 {{- if .result.BResult -}}
 	<div class="container-normal flex flex-col font-serif mt-7 gap-y-6">
-		<h2 class="font-bold">
-			<i class="ri-information-2-line"></i>
-			{{ if eq $model.result.LenEntries 1 }}
-				Ein Band
-			{{- else }}
-				{{- $model.result.LenEntries }}
-				Bände
-			{{- end }}
-			in
-			{{- if eq $model.result.LenSeries 1 }}
-				einer Reihe
-			{{- else }}
-				{{ $model.result.LenSeries }} Reihen
-			{{- end }}
-			gefunden:
+		<h2 class="border-b font-sans flex  flex-row justify-between items-end">
+			<div>
+				<i class="ri-book-line"></i>
+				{{ if eq $model.result.LenEntries 1 }}
+					<b>Ein Band</b>
+				{{- else }}
+					<b>{{- $model.result.LenEntries }}</b>
+					Bände
+				{{- end }}
+				in
+				{{- if eq $model.result.LenSeries 1 }}
+					<b>einer Reihe</b>
+				{{- else }}
+					<b>{{ $model.result.LenSeries }}</b> Reihen
+				{{- end }}
+			</div>
+
+			{{- if len $model.result.CResult -}}
+				<div class="flex flex-row bg-stone-100 px-2 py-1 items-center">
+					<a class="" href="#almanachcontents"> Zu den Beiträgen</a>
+					<div
+						class="inline-block mx-2 text-xs bg-slate-800 text-white font-bold px-1.5 py-0.5
+					rounded">
+						{{- $model.result.LenContents -}}
+					</div>
+					<i class="ri-arrow-down-double-line"></i>
+				</div>
+			{{- end -}}
 		</h2>
 		{{ range $id, $r := .result.BResult }}
 			<div class="grow-0 max-w-[48rem]">
@@ -110,18 +125,47 @@
 {{ end }}
 
 {{- if len $model.result.CResult -}}
-	<div class="container-normal mt-0 pt-0" id="almanachcontents">
+	<div class="container-normal mt-16 pt-0" id="almanachcontents">
+		<div class="font-sans border-b">
+			<i class="ri-article-line"></i>
+			{{ if eq $model.result.LenContents 1 }}
+				<b>Ein Beitrag</b>
+			{{- else }}
+				<b>{{- $model.result.LenContents }}</b>
+				Beiträge
+			{{- end }}
+			in
+			{{- if eq (len $model.result.CResult) 1 }}
+				<b>einem Band</b>
+			{{- else }}
+				<b>{{ len $model.result.CResult }}</b> Bänden
+			{{- end }}
+		</div>
 		<div class="mt-8">
-			{{- range $_, $e := $model.result.CResult -}}
-				<div class="font-serif font-bold border-b pb-0.5 mb-2">{{ $e.PreferredTitle }}</div>
-				{{- $contents := index $model.result.Contents $e.Id -}}
-				<div class="mb-7">
-					{{- range $i, $c := $contents -}}
-						{{- $rels := index $model.result.ContentsAgents $c.Id -}}
-						{{- template "_content" Arr $c $e $rels $model.result.Agents  false true -}}
-					{{- end -}}
-				</div>
-			{{- end -}}
+			<tab-list>
+				{{- range $_, $e := $model.result.CResult -}}
+					{{- $contents := index $model.result.Contents $e.Id -}}
+					<div
+						class="font-serif flex flex-row justify-between hover:text-slate-800 text-stone-600
+						font-bold border-b pb-0.5 mb-2 tab-list-head items-end">
+						<div>
+							{{ $e.PreferredTitle }}
+							<i class="ri-arrow-right-s-fill show-closed"></i>
+							<i class="ri-arrow-down-s-fill show-opened"></i>
+						</div>
+						<div
+							class="inline-block font-sans bg-slate-800 text-white h-max text-sm px-1.5 rounded">
+							{{- len $contents -}}
+						</div>
+					</div>
+					<div class="mb-7 hidden tab-list-panel">
+						{{- range $i, $c := $contents -}}
+							{{- $rels := index $model.result.ContentsAgents $c.Id -}}
+							{{- template "_content" Arr $c $e $rels $model.result.Agents  false true -}}
+						{{- end -}}
+					</div>
+				{{- end -}}
+			</tab-list>
 		</div>
 	</div>
 {{- end -}}
