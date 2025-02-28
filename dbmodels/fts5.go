@@ -2,7 +2,6 @@ package dbmodels
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -162,7 +161,6 @@ func NormalizeQuery(query string) Query {
 	}
 
 	for _, r := range query {
-		fmt.Printf("Rune: %v\n", r)
 		if r == '"' {
 			if isInQuotes {
 				addToken()
@@ -184,12 +182,6 @@ func NormalizeQuery(query string) Query {
 	if cToken.Len() > 0 {
 		at()
 	}
-
-	fmt.Printf("Query: %v\n", query)
-	fmt.Printf("Include: %v\n", include)
-	fmt.Printf("Exclude: %v\n", exclude)
-	fmt.Printf("UnsafeI: %v\n", unsafeI)
-	fmt.Printf("UnsafeE: %v\n", unsafeE)
 
 	return Query{
 		Include: include,

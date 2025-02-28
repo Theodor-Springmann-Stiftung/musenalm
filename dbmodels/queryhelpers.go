@@ -2,6 +2,7 @@ package dbmodels
 
 import (
 	"iter"
+	"reflect"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -61,6 +62,11 @@ import (
 // github.com/pocketbase/pocketbase/apis.NewRouter.BodyLimit.func7(0xc0002da000)
 //
 //	/home
+
+const (
+	QUERY_PARTITION_SIZE = 1200
+)
+
 func Iter_TableByField[T interface{}](app core.App, table, field string, value interface{}) (iter.Seq2[*T, error], error) {
 	rows, err := app.RecordQuery(table).
 		Where(dbx.HashExp{field: value}).
@@ -111,13 +117,42 @@ func TableByField[T interface{}](app core.App, table, field string, value string
 	return ret, nil
 }
 
-func TableByFields[T interface{}](app core.App, table, field string, values any) (T, error) {
-	var ret T
-	err := app.RecordQuery(table).
-		Where(dbx.HashExp{field: values}).
-		All(&ret)
-	if err != nil {
-		return ret, err
+func TableByFields[T interface{}](app core.App, table, field string, values any) ([]T, error) {
+	var ret []T
+	if reflect.TypeOf(values).Kind() == reflect.Slice {
+		v := values.([]any)
+		if len(v) > QUERY_PARTITION_SIZE {
+			for i := 0; i < len(v); i += QUERY_PARTITION_SIZE {
+				part := v[i:]
+				if len(part) > QUERY_PARTITION_SIZE {
+					part = part[:QUERY_PARTITION_SIZE]
+				}
+
+				var partret []T
+				err := app.RecordQuery(table).
+					Where(dbx.HashExp{field: part}).
+					All(&partret)
+				if err != nil {
+					return ret, err
+				}
+
+				ret = append(ret, partret...)
+			}
+		} else {
+			err := app.RecordQuery(table).
+				Where(dbx.HashExp{field: values}).
+				All(&ret)
+			if err != nil {
+				return ret, err
+			}
+		}
+	} else {
+		err := app.RecordQuery(table).
+			Where(dbx.HashExp{field: values}).
+			All(&ret)
+		if err != nil {
+			return ret, err
+		}
 	}
 
 	return ret, nil
@@ -135,13 +170,32 @@ func TableByID[T interface{}](app core.App, table, id string) (T, error) {
 	return ret, nil
 }
 
-func TableByIDs[T interface{}](app core.App, table string, ids []any) (T, error) {
-	var ret T
-	err := app.RecordQuery(table).
-		Where(dbx.HashExp{ID_FIELD: ids}).
-		All(&ret)
-	if err != nil {
-		return ret, err
+func TableByIDs[T interface{}](app core.App, table string, ids []any) ([]T, error) {
+	var ret []T
+	if len(ids) > QUERY_PARTITION_SIZE {
+		for i := 0; i < len(ids); i += QUERY_PARTITION_SIZE {
+			part := ids[i:]
+			if len(part) > QUERY_PARTITION_SIZE {
+				part = part[:QUERY_PARTITION_SIZE]
+			}
+
+			var partret []T
+			err := app.RecordQuery(table).
+				Where(dbx.HashExp{ID_FIELD: part}).
+				All(&partret)
+			if err != nil {
+				return ret, err
+			}
+
+			ret = append(ret, partret...)
+		}
+	} else {
+		err := app.RecordQuery(table).
+			Where(dbx.HashExp{ID_FIELD: ids}).
+			All(&ret)
+		if err != nil {
+			return ret, err
+		}
 	}
 
 	return ret, nil

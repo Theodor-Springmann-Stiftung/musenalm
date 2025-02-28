@@ -4,6 +4,32 @@
 	.3 - []*RContentsAgents
 	.4 - map[string]*Agent
 	.5	bool SingleView
+	.6 	.parameters:
+	type SearchParameters struct {
+	Parameters
+	Sort string
+
+	Annotations bool
+	Persons     bool
+	Title       bool
+	Series      bool
+	Places      bool
+	Refs        bool
+	Year        bool
+	Entry       bool
+	Incipit      bool
+
+	AnnotationsString string
+	PersonsString     string
+	TitleString       string
+	AlmString         string
+	SeriesString      string
+	PlacesString      string
+	RefsString        string
+	YearString        string
+	EntryString       string
+	IncipitString      string
+	}
 */}}
 
 {{- $content := index . 0 -}}
@@ -19,6 +45,27 @@
 {{- $entrySubView := false -}}
 {{- if gt (len .) 5 -}}
 	{{- $entrySubView = index . 5 -}}
+{{- end -}}
+
+{{ $isAlm := false }}
+{{ $isTitle := false }}
+{{ $isYear := false }}
+{{ $isPerson := false }}
+{{ $isAnnotation := false }}
+{{ $isIncipit := false }}
+{{ $isEntry := false }}
+
+{{- $searchparameters := false -}}
+{{- if gt (len .) 6 -}}
+	{{- $searchparameters = index . 6 -}}
+
+	{{- $isAlm = $searchparameters.AlmString -}}
+	{{- $isTitle = or $searchparameters.Title $searchparameters.TitleString -}}
+	{{- $isYear = or $searchparameters.Year $searchparameters.YearString -}}
+	{{- $isPerson = or $searchparameters.Persons $searchparameters.PersonsString -}}
+	{{- $isAnnotation = or $searchparameters.Annotations $searchparameters.AnnotationsString -}}
+	{{- $isIncipit = or $searchparameters.Incipit $searchparameters.IncipitString -}}
+	{{- $isEntry = or $searchparameters.Entry $searchparameters.EntryString -}}
 {{- end -}}
 
 
@@ -50,8 +97,8 @@
 		<div class="fields">
 			{{- if or $singleView $entrySubView -}}
 				<div class="fieldlabel">Almanach</div>
-				<div class="fieldvalue">
-					<a href="/almanach/{{- $entry.MusenalmID -}}">
+				<div class="fieldvalue {{ if $isEntry }}search-text{{ end }}">
+					<a href="/almanach/{{- $entry.MusenalmID -}}#{{- $content.MusenalmID -}}">
 						{{- $entry.PreferredTitle -}}
 					</a>
 					{{- if $content.Extent -}}
@@ -62,15 +109,21 @@
 			{{- end -}}
 			{{- if $content.TitleStmt -}}
 				<div class="fieldlabel">Titel</div>
-				<div class="italic fieldvalue">{{- $content.TitleStmt -}}</div>
+				<div class="italic fieldvalue {{ if $isTitle }}search-text{{ end }}">
+					{{- $content.TitleStmt -}}
+				</div>
 			{{- end -}}
 			{{- if $content.IncipitStmt -}}
 				<div class="fieldlabel">Incipit</div>
-				<div class="italic fieldvalue">{{ $content.IncipitStmt }}…</div>
+				<div class="italic fieldvalue {{ if $isIncipit }}search-text{{ end }}">
+					{{ $content.IncipitStmt }}…
+				</div>
 			{{- end -}}
 			{{- if $content.ResponsibilityStmt -}}
 				<div class="fieldlabel">Autorangabe</div>
-				<div class="fieldvalue italic">{{- $content.ResponsibilityStmt -}}</div>
+				<div class="fieldvalue italic {{ if $isPerson }}search-text{{ end }}">
+					{{- $content.ResponsibilityStmt -}}
+				</div>
 			{{- end -}}
 			{{- if $rcas -}}
 				<div class="fieldlabel">Personen</div>
@@ -79,7 +132,11 @@
 						{{- range $_, $rca := $rcas -}}
 							{{- $agent := index $agents $rca.Agent -}}
 							<div class="font-sans text-base bg-stone-100 px-1 py-0.5 rounded w-max">
-								<a href="/person/{{- $agent.Id -}}">{{- $agent.Name -}}</a>
+								<a
+									href="/person/{{- $agent.Id -}}"
+									class="inline-block {{ if $isPerson }}search-text{{ end }}">
+									{{- $agent.Name -}}
+								</a>
 								({{ $agent.BiographicalData -}})
 							</div>
 						{{- end -}}
@@ -87,10 +144,11 @@
 				</div>
 			{{- end -}}
 			{{- if $content.Annotation -}}
+				{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
 				<div class="fieldlabel">Anmerkung</div>
-				<div class="fieldvalue">
+				<div class="fieldvalue {{ if $isAnnotation }}search-text{{ end }}">
 					{{- Safe (LinksAnnotation (ReplaceSlashParen
-						$content.Annotation))
+						$content.Annotation) $link)
 					-}}
 				</div>
 			{{- end -}}
@@ -131,7 +189,9 @@
 		<div class="w-24 shrink-0 grow-0 items-end flex flex-col gap-y-1 columnfour">
 			<div class="font-sans text-sm bg-stone-100 px-2 font-bold py-0.5 rounded w-max">
 				<span class="text-xs font-normal pr-1">NR</span>
-				{{ $content.MusenalmID -}}
+				<span class="{{ if $isAlm }}search-text{{ end }}">
+					{{- $content.MusenalmID -}}
+				</span>
 			</div>
 			{{- if $entrySubView -}}
 				{{- if $content.MusenalmType -}}

@@ -417,6 +417,8 @@ var PUBLIC_VIEW_RULE = types.Pointer("")
 var PUBLIC_LIST_RULE = types.Pointer("")
 
 const (
+	FTS_LIMIT = 100000
+
 	PLACES_TABLE   = "places"
 	AGENTS_TABLE   = "agents"
 	SERIES_TABLE   = "series"

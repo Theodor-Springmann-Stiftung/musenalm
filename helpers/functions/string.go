@@ -44,11 +44,11 @@ func First(s string) string {
 	return string(r[0])
 }
 
-func LinksAnnotation(s string) string {
+func LinksAnnotation(s, link string) string {
 	annotation := linksexp.ReplaceAllStringFunc(s, func(match string) string {
 		submatches := linksexp.FindStringSubmatch(match)
 		if len(submatches) > 1 {
-			return fmt.Sprintf(`<a href="#%s" class="link-default oldstyle-nums">%s</a>`, submatches[1], match)
+			return fmt.Sprintf(`<a href="`+link+`#%s" class="link-default oldstyle-nums">%s</a>`, submatches[1], match)
 		}
 		return match
 	})

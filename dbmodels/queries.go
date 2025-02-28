@@ -14,7 +14,7 @@ import (
 //    For scanning, with an Iter_ prefix, yields single row results
 
 func REntriesAgents_Agent(app core.App, id string) ([]*REntriesAgents, error) {
-	return TableByFields[[]*REntriesAgents](
+	return TableByFields[*REntriesAgents](
 		app,
 		RelationTableName(ENTRIES_TABLE, AGENTS_TABLE),
 		AGENTS_TABLE,
@@ -23,7 +23,7 @@ func REntriesAgents_Agent(app core.App, id string) ([]*REntriesAgents, error) {
 }
 
 func REntriesAgents_Entry(app core.App, id string) ([]*REntriesAgents, error) {
-	return TableByFields[[]*REntriesAgents](
+	return TableByFields[*REntriesAgents](
 		app,
 		RelationTableName(ENTRIES_TABLE, AGENTS_TABLE),
 		ENTRIES_TABLE,
@@ -32,7 +32,7 @@ func REntriesAgents_Entry(app core.App, id string) ([]*REntriesAgents, error) {
 }
 
 func REntriesAgents_Entries(app core.App, ids []any) ([]*REntriesAgents, error) {
-	return TableByFields[[]*REntriesAgents](
+	return TableByFields[*REntriesAgents](
 		app,
 		RelationTableName(ENTRIES_TABLE, AGENTS_TABLE),
 		ENTRIES_TABLE,
@@ -41,7 +41,7 @@ func REntriesAgents_Entries(app core.App, ids []any) ([]*REntriesAgents, error) 
 }
 
 func RContentsAgents_Agent(app core.App, id string) ([]*RContentsAgents, error) {
-	return TableByFields[[]*RContentsAgents](
+	return TableByFields[*RContentsAgents](
 		app,
 		RelationTableName(CONTENTS_TABLE, AGENTS_TABLE),
 		AGENTS_TABLE,
@@ -50,7 +50,7 @@ func RContentsAgents_Agent(app core.App, id string) ([]*RContentsAgents, error) 
 }
 
 func RContentsAgents_Contents(app core.App, id []any) ([]*RContentsAgents, error) {
-	return TableByFields[[]*RContentsAgents](
+	return TableByFields[*RContentsAgents](
 		app,
 		RelationTableName(CONTENTS_TABLE, AGENTS_TABLE),
 		CONTENTS_TABLE,
@@ -59,7 +59,7 @@ func RContentsAgents_Contents(app core.App, id []any) ([]*RContentsAgents, error
 }
 
 func RContentsAgents_Content(app core.App, id string) ([]*RContentsAgents, error) {
-	return TableByFields[[]*RContentsAgents](
+	return TableByFields[*RContentsAgents](
 		app,
 		RelationTableName(CONTENTS_TABLE, AGENTS_TABLE),
 		CONTENTS_TABLE,
@@ -68,7 +68,7 @@ func RContentsAgents_Content(app core.App, id string) ([]*RContentsAgents, error
 }
 
 func REntriesSeries_Entries(app core.App, ids []any) ([]*REntriesSeries, error) {
-	return TableByFields[[]*REntriesSeries](
+	return TableByFields[*REntriesSeries](
 		app,
 		RelationTableName(ENTRIES_TABLE, SERIES_TABLE),
 		ENTRIES_TABLE,
@@ -77,7 +77,7 @@ func REntriesSeries_Entries(app core.App, ids []any) ([]*REntriesSeries, error) 
 }
 
 func REntriesSeries_Entry(app core.App, id string) ([]*REntriesSeries, error) {
-	return TableByFields[[]*REntriesSeries](
+	return TableByFields[*REntriesSeries](
 		app,
 		RelationTableName(ENTRIES_TABLE, SERIES_TABLE),
 		ENTRIES_TABLE,
@@ -86,7 +86,7 @@ func REntriesSeries_Entry(app core.App, id string) ([]*REntriesSeries, error) {
 }
 
 func REntriesSeries_Seriess(app core.App, ids []any) ([]*REntriesSeries, error) {
-	return TableByFields[[]*REntriesSeries](
+	return TableByFields[*REntriesSeries](
 		app,
 		RelationTableName(ENTRIES_TABLE, SERIES_TABLE),
 		SERIES_TABLE,
@@ -100,7 +100,7 @@ func Agents_ID(app core.App, id string) (*Agent, error) {
 }
 
 func Agents_IDs(app core.App, ids []any) ([]*Agent, error) {
-	return TableByIDs[[]*Agent](app, AGENTS_TABLE, ids)
+	return TableByIDs[*Agent](app, AGENTS_TABLE, ids)
 }
 
 func Entries_ID(app core.App, id string) (*Entry, error) {
@@ -114,11 +114,11 @@ func Entries_MusenalmID(app core.App, id string) (*Entry, error) {
 }
 
 func Entries_IDs(app core.App, ids []any) ([]*Entry, error) {
-	return TableByIDs[[]*Entry](app, ENTRIES_TABLE, ids)
+	return TableByIDs[*Entry](app, ENTRIES_TABLE, ids)
 }
 
 func Series_IDs(app core.App, ids []any) ([]*Series, error) {
-	return TableByIDs[[]*Series](app, SERIES_TABLE, ids)
+	return TableByIDs[*Series](app, SERIES_TABLE, ids)
 }
 
 func Series_MusenalmID(app core.App, id string) (*Series, error) {
@@ -132,15 +132,15 @@ func Series_ID(app core.App, id string) (*Series, error) {
 }
 
 func Places_IDs(app core.App, ids []any) ([]*Place, error) {
-	return TableByIDs[[]*Place](app, PLACES_TABLE, ids)
+	return TableByIDs[*Place](app, PLACES_TABLE, ids)
 }
 
 func Contents_IDs(app core.App, ids []any) ([]*Content, error) {
-	return TableByIDs[[]*Content](app, CONTENTS_TABLE, ids)
+	return TableByIDs[*Content](app, CONTENTS_TABLE, ids)
 }
 
 func Contents_Entry(app core.App, id string) ([]*Content, error) {
-	return TableByFields[[]*Content](
+	return TableByFields[*Content](
 		app,
 		CONTENTS_TABLE,
 		ENTRIES_TABLE,

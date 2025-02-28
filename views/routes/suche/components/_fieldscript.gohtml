@@ -14,4 +14,38 @@
 			}
 		}
 	});
+
+	const form = document.getElementById("simplesearchform");
+	let submitBtn = null;
+	if (form) {
+		submitBtn = form.querySelector("#submitbutton");
+	}
+
+	function checkValidity(f, btn) {
+		if (f.checkValidity()) {
+			btn.disabled = false;
+		} else {
+			btn.disabled = true;
+		}
+	}
+
+	if (form && submitBtn) {
+		checkValidity(form, submitBtn);
+		form.addEventListener("input", (event) => {
+			checkValidity(form, submitBtn);
+		});
+	}
+
+	const lookupform = document.getElementById("lookupform");
+	let lookupsubmitBtn = null;
+	if (lookupform) {
+		lookupsubmitBtn = lookupform.querySelector("#submitbutton");
+	}
+
+	if (lookupform && lookupsubmitBtn) {
+		checkValidity(lookupform, lookupsubmitBtn);
+		lookupform.addEventListener("input", (event) => {
+			checkValidity(lookupform, lookupsubmitBtn);
+		});
+	}
 </script>

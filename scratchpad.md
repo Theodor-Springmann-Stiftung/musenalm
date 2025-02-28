@@ -64,6 +64,8 @@ TODO danach:
 - HTMX + Smooth scroll
 - Personen: related
 - Inhaltsliste: Personen sehen komisch aus
+- V\Boosted links gen by webcomponents
+- Sammlungen u. Querverweise müssen die URL als Parameter bekommen
 - Sammlungen neuer versuch
 - Inhaltsliste Personen
     - Sortierung nach Band A-Z?

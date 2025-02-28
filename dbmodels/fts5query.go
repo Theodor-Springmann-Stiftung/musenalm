@@ -1,6 +1,7 @@
 package dbmodels
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
@@ -146,7 +147,7 @@ func (q *FTS5Query) Query() string {
 		query += " { " + strings.Join(m.Fields, " ") + " } : \"" + q.Escape(m.Value) + "\""
 	}
 
-	query += "'"
+	query += "' LIMIT " + strconv.Itoa(FTS_LIMIT)
 	return query
 }
 

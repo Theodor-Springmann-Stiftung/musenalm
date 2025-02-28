@@ -1,11 +1,69 @@
 {{ $model := . }}
+{{/* .result:
+	type SearchResultBeitraege struct {
+	Queries []dbmodels.FTS5QueryRequest
+
+	// these are the sorted IDs for hits
+	Hits     []string
+	Entries  map[string]*dbmodels.Entry     // <- Key: Entry ID
+	Agents   map[string]*dbmodels.Agent     // <- Key: Agent IDs
+	Contents map[string][]*dbmodels.Content // <- Key: Entry ID, or year
+
+	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key: Content ID
+	}
+	.parameters:
+	type SearchParameters struct {
+	Parameters
+	Sort string
+
+	Annotations bool
+	Persons     bool
+	Title       bool
+	Series      bool
+	Places      bool
+	Refs        bool
+	Year        bool
+	Entry       bool
+	Incipit      bool
+
+	AnnotationsString string
+	PersonsString     string
+	TitleString       string
+	AlmString         string
+	SeriesString      string
+	PlacesString      string
+	RefsString        string
+	YearString        string
+	EntryString       string
+	IncipitString      string
+	}
+	*/}}
+
+{{ $isAlm := false }}
+{{ $isTitle := false }}
+{{ $isYear := false }}
+{{ $isPerson := false }}
+{{ $isAnnotation := false }}
+{{ $isIncipit := false }}
+{{ $isEntry := false }}
+
+{{- $isAlm = $model.parameters.AlmString -}}
+{{- $isTitle = or $model.parameters.Title $model.parameters.TitleString -}}
+{{- $isYear = or $model.parameters.Year $model.parameters.YearString -}}
+{{- $isPerson = or $model.parameters.Persons $model.parameters.PersonsString -}}
+{{- $isAnnotation = or $model.parameters.Annotations $model.parameters.AnnotationsString -}}
+{{- $isIncipit = or $model.parameters.Incipit $model.parameters.IncipitString -}}
+{{- $isEntry = or $model.parameters.Entry $model.parameters.EntryString -}}
+
+{{- $isBase := not (or $isTitle $isYear $isPerson $isAnnotation $isIncipit $isEntry) -}}
 
 
 <div id="searchcontrol" class="container-normal">
 	{{- template "_heading" $model.parameters -}}
-	<div id="" class="border-l border-zinc-300 px-8 py-10 relative">
+	<div id="searchform" class="border-l border-zinc-300 px-8 py-10 relative">
+		{{- template "_musenalmidbox" Arr $model.parameters.AlmString "beitraege" -}}
 		<form
-			id="searchform"
+			id="simplesearchform"
 			class="w-full font-serif"
 			method="get"
 			action="/suche/beitraege"
@@ -18,28 +76,34 @@
 				{{ template "_searchboxsimple" Arr $model.parameters true $q }}
 				<fieldset class="selectgroup">
 					<div class="selectgroup-option">
-						<input type="checkbox" name="number" id="number" checked />
-						<label for="number">Almanach-Nr.</label>
+						<input type="checkbox" name="title" id="title"
+						{{ if or $isBase $isTitle -}}checked{{- end -}} />
+						<label for="title">Titel</label>
 					</div>
 					<div class="selectgroup-option">
-						<input type="checkbox" name="title" id="title" checked />
-						<label for="title">Titelinformationen</label>
+						<input type="checkbox" name="incipit" id="incipit"
+						{{ if or $isBase $isIncipit -}}checked{{- end -}} />
+						<label for="incipit">Incipit</label>
 					</div>
 					<div class="selectgroup-option">
-						<input type="checkbox" name="entry" id="entry" checked />
-						<label for="entry">Bandtitel</label>
-					</div>
-					<div class="selectgroup-option">
-						<input type="checkbox" name="person" id="person" checked />
+						<input type="checkbox" name="persons" id="persons"
+						{{ if or $isBase $isPerson -}}checked{{- end -}} />
 						<label for="person">Personen &amp; Pseudonyme</label>
 					</div>
 					<div class="selectgroup-option">
-						<input type="checkbox" name="annotations" id="annotations" checked />
-						<label for="annotations">Anmerkungen</label>
+						<input type="checkbox" name="entry" id="entry"
+						{{ if or $isBase $isEntry -}}checked{{- end -}} />
+						<label for="entry">Bandtitel</label>
 					</div>
 					<div class="selectgroup-option">
-						<input type="checkbox" name="year" id="year" checked />
+						<input type="checkbox" name="year" id="year"
+						{{ if or $isBase $isYear -}}checked{{- end -}} />
 						<label for="year">Jahr</label>
+					</div>
+					<div class="selectgroup-option">
+						<input type="checkbox" name="annotations" id="annotations"
+						{{ if or $isBase $isAnnotation -}}checked{{- end -}} />
+						<label for="annotations">Anmerkungen</label>
 					</div>
 				</fieldset>
 				{{ template "_infotextsimple" true }}
@@ -49,3 +113,127 @@
 </div>
 
 {{- template "_fieldscript" -}}
+
+{{- if $model.parameters.IsBeitraegeSearch -}}
+	<div class="container-normal" id="searchresults">
+		<div class="border-b border-zinc-300 flex flex-row justify-between">
+			<div>
+				{{ if $model.parameters.Query -}}
+					Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+				{{- end -}}
+				{{- if $isAlm -}}
+					Inhaltsnummer <b>»{{ $model.parameters.AlmString }}«</b> &middot;
+				{{- end -}}
+				<i class="ri-book-line"></i>
+				{{ if eq $model.result.Count 1 -}}
+					Ein Beitrag
+				{{ else -}}
+					{{ $model.result.Count }} Beiträge
+				{{- end }}
+				in
+				{{ if eq ($model.result.Entries | len) 1 -}}
+					einem Band
+				{{ else -}}
+					{{ $model.result.Entries | len }} Bänden
+				{{- end -}}
+			</div>
+			{{- if gt (len $model.result.Pages) 1 }}
+				<div>
+					{{ if gt $model.parameters.Page 1 -}}
+						<a
+							href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Prev
+							}}" class="mr-1.5">
+								<i class="ri-arrow-left-long-line"></i>
+							</a>
+					{{- end -}}
+					S. {{ $model.parameters.Page }} /
+					{{ $model.result.PagesCount }}
+					{{ if lt $model.parameters.Page ($model.result.PagesCount) -}}
+						<a
+							href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Next
+							}}" class="ml-1.5">
+								<i class="ri-arrow-right-long-line"></i>
+							</a>
+					{{- end -}}
+				</div>
+			{{- end -}}
+
+			{{- if not $isAlm -}}
+				<div>
+					<label
+						for="sort"
+						class="align-baseline h-min self-end pb-1 mr-2 text-sm	font-sans
+				text-stone-700"
+						>Sortierung</label
+					>
+
+					{{/* INFO:  We always redrect to letter = A bc some letters dont exist for other professions */}}
+					<select
+						class="h-min pb-1 border-b-4 border-zinc-300 px-1.5"
+						name="sort"
+						id="sort"
+						autocomplete="off"
+						hx-get="{{- $model.parameters.ToQueryParamsBeitraege -}}"
+						trigger="change"
+						hx-push-url="true"
+						hx-select="main"
+						hx-target="main">
+						<option
+							value="year"
+							{{ if eq $model.parameters.Sort "year" -}}
+								selected
+							{{- end -}}>
+							Jahr
+						</option>
+						<option value="entry" {{ if eq $model.parameters.Sort "entry" -}}selected{{- end -}}>
+							Bände A-Z
+						</option>
+					</select>
+				</div>
+			{{- end -}}
+		</div>
+
+		{{- if $model.result.Hits -}}
+
+			<div class="mt-8" id="almanachcontents">
+				{{- range $_, $hit := $model.result.Hits -}}
+					{{- $e := index $model.result.Entries $hit -}}
+					{{- $contents := index $model.result.Contents $e.Id -}}
+					<div
+						class="font-serif flex flex-row justify-between text-stone-800
+						font-bold border-b pb-0.5 mb-2 tab-list-head items-end">
+						<div>
+							{{ $e.PreferredTitle }}
+						</div>
+						<div
+							class="inline-block font-sans bg-slate-800 text-white h-max text-sm px-1.5 rounded">
+							{{- len $contents -}}
+						</div>
+					</div>
+					<div class="mb-7 tab-list-panel">
+						{{- range $i, $c := $contents -}}
+							{{- $rels := index $model.result.ContentsAgents $c.Id -}}
+							{{- template "_content" Arr $c $e $rels $model.result.Agents  false true
+								$model.parameters
+							-}}
+						{{- end -}}
+					</div>
+				{{- end -}}
+			</div>
+		{{- end -}}
+	</div>
+
+
+	<script type="module">
+	let elements = document.querySelectorAll('.search-text');
+	let mark_instance = new Mark(elements);
+	// INFO: we wait a little bit before marking, to settle everything
+		setTimeout(() => {
+			mark_instance.mark('{{ $model.parameters.AllSearchTermsBaende }}', {
+				"seperateWordSearch": true,
+			});
+		}, 200);
+	</script>
+	</div>
+
+{{- end -}}

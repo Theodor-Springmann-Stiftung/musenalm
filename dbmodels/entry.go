@@ -204,6 +204,10 @@ func (e *Entry) MusenalmID() int {
 	return e.GetInt(MUSENALMID_FIELD)
 }
 
+func (e *Entry) MusenalmIDString() string {
+	return e.GetString(MUSENALMID_FIELD)
+}
+
 func (e *Entry) SetMusenalmID(musenalmID int) {
 	e.Set(MUSENALMID_FIELD, musenalmID)
 }
