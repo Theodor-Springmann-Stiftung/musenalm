@@ -59,3 +59,19 @@ TODO danach:
 - Weißraum in den Antworten
 - Antworten komprimieren
 - Cache?
+
+
+- Link größer Einzelansicht
+- Download button Lightbox
+- Personen Liste Inhalte Abstand
+- HTMX + Smooth scroll
+- Brreadcrumb link Reihentitel
+- Inhalt -> Beiträge
+
+- Inhaltsliste Personen
+    - Einklappen
+    - Linke Spalte weg
+    - Sortierung
+    - Sortierung nach Band A-Z?
+
+- Sortierung Startseite
