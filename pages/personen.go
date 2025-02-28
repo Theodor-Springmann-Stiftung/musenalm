@@ -91,6 +91,16 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	data["filter"] = filter
 	data["letter"] = letter
 
+	bcount, err := dbmodels.CountAgentsBaende(app)
+	if err == nil {
+		data["bcount"] = bcount
+	}
+
+	count, err := dbmodels.CountAgentsContents(app)
+	if err == nil {
+		data["ccount"] = count
+	}
+
 	letters, err := dbmodels.LettersForAgents(app, filter)
 	if err != nil {
 		return engine.Response404(e, err, data)
@@ -131,6 +141,16 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 	data["search"] = search
 	data["agents"] = agents
 	data["altagents"] = altagents
+
+	bcount, err := dbmodels.CountAgentsBaende(app)
+	if err == nil {
+		data["bcount"] = bcount
+	}
+
+	count, err := dbmodels.CountAgentsContents(app)
+	if err == nil {
+		data["ccount"] = count
+	}
 
 	return p.Get(e, engine, data)
 }

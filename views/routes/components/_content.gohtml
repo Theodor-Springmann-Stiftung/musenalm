@@ -16,6 +16,11 @@
 	{{- $singleView = index . 4 -}}
 {{- end -}}
 
+{{- $entrySubView := false -}}
+{{- if gt (len .) 5 -}}
+	{{- $entrySubView = index . 5 -}}
+{{- end -}}
+
 
 <div class="content flex flex-row font-serif" id="{{- $content.Id -}}">
 	{{- if not $singleView -}}
@@ -41,7 +46,7 @@
 
 	<div class="grow columntwo">
 		<div class="fields">
-			{{- if $singleView -}}
+			{{- if or $singleView $entrySubView -}}
 				<div class="fieldlabel">Almanach</div>
 				<div class="fieldvalue">
 					<a href="/almanach/{{- $entry.MusenalmID -}}">
