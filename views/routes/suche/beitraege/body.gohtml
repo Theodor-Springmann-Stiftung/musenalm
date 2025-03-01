@@ -141,12 +141,13 @@
 {{- template "_fieldscript" -}}
 {{- if $model.parameters.IsBeitraegeSearch -}}
 	<div class="cotents" id="searchresults">
-		{{- if $model.result.Hits -}}
+		{{- $isFiltered := or $model.filters.Agent $model.filters.Year $model.filters.Type -}}
+		{{- if and $model.result.Hits (not $isFiltered) -}}
 			{{ template "_filterlist" $model }}
 		{{- end -}}
 
 
-		<div class="container-normal" id="subresults">
+		<div class="container-normal flex flex-col h-full" id="subresults">
 			{{ template "tablehead" $model }}
 			{{ template "pills" $model }}
 			{{- if $model.result.Hits -}}
@@ -177,10 +178,13 @@
 				</div>
 			{{- end -}}
 
-
-			<div class="flex flex-row justify-end items-start border-t border-zinc-300 pt-4">
-				{{- template "pagination" $model -}}
-			</div>
+			{{- if $model.result.Hits -}}
+				<div class="flex flex-row justify-end items-start border-t border-zinc-300 pt-4">
+					{{- template "pagination" $model -}}
+				</div>
+			{{- else -}}
+				<div class="mt-4">Kein Beitrag gefunden.</div>
+			{{- end -}}
 		</div>
 
 	<script type="module">

@@ -4,7 +4,7 @@
 		{{ if gt $model.parameters.Page 1 -}}
 			<a
 				href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Prev }}"
-				class="mr-1.5">
+				class="mr-1.5 text-stone-500 hover:text-slate-900">
 				<i class="ri-arrow-left-long-line"></i>
 			</a>
 		{{- end -}}
@@ -13,7 +13,7 @@
 		{{ if lt $model.parameters.Page ($model.result.PagesCount) -}}
 			<a
 				href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Next }}"
-				class="ml-1.5">
+				class="ml-1.5 text-stone-500 hover:text-slate-900">
 				<i class="ri-arrow-right-long-line"></i>
 			</a>
 		{{- end -}}
