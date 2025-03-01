@@ -43,12 +43,24 @@ func (b *IndexBilder) SetBild(bild *filesystem.File) {
 	b.Set(F_IMAGE, bild)
 }
 
+func (r *IndexBilder) BildPath() string {
+	img := r.Bild()
+	ret := "/api/files/" + r.TableName() + "/" + r.Id + "/" + img
+	return ret
+}
+
 func (b *IndexBilder) Vorschau() string {
 	return b.GetString(F_PREVIEW)
 }
 
 func (b *IndexBilder) SetVorschau(vorschau *filesystem.File) {
 	b.Set(F_PREVIEW, vorschau)
+}
+
+func (r *IndexBilder) VorschauPath() string {
+	img := r.Vorschau()
+	ret := "/api/files/" + r.TableName() + "/" + r.Id + "/" + img
+	return ret
 }
 
 type IndexTexte struct {

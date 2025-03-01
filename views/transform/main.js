@@ -18,6 +18,7 @@ const INT_LINK_ELEMENT = "int-link";
 const POPUP_IMAGE_ELEMENT = "popup-image";
 const TABLIST_ELEMENT = "tab-list";
 const FILTER_PILL_ELEMENT = "filter-pill";
+const IMAGE_REEL_ELEMENT = "image-reel";
 
 class XSLTParseProcess {
 	#processors;
@@ -180,16 +181,31 @@ class FilterPill extends HTMLElement {
 	render() {
 		this.innerHTML = `
 		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-swap="outerHTML show:window:top">
-			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:saturate-50 px-2.5 mt-2">
-			<div href="${this.getURL()}" class="filter-pill-close no-underline font-bold mr-1 text-orange-900 hover:text-orange-800">
-				<i class="ri-close-circle-line"></i>
-			</div>
+			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:saturate-50 px-2.5">
+				${this.renderIcon()}
 				<div class="flex flex-row filter-pill-label-value !items-baseline text-slate-700">
 					<div class="filter-pill-label font-bold mr-1.5 align-baseline">${this.text}</div>
 					${this.renderValue()}
 				</div>
 			</div>
 		</a>
+		`;
+	}
+
+	renderIcon() {
+		const isBool = this.value === "true" || this.value === "false";
+		if (!isBool) {
+			return `<div
+				href="${this.getURL()}"
+				class="filter-pill-close no-underline font-bold mr-1 text-orange-900 hover:text-orange-800">
+				<i class="ri-arrow-left-s-line"></i>
+			</div>
+			`;
+		}
+		return `
+			<div href="${this.getURL()}" class="filter-pill-close no-underline font-bold mr-1 text-orange-900 hover:text-orange-800">
+				<i class="ri-close-circle-line"></i>
+			</div>
 		`;
 	}
 
@@ -713,10 +729,14 @@ class PopupImage extends HTMLElement {
 		this._preview = null;
 		this._description = null;
 		this._imageURL = "";
+		this._hideDLButton = false;
 	}
 
 	connectedCallback() {
+		this.classList.add("cursor-pointer");
+		this.classList.add("select-none");
 		this._imageURL = this.getAttribute("data-image-url") || "";
+		this._hideDLButton = this.getAttribute("data-hide-dl-button") || false;
 		this._preview = this.querySelector("img");
 		this._description = this.querySelector(".image-description");
 
@@ -735,7 +755,6 @@ class PopupImage extends HTMLElement {
 	}
 
 	showOverlay() {
-		const descriptionHtml = this._description ? this._description.innerHTML : "";
 		this.overlay = document.createElement("div");
 		this.overlay.classList.add(
 			"fixed",
@@ -749,26 +768,21 @@ class PopupImage extends HTMLElement {
 		);
 
 		this.overlay.innerHTML = `
-      <div class="relative w-max max-w-dvw max-h-dvh shadow-lg flex flex-col items-center gap-4">
-				<div class="absolute -right-16 top-0 text-white text-4xl flex flex-col">
+      <div class="relative w-max max-w-dvw max-h-dvh shadow-lg flex flex-col items-center justify-center gap-4">
+				<div>
+				<div class="absolute -right-16 text-white text-4xl flex flex-col">
 					<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup">
 						<i class="ri-close-fill text-4xl"></i>
 					</button>
-					<tool-tip position="right">
-					<a href="${this._imageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
-					<div class="data-tip">Bild herunterladen</div>
-					</tool-tip>
+					${this.downloadButton()}
 				</div>
-
         <img
           src="${this._imageURL}"
           alt="Popup Image"
-          class="full max-h-[90vh] max-w-[80vw] object-contain"
+          class="full max-h-[80vh] max-w-[80vw] object-contain block relative ${this.descriptionImgClass()}"
         />
-
-        <div class="text-center text-gray-700 description-content">
-          ${descriptionHtml}
-        </div>
+				${this.description()}
+					</div>
       </div>
     `;
 
@@ -786,6 +800,40 @@ class PopupImage extends HTMLElement {
 		});
 
 		document.body.appendChild(this.overlay);
+	}
+
+	descriptionImgClass() {
+		if (!this.description) {
+			return "0";
+		}
+		return "";
+	}
+
+	description() {
+		if (!this._description) {
+			return "";
+		}
+
+		return `
+        <div class="font-serif text-left description-content mt-3 text-slate-900 ">
+					<div class="max-w-[80ch] hyphens-auto px-6 py-2 bg-stone-50 shadow-lg">
+          ${this._description.innerHTML}
+						</div>
+        </div>
+			`;
+	}
+
+	downloadButton() {
+		if (this._hideDLButton) {
+			return "";
+		}
+
+		return `
+					<tool-tip position="right">
+					<a href="${this._imageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
+					<div class="data-tip">Bild herunterladen</div>
+					</tool-tip>
+		`;
 	}
 
 	hideOverlay() {
@@ -1167,6 +1215,43 @@ class IntLink extends HTMLElement {
 	}
 }
 
+class ImageReel extends HTMLElement {
+	#minWidth = 176;
+
+	constructor() {
+		super();
+		this._images = [];
+	}
+
+	connectedCallback() {
+		this._images = Array.from(this.querySelectorAll(".primages"));
+		this.calculateShownImages();
+		const rObs = new ResizeObserver((__, _) => {
+			this.calculateShownImages();
+		});
+
+		this._resizeObserver = rObs;
+		rObs.observe(this);
+	}
+
+	disconnectedCallback() {
+		this._resizeObserver.unobserve(this);
+	}
+
+	calculateShownImages() {
+		const c = this.getBoundingClientRect();
+		console.log(c);
+		const fits = Math.floor(c.width / (this.#minWidth + 10));
+		for (let i = 0; i < this._images.length; i++) {
+			if (i < fits - 1) {
+				this._images[i].classList.remove("hidden");
+			} else {
+				this._images[i].classList.add("hidden");
+			}
+		}
+	}
+}
+
 customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
 customElements.define(FILTER_LIST_ELEMENT, FilterList);
@@ -1175,5 +1260,6 @@ customElements.define(TOOLTIP_ELEMENT, ToolTip);
 customElements.define(POPUP_IMAGE_ELEMENT, PopupImage);
 customElements.define(TABLIST_ELEMENT, Tablist);
 customElements.define(FILTER_PILL_ELEMENT, FilterPill);
+customElements.define(IMAGE_REEL_ELEMENT, ImageReel);
 
 export { XSLTParseProcess, FilterList, ScrollButton, AbbreviationTooltips };

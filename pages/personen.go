@@ -9,6 +9,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
+// INFO: V0 of these
 const (
 	URL_PERSONEN = "/personen/"
 	PARAM_FILTER = "filter"
@@ -86,17 +87,22 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 	if err != nil {
 		return engine.Response404(e, err, data)
 	}
-	dbmodels.SortAgentsByName(agents)
+	dbmodels.Sort_Agents_Name(agents)
 	data["agents"] = agents
 	data["filter"] = filter
 	data["letter"] = letter
 
-	bcount, err := dbmodels.CountAgentsBaende(app)
+	ids := []any{}
+	for _, a := range agents {
+		ids = append(ids, a.Id)
+	}
+
+	bcount, err := dbmodels.CountAgentsBaende(app, ids)
 	if err == nil {
 		data["bcount"] = bcount
 	}
 
-	count, err := dbmodels.CountAgentsContents(app)
+	count, err := dbmodels.CountAgentsContents(app, ids)
 	if err == nil {
 		data["ccount"] = count
 	}
@@ -135,19 +141,28 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 		data["FTS"] = true
 	}
 
-	dbmodels.SortAgentsByName(agents)
-	dbmodels.SortAgentsByName(altagents)
+	dbmodels.Sort_Agents_Name(agents)
+	dbmodels.Sort_Agents_Name(altagents)
 
 	data["search"] = search
 	data["agents"] = agents
 	data["altagents"] = altagents
 
-	bcount, err := dbmodels.CountAgentsBaende(app)
+	ids := []any{}
+	for _, a := range agents {
+		ids = append(ids, a.Id)
+	}
+
+	for _, a := range altagents {
+		ids = append(ids, a.Id)
+	}
+
+	bcount, err := dbmodels.CountAgentsBaende(app, ids)
 	if err == nil {
 		data["bcount"] = bcount
 	}
 
-	count, err := dbmodels.CountAgentsContents(app)
+	count, err := dbmodels.CountAgentsContents(app, ids)
 	if err == nil {
 		data["ccount"] = count
 	}

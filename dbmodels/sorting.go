@@ -8,6 +8,8 @@ import (
 	"golang.org/x/text/language"
 )
 
+// INFO: Functions that implement sorting of which sqlite is not capable of.
+
 func Sort_Series_Title(series []*Series) {
 	collator := collate.New(language.German)
 	slices.SortFunc(series, func(i, j *Series) int {
@@ -53,5 +55,12 @@ func Sort_REntriesSeries_Year(entries []*REntriesSeries, entriesMap map[string]*
 func Sort_Contents_Numbering(contents []*Content) {
 	slices.SortFunc(contents, func(i, j *Content) int {
 		return datatypes.CompareFloat(i.Numbering(), j.Numbering())
+	})
+}
+
+func Sort_Places_Name(places []*Place) {
+	collator := collate.New(language.German)
+	slices.SortFunc(places, func(i, j *Place) int {
+		return collator.CompareString(i.Name(), j.Name())
 	})
 }

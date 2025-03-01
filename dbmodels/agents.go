@@ -1,8 +1,6 @@
 package dbmodels
 
 import (
-	"slices"
-
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/text/collate"
@@ -11,17 +9,6 @@ import (
 
 type AgentsEntries map[string][]*REntriesAgents
 type AgentsContents map[string][]*RContentsAgents
-
-func AgentForId(app core.App, id string) (*Agent, error) {
-	agent := &Agent{}
-	err := app.RecordQuery(AGENTS_TABLE).
-		Where(dbx.HashExp{ID_FIELD: id}).
-		One(agent)
-	if err != nil {
-		return nil, err
-	}
-	return agent, nil
-}
 
 func FTS5SearchAgents(app core.App, query string) ([]*Agent, error) {
 	a := []*Agent{}
@@ -216,13 +203,6 @@ func AgentsForLetter(app core.App, letter string) ([]*Agent, error) {
 	return agents, nil
 }
 
-func SortAgentsByName(series []*Agent) {
-	collator := collate.New(language.German, collate.Loose)
-	slices.SortFunc(series, func(i, j *Agent) int {
-		return collator.CompareString(i.Name(), j.Name())
-	})
-}
-
 func BasicSearchAgents(app core.App, query string) ([]*Agent, []*Agent, error) {
 	agents, err := TitleSearchAgents(app, query)
 	if err != nil {
@@ -297,10 +277,11 @@ type AgentCount struct {
 	ID    string `db:"id"`
 }
 
-func CountAgentsBaende(app core.App) (map[string]int, error) {
+func CountAgentsBaende(app core.App, ids []any) (map[string]int, error) {
 	couns := []AgentCount{}
 	err := app.RecordQuery(RelationTableName(ENTRIES_TABLE, AGENTS_TABLE)).
 		Select("count(*) as count, " + AGENTS_TABLE + " as id").
+		Where(dbx.HashExp{ID_FIELD: ids}).
 		GroupBy(AGENTS_TABLE).
 		All(&couns)
 
@@ -316,7 +297,7 @@ func CountAgentsBaende(app core.App) (map[string]int, error) {
 	return ret, nil
 }
 
-func CountAgentsContents(app core.App) (map[string]int, error) {
+func CountAgentsContents(app core.App, ids []any) (map[string]int, error) {
 	couns := []AgentCount{}
 	err := app.RecordQuery(RelationTableName(CONTENTS_TABLE, AGENTS_TABLE)).
 		Select("count(*) as count, " + AGENTS_TABLE + " as id").

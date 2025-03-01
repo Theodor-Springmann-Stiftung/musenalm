@@ -2,6 +2,9 @@
 <html class="w-full h-full" {{ if .lang }}lang="{{ .lang }}"{{ end }}>
 	<head>
 		<meta charset="UTF-8" />
+		<meta
+			name="htmx-config"
+			content='{"defaultSwapStyle":"outerHTML", "scrollBehavior": "instant"}' />
 
 		{{ block "head" . }}
 			<!-- Default Head elements -->
@@ -9,27 +12,38 @@
 
 		{{ if .isDev }}
 			<link rel="icon" href="/assets/logo/dev_favicon.png" />
+			<meta name="robots" content="noindex" />
 		{{ else }}
+			{{ if .url }}
+				<link rel="canonical" href="{{ .url }}" />
+			{{ end }}
 			<link rel="icon" href="/assets/logo/favicon.png" />
 		{{ end }}
 
 
-		<link href="/assets/css/remixicon.css" rel="stylesheet" />
 		<script src="/assets/js/alpine.min.js" defer></script>
 		<script src="/assets/js/htmx.min.js" defer></script>
 		<script src="/assets/js/htmx-response-targets.js" defer></script>
-		<script src="/assets/js/client-side-templates.js" defer></script>
+		<script src="/assets/js/mark.min.js" defer></script>
 
+		<script type="module" src="/assets/scripts.js"></script>
+		<link href="/assets/css/remixicon.css" rel="stylesheet" />
 		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
 		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
 
 		<script type="module">
-			import { setup } from "/assets/scripts.js";
-			setup();
+			document.body.addEventListener("htmx:responseError", function (event) {
+				const config = event.detail.requestConfig;
+				if (config.boosted) {
+					document.body.innerHTML = event.detail.xhr.responseText;
+					const newUrl = event.detail.xhr.responseURL || config.url;
+					window.history.pushState(null, "", newUrl);
+				}
+			});
 		</script>
 	</head>
 
-	<body class="w-full" hx-ext="response-targets" hx-boost="true">
+	<body class="w-full h-full min-h-full" hx-ext="response-targets" hx-boost="true">
 			{{ block "body" . }}
 					<!-- Default app body... -->
 			{{ end }}

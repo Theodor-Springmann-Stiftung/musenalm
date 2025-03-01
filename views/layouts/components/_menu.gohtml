@@ -5,10 +5,16 @@
 	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
 	<div class="flex flex-row justify-between">
 		<div class="flex flex-row gap-x-3">
-			<div class="grow-0"><img class="h-14 w-14 border" src="/assets/favicon.png" /></div>
+			<div class="grow-0">
+				<a href="/" class="no-underline"
+					><img class="h-14 w-14 border" src="/assets/favicon.png"
+				/></a>
+			</div>
 			<div class="flex flex-col">
-				<h1 class="font-bold text-2xl tracking-wide">{{ .site.title }}</h1>
-				<h2 class="italic">{{ .site.desc }}</h2>
+				<h1 class="font-bold text-2xl tracking-wide">
+					<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
+				</h1>
+				<h2 class="italic text-slate-800">{{ .site.desc }}</h2>
 			</div>
 		</div>
 
@@ -40,7 +46,7 @@
 				{{ if and $model.page (HasPrefix $model.page.Path "/edition") -}}
 					aria-current="true"
 				{{- end }}
-				data-url="/edition/"
+				data-url="/redaktion/"
 				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100
 				!pr-2.5"
 				:class="openeditionmenu? 'bg-slate-100' : 'closed'"
@@ -57,36 +63,43 @@
 		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
 		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
 		<a
-			href="/edition/einfuehrung/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/edition/einfuehrung") -}}
+			href="/redaktion/einfuehrung/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/einfuehrung") -}}
 				aria-current="page"
 			{{- end -}}
 			>Einführung</a
 		>
 		<a
-			href="/edition/dokumentation/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/edition/dokumentation") -}}
+			href="/redaktion/dokumentation/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/dokumentation") -}}
 				aria-current="page"
 			{{- end -}}
 			>Dokumentation</a
 		>
 		<a
-			href="/edition/literatur/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/edition/literatur") -}}
+			href="/redaktion/literatur/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/literatur") -}}
 				aria-current="page"
 			{{- end -}}
 			>Literatur</a
 		>
 		<a
-			href="/edition/danksagungen/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/edition/danksagungen") -}}
+			href="/redaktion/lesekabinett/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/lesekabinett") -}}
+				aria-current="page"
+			{{- end -}}
+			>Lesekabinett</a
+		>
+		<a
+			href="/redaktion/danksagungen/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/danksagungen") -}}
 				aria-current="page"
 			{{- end -}}
 			>Danksagungen</a
 		>
 		<a
-			href="/edition/kontakt/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/edition/kontakt") -}}
+			href="/redaktion/kontakt/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/kontakt") -}}
 				aria-current="page"
 			{{- end -}}
 			>Kontakt</a

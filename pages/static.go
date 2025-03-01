@@ -8,11 +8,12 @@ import (
 
 func init() {
 	RegisterStaticPage("/datenschutz/", pagemodels.P_DATENSCHUTZ_NAME)
-	RegisterTextPage("/edition/kontakt/", pagemodels.P_KONTAKT_NAME)
-	RegisterTextPage("/edition/danksagungen/", pagemodels.P_DANK_NAME)
-	RegisterTextPage("/edition/literatur/", pagemodels.P_LIT_NAME)
-	RegisterTextPage("/edition/einfuehrung/", pagemodels.P_EINFUEHRUNG_NAME)
-	RegisterTextPage("/edition/dokumentation/", pagemodels.P_DOK_NAME)
+	RegisterTextPage("/redaktion/kontakt/", pagemodels.P_KONTAKT_NAME)
+	RegisterTextPage("/redaktion/danksagungen/", pagemodels.P_DANK_NAME)
+	RegisterTextPage("/redaktion/literatur/", pagemodels.P_LIT_NAME)
+	RegisterTextPage("/redaktion/einfuehrung/", pagemodels.P_EINFUEHRUNG_NAME)
+	RegisterTextPage("/redaktion/dokumentation/", pagemodels.P_DOK_NAME)
+	RegisterTextPage("/redaktion/lesekabinett/", pagemodels.P_KABINETT_NAME)
 }
 
 func RegisterStaticPage(url, name string) {

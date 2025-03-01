@@ -12,6 +12,7 @@ import (
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_einfuehrung"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_index"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_kontakt"
+	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_lesekabinett"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_literatur"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages/migrations_reihen"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"

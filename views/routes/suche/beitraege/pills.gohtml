@@ -5,7 +5,9 @@
 -}}
 
 {{- if $isFiltered -}}
-	<div class="flex flex-row gap-x-3" id="searchpills">
+	<div
+		class="flex flex-row gap-x-3 bg-orange-100 items-center py-1 justify-between"
+		id="searchpills">
 		{{- if $model.filters.Agent -}}
 			<filter-pill
 				data-queryparam="agentfilter"
@@ -28,6 +30,7 @@
 			</filter-pill>
 		{{- end -}}
 		{{- if $model.filters.OnlyScans -}}
+			<div class="grow"></div>
 			<filter-pill
 				data-queryparam="onlyscans"
 				data-value="{{ $model.filters.OnlyScans }}"

@@ -208,7 +208,7 @@ func NewCommonReihenData(app core.App) CommonReihenData {
 	if err != nil {
 		app.Logger().Error("Failed to fetch places", "error", err)
 	}
-	dbmodels.SortPlacesByName(places)
+	dbmodels.Sort_Places_Name(places)
 
 	rec := []core.Record{}
 	err = app.RecordQuery(dbmodels.ENTRIES_TABLE).

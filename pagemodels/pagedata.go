@@ -1,6 +1,7 @@
 package pagemodels
 
 const (
+	P_KABINETT_NAME    = "lesekabinett"
 	P_BEITRAG_NAME     = "beitrag"
 	P_DATENSCHUTZ_NAME = "datenschutz"
 

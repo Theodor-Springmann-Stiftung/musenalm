@@ -12,6 +12,8 @@ import (
 //		- any id or multiple IDs (of an indexed field)
 // 3. Naming convention: <TableName>_<FilteredField>[s]
 //    For scanning, with an Iter_ prefix, yields single row results
+// TODO: It would be nice if the return types of these, if arrays were custom types that implemented
+// some often uses functions, like getting all IDs, or creating a map of the IDs.
 
 func REntriesAgents_Agent(app core.App, id string) ([]*REntriesAgents, error) {
 	return TableByFields[*REntriesAgents](

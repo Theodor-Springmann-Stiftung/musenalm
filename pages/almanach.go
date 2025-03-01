@@ -159,16 +159,4 @@ func (r *AlmanachResult) Collections() {
 		}
 	}
 
-	ccontentcollectionmap := map[int][]dbmodels.CollectionInfo{}
-	ccollectioncontentmap := map[string]dbmodels.CollectionInfo{}
-	for _, v := range collections {
-		cinfo := dbmodels.ParseAnnotation(v, v.Annotation(), ids)
-		ccollectioncontentmap[v.Id] = cinfo
-		for _, c := range cinfo.Singles {
-			ccontentcollectionmap[c] = append(ccontentcollectionmap[c], cinfo)
-		}
-	}
-
-	r.CInfoByCollection = ccollectioncontentmap
-	r.CInfoByContent = ccontentcollectionmap
 }

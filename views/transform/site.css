@@ -242,6 +242,11 @@
 		@apply -indent-3.5 ml-3.5;
 	}
 
+	#indexpage {
+		background-image: url("/assets/bg.jpg");
+		@apply h-full w-full;
+	}
+
 	#searchnav > a:nth-of-type(1) {
 		@apply ml-6;
 	}
