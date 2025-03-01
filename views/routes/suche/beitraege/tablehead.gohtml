@@ -63,11 +63,12 @@
 				id="onlyscans"
 				name="onlyscans"
 				autocomplete="off"
-				hx-get="{{- $model.parameters.ToQueryParamsBeitraege -}}"
+				hx-get="{{- $model.parameters.ToQueryParamsBeitraege -}} {{- $model.filters.ToQueryParamsWOScans -}}"
 				trigger="change"
 				hx-push-url="true"
-				hx-select="main"
-				hx-target="main"
+				hx-select="#searchresults"
+				hx-target="#searchresults"
+				hx-swap="outerHTML"
 				{{ if $model.filters.OnlyScans -}}checked{{- end -}} />
 
 			<label
@@ -82,11 +83,12 @@
 				name="sort"
 				id="sort"
 				autocomplete="off"
-				hx-get="{{- $model.parameters.ToQueryParamsBeitraege -}}"
+				hx-get="{{- $model.parameters.ToQueryParamsBeitraege -}}{{- $model.filters.ToQueryParams -}}"
 				trigger="change"
 				hx-push-url="true"
-				hx-select="main"
-				hx-target="main">
+				hx-select="#subresults"
+				hx-target="#subresults"
+				hx-swap="outerHTML show:window:top">
 				<option
 					value="year"
 					{{ if eq $model.parameters.Sort "year" -}}

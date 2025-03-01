@@ -3,21 +3,24 @@
 {{- $isFiltered := or $model.filters.Agent $model.filters.Year $model.filters.Type -}}
 
 
-<div class="container-oversize " x-data="{ filters: '{{- $isFiltered -}}' }">
+<div class="container-oversize ">
 	<button
 		class="w-full flex flex-row bg-slate-100 py-3 border-2 border-slate-100 hover:border-slate-900
 		cursor-pointer box-content hover:[&>_h2]:font-slate-900 select-none"
-		@click="filters = !filters">
+		id="filterlistbtn">
 		<h2 class="text-2xl text-stone-700 px-32">
 			Filter
-			<i class="ri-arrow-right-s-line" x-show="!filters"></i>
-			<i class="ri-arrow-down-s-line" x-show="filters"></i>
+			<i class="ri-arrow-right-s-line  show-closed"></i>
+			<i class="ri-arrow-down-s-line show-opened"></i>
 		</h2>
 	</button>
 	<div
-		class="flex flex-row px-24 justify-between bg-slate-100 py-12 border-t-4 border-stone-50"
-		id="searchfilter"
-		x-show="filters">
+		class="flex flex-row px-24 justify-between bg-slate-100 py-12 border-t-4 border-stone-50 {{ if
+			$isFiltered
+		}}
+			hidden
+		{{ end }}"
+		id="searchfilter">
 		<div class="w-[30%] grow-0 shrink-0">
 			<filter-list
 				class=""
@@ -48,6 +51,30 @@
 </div>
 
 	<script type="module">
+		let button = document.getElementById("filterlistbtn");
+		let filter = document.getElementById("searchfilter");
+		if (button && filter) {
+		toggleFilter();
+			if (button && filter) {
+				button.addEventListener("click", () => {
+					toggleFilter();
+				});
+			}
+
+			function toggleFilter() {
+				if (filter.classList.contains("hidden")) {
+					filter.classList.remove("hidden");
+					button.querySelector(".show-closed").classList.add("hidden");
+					button.querySelector(".show-opened").classList.remove("hidden");
+				} else {
+					filter.classList.add("hidden");
+					button.querySelector(".show-closed").classList.remove("hidden");
+					button.querySelector(".show-opened").classList.add("hidden");
+				}
+			}
+		}
+
+
 		let agentList = document.getElementById("agent-list");
 		if (agentList) {
 			agentList.items = {{ $model.result.AgentsList }};

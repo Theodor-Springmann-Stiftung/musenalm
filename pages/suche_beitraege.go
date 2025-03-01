@@ -67,6 +67,39 @@ func (p *BeitraegeFilterParameters) FieldSetBeitraege() []dbmodels.FTS5QueryRequ
 	return ret
 }
 
+func (p BeitraegeFilterParameters) ToQueryParams() string {
+	r := ""
+	if p.Agent != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_AGENT + "=" + p.Agent
+	}
+	if p.Type != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_TYPE + "=" + p.Type
+	}
+	if p.Year != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_YEAR + "=" + p.Year
+	}
+	if p.OnlyScans {
+		r += "&" + FILTER_PARAM_BEIAEGE_ONLYSCANS + "=on"
+	}
+
+	return r
+}
+
+func (p BeitraegeFilterParameters) ToQueryParamsWOScans() string {
+	r := ""
+	if p.Agent != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_AGENT + "=" + p.Agent
+	}
+	if p.Type != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_TYPE + "=" + p.Type
+	}
+	if p.Year != "" {
+		r += "&" + FILTER_PARAM_BEIAEGE_YEAR + "=" + p.Year
+	}
+
+	return r
+}
+
 type SearchResultBeitraege struct {
 	Queries []dbmodels.FTS5QueryRequest
 

@@ -1,0 +1,38 @@
+{{ $model := . }}
+
+{{- $isFiltered := or $model.filters.Agent $model.filters.Year $model.filters.Type
+	$model.filters.OnlyScans
+-}}
+
+{{- if $isFiltered -}}
+	<div class="flex flex-row gap-x-3" id="searchpills">
+		{{- if $model.filters.Agent -}}
+			<filter-pill
+				data-queryparam="agentfilter"
+				data-value="{{ $model.filters.Agent }}"
+				data-text="Person">
+			</filter-pill>
+		{{- end -}}
+		{{- if $model.filters.Year -}}
+			<filter-pill
+				data-queryparam="yearfilter"
+				data-value="{{ $model.filters.Year }}"
+				data-text="Jahr">
+			</filter-pill>
+		{{- end -}}
+		{{- if $model.filters.Type -}}
+			<filter-pill
+				data-queryparam="typefilter"
+				data-value="{{ $model.filters.Type }}"
+				data-text="Typ">
+			</filter-pill>
+		{{- end -}}
+		{{- if $model.filters.OnlyScans -}}
+			<filter-pill
+				data-queryparam="onlyscans"
+				data-value="{{ $model.filters.OnlyScans }}"
+				data-text="Nur Digitalisate">
+			</filter-pill>
+		{{- end -}}
+	</div>
+{{- end -}}

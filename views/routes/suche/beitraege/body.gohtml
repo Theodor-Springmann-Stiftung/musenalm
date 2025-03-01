@@ -140,14 +140,15 @@
 
 {{- template "_fieldscript" -}}
 {{- if $model.parameters.IsBeitraegeSearch -}}
-	<div class="cotents" id="searchresult">
+	<div class="cotents" id="searchresults">
 		{{- if $model.result.Hits -}}
 			{{ template "_filterlist" $model }}
 		{{- end -}}
 
 
-		<div class="container-normal">
+		<div class="container-normal" id="subresults">
 			{{ template "tablehead" $model }}
+			{{ template "pills" $model }}
 			{{- if $model.result.Hits -}}
 				<div class="mt-8" id="almanachcontents">
 					{{- range $_, $hit := $model.result.Hits -}}

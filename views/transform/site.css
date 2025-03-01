@@ -312,6 +312,18 @@
 		@apply border shadow-inner;
 	}
 
+	#searchpills {
+		@apply flex flex-row gap-x-2.5;
+	}
+
+	#searchpills filter-pill .filter-pill {
+		@appply px-2.5 rounded-lg bg-orange-300;
+	}
+
+	#searchresults .filter-list-item[aria-current="page"] {
+		@apply text-orange-800 border-orange-900 bg-orange-100 pointer-events-none;
+	}
+
 	#persontype a {
 		@apply px-1.5 border-b-[5px] border-transparent hover:border-zinc-200 no-underline font-serif mx-2.5;
 	}
