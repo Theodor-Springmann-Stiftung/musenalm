@@ -2,7 +2,7 @@
 <div
 	id="mainmenu"
 	class="pb-1.5 border-b border-zinc-300"
-	x-data="{ openeditionmenu: window.location.pathname.startsWith('/edition/')}">
+	x-data="{ openeditionmenu: window.location.pathname.startsWith('/redaktion/')}">
 	<div class="flex flex-row justify-between">
 		<div class="flex flex-row gap-x-3">
 			<div class="grow-0">
@@ -43,7 +43,7 @@
 				>Suche</a
 			>
 			<button
-				{{ if and $model.page (HasPrefix $model.page.Path "/edition") -}}
+				{{ if and $model.page (HasPrefix $model.page.Path "/redaktion") -}}
 					aria-current="true"
 				{{- end }}
 				data-url="/redaktion/"
