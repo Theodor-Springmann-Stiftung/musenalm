@@ -146,6 +146,10 @@ class FilterList extends HTMLElement {
 		this.addEventListener("keydown", this.onEnter.bind(this));
 		this.addEventListener("focusin", this.onGainFocus.bind(this));
 		this.addEventListener("focusout", this.onLoseFocus.bind(this));
+
+		if (htmx) {
+			htmx.process(this);
+		}
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
@@ -253,6 +257,10 @@ class FilterList extends HTMLElement {
 		return item.id;
 	}
 
+	getHREFEncoded(item) {
+		return encodeURIComponent(this.getHREF(item));
+	}
+
 	getSearchText(item) {
 		if (!item) {
 			return "";
@@ -351,7 +359,7 @@ class FilterList extends HTMLElement {
 									.map(
 										(item, index) => `
 									<a
-										href="${this._url}${this.getHREF(item)}"
+										href="${this._url}${this.getHREFEncoded(item)}"
 										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"

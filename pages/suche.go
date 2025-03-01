@@ -76,12 +76,13 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 
 func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
 	data := make(map[string]interface{})
-
-	result, err := NewSearchBeitraege(app, params)
+	filterparams := NewBeitraegeFilterParameters(e)
+	result, err := NewSearchBeitraege(app, params, filterparams)
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
 
+	data["filters"] = filterparams
 	data["parameters"] = params
 	data["result"] = result
 	return engine.Response200(e, p.Template+params.Collection+"/", data, p.Layout)

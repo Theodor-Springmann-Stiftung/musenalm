@@ -22,6 +22,7 @@ const (
 	BAENDE_PARAM_REFS        = "references"
 	BEITRAEGE_PARAM_ENTRY    = "entry"
 	BEITRAEGE_PARAM_INCIPT   = "incipit"
+	BEITRAEGE_PARAM_TYPE     = "type"
 )
 
 type SearchParameters struct {
@@ -48,6 +49,7 @@ type SearchParameters struct {
 	YearString        string
 	EntryString       string
 	IncipitString     string
+	TypeString        string
 
 	Page int
 }
@@ -61,7 +63,9 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 	annotations := e.Request.URL.Query().Get(SEARCH_PARAM_ANNOTATIONS) == "on"
 	annotationsstring := e.Request.URL.Query().Get(SEARCH_PARAM_ANNOTATIONS + "string")
 	year := e.Request.URL.Query().Get(SEARCH_PARAM_YEAR) == "on"
+
 	yearstring := e.Request.URL.Query().Get(SEARCH_PARAM_YEAR + "string")
+	typestring := e.Request.URL.Query().Get(BEITRAEGE_PARAM_TYPE)
 
 	series := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES) == "on"
 	seriesstring := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES + "string")
@@ -125,6 +129,7 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 		YearString:        yearstring,
 		EntryString:       entrystring,
 		IncipitString:     incipitstring,
+		TypeString:        typestring,
 	}, nil
 }
 
@@ -151,6 +156,7 @@ func (p SearchParameters) AllSearchTermsBeitraege() string {
 	res = append(res, p.includedParams(p.YearString)...)
 	res = append(res, p.includedParams(p.EntryString)...)
 	res = append(res, p.includedParams(p.IncipitString)...)
+	res = append(res, p.includedParams(p.TypeString)...)
 	return strings.Join(res, " ")
 }
 
@@ -199,6 +205,7 @@ func (p SearchParameters) ToQueryParamsBeitraege() string {
 		if p.Incipit {
 			q += "&incipit=on"
 		}
+
 	}
 
 	if p.YearString != "" {
@@ -223,6 +230,10 @@ func (p SearchParameters) ToQueryParamsBeitraege() string {
 
 	if p.IncipitString != "" {
 		q += fmt.Sprintf("&incipitstring=%s", p.IncipitString)
+	}
+
+	if p.TypeString != "" {
+		q += fmt.Sprintf("&typestring=%s", p.TypeString)
 	}
 
 	return q
@@ -356,6 +367,12 @@ func (p SearchParameters) FieldSetBeitraege() []dbmodels.FTS5QueryRequest {
 	if p.IncipitString != "" {
 		que := dbmodels.NormalizeQuery(p.IncipitString)
 		req := dbmodels.IntoQueryRequests([]string{dbmodels.INCIPIT_STMT_FIELD}, que)
+		ret = append(ret, req...)
+	}
+
+	if p.TypeString != "" {
+		que := dbmodels.NormalizeQuery(p.TypeString)
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.MUSENALM_INHALTE_TYPE_FIELD}, que)
 		ret = append(ret, req...)
 	}
 

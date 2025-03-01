@@ -1,0 +1,75 @@
+{{ $model := . }}
+
+
+<div class="flex flex-row gap-x-6 mb-4">
+	<filter-list
+		id="agent-list"
+		data-queryparam="personsstring"
+		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&agentfilter="
+		data-placeholder="Personen und Körperschaften filtern..."></filter-list>
+
+	<filter-list
+		id="year-list"
+		data-queryparam="yearstring"
+		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&yearfilter="
+		data-placeholder="Jahre filtern..."></filter-list>
+
+	<filter-list
+		id="types-list"
+		data-queryparam="type"
+		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&typefilter="
+		data-placeholder="Betragskategorien filtern..."></filter-list>
+</div>
+
+	<script type="module">
+		let agentList = document.getElementById("agent-list");
+		if (agentList) {
+			agentList.items = {{ $model.result.AgentsList }};
+
+			agentList.setSearchTextFunc((item) => {
+				return item.name;
+			});
+
+			agentList.setHREFFunc((item) => {
+				return item.name;
+			});
+
+			agentList.setLinkTextFunc((item) => {
+				return `
+						<span class="filter-list-searchable">${item.name}</span>
+						<span class="text-xs text-stone-500 whitespace-nowrap font-sans">
+							${item.corporate_body ? "Verlag/Druck/Vertrieb" : item.biographical_data}
+						</span>
+						`;
+			});
+		}
+
+
+		let yearList = document.getElementById("year-list");
+		if (yearList) {
+			yearList.items = {{ $model.result.YearList }};
+
+			yearList.setHREFFunc((item) => {
+				return String(item);
+			});
+
+			yearList.setLinkTextFunc((item) => {
+				if (item === 0) return "ohne Jahr";
+				return String(item);
+			});
+		}
+
+		let typesList = document.getElementById("types-list");
+		if (typesList) {
+			typesList.items = {{ $model.result.TypesList }};
+
+			typesList.setHREFFunc((item) => {
+				return String(item);
+			});
+
+			typesList.setLinkTextFunc((item) => {
+				return item;
+			});
+		}
+
+	</script>

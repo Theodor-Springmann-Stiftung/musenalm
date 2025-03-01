@@ -2,6 +2,9 @@ package pages
 
 import (
 	"database/sql"
+	"maps"
+	"slices"
+	"sort"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
@@ -10,7 +13,59 @@ import (
 
 const (
 	DEFAULT_PAGESIZE = 80
+
+	FILTER_PARAM_BEIAEGE_AGENT     = "agentfilter"
+	FILTER_PARAM_BEIAEGE_TYPE      = "typefilter"
+	FILTER_PARAM_BEIAEGE_ONLYSCANS = "onlyscans"
+	FILTER_PARAM_BEIAEGE_YEAR      = "yearfilter"
 )
+
+type BeitraegeFilterParameters struct {
+	Agent     string
+	Type      string
+	Year      string
+	OnlyScans bool
+}
+
+func NewBeitraegeFilterParameters(ev *core.RequestEvent) BeitraegeFilterParameters {
+	agent := ev.Request.URL.Query().Get(FILTER_PARAM_BEIAEGE_AGENT)
+	typ := ev.Request.URL.Query().Get(FILTER_PARAM_BEIAEGE_TYPE)
+	year := ev.Request.URL.Query().Get(FILTER_PARAM_BEIAEGE_YEAR)
+	onlyscans := ev.Request.URL.Query().Get(FILTER_PARAM_BEIAEGE_ONLYSCANS) == "on"
+	return BeitraegeFilterParameters{
+		Agent:     agent,
+		Type:      typ,
+		Year:      year,
+		OnlyScans: onlyscans,
+	}
+}
+
+func (p *BeitraegeFilterParameters) FieldSetBeitraege() []dbmodels.FTS5QueryRequest {
+	ret := []dbmodels.FTS5QueryRequest{}
+
+	if p.Agent != "" {
+		q := "\"" + p.Agent + "\""
+		que := dbmodels.NormalizeQuery(q)
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.AGENTS_TABLE}, que)
+		ret = append(ret, req...)
+	}
+
+	if p.Type != "" {
+		q := "\"" + p.Type + "\""
+		que := dbmodels.NormalizeQuery(q)
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.MUSENALM_INHALTE_TYPE_FIELD}, que)
+		ret = append(ret, req...)
+	}
+
+	if p.Year != "" {
+		q := "\"" + p.Year + "\""
+		que := dbmodels.NormalizeQuery(q)
+		req := dbmodels.IntoQueryRequests([]string{dbmodels.ENTRIES_TABLE}, que)
+		ret = append(ret, req...)
+	}
+
+	return ret
+}
 
 type SearchResultBeitraege struct {
 	Queries []dbmodels.FTS5QueryRequest
@@ -23,6 +78,10 @@ type SearchResultBeitraege struct {
 
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key: Content ID
 	Pages          []int
+
+	AgentsList []*dbmodels.Agent
+	TypesList  []string
+	YearList   []int
 }
 
 func EmptyResultBeitraege() *SearchResultBeitraege {
@@ -35,9 +94,11 @@ func EmptyResultBeitraege() *SearchResultBeitraege {
 	}
 }
 
-func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBeitraege, error) {
+func NewSearchBeitraege(app core.App, params SearchParameters, filters BeitraegeFilterParameters) (*SearchResultBeitraege, error) {
 	contents := []*dbmodels.Content{}
 	queries := params.FieldSetBeitraege()
+	fqueries := filters.FieldSetBeitraege()
+	queries = append(queries, fqueries...)
 
 	if params.AlmString != "" {
 		e, err := dbmodels.Contents_MusenalmID(app, params.AlmString)
@@ -70,14 +131,33 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 			return nil, err
 		}
 
+		if filters.OnlyScans {
+			scans := []*dbmodels.Content{}
+			for _, c := range cs {
+				if len(c.Scans()) > 0 {
+					scans = append(scans, c)
+				}
+			}
+			cs = scans
+		}
+
 		contents = append(contents, cs...)
 	}
 
 	resultids := []any{}
-	resultentryids := []string{}
+	uniqueresultentryids := map[string]bool{}
+	types := make(map[string]bool)
 	for _, content := range contents {
 		resultids = append(resultids, content.Id)
-		resultentryids = append(resultentryids, content.Entry())
+		uniqueresultentryids[content.Entry()] = true
+		for _, typ := range content.MusenalmType() {
+			types[typ] = true
+		}
+	}
+
+	resultentryids := []any{}
+	for entryid, _ := range uniqueresultentryids {
+		resultentryids = append(resultentryids, entryid)
 	}
 
 	entries, err := dbmodels.Entries_IDs(app, datatypes.ToAny(resultentryids))
@@ -96,9 +176,14 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 		return nil, err
 	}
 
-	aids := []any{}
+	uniqueaids := map[string]bool{}
 	for _, a := range arels {
-		aids = append(aids, a.Agent())
+		uniqueaids[a.Agent()] = true
+	}
+
+	aids := []any{}
+	for aid, _ := range uniqueaids {
+		aids = append(aids, aid)
 	}
 
 	agents, err := dbmodels.Agents_IDs(app, aids)
@@ -109,6 +194,10 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 	contentsmap := make(map[string][]*dbmodels.Content)
 	for _, c := range contents {
 		contentsmap[c.Entry()] = append(contentsmap[c.Entry()], c)
+	}
+
+	for _, c := range contentsmap {
+		dbmodels.Sort_Contents_Numbering(c)
 	}
 
 	contentsagents := make(map[string][]*dbmodels.RContentsAgents)
@@ -122,8 +211,10 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 	}
 
 	entriesmap := make(map[string]*dbmodels.Entry)
+	years := make(map[int]bool)
 	for _, e := range entries {
 		entriesmap[e.Id] = e
+		years[e.Year()] = true
 	}
 
 	hits := []string{}
@@ -142,6 +233,14 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 		hits = hits[pages[params.Page-1]:pages[params.Page]]
 	}
 
+	tL := slices.Collect(maps.Keys(types))
+	sort.Strings(tL)
+
+	yL := slices.Collect(maps.Keys(years))
+	sort.Ints(yL)
+
+	dbmodels.Sort_Agents_Name(agents)
+
 	return &SearchResultBeitraege{
 		Queries:        queries,
 		Hits:           hits,
@@ -150,6 +249,9 @@ func NewSearchBeitraege(app core.App, params SearchParameters) (*SearchResultBei
 		Contents:       contentsmap,
 		ContentsAgents: contentsagents,
 		Pages:          pages,
+		AgentsList:     agents,
+		TypesList:      tL,
+		YearList:       yL,
 	}, nil
 }
 

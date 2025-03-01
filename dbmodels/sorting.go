@@ -15,6 +15,13 @@ func Sort_Series_Title(series []*Series) {
 	})
 }
 
+func Sort_Agents_Name(agents []*Agent) {
+	collator := collate.New(language.German)
+	slices.SortFunc(agents, func(i, j *Agent) int {
+		return collator.CompareString(i.Name(), j.Name())
+	})
+}
+
 func Sort_Entries_Title_Year(entries []*Entry) {
 	collator := collate.New(language.German)
 	slices.SortFunc(entries, func(i, j *Entry) int {

@@ -94,6 +94,7 @@ var CONTENTS_FTS5_FIELDS = []string{
 	ENTRIES_TABLE,
 	AGENTS_TABLE,
 	MUSENALMID_FIELD,
+	MUSENALM_INHALTE_TYPE_FIELD,
 	ANNOTATION_FIELD,
 	COMMENT_FIELD,
 }
@@ -375,6 +376,11 @@ func FTS5ValuesContent(content *Content, entry *Entry, agents []*Agent) []string
 		entrystring += "; [o.J.]"
 	}
 
+	typestring := ""
+	for _, typ := range content.MusenalmType() {
+		typestring += typ + " "
+	}
+
 	return []string{
 		content.PreferredTitle(),
 		content.VariantTitle(),
@@ -392,6 +398,7 @@ func FTS5ValuesContent(content *Content, entry *Entry, agents []*Agent) []string
 		entrystring,
 		agentstring,
 		strconv.Itoa(content.MusenalmID()),
+		typestring,
 		datatypes.DeleteTags(content.Annotation()),
 		datatypes.DeleteTags(content.Comment()),
 	}
