@@ -76,64 +76,110 @@
 			method="get"
 			action="/suche/beitraege"
 			autocomplete="off">
-			<div class="searchformcolumn">
-				{{- $q := "" }}
-				{{- if $model.parameters.Query -}}
-					{{- $q = $model.parameters.Query -}}
-				{{- end -}}
-				{{ template "_searchboxsimple" Arr $model.parameters true $q }}
-				<fieldset class="selectgroup">
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="title"
-							id="title"
-							{{ if or $isBase $isTitle -}}checked{{- end -}} />
-						<label for="title">Titel</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="incipit"
-							id="incipit"
-							{{ if or $isBase $isIncipit -}}checked{{- end -}} />
-						<label for="incipit">Incipit</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="persons"
-							id="persons"
-							{{ if or $isBase $isPerson -}}checked{{- end -}} />
-						<label for="person">Personen &amp; Pseudonyme</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="entry"
-							id="entry"
-							{{ if or $isBase $isEntry -}}checked{{- end -}} />
-						<label for="entry">Bandtitel</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="year"
-							id="year"
-							{{ if or $isBase $isYear -}}checked{{- end -}} />
-						<label for="year">Jahr</label>
-					</div>
-					<div class="selectgroup-option">
-						<input
-							type="checkbox"
-							name="annotations"
-							id="annotations"
-							{{ if or $isBase $isAnnotation -}}checked{{- end -}} />
-						<label for="annotations">Anmerkungen</label>
-					</div>
-				</fieldset>
-				{{ template "_infotextsimple" true }}
-			</div>
+			{{- if not $model.parameters.Extended -}}
+				<div class="searchformcolumn">
+					{{- $q := "" }}
+					{{- if $model.parameters.Query -}}
+						{{- $q = $model.parameters.Query -}}
+					{{- end -}}
+					{{ template "_searchboxsimple" Arr $model.parameters true $q }}
+					<fieldset class="selectgroup">
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="title"
+								id="title"
+								{{ if or $isBase $isTitle -}}checked{{- end -}} />
+							<label for="title">Titel</label>
+						</div>
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="incipit"
+								id="incipit"
+								{{ if or $isBase $isIncipit -}}checked{{- end -}} />
+							<label for="incipit">Incipit</label>
+						</div>
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="persons"
+								id="persons"
+								{{ if or $isBase $isPerson -}}checked{{- end -}} />
+							<label for="person">Personen &amp; Pseudonyme</label>
+						</div>
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="entry"
+								id="entry"
+								{{ if or $isBase $isEntry -}}checked{{- end -}} />
+							<label for="entry">Bandtitel</label>
+						</div>
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="year"
+								id="year"
+								{{ if or $isBase $isYear -}}checked{{- end -}} />
+							<label for="year">Jahr</label>
+						</div>
+						<div class="selectgroup-option">
+							<input
+								type="checkbox"
+								name="annotations"
+								id="annotations"
+								{{ if or $isBase $isAnnotation -}}checked{{- end -}} />
+							<label for="annotations">Anmerkungen</label>
+						</div>
+					</fieldset>
+					{{ template "_infotextsimple" true }}
+				</div>
+			{{- else -}}
+				<div id="extendedsearchcolumn" class="">
+					<input type="hidden" name="extended" value="true" />
+					<label for="titlestring">Titel</label>
+					<input
+						type="search"
+						name="titlestring"
+						id="titlestring"
+						value="{{ $model.parameters.TitleString }}" />
+					<label for="incipitstring">Incipit</label>
+					<input
+						type="search"
+						name="incipitstring"
+						id="incipitstring"
+						value="{{ $model.parameters.IncipitString }}" />
+					<label for="personsstring">Personen &amp; Verlage</label>
+					<input
+						type="search"
+						name="personsstring"
+						id="personsstring"
+						value="{{ $model.parameters.PersonsString }}" />
+					<label for="entrystring">Bandtitel</label>
+					<input
+						type="search"
+						name="entrystring"
+						id="entrystring"
+						value="{{ $model.parameters.PlacesString }}" />
+					<label for="yearstring">Jahr</label>
+					<input
+						type="search"
+						name="yearstring"
+						id="yearstring"
+						value="{{ $model.parameters.YearString }}" />
+					<label for="annotationsstring">Anmerkungen</label>
+					<input
+						type="search"
+						name="annotationsstring"
+						id="annotationsstring"
+						value="{{ $model.parameters.AnnotationsString }}" />
+					<button id="submitbutton" type="submit" class="">Suchen</button>
+					<a href="/suche/beitraege" class="whitespace-nowrap"
+						><i class="ri-arrow-left-long-line"></i> Zurück zur einfachen Suche</a
+					>
+				</div>
+			{{- end -}}
 		</form>
 	</div>
 </div>
@@ -191,7 +237,7 @@
 	let mark_instance = new Mark(elements);
 	// INFO: we wait a little bit before marking, to settle everything
 		setTimeout(() => {
-			mark_instance.mark('{{ $model.parameters.AllSearchTermsBaende }}', {
+			mark_instance.mark('{{ $model.parameters.AllSearchTermsBeitraege }}', {
 				"seperateWordSearch": true,
 			});
 		}, 200);
