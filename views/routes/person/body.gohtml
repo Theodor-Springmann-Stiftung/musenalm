@@ -73,9 +73,9 @@
 </div>
 
 {{- if .result.BResult -}}
-	<div class="container-normal flex flex-col font-serif mt-7 gap-y-6">
-		<h2 class="border-b font-sans flex  flex-row justify-between items-end">
-			<div>
+	<div class="container-normal flex flex-col font-serif mt-7">
+		<h2 class=" font-sans flex  flex-row items-center gap-x-3 mb-6">
+			<div class="-ml-0.5">
 				<i class="ri-book-line"></i>
 				{{ if eq $model.result.LenEntries 1 }}
 					<b>Ein Band</b>
@@ -92,61 +92,94 @@
 			</div>
 
 			{{- if len $model.result.CResult -}}
-				<div class="flex flex-row bg-stone-100 px-2 py-1 items-center">
-					<a class="" href="#almanachcontents"> Zu den Beiträgen</a>
+				<div>&middot;</div>
+				<div class="flex flex-row  py-1 items-center text-base">
+					<i class="ri-arrow-down-double-line mr-1"></i>
+					<a class="" href="#almanachcontents">Beiträge</a>
 					<div
 						class="inline-block mx-2 text-xs bg-slate-800 text-white font-bold px-1.5 py-0.5
 					rounded">
 						{{- $model.result.LenContents -}}
 					</div>
-					<i class="ri-arrow-down-double-line"></i>
 				</div>
 			{{- end -}}
 		</h2>
-		{{ range $id, $r := .result.BResult }}
-			<div class="grow-0 max-w-[48rem]">
-				<div>
-					<span class="font-bold">{{ $r.Title }}</span>
-				</div>
-				{{ if $r.Annotation }}
-					<div class="max-w-[48rem]">
-						<span class="">{{ Safe $r.Annotation }}</span>
+		<div class="flex flex-col gap-y-6 mb-6">
+			{{ range $id, $r := .result.BResult }}
+				<div class="grow-0 max-w-[48rem]">
+					<div>
+						<span class="font-bold">{{ $r.Title }}</span>
 					</div>
-				{{ end }}
-				<div class="">
-					{{- $bds := index $model.result.EntriesSeries $r.Id -}}
-					{{ template "personreiherelations" (Arr $r $bds $model.result.Entries true
-						$model.result.EntriesAgents)
-					}}
+					{{ if $r.Annotation }}
+						<div class="max-w-[48rem]">
+							<span class="">{{ Safe $r.Annotation }}</span>
+						</div>
+					{{ end }}
+					<div class="">
+						{{- $bds := index $model.result.EntriesSeries $r.Id -}}
+						{{ template "personreiherelations" (Arr $r $bds $model.result.Entries true
+							$model.result.EntriesAgents)
+						}}
+					</div>
 				</div>
-			</div>
-		{{ end }}
+			{{ end }}
+		</div>
 	</div>
 {{ end }}
 
 {{- if len $model.result.CResult -}}
-	<div class="container-normal mt-16 pt-0" id="almanachcontents">
-		<div class="font-sans border-b">
-			<i class="ri-article-line"></i>
-			{{ if eq $model.result.LenContents 1 }}
-				<b>Ein Beitrag</b>
-			{{- else }}
-				<b>{{- $model.result.LenContents }}</b>
-				Beiträge
-			{{- end }}
-			in
-			{{- if eq (len $model.result.CResult) 1 }}
-				<b>einem Band</b>
-			{{- else }}
-				<b>{{ len $model.result.CResult }}</b> Bänden
-			{{- end }}
+	<div class="container-normal mt-12 pt-0" id="almanachcontents">
+		<div class="font-sans flex flex-row gap-x-3 mb-8">
+			<div>
+				<i class="ri-article-line"></i>
+				{{ if eq $model.result.LenContents 1 }}
+					<b>Ein Beitrag</b>
+				{{- else }}
+					<b>{{- $model.result.LenContents }}</b>
+					Beiträge
+				{{- end }}
+				in
+				{{- if eq (len $model.result.CResult) 1 }}
+					<b>einem Band</b>
+				{{- else }}
+					<b>{{ len $model.result.CResult }}</b> Bänden
+				{{- end }}
+			</div>
+			<div>&middot;</div>
+			<div>
+				<input type="checkbox" id="showall" autocomplete="off" />
+				<label for="showall" class="cursor-pointer select-none ml-1">Alle anzeigen</label>
+				<script type="module">
+					const tablist = document.getElementById("entries-tabs");
+					const checkbox = document.getElementById("showall");
+					{{- if eq (len $model.result.CResult) 1 -}}
+						if (checkbox) {
+							if (tablist) {
+								tablist.showAll();
+							}
+							checkbox.checked = true;
+							checkbox.disabled = true;
+						}
+					{{- else -}}
+					if (tablist && checkbox) {
+						checkbox.addEventListener("change", () => {
+							if (checkbox && checkbox.checked) {
+								tablist.showAll();
+							} else {
+								tablist.default();
+							}
+						});
+					}
+					{{- end -}}
+				</script>
+			</div>
 		</div>
 		<div class="mt-8">
-			<tab-list>
+			<tab-list id="entries-tabs">
 				{{- range $_, $e := $model.result.CResult -}}
 					{{- $contents := index $model.result.Contents $e.Id -}}
 					<div
-						class="font-serif flex flex-row justify-between hover:text-slate-800 text-stone-600
+						class="font-serif flex flex-row justify-between hover:text-slate-900 text-stone-600
 						font-bold border-b pb-0.5 mb-2 tab-list-head items-end">
 						<div>
 							{{ $e.PreferredTitle }}

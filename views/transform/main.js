@@ -180,7 +180,7 @@ class FilterPill extends HTMLElement {
 	render() {
 		this.innerHTML = `
 		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-swap="outerHTML show:window:top">
-			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:-saturate-100 px-2.5 mt-2">
+			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:saturate-50 px-2.5 mt-2">
 			<div href="${this.getURL()}" class="filter-pill-close no-underline font-bold mr-1 text-orange-900 hover:text-orange-800">
 				<i class="ri-close-circle-line"></i>
 			</div>
@@ -799,6 +799,7 @@ class Tablist extends HTMLElement {
 
 	constructor() {
 		super();
+		this._showall = false;
 		this.shown = -1;
 		this._headings = [];
 		this._contents = [];
@@ -807,15 +808,7 @@ class Tablist extends HTMLElement {
 	connectedCallback() {
 		this._headings = Array.from(this.querySelectorAll(".tab-list-head"));
 		this._contents = Array.from(this.querySelectorAll(".tab-list-panel"));
-		for (let heading of this._headings) {
-			heading.addEventListener("click", this.handleTabClick.bind(this));
-			heading.classList.add("cursor-pointer");
-			heading.classList.add("select-none");
-			heading.setAttribute("role", "button");
-			heading.setAttribute("aria-pressed", "false");
-			heading.setAttribute("tabindex", "0");
-		}
-
+		this.hookupEvtHandlers();
 		this.hideDependent();
 
 		if (this._headings.length === 1) {
@@ -839,6 +832,73 @@ class Tablist extends HTMLElement {
 				this._headings[i].setAttribute("aria-pressed", "false");
 			}
 		});
+	}
+
+	hookupEvtHandlers() {
+		for (let heading of this._headings) {
+			heading.addEventListener("click", this.handleTabClick.bind(this));
+			heading.classList.add("cursor-pointer");
+			heading.classList.add("select-none");
+			heading.setAttribute("role", "button");
+			heading.setAttribute("aria-pressed", "false");
+			heading.setAttribute("tabindex", "0");
+		}
+
+		for (let content of this._contents) {
+			content.classList.add("hidden");
+		}
+	}
+
+	restore() {
+		for (let heading of this._headings) {
+			heading.classList.add("cursor-pointer");
+			heading.classList.add("select-none");
+			heading.setAttribute("role", "button");
+			heading.setAttribute("aria-pressed", "false");
+			heading.setAttribute("tabindex", "0");
+			heading.classList.remove("pointer-events-none");
+			heading.classList.remove("!text-slate-900");
+		}
+
+		for (let content of this._contents) {
+			content.classList.add("hidden");
+		}
+	}
+
+	disable() {
+		for (let heading of this._headings) {
+			heading.classList.remove("cursor-pointer");
+			heading.classList.remove("select-none");
+			heading.removeAttribute("role");
+			heading.removeAttribute("aria-pressed");
+			heading.removeAttribute("tabindex");
+			heading.classList.add("pointer-events-none");
+			heading.classList.add("!text-slate-900");
+		}
+	}
+
+	showAll() {
+		this._showall = true;
+		this.shown = -1;
+		this.disable();
+		this._contents.forEach((content, i) => {
+			content.classList.remove("hidden");
+			let heading = this._headings[i];
+			let showopened = heading.querySelectorAll(".show-opened");
+			for (let e of showopened) {
+				e.classList.add("hidden");
+			}
+			let showclosed = heading.querySelectorAll(".show-closed");
+			for (let e of showclosed) {
+				e.classList.add("hidden");
+			}
+		});
+	}
+
+	default() {
+		this._showall = false;
+		this.restore();
+		this.hideDependent();
 	}
 
 	hideDependent() {
