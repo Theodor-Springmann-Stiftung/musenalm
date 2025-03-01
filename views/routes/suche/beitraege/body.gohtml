@@ -38,13 +38,13 @@
 	IncipitString      string
 	}
 
-.filters
-type BeitraegeFilterParameters struct {
+	.filters
+	type BeitraegeFilterParameters struct {
 	Agent     string
 	Type      string
 	Year      string
 	OnlyScans bool
-}
+	}
 	*/}}
 
 {{ $isAlm := false }}
@@ -139,11 +139,15 @@ type BeitraegeFilterParameters struct {
 </div>
 
 {{- template "_fieldscript" -}}
-
 {{- if $model.parameters.IsBeitraegeSearch -}}
-	<div class="container-normal" id="searchresults">
-		{{ template "_filterlist" $model }}
-		{{ template "tablehead" $model }}
+	<div class="cotents" id="searchresult">
+		{{- if $model.result.Hits -}}
+			{{ template "_filterlist" $model }}
+		{{- end -}}
+
+
+		<div class="container-normal">
+			{{ template "tablehead" $model }}
 			{{- if $model.result.Hits -}}
 				<div class="mt-8" id="almanachcontents">
 					{{- range $_, $hit := $model.result.Hits -}}
@@ -171,6 +175,11 @@ type BeitraegeFilterParameters struct {
 					{{- end -}}
 				</div>
 			{{- end -}}
+
+
+			<div class="flex flex-row justify-end items-start border-t border-zinc-300 pt-4">
+				{{- template "pagination" $model -}}
+			</div>
 		</div>
 
 	<script type="module">

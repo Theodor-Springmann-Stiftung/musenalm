@@ -1,0 +1,21 @@
+{{ $model := . }}
+{{- if gt (len $model.result.Pages) 1 }}
+	<div class="[&>_a]:no-underline">
+		{{ if gt $model.parameters.Page 1 -}}
+			<a
+				href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Prev }}"
+				class="mr-1.5">
+				<i class="ri-arrow-left-long-line"></i>
+			</a>
+		{{- end -}}
+		Seite
+		<b>{{ $model.parameters.Page }}&thinsp;/&thinsp;{{ $model.result.PagesCount }}</b>
+		{{ if lt $model.parameters.Page ($model.result.PagesCount) -}}
+			<a
+				href="{{- $model.parameters.ToQueryParamsBeitraege -}}&page={{ $model.parameters.Next }}"
+				class="ml-1.5">
+				<i class="ri-arrow-right-long-line"></i>
+			</a>
+		{{- end -}}
+	</div>
+{{- end -}}

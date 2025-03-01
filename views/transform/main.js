@@ -109,12 +109,16 @@ function setup_templates() {
 
 class FilterList extends HTMLElement {
 	#hiddenlist = false;
+	#activequery = "";
+
 	constructor() {
 		super();
 		this._items = [];
 		this._url = "";
 		this._filterstart = false;
 		this._placeholder = "Liste filtern...";
+		this._queryparam = "";
+		this._startparams = null;
 		this.render();
 	}
 
@@ -127,6 +131,8 @@ class FilterList extends HTMLElement {
 			this._items = data;
 			this.render();
 		}
+		if (!htmx) return;
+		htmx.process(this);
 	}
 
 	get items() {
@@ -137,6 +143,10 @@ class FilterList extends HTMLElement {
 		this._url = this.getAttribute("data-url") || "./";
 		this._filterstart = this.getAttribute("data-filterstart") === "true";
 		this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...";
+		this._queryparam = this.getAttribute("data-queryparam") || "";
+
+		if (this._queryparam) {
+		}
 
 		if (this._filterstart) {
 			this.#hiddenlist = true;
@@ -146,10 +156,6 @@ class FilterList extends HTMLElement {
 		this.addEventListener("keydown", this.onEnter.bind(this));
 		this.addEventListener("focusin", this.onGainFocus.bind(this));
 		this.addEventListener("focusout", this.onLoseFocus.bind(this));
-
-		if (htmx) {
-			htmx.process(this);
-		}
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
@@ -163,6 +169,10 @@ class FilterList extends HTMLElement {
 		}
 		if (name === "data-placeholder" && oldValue !== newValue) {
 			this._placeholder = newValue;
+			this.render();
+		}
+		if (name === "data-queryparam" && oldValue !== newValue) {
+			this._queryparam = newValue;
 			this.render();
 		}
 	}
@@ -276,7 +286,19 @@ class FilterList extends HTMLElement {
 		}
 
 		let href = this.getHREF(item);
-		if (href === "" || !window.location.href.endsWith(href)) {
+		if (href === "") {
+			return false;
+		}
+
+		if (this._queryparam) {
+			let params = new URLSearchParams(window.location.search);
+			let activequery = params.get(this._queryparam) || "";
+			if (activequery === href) {
+				return true;
+			}
+		}
+
+		if (!window.location.href.endsWith(href)) {
 			return false;
 		}
 
@@ -289,6 +311,17 @@ class FilterList extends HTMLElement {
 			return ``;
 		}
 		return `<span class="${FILTER_LIST_SEARCHABLE}">${text}</span>`;
+	}
+
+	getURL(item) {
+		if (this._queryparam) {
+			let url = new URL(window.location);
+			let params = new URLSearchParams(url.search);
+			params.set(this._queryparam, this.getHREF(item));
+			url.search = params.toString();
+			return url.toString();
+		}
+		return this._url + this.getHREFEncoded(item);
 	}
 
 	renderList() {
@@ -354,12 +387,12 @@ class FilterList extends HTMLElement {
 		}
 
 		return `
-							<div id="${FILTER_LIST_LIST}" class="${FILTER_LIST_LIST} pt-1 min-h-[19rem] max-h-60 overflow-auto border-b border-zinc-300 bg-stone-50 ${this.#hiddenlist ? "hidden" : ""}">
+							<div id="${FILTER_LIST_LIST}" class="${FILTER_LIST_LIST} pt-1 max-h-60 overflow-auto bg-stone-50 ${this.#hiddenlist ? "hidden" : ""}">
 								${filtereditems
 									.map(
 										(item, index) => `
 									<a
-										href="${this._url}${this.getHREFEncoded(item)}"
+										href="${this.getURL(item)}"
 										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"

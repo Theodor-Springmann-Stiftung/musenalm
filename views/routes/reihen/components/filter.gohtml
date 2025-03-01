@@ -1,11 +1,13 @@
 {{ $model := . }}
 <div
 	class="hidden lg:flex min-w-[32rem] max-w-[32rem] float-right ml-6 flex-col gap-y-8 [&>*]:pb-12
-	[&>*]:px-12 [&>*]:pt-8 [&>*]:bg-slate-100">
+	[&>*]:px-12 [&>*]:pt-8 [&>*]:bg-slate-100"
+	id="reihenfilter">
 	{{ if $model.common.Agents }}
 		<div class="">
 			<h2 class="mb-6">Herausgeber:innen, Verlage &amp; Druckereien</h2>
 			<filter-list
+				class="min-h-[20rem] border-b border-zinc-300"
 				id="agent-list"
 				data-url="/reihen/?agent="
 				data-placeholder="Personen und Körperschaften filtern..."></filter-list>

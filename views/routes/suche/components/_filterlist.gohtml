@@ -1,24 +1,50 @@
 {{ $model := . }}
 
+{{- $isFiltered := or $model.filters.Agent $model.filters.Year $model.filters.Type -}}
 
-<div class="flex flex-row gap-x-6 mb-4">
-	<filter-list
-		id="agent-list"
-		data-queryparam="personsstring"
-		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&agentfilter="
-		data-placeholder="Personen und Körperschaften filtern..."></filter-list>
 
-	<filter-list
-		id="year-list"
-		data-queryparam="yearstring"
-		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&yearfilter="
-		data-placeholder="Jahre filtern..."></filter-list>
+<div class="container-oversize " x-data="{ filters: '{{- $isFiltered -}}' }">
+	<button
+		class="w-full flex flex-row bg-slate-100 py-3 border-2 border-slate-100 hover:border-slate-900
+		cursor-pointer box-content hover:[&>_h2]:font-slate-900 select-none"
+		@click="filters = !filters">
+		<h2 class="text-2xl text-stone-700 px-32">
+			Filter
+			<i class="ri-arrow-right-s-line" x-show="!filters"></i>
+			<i class="ri-arrow-down-s-line" x-show="filters"></i>
+		</h2>
+	</button>
+	<div
+		class="flex flex-row px-24 justify-between bg-slate-100 py-12 border-t-4 border-stone-50"
+		id="searchfilter"
+		x-show="filters">
+		<div class="w-[30%] grow-0 shrink-0">
+			<filter-list
+				class=""
+				id="agent-list"
+				data-queryparam="agentfilter"
+				data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&agentfilter="
+				data-placeholder="Personen und Körperschaften filtern..."></filter-list>
+		</div>
 
-	<filter-list
-		id="types-list"
-		data-queryparam="type"
-		data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&typefilter="
-		data-placeholder="Betragskategorien filtern..."></filter-list>
+		<div class="w-[30%] grow-0 shrink-0">
+			<filter-list
+				class=""
+				id="year-list"
+				data-queryparam="yearfilter"
+				data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&yearfilter="
+				data-placeholder="Jahre filtern..."></filter-list>
+		</div>
+
+		<div class="w-[30%] grow-0 shrink-0">
+			<filter-list
+				class=""
+				id="types-list"
+				data-queryparam="typefilter"
+				data-url="{{ $model.parameters.ToQueryParamsBeitraege }}&typefilter="
+				data-placeholder="Betragskategorien filtern..."></filter-list>
+		</div>
+	</div>
 </div>
 
 	<script type="module">

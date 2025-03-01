@@ -110,6 +110,10 @@
 		@apply font-variant-small-caps;
 	}
 
+	#reihenfilter .filter-list-list {
+		@apply border-b border-zinc-300 min-h-[17rem];
+	}
+
 	#alphabet a[aria-current="page"]:not(.inactive) {
 		@apply pb-3 pt-2 font-bold italic !bg-stone-50 relative -bottom-3 border-b;
 	}
@@ -298,6 +302,14 @@
 
 	#searchform .searchformcolumn {
 		@apply grid grid-cols-12 gap-y-3 w-full gap-x-4;
+	}
+
+	#searchfilter .filter-list-list {
+		@apply text-base;
+	}
+
+	#searchfilter .filter-list-list {
+		@apply border shadow-inner;
 	}
 
 	#persontype a {
