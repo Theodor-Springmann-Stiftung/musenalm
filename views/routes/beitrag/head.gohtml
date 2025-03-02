@@ -1,0 +1,27 @@
+{{ if and .result .result.Content .result.Entry }}
+	<title>
+		Musenalm &ndash; {{ .result.Entry.PreferredTitle }},
+		{{ if .result.Content.TitleStmt -}}
+			{{ .result.Content.TitleStmt }}
+		{{ else if .result.Content.Incipit -}}
+			{{ .result.Content.Incipit }}
+		{{ else -}}
+			Nr.
+			{{ .result.Content.MusenalmID }}
+		{{- end -}}
+	</title>
+	<meta
+		name="description"
+		content="Almanach: {{ .result.Entry.PreferredTitle }},
+		{{ if .result.Content.TitleStmt -}}
+			{{ .result.Content.TitleStmt }}
+		{{ else if .result.Content.Incipit -}}
+			{{ .result.Content.Incipit }}
+		{{ else -}}
+			Nr.
+			{{ .result.Content.MusenalmID }}
+		{{- end -}}
+		(Einzelbeitrag)" />
+{{ else }}
+	<title>Musenalm &ndash; Beitrag</title>
+{{ end }}

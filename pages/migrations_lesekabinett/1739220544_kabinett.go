@@ -6,6 +6,8 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
+const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
+
 var text = `<h1>Texte zum Almanachwesen</h1>
 <p><em>Joseph Franz von Ratschky:</em> Vorbericht. in: Wiener Musenalmanach. 1779, S. 3-6. [&darr;<a href="/assets/Lesekabinett/ratschky_in_wiener_1779.pdf" target="_blank" rel="noopener">Download</a>]</p>
 <p><em>Gottfried August B&uuml;rger:</em> Nothgedrungene Nachrede. in: G&ouml;ttinger Musenalmanach. 1782, S. 184-192. [&darr;<a href="/assets/Lesekabinett/buerger_in_goettinger_1782.pdf" target="_blank" rel="noopener">Download</a>]</p>
@@ -37,6 +39,7 @@ func init() {
 		page := pagemodels.NewTextPage(r)
 		page.SetText(text)
 		page.SetTitle("Lesekabinett")
+		page.SetDescription(BESCHREIBUNG)
 
 		if err := app.Save(r); err != nil {
 			return err
@@ -44,7 +47,6 @@ func init() {
 		return nil
 
 	}, func(app core.App) error {
-
 		collection_t, err := app.FindCollectionByNameOrId(
 			pagemodels.GeneratePageTableName(pagemodels.P_KABINETT_NAME))
 		if err == nil && collection_t != nil {

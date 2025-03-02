@@ -17,6 +17,8 @@ const TEXT = `<div>
 <p>Frau Mag. <strong>Rita Robosch</strong><br>Matthaeus Truppe Buchhandlung &amp; Antiquariat<br>Stubenberggasse 7<br>A-8010 Graz<br>Austria<br><a href="mailto:truppe@aon.at">truppe@aon.at</a></p>
 </div>`
 
+const BESCHREIBUNG = "Danksagungen an Unterstützer:innen bei der Erfassung von Almanachen und Taschenbüchern."
+
 func init() {
 	m.Register(func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(
@@ -29,6 +31,7 @@ func init() {
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
 		record.SetTitle("Danksagungen")
 		record.SetText(TEXT)
+		record.SetDescription(BESCHREIBUNG)
 
 		if err := app.Save(record); err != nil {
 			app.Logger().Error("Failed to save record", "error", err, "record", record)

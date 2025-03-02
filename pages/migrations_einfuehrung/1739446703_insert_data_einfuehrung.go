@@ -6,6 +6,8 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
+const BESCHREIBUNG = "Musenalm: Einführung in das Verzeichnis deutschsprachiger Almanache."
+
 const START = `<h2 class="wp-block-heading">Vorbemerkung</h2>
 <p>Dies ist eine Bibliographie der deutschen Almanache und Taschenb&uuml;cher, die neben der Erfassung der Reihen und ihrer Jahrg&auml;nge die Inhalte selbst erkennbar macht. In der Regel werden folgende Merkmale erfa&szlig;t und sind in verschiedenen Suchabfragen und Listen abrufbar:</p>
 <ul>
@@ -42,6 +44,7 @@ func init() {
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
 		record.SetTitle("Einführung")
 		record.SetText(START)
+		record.SetDescription(BESCHREIBUNG)
 
 		if err := app.Save(record); err != nil {
 			app.Logger().Error("Failed to save record", "error", err, "record", record)

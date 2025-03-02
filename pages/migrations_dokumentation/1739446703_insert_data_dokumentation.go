@@ -12,6 +12,8 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
+const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Dokumentation zur Sortierung und Struktur der Almanache."
+
 const START = `<h3>Sortierung der Reihentitel</h3>
 <p>Wir sortieren die Reihentitel nach dem Kopf der Nominalphrase, den wir zu diesem Zweck ggf. an den Anfang stellen und mit Kommas abtrennen.</p>
 <p>Somit wird:</p>
@@ -494,6 +496,7 @@ func init() {
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
 		record.SetTitle("Dokumentation")
 		record.SetText(START)
+		record.SetDescription(BESCHREIBUNG)
 
 		if err := app.Save(record); err != nil {
 			app.Logger().Error("Failed to save record", "error", err, "record", record)

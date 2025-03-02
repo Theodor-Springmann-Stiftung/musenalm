@@ -51,7 +51,7 @@ func bilderCollection() *core.Collection {
 	c.ViewRule = dbmodels.PUBLIC_VIEW_RULE
 	c.Fields = core.NewFieldsList(
 		pagemodels.TextField(pagemodels.F_TITLE),
-		pagemodels.EditorField(pagemodels.F_DESCRIPTION),
+		pagemodels.TextField(pagemodels.F_DESCRIPTION),
 		pagemodels.RequiredImageField(pagemodels.F_IMAGE, false),
 		pagemodels.RequiredImageField(pagemodels.F_PREVIEW, false),
 	)

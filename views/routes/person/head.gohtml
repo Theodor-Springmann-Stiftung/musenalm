@@ -2,3 +2,10 @@
 	{{ .site.title }} &ndash;
 	{{ if .result -}}{{ .result.Agent.Name }}{{ else -}}Einzelpersonenansicht{{- end -}}
 </title>
+<meta
+	name="description"
+	content="Musenalm: {{ if .result -}}
+		{{ .result.Agent.Name }}
+	{{ else -}}
+		Einzelpersonenansicht
+	{{- end -}}" />

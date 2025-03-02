@@ -77,11 +77,19 @@ func NewIndexTexte(record *core.Record) *IndexTexte {
 	return i
 }
 
-func (t *IndexTexte) Titel() string {
+func (t *IndexTexte) Title() string {
 	return t.GetString(F_TITLE)
 }
 
-func (t *IndexTexte) SetTitel(titel string) {
+func (t *IndexTexte) SetDescription(s string) {
+	t.Set(F_DESCRIPTION, s)
+}
+
+func (t *IndexTexte) Description() string {
+	return t.GetString(F_DESCRIPTION)
+}
+
+func (t *IndexTexte) SetTitle(titel string) {
 	t.Set(F_TITLE, titel)
 }
 

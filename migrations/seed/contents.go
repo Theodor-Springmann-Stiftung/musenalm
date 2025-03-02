@@ -35,7 +35,10 @@ func RecordsFromInhalte(
 		record := dbmodels.NewContent(core.NewRecord(collection))
 		inhalt := inhalte.Inhalte[i]
 		band, ok := entries[inhalt.Band]
-
+		if !ok {
+			app.Logger().Error("Band not found", "band", inhalt.Band)
+			continue
+		}
 		record.SetEntry(band.Id)
 		record.SetAnnotation(NormalizeString(inhalt.Anmerkungen))
 		record.SetMusenalmID(inhalt.ID)
@@ -81,6 +84,7 @@ func RecordsFromInhalte(
 		}
 
 		records = append(records, record)
+
 	}
 	return records, nil
 }
@@ -140,6 +144,9 @@ func getImages(path string) map[int][]string {
 		if !fileInfo.IsDir() {
 			ext := filepath.Ext(fileInfo.Name())
 			filename := strings.TrimSuffix(fileInfo.Name(), ext)
+			if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".tiff" {
+				return nil
+			}
 			basesplit := strings.Split(filename, "-")
 			if len(basesplit) >= 3 {
 				commaseperatorsplit := strings.Split(basesplit[2], ",")

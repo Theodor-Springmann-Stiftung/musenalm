@@ -1,1 +1,6 @@
-<title>Musenalm - Reihen</title>
+{{- if .series -}}
+	<title>Musenalm &ndash; {{ .series.Title }}</title>
+	<meta name="description" content="Enzelreihe: {{ .series.Title }}" />
+{{- else -}}
+	<title>Musenalm &ndash; Einzelreihe</title>
+{{- end -}}
