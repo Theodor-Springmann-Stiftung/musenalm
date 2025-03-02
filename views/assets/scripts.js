@@ -323,7 +323,7 @@ class z extends HTMLElement {
       "[&>*]:leading-normal"
     );
     const t = this.querySelector(".data-tip"), e = t ? t.innerHTML : "Tooltip";
-    t && t.remove(), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = e, this._tooltipBox.className = [
+    t && t.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = e, this._tooltipBox.className = [
       "opacity-0",
       "hidden",
       "absolute",

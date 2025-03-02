@@ -602,7 +602,7 @@ class ToolTip extends HTMLElement {
 		const tipContent = dataTipElem ? dataTipElem.innerHTML : "Tooltip";
 
 		if (dataTipElem) {
-			dataTipElem.remove();
+			dataTipElem.classList.add("hidden");
 		}
 
 		this._tooltipBox = document.createElement("div");
