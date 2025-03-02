@@ -68,7 +68,9 @@
 <div id="searchcontrol" class="container-normal">
 	{{- template "_heading" $model.parameters -}}
 	<div id="searchform" class="border-l border-zinc-300 px-8 py-10 relative">
-		{{- template "_musenalmidbox" Arr $model.parameters.AlmString "baende" -}}
+		{{- if not $model.parameters.Extended -}}
+			{{- template "_musenalmidbox" Arr $model.parameters.AlmString "beitraege" -}}
+		{{- end -}}
 		<form
 			id="simplesearchform"
 			class="w-full font-serif"

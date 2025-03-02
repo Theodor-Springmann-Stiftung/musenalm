@@ -277,20 +277,20 @@
 		@apply bg-zinc-300 w-[30%] absolute bottom-0 right-[70%] h-[1px] z-10;
 	}
 
-	#searchform input {
+	#searchform input:not(#serachform #simplesearchbox input) {
 		@apply w-full mx-auto px-2 py-1 border-zinc-600 border;
 	}
 
 	#searchform button {
-		@apply bg-stone-100 text-base px-2.5 py-1 rounded font-sans transition-all duration-75;
+		@apply bg-stone-900 text-gray-200 text-base min-w-36 rounded font-sans transition-all duration-75;
 	}
 
 	#searchform button:hover:not(:disabled) {
-		@apply cursor-pointer bg-stone-200;
+		@apply cursor-pointer bg-slate-800 text-white;
 	}
 
 	#searchform button:disabled {
-		@apply bg-stone-300 text-gray-500 cursor-not-allowed;
+		@apply bg-stone-400 text-white cursor-not-allowed;
 	}
 
 	#searchform .selectgroup {
@@ -310,7 +310,6 @@
 	}
 
 	#searchform .searchformcolumn {
-		@apply grid grid-cols-12 gap-y-3 w-full gap-x-4;
 	}
 
 	#searchfilter .filter-list-list {
@@ -445,15 +444,7 @@
 	}
 
 	#extendedsearchcolumn button {
-		@apply bg-stone-100 text-base px-2.5 py-1 rounded font-sans transition-all duration-75 col-start-4 col-span-4;
-	}
-
-	#extendedsearchcolumn button:hover:not(:disabled) {
-		@apply cursor-pointer bg-stone-200;
-	}
-
-	#extendedsearchcolumn button:disabled {
-		@apply bg-stone-300 text-gray-500 cursor-not-allowed;
+		@apply col-start-4 col-span-4 py-2;
 	}
 
 	#extendedsearchcolumn label {

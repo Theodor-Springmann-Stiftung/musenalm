@@ -2,7 +2,7 @@
 <div id="searchheading" class="flex flex-row justify-between min-h-14 items-end relative">
 	<nav id="searchnav" class="flex flex-row items-end">
 		<div
-			class="align-bottom text-lg h-min self-end pb-0.5 italic font-bold
+			class="align-bottom text-xl h-min self-end pb-0.5 italic font-bold
 			text-zinc-800">
 			Suche nach:
 		</div>
@@ -16,13 +16,13 @@
 			-->
 		<a
 			href="/suche/baende"
-			class="block no-underline"
+			class="block no-underline text-xl"
 			{{ if eq $model.Collection "baende" }}aria-current="page"{{- end -}}
 			>Bänden</a
 		>
 		<a
 			href="/suche/beitraege"
-			class="block no-underline"
+			class="block no-underline text-xl"
 			{{ if eq $model.Collection "beitraege" }}aria-current="page"{{- end -}}
 			>Beiträgen</a
 		>

@@ -3,22 +3,28 @@
 {{ $q := index . 2 }}
 
 
-<label for="q" class="hidden">Suchbegriffe</label>
-<input
-	{{ if $q }}value="{{ $q }}"{{- end }}
-	type="search"
-	name="q"
-	minlength="3"
-	required
-	placeholder="Suchbegriff (min. 3 Zeichen)"
-	class="w-full col-span-8
-			placeholder:italic" />
-<button id="submitbutton" type="submit" class="col-span-2">Suchen</button>
+<div class="w-full flex flex-row gap-x-3 mb-3 justify-between" id="simplesearchbox">
+	<div class="flex flex-row justify-between gap-x-3 w-full">
+		<label for="q" class="hidden">Suchbegriffe</label>
+		<input
+			{{ if $q }}value="{{ $q }}"{{- end }}
+			type="search"
+			name="q"
+			minlength="3"
+			required
+			placeholder="Suchbegriff (min. 3 Zeichen)"
+			class="w-full grow
+			placeholder:italic font-serif placeholder:font-sans" />
+		<button id="submitbutton" type="submit" class="min-w-36" form="simplesearchform">Suchen</button>
+	</div>
 
-{{ if $extendable }}
-	<a
-		href="/suche/{{ $parameters.Collection }}?extended=true"
-		class="whitespace-nowrap self-end block col-span-2">
-		<i class="ri-arrow-right-long-line"></i> Erweiterte Suche
-	</a>
-{{ end }}
+	{{ if $extendable }}
+		<a
+			href="/suche/{{ $parameters.Collection }}?extended=true"
+			class="whitespace-nowrap self-end block ">
+			<i class="ri-arrow-right-long-line"></i> Erweiterte Suche
+		</a>
+	{{ end }}
+</div>
+
+<script></script>
