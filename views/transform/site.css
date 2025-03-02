@@ -247,6 +247,10 @@
 		@apply h-full w-full;
 	}
 
+	#introtext p:not(:first-child) {
+		@apply mt-0.5 !indent-6;
+	}
+
 	#searchnav > a:nth-of-type(1) {
 		@apply ml-6;
 	}
