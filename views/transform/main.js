@@ -505,6 +505,7 @@ class FilterList extends HTMLElement {
 										(item, index) => `
 									<a
 										href="${this.getURL(item)}"
+										hx-indicator="body"
 										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"

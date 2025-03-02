@@ -3,7 +3,7 @@ var x = (r) => {
 };
 var _ = (r, t, e) => t.has(r) || x("Cannot " + e);
 var c = (r, t, e) => (_(r, t, "read from private field"), e ? e.call(r) : t.get(r)), n = (r, t, e) => t.has(r) ? x("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(r) : t.set(r, e), u = (r, t, e, i) => (_(r, t, "write to private field"), i ? i.call(r, e) : t.set(r, e), e), g = (r, t, e) => (_(r, t, "access private method"), e);
-const S = "script[xslt-onload]", w = "xslt-template", k = "xslt-transformed", M = "filter-list", m = "filter-list-list", C = "filter-list-item", I = "filter-list-input", y = "filter-list-searchable", B = "scroll-button", q = "tool-tip", P = "abbrev-tooltips", R = "int-link", H = "popup-image", $ = "tab-list", N = "filter-pill", F = "image-reel";
+const S = "script[xslt-onload]", y = "xslt-template", k = "xslt-transformed", M = "filter-list", m = "filter-list-list", C = "filter-list-item", I = "filter-list-input", w = "filter-list-searchable", B = "scroll-button", q = "tool-tip", P = "abbrev-tooltips", R = "int-link", H = "popup-image", $ = "tab-list", N = "filter-pill", F = "image-reel";
 var d, b, E;
 class V {
   constructor() {
@@ -23,9 +23,9 @@ class V {
   }
 }
 d = new WeakMap(), b = new WeakSet(), E = function(t) {
-  if (t.getAttribute(k) === "true" || !t.hasAttribute(w))
+  if (t.getAttribute(k) === "true" || !t.hasAttribute(y))
     return;
-  let e = "#" + t.getAttribute(w), i = c(this, d).get(e);
+  let e = "#" + t.getAttribute(y), i = c(this, d).get(e);
   if (!i) {
     let h = htmx.find(e);
     if (h) {
@@ -157,7 +157,7 @@ class U extends HTMLElement {
     let e = this.querySelector("#" + m);
     if (!e)
       return;
-    let i = new Mark(e.querySelectorAll("." + y));
+    let i = new Mark(e.querySelectorAll("." + w));
     this._filter && i.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -197,7 +197,7 @@ class U extends HTMLElement {
   }
   getLinkText(e) {
     let i = this.getSearchText(e);
-    return i === "" ? "" : `<span class="${y}">${i}</span>`;
+    return i === "" ? "" : `<span class="${w}">${i}</span>`;
   }
   getURL(e) {
     if (this._queryparam) {
@@ -252,6 +252,7 @@ class U extends HTMLElement {
       (i, s) => `
 									<a
 										href="${this.getURL(i)}"
+										hx-indicator="body"
 										class="${C} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
 										${g(this, f, L).call(this, i) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(i)}
