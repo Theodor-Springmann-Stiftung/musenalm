@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker build -t musenalm-backend -v musenalm:/app/data .
+docker build -t musenalm -v musenalm:/app/data .
 
