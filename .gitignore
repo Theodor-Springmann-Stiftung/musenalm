@@ -12,3 +12,4 @@ config.json
 out.log
 *.log
 *.out
+*.zip
