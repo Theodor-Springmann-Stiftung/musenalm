@@ -180,7 +180,7 @@ class FilterPill extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
-		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-swap="outerHTML show:window:top">
+		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-indicator="body" hx-swap="outerHTML show:window:top">
 			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:saturate-50 px-2.5">
 				${this.renderIcon()}
 				<div class="flex flex-row filter-pill-label-value !items-baseline text-slate-700">

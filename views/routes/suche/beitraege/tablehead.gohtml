@@ -21,6 +21,8 @@
 
 <div class="border-b border-zinc-300 flex flex-row justify-between">
 	<div class="flex flex-row gap-x-2">
+		<div><i class="ri-hourglass-2-fill request-indicator spinning"></i></div>
+		<div class="request-indicator">&middot;</div>
 		{{ if $model.parameters.Query -}}
 			<div>Suche nach <b>»{{ $model.parameters.Query }}«</b></div>
 			<div>&middot;</div>
@@ -69,6 +71,7 @@
 				hx-select="#searchresults"
 				hx-target="#searchresults"
 				hx-swap="outerHTML"
+				hx-indicator="body"
 				{{ if $model.filters.OnlyScans -}}checked{{- end -}} />
 
 			<label
@@ -87,6 +90,7 @@
 				trigger="change"
 				hx-push-url="true"
 				hx-select="#subresults"
+				hx-indicator="body"
 				hx-target="#subresults"
 				hx-swap="outerHTML show:window:top">
 				<option
