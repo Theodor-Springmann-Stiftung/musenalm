@@ -11,12 +11,16 @@
 					:class="search ? 'inactive' : 'active'"
 					href="?letter={{ $r }}"
 					{{ if eq $model.active $r }}aria-current="page"{{ end }}
+					hx-indicator="body"
 					hx-select="main"
 					hx-target="main"
-					hx-swap="outerHTML scroll:#pageheading:top"
+					hx-swap="outerHTML show:none"
 					>{{ $r }}</a
 				>
 			{{ end }}
+
+
+			<i class="ml-2 pb-1 ri-hourglass-2-fill request-indicator spinning"></i>
 		</div>
 
 		<div class="flex-grow"></div>

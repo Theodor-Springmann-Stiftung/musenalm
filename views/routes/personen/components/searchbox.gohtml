@@ -15,7 +15,7 @@
 				placeholder="Suchbegriff"
 				x-model="search"
 				hx-get=""
-				hx-trigger="input[if: this.value.length >= 3] delay:3000ms, keyup[enter, if: this.value.length >= 2]"
+				hx-trigger="input delay:1000ms, keyup[enter]"
 				hx-select="#searchresults"
 				hx-target="#searchresults"
 				hx-swap="outerHTML"

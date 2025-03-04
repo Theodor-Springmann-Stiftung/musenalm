@@ -242,8 +242,6 @@ class FilterList extends HTMLElement {
 			this._items = data;
 			this.render();
 		}
-		if (!htmx) return;
-		htmx.process(this);
 	}
 
 	get items() {
@@ -451,6 +449,8 @@ class FilterList extends HTMLElement {
 							${this.List()}
             </div>
         `;
+		if (!htmx) return;
+		htmx.process(this);
 	}
 
 	ActiveDot(item) {
@@ -506,6 +506,9 @@ class FilterList extends HTMLElement {
 									<a
 										href="${this.getURL(item)}"
 										hx-indicator="body"
+										hx-swap="outerHTML show:none"
+										hx-select="main"
+										hx-target="main"
 										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"
