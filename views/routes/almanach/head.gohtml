@@ -1,5 +1,5 @@
 {{ if and .result .result.Entry }}
-	<title>Musenalm &ndash; result.Entry.PreferredTitle</title>
+	<title>Musenalm &ndash; {{ .result.Entry.PreferredTitle }}</title>
 	<meta name="description" content="Almanach: {{ .result.Entry.PreferredTitle }}" />
 {{ else }}
 	<title>Musenalm &ndash; Almanach</title>
