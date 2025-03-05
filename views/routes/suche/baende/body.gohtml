@@ -75,6 +75,7 @@
 			id="simplesearchform"
 			class="w-full font-serif"
 			method="get"
+			hx-indicator="body"
 			action="/suche/baende"
 			autocomplete="off">
 			{{- if not $model.parameters.Extended -}}
@@ -212,6 +213,10 @@
 	<div class="container-normal" id="searchresults">
 		<div class="border-b border-zinc-300 flex flex-row justify-between">
 			<div>
+				<div class="inline-block">
+					<i class="ri-hourglass-2-fill request-indicator spinning"></i>
+				</div>
+				<div class="request-indicator">&middot;</div>
 				{{ if $model.parameters.Query -}}
 					Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
 				{{- end -}}
@@ -247,6 +252,7 @@
 						name="sort"
 						id="sort"
 						hx-get="{{- $model.parameters.ToQueryParamsBaende -}}"
+						hx-indicator="body"
 						trigger="change"
 						hx-push-url="true"
 						hx-select="main"

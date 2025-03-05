@@ -76,6 +76,7 @@
 			id="simplesearchform"
 			class="w-full font-serif"
 			method="get"
+			hx-indicator="body"
 			action="/suche/beitraege"
 			autocomplete="off">
 			{{- if not $model.parameters.Extended -}}

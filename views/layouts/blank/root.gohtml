@@ -43,9 +43,10 @@
 		</script>
 	</head>
 
-	<body class="w-full h-full min-h-full" hx-ext="response-targets" hx-boost="true">
+	<body class="w-full min-h-full" hx-ext="response-targets" hx-boost="true">
+		<div class="pb-12">
 			{{ block "body" . }}
-					<!-- Default app body... -->
+				<!-- Default app body... -->
 			{{ end }}
 		</div>
 	</body>

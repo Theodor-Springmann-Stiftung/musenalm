@@ -180,7 +180,7 @@ class FilterPill extends HTMLElement {
 
 	render() {
 		this.innerHTML = `
-		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-swap="outerHTML show:window:top">
+		<a href="${this.getURL()}" class="!no-underline block text-base" hx-target="#searchresults" hx-select="#searchresults" hx-indicator="body" hx-swap="outerHTML show:window:top">
 			<div class="flex flex-row filter-pill rounded-lg bg-orange-100 hover:saturate-50 px-2.5">
 				${this.renderIcon()}
 				<div class="flex flex-row filter-pill-label-value !items-baseline text-slate-700">
@@ -242,8 +242,6 @@ class FilterList extends HTMLElement {
 			this._items = data;
 			this.render();
 		}
-		if (!htmx) return;
-		htmx.process(this);
 	}
 
 	get items() {
@@ -451,6 +449,8 @@ class FilterList extends HTMLElement {
 							${this.List()}
             </div>
         `;
+		if (!htmx) return;
+		htmx.process(this);
 	}
 
 	ActiveDot(item) {
@@ -505,6 +505,10 @@ class FilterList extends HTMLElement {
 										(item, index) => `
 									<a
 										href="${this.getURL(item)}"
+										hx-indicator="body"
+										hx-swap="outerHTML show:none"
+										hx-select="main"
+										hx-target="main"
 										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
 											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
 										}"
