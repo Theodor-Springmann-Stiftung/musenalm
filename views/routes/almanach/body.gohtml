@@ -139,7 +139,7 @@
 						</select>
 					</div>
 				{{- end -}}
-				{{- if and $model.result.HasScans (gt (len $model.result.Contents) 1) -}}
+				{{- if $model.result.HasScans -}}
 					<div>
 						<label
 							for="onlyscans"
