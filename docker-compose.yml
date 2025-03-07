@@ -5,6 +5,6 @@ services:
     ports:
       - "8090:8090"
     volumes:
-      - ma:/app/data
+      - ma_v2:/app/data
 volumes:
-  ma:
+  ma_v2:
