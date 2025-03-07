@@ -63,18 +63,18 @@
 		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
 		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
 		<a
-			href="/redaktion/einfuehrung/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/einfuehrung") -}}
+			href="/redaktion/einleitung/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/einleitung") -}}
 				aria-current="page"
 			{{- end -}}
-			>Einführung</a
+			>Einleitung</a
 		>
 		<a
-			href="/redaktion/dokumentation/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/dokumentation") -}}
+			href="/redaktion/benutzerhinweise/"
+			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/benutzerhinweise") -}}
 				aria-current="page"
 			{{- end -}}
-			>Dokumentation</a
+			>Benutzerhinweise</a
 		>
 		<a
 			href="/redaktion/literatur/"

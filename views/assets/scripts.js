@@ -1,18 +1,18 @@
-var x = (r) => {
+var T = (r) => {
   throw TypeError(r);
 };
-var _ = (r, t, e) => t.has(r) || x("Cannot " + e);
-var c = (r, t, e) => (_(r, t, "read from private field"), e ? e.call(r) : t.get(r)), n = (r, t, e) => t.has(r) ? x("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(r) : t.set(r, e), u = (r, t, e, i) => (_(r, t, "write to private field"), i ? i.call(r, e) : t.set(r, e), e), g = (r, t, e) => (_(r, t, "access private method"), e);
-const S = "script[xslt-onload]", w = "xslt-template", k = "xslt-transformed", M = "filter-list", m = "filter-list-list", C = "filter-list-item", I = "filter-list-input", y = "filter-list-searchable", B = "scroll-button", q = "tool-tip", P = "abbrev-tooltips", H = "int-link", R = "popup-image", $ = "tab-list", N = "filter-pill", F = "image-reel";
+var _ = (r, t, e) => t.has(r) || T("Cannot " + e);
+var c = (r, t, e) => (_(r, t, "read from private field"), e ? e.call(r) : t.get(r)), l = (r, t, e) => t.has(r) ? T("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(r) : t.set(r, e), u = (r, t, e, i) => (_(r, t, "write to private field"), i ? i.call(r, e) : t.set(r, e), e), g = (r, t, e) => (_(r, t, "access private method"), e);
+const k = "script[xslt-onload]", y = "xslt-template", S = "xslt-transformed", M = "filter-list", m = "filter-list-list", B = "filter-list-item", C = "filter-list-input", w = "filter-list-searchable", I = "scroll-button", q = "tool-tip", P = "abbrev-tooltips", R = "int-link", H = "popup-image", $ = "tab-list", O = "filter-pill", N = "image-reel";
 var d, b, E;
 class V {
   constructor() {
-    n(this, b);
-    n(this, d);
+    l(this, b);
+    l(this, d);
     u(this, d, /* @__PURE__ */ new Map());
   }
   setup() {
-    let t = htmx.findAll(S);
+    let t = htmx.findAll(k);
     for (let e of t)
       g(this, b, E).call(this, e);
   }
@@ -23,9 +23,9 @@ class V {
   }
 }
 d = new WeakMap(), b = new WeakSet(), E = function(t) {
-  if (t.getAttribute(k) === "true" || !t.hasAttribute(w))
+  if (t.getAttribute(S) === "true" || !t.hasAttribute(y))
     return;
-  let e = "#" + t.getAttribute(w), i = c(this, d).get(e);
+  let e = "#" + t.getAttribute(y), i = c(this, d).get(e);
   if (!i) {
     let h = htmx.find(e);
     if (h) {
@@ -34,10 +34,10 @@ d = new WeakMap(), b = new WeakSet(), E = function(t) {
     } else
       throw new Error("Unknown XSLT template: " + e);
   }
-  let s = new DOMParser().parseFromString(t.innerHTML, "application/xml"), a = i.transformToFragment(s, document), l = new XMLSerializer().serializeToString(a);
-  t.outerHTML = l;
+  let s = new DOMParser().parseFromString(t.innerHTML, "application/xml"), a = i.transformToFragment(s, document), n = new XMLSerializer().serializeToString(a);
+  t.outerHTML = n;
 };
-class O extends HTMLElement {
+class F extends HTMLElement {
   constructor() {
     super(), this._value = "", this.render();
   }
@@ -106,13 +106,13 @@ class O extends HTMLElement {
 		`;
   }
 }
-var o, T, f, L;
+var o, x, f, L;
 class U extends HTMLElement {
   constructor() {
     super();
-    n(this, f);
-    n(this, o, !1);
-    n(this, T, "");
+    l(this, f);
+    l(this, o, !1);
+    l(this, x, "");
     this._items = [], this._url = "", this._filterstart = !1, this._placeholder = "Liste filtern...", this._queryparam = "", this._startparams = null, this.render();
   }
   static get observedAttributes() {
@@ -157,7 +157,7 @@ class U extends HTMLElement {
     let e = this.querySelector("#" + m);
     if (!e)
       return;
-    let i = new Mark(e.querySelectorAll("." + y));
+    let i = new Mark(e.querySelectorAll("." + w));
     this._filter && i.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -197,7 +197,7 @@ class U extends HTMLElement {
   }
   getLinkText(e) {
     let i = this.getSearchText(e);
-    return i === "" ? "" : `<span class="${y}">${i}</span>`;
+    return i === "" ? "" : `<span class="${w}">${i}</span>`;
   }
   getURL(e) {
     if (this._queryparam) {
@@ -232,7 +232,7 @@ class U extends HTMLElement {
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${I} w-full placeholder:italic px-2 py-0.5" />
+								class="${C} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -256,7 +256,7 @@ class U extends HTMLElement {
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${C} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										class="${B} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
 										${g(this, f, L).call(this, i) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(i)}
 										${this.getLinkText(i)}
@@ -268,7 +268,7 @@ class U extends HTMLElement {
 				`;
   }
 }
-o = new WeakMap(), T = new WeakMap(), f = new WeakSet(), L = function(e) {
+o = new WeakMap(), x = new WeakMap(), f = new WeakSet(), L = function(e) {
   if (!e)
     return !1;
   let i = this.getHREF(e);
@@ -420,15 +420,26 @@ class z extends HTMLElement {
 }
 class G extends HTMLElement {
   constructor() {
-    super(), this.overlay = null, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
+    super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
   }
   connectedCallback() {
     this.classList.add("cursor-pointer"), this.classList.add("select-none"), this._imageURL = this.getAttribute("data-image-url") || "", this._hideDLButton = this.getAttribute("data-hide-dl-button") || !1, this._preview = this.querySelector("img"), this._description = this.querySelector(".image-description"), this._preview && this._preview.addEventListener("click", () => {
       this.showOverlay();
     });
+    let t = this.closest("image-reel, .image-reel");
+    t || (t = document), this._others = Array.from(t.querySelectorAll("popup-image:not(.hidden)")), this._thisindex = this._others.indexOf(this);
   }
   disconnectedCallback() {
     this.overlay && this.overlay.parentNode && this.overlay.parentNode.removeChild(this.overlay);
+  }
+  Keys(t) {
+    t.repeat || (t.preventDefault(), t.key === "ArrowRight" ? this.next() : t.key === "ArrowLeft" ? this.prev() : t.key === "Escape" && this.hideOverlay());
+  }
+  next() {
+    this._others[this._thisindex + 1] ? (this.hideOverlay(), this._others[this._thisindex + 1].showOverlay()) : document.addEventListener("keydown", this.Keys.bind(this), { once: !0 });
+  }
+  prev() {
+    this._others[this._thisindex - 1] ? (this.hideOverlay(), this._others[this._thisindex - 1].showOverlay()) : document.addEventListener("keydown", this.Keys.bind(this), { once: !0 });
   }
   showOverlay() {
     this.overlay = document.createElement("div"), this.overlay.classList.add(
@@ -444,10 +455,12 @@ class G extends HTMLElement {
       <div class="relative w-max max-w-dvw max-h-dvh shadow-lg flex flex-col items-center justify-center gap-4">
 				<div>
 				<div class="absolute -right-16 text-white text-4xl flex flex-col">
-					<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup">
+					<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Close popup" id="closebutton">
 						<i class="ri-close-fill text-4xl"></i>
 					</button>
-					${this.downloadButton()}
+						${this.downloadButton()}
+						${this.nextButton()}
+						${this.prevButton()}
 				</div>
         <img
           src="${this._imageURL}"
@@ -458,15 +471,39 @@ class G extends HTMLElement {
 					</div>
       </div>
     `;
-    const t = this.overlay.querySelector("button");
+    const t = this.overlay.querySelector("#closebutton");
     t && t.addEventListener("click", () => {
       this.hideOverlay();
-    }), this.overlay.addEventListener("click", (e) => {
-      e.target === this.overlay && this.hideOverlay();
-    }), document.body.appendChild(this.overlay);
+    });
+    const e = this.overlay.querySelector("#nextbtn");
+    e && e.addEventListener("click", this.next.bind(this));
+    const i = this.overlay.querySelector("#prevbtn");
+    i && i.addEventListener("click", this.prev.bind(this)), this.overlay.addEventListener("click", (s) => {
+      s.target === this.overlay && this.hideOverlay();
+    }), document.addEventListener("keydown", this.Keys.bind(this), { once: !0 }), document.body.appendChild(this.overlay);
   }
   descriptionImgClass() {
     return this.description ? "" : "0";
+  }
+  nextButton() {
+    return this._others[this._thisindex + 1] ? `
+			<tool-tip position="right">
+			<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Next image" id="nextbtn">
+				<i class="ri-arrow-right-box-line"></i>
+			</button>
+			<div class="data-tip">Nächstes Bild</div>
+			</tool-tip>
+		` : "";
+  }
+  prevButton() {
+    return this._others[this._thisindex - 1] ? `
+			<tool-tip position="right">
+			<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Previous image" id="prevbtn">
+				<i class="ri-arrow-left-box-line"></i>
+			</button>
+			<div class="data-tip">Vorheriges Bild</div>
+			</tool-tip>
+		` : "";
   }
   description() {
     return this._description ? `
@@ -489,7 +526,7 @@ class G extends HTMLElement {
     this.overlay.parentNode.removeChild(this.overlay), this.overlay = null;
   }
 }
-class j extends HTMLElement {
+class K extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
@@ -523,11 +560,11 @@ class j extends HTMLElement {
     this._showall = !0, this.shown = -1, this.disable(), this._contents.forEach((t, e) => {
       t.classList.remove("hidden");
       let i = this._headings[e], s = i.querySelectorAll(".show-opened");
-      for (let l of s)
-        l.classList.add("hidden");
+      for (let n of s)
+        n.classList.add("hidden");
       let a = i.querySelectorAll(".show-closed");
-      for (let l of a)
-        l.classList.add("hidden");
+      for (let n of a)
+        n.classList.add("hidden");
     });
   }
   default() {
@@ -675,17 +712,17 @@ class p extends HTMLElement {
       }
       const a = this.findLongestAbbrevAt(t, s, e);
       if (a) {
-        const { match: l, meaning: h } = a;
+        const { match: n, meaning: h } = a;
         i += `
             <tool-tip position="top" class="!inline" timeout="300">
               <div class="data-tip p-2 text-sm text-white bg-gray-700 rounded shadow">
                 ${h}
               </div>
               <span class="cursor-help text-blue-900 hover:text-slate-800">
-                ${l}
+                ${n}
               </span>
             </tool-tip>
-          `, s += l.length;
+          `, s += n.length;
       } else
         i += t[s], s++;
     }
@@ -693,15 +730,15 @@ class p extends HTMLElement {
   }
   findLongestAbbrevAt(t, e, i) {
     let s = null, a = 0;
-    for (const l of Object.keys(i))
-      t.startsWith(l, e) && l.length > a && (s = l, a = l.length);
+    for (const n of Object.keys(i))
+      t.startsWith(n, e) && n.length > a && (s = n, a = n.length);
     return s ? { match: s, meaning: i[s] } : null;
   }
   isSpaceOrPunct(t) {
     return /\s|[.,;:!?]/.test(t);
   }
 }
-class K extends HTMLElement {
+class j extends HTMLElement {
   constructor() {
     super();
   }
@@ -723,7 +760,7 @@ var v;
 class X extends HTMLElement {
   constructor() {
     super();
-    n(this, v, 176);
+    l(this, v, 176);
     this._images = [];
   }
   connectedCallback() {
@@ -745,15 +782,15 @@ class X extends HTMLElement {
   }
 }
 v = new WeakMap();
-customElements.define(H, K);
+customElements.define(R, j);
 customElements.define(P, p);
 customElements.define(M, U);
-customElements.define(B, D);
+customElements.define(I, D);
 customElements.define(q, z);
-customElements.define(R, G);
-customElements.define($, j);
-customElements.define(N, O);
-customElements.define(F, X);
+customElements.define(H, G);
+customElements.define($, K);
+customElements.define(O, F);
+customElements.define(N, X);
 export {
   p as AbbreviationTooltips,
   U as FilterList,

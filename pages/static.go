@@ -11,8 +11,8 @@ func init() {
 	RegisterTextPage("/redaktion/kontakt/", pagemodels.P_KONTAKT_NAME)
 	RegisterTextPage("/redaktion/danksagungen/", pagemodels.P_DANK_NAME)
 	RegisterTextPage("/redaktion/literatur/", pagemodels.P_LIT_NAME)
-	RegisterTextPage("/redaktion/einfuehrung/", pagemodels.P_EINFUEHRUNG_NAME)
-	RegisterTextPage("/redaktion/dokumentation/", pagemodels.P_DOK_NAME)
+	RegisterTextPage("/redaktion/einleitung/", pagemodels.P_EINFUEHRUNG_NAME)
+	RegisterTextPage("/redaktion/benutzerhinweise/", pagemodels.P_DOK_NAME)
 	RegisterTextPage("/redaktion/lesekabinett/", pagemodels.P_KABINETT_NAME)
 }
 

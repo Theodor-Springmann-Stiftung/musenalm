@@ -42,7 +42,7 @@ func init() {
 		}
 
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
-		record.SetTitle("Einführung")
+		record.SetTitle("Einleitung")
 		record.SetText(START)
 		record.SetDescription(BESCHREIBUNG)
 

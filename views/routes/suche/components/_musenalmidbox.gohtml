@@ -16,7 +16,11 @@
 			name="almstring"
 			id="almstring"
 			value="{{ $p }}"
-			placeholder="Alm-Nummer"
+			placeholder="{{- if eq $t "baende" -}}
+				Alm-Nummer
+			{{- else -}}
+				Inhalts-Nummer
+			{{- end -}}"
 			class="w-full col-span-3 placeholder:italic placeholder:font-sans" />
 		<button id="submitbutton" type="submit" class="col-span-2">Nachschlagen</button>
 	</form>
