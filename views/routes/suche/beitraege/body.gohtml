@@ -229,7 +229,7 @@
 
 			{{- if $model.result.Hits -}}
 				<div class="flex flex-row justify-end items-start border-t border-zinc-300 pt-4">
-					{{- template "pagination" $model -}}
+					{{- template "_pagination" Arr $model "beitraege" -}}
 				</div>
 			{{- else -}}
 				<div class="mt-4">Kein Beitrag gefunden.</div>

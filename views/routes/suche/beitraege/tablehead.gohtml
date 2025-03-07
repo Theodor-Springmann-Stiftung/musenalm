@@ -49,7 +49,7 @@
 		{{- if gt (len $model.result.Pages) 1 }}
 			<div>&middot;</div>
 		{{- end -}}
-		{{ template "pagination" $model }}
+		{{ template "_pagination" Arr $model "beitraege" }}
 	</div>
 
 	{{- if not $isAlm -}}

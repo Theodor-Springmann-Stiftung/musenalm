@@ -7,6 +7,30 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+const (
+	DEFAULT_PAGESIZE_BAENDE = 40
+)
+
+type BaendeFilterParameters struct {
+	Agent string
+	Year  string
+	Place string
+	State string
+}
+
+func NewBaendeFilterParameters(ev *core.RequestEvent) BaendeFilterParameters {
+	agent := ev.Request.URL.Query().Get("agent")
+	year := ev.Request.URL.Query().Get("year")
+	place := ev.Request.URL.Query().Get("place")
+	state := ev.Request.URL.Query().Get("state")
+	return BaendeFilterParameters{
+		Agent: agent,
+		Year:  year,
+		Place: place,
+		State: state,
+	}
+}
+
 type SearchResultBaende struct {
 	Queries []dbmodels.FTS5QueryRequest
 
@@ -21,6 +45,8 @@ type SearchResultBaende struct {
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Entry ID
 	SeriesEntries map[string][]*dbmodels.REntriesSeries // <- Key: Series ID
 	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
+
+	Pages []int
 }
 
 func EmptyResultBaende() *SearchResultBaende {
@@ -133,16 +159,29 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 	}
 
 	hits := []string{}
+	pages := []int{}
 	if params.Sort == "series" {
 		dbmodels.Sort_Series_Title(series)
 		for _, s := range series {
 			hits = append(hits, s.Id)
 		}
+		pages = PagesMap(hits, invrelationsmap, DEFAULT_PAGESIZE_BAENDE)
 	} else {
 		dbmodels.Sort_Entries_Year_Title(entries)
 		for _, e := range entries {
 			hits = append(hits, e.Id)
 		}
+		pages = PagesArray(hits, DEFAULT_PAGESIZE_BAENDE)
+	}
+
+	if params.Page < 1 || params.Page > len(pages) {
+		params.Page = 1
+	}
+
+	if params.Page == len(pages) {
+		hits = hits[pages[params.Page-1]:]
+	} else {
+		hits = hits[pages[params.Page-1]:pages[params.Page]]
 	}
 
 	return &SearchResultBaende{
@@ -154,8 +193,13 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 		EntriesSeries: relationsmap,
 		SeriesEntries: invrelationsmap,
 		EntriesAgents: relationsagentsmap,
+		Pages:         pages,
 	}, nil
 
+}
+
+func (r SearchResultBaende) PagesCount() int {
+	return len(r.Pages) - 1
 }
 
 func (r SearchResultBaende) Count() int {
