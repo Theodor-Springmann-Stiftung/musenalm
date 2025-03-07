@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	URL_ALMANACH      = "/almanach/{id}"
+	URL_ALMANACH      = "/almanach/{id}/"
 	TEMPLATE_ALMANACH = "/almanach/"
 )
 
@@ -35,11 +35,13 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})
-		result, err := NewAlmanachResult(app, id)
+		filters := NewBeitraegeFilterParameters(e)
+		result, err := NewAlmanachResult(app, id, filters)
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
 		data["result"] = result
+		data["filters"] = filters
 
 		abbrs, err := pagemodels.GetAbks(app)
 		if err == nil {
@@ -62,11 +64,11 @@ type AlmanachResult struct {
 	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
 
-	CInfoByCollection map[string]dbmodels.CollectionInfo
-	CInfoByContent    map[int][]dbmodels.CollectionInfo
+	Types    []string
+	HasScans bool
 }
 
-func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
+func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters) (*AlmanachResult, error) {
 	// INFO: what about sql.ErrNoRows?
 	// We don't get sql.ErrNoRows here, since dbx converts every empty slice or
 	// empty id to a WHERE 0=1 query, which will not error.
@@ -100,6 +102,33 @@ func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
 	contents, err := dbmodels.Contents_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
+	}
+
+	types := Types_Contents(contents)
+	hs := HasScans(contents)
+
+	if params.OnlyScans {
+		cscans := []*dbmodels.Content{}
+		for _, c := range contents {
+			if len(c.Scans()) > 0 {
+				cscans = append(cscans, c)
+			}
+		}
+		contents = cscans
+	}
+
+	if params.Type != "" {
+		cfiltered := []*dbmodels.Content{}
+	outer:
+		for _, c := range contents {
+			for _, t := range c.MusenalmType() {
+				if t == params.Type {
+					cfiltered = append(cfiltered, c)
+					continue outer
+				}
+			}
+		}
+		contents = cfiltered
 	}
 
 	dbmodels.Sort_Contents_Numbering(contents)
@@ -140,6 +169,8 @@ func NewAlmanachResult(app core.App, id string) (*AlmanachResult, error) {
 		EntriesSeries:  srelationsMap,
 		EntriesAgents:  entriesagents,
 		ContentsAgents: caMap,
+		Types:          types,
+		HasScans:       hs,
 	}
 
 	ret.Collections()
@@ -158,5 +189,29 @@ func (r *AlmanachResult) Collections() {
 			}
 		}
 	}
+}
 
+func Types_Contents(contents []*dbmodels.Content) []string {
+	types := map[string]bool{}
+	for _, c := range contents {
+		for _, t := range c.MusenalmType() {
+			types[t] = true
+		}
+	}
+
+	ret := make([]string, 0, len(types))
+	for t, _ := range types {
+		ret = append(ret, t)
+	}
+
+	return ret
+}
+
+func HasScans(contents []*dbmodels.Content) bool {
+	for _, c := range contents {
+		if len(c.Scans()) > 0 {
+			return true
+		}
+	}
+	return false
 }
