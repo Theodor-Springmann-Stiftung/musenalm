@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"sort"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
@@ -105,6 +107,7 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	}
 
 	types := Types_Contents(contents)
+
 	hs := HasScans(contents)
 
 	if params.OnlyScans {
@@ -203,6 +206,8 @@ func Types_Contents(contents []*dbmodels.Content) []string {
 	for t, _ := range types {
 		ret = append(ret, t)
 	}
+
+	sort.Strings(ret)
 
 	return ret
 }
