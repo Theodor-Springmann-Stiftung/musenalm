@@ -172,6 +172,10 @@ func (p SearchParameters) includedParams(q string) []string {
 	return res
 }
 
+func (p SearchParameters) SortToQueryParams() string {
+	return fmt.Sprintf("&sort=%s", p.Sort)
+}
+
 func (p SearchParameters) ToQueryParamsBeitraege() string {
 	q := "?"
 

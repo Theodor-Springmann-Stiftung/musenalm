@@ -212,29 +212,36 @@
 {{- if $model.parameters.IsBaendeSearch -}}
 	<div class="container-normal" id="searchresults">
 		<div class="border-b border-zinc-300 flex flex-row justify-between">
-			<div>
+			<div class="flex flex-row">
 				<div class="inline-block">
 					<i class="ri-hourglass-2-fill request-indicator spinning"></i>
 				</div>
 				<div class="request-indicator">&middot;</div>
-				{{ if $model.parameters.Query -}}
-					Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+				<div>
+					{{ if $model.parameters.Query -}}
+						Suche nach <b>»{{ $model.parameters.Query }}«</b> &middot;
+					{{- end -}}
+					{{- if $isAlm -}}
+						Almanach-Nummer <b>»{{ $model.parameters.AlmString }}«</b> &middot;
+					{{- end -}}
+					<i class="ri-book-line"></i>
+					{{ if eq $model.result.Count 1 -}}
+						Ein Band
+					{{ else -}}
+						{{ $model.result.Count }} Bände
+					{{- end }}
+					in
+					{{ if eq ($model.result.Series | len) 1 -}}
+						einer Reihe
+					{{ else -}}
+						{{ $model.result.Series | len }} Reihen
+					{{- end -}}
+				</div>
+
+				{{- if gt (len $model.result.Pages) 1 }}
+					<div>&nbsp;&middot;&nbsp;</div>
 				{{- end -}}
-				{{- if $isAlm -}}
-					Almanach-Nummer <b>»{{ $model.parameters.AlmString }}«</b> &middot;
-				{{- end -}}
-				<i class="ri-book-line"></i>
-				{{ if eq $model.result.Count 1 -}}
-					Ein Band
-				{{ else -}}
-					{{ $model.result.Count }} Bände
-				{{- end }}
-				in
-				{{ if eq ($model.result.Series | len) 1 -}}
-					einer Reihe
-				{{ else -}}
-					{{ $model.result.Series | len }} Reihen
-				{{- end -}}
+				{{ template "_pagination" Arr $model "baende" }}
 			</div>
 
 			{{- if not $isAlm -}}
@@ -295,6 +302,13 @@
 				{{- end -}}
 			{{- end -}}
 		{{- end -}}
+		{{- if $model.result.Hits -}}
+			<div class="flex flex-row justify-end items-start border-t border-zinc-300 pt-4">
+				{{- template "_pagination" Arr $model "baende" -}}
+			</div>
+		{{- else -}}
+			<div class="container-normal">Keine Bände gefunden.</div>
+		{{- end -}}
 
 	<script type="module">
 	let elements = document.querySelectorAll('.search-text');
@@ -307,8 +321,4 @@
 		}, 200);
 	</script>
 	</div>
-
-	{{- if not $model.result.Hits -}}
-		<div class="container-normal">Keine Bände gefunden.</div>
-	{{- end -}}
 {{- end -}}

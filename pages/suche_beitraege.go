@@ -255,7 +255,7 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 		hits = append(hits, e.Id)
 	}
 
-	pages := PagesEntries(hits, contentsmap, DEFAULT_PAGESIZE)
+	pages := PagesMap(hits, contentsmap, DEFAULT_PAGESIZE)
 	if params.Page < 1 || params.Page > len(pages) {
 		params.Page = 1
 	}
@@ -304,11 +304,29 @@ func (p *SearchResultBeitraege) PagesCount() int {
 	return len(p.Pages) - 1
 }
 
-func PagesEntries[T any](hits []string, hitmap map[string][]*T, pagesize int) []int {
+func PagesMap[T any](hits []string, hitmap map[string][]*T, pagesize int) []int {
 	ret := []int{0}
 	m := 0
 	for i, hit := range hits {
 		m += len(hitmap[hit])
+		if m >= pagesize {
+			ret = append(ret, i)
+			m = 0
+		}
+	}
+
+	if m > 0 {
+		ret = append(ret, len(hits))
+	}
+
+	return ret
+}
+
+func PagesArray[T any](hits []T, pagesize int) []int {
+	ret := []int{0}
+	m := 0
+	for i := range hits {
+		m++
 		if m >= pagesize {
 			ret = append(ret, i)
 			m = 0
