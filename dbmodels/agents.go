@@ -271,7 +271,6 @@ func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
 	return agents, nil
 }
 
-// BUG: thesew functions are terribly inefficient, since they output way too much data
 type AgentCount struct {
 	Count int    `db:"count"`
 	ID    string `db:"id"`
@@ -281,7 +280,7 @@ func CountAgentsBaende(app core.App, ids []any) (map[string]int, error) {
 	couns := []AgentCount{}
 	err := app.RecordQuery(RelationTableName(ENTRIES_TABLE, AGENTS_TABLE)).
 		Select("count(*) as count, " + AGENTS_TABLE + " as id").
-		Where(dbx.HashExp{ID_FIELD: ids}).
+		Where(dbx.HashExp{AGENTS_TABLE: ids}).
 		GroupBy(AGENTS_TABLE).
 		All(&couns)
 
@@ -301,6 +300,7 @@ func CountAgentsContents(app core.App, ids []any) (map[string]int, error) {
 	couns := []AgentCount{}
 	err := app.RecordQuery(RelationTableName(CONTENTS_TABLE, AGENTS_TABLE)).
 		Select("count(*) as count, " + AGENTS_TABLE + " as id").
+		Where(dbx.HashExp{AGENTS_TABLE: ids}).
 		GroupBy(AGENTS_TABLE).
 		All(&couns)
 
