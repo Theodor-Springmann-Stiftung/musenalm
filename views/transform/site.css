@@ -63,6 +63,10 @@
 		@apply bg-stone-50;
 	}
 
+	* {
+		@apply normal-nums;
+	}
+
 	h1,
 	h2,
 	h3,
