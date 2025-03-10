@@ -447,6 +447,10 @@
 		@apply w-full px-2 py-1 border-zinc-600 border col-span-9;
 	}
 
+	#extendedsearchcolumn select {
+		@apply w-full px-2 py-1 border-zinc-600 border col-span-9;
+	}
+
 	#extendedsearchcolumn button {
 		@apply col-start-4 col-span-4 py-2;
 	}

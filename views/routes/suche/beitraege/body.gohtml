@@ -45,7 +45,9 @@
 	Year      string
 	OnlyScans bool
 	}
-	*/}}
+
+	.types []string
+*/}}
 
 {{ $isAlm := false }}
 {{ $isTitle := false }}
@@ -109,7 +111,7 @@
 								name="persons"
 								id="persons"
 								{{ if or $isBase $isPerson -}}checked{{- end -}} />
-							<label for="person">Personen &amp; Pseudonyme</label>
+							<label for="persons">Personen &amp; Pseudonyme</label>
 						</div>
 						<div class="selectgroup-option">
 							<input
@@ -177,6 +179,17 @@
 						name="annotationsstring"
 						id="annotationsstring"
 						value="{{ $model.parameters.AnnotationsString }}" />
+					<label for="typestring">Kategorie</label>
+					<select name="typestring" id="typestring" class="w-full">
+						<option value="">Alle</option>
+						{{- range $i, $t := $model.types -}}
+							<option
+								value="{{ $t }}"
+								{{ if eq $t $model.parameters.TypeString -}}selected{{- end -}}>
+								{{ $t }}
+							</option>
+						{{- end -}}
+					</select>
 					<button id="submitbutton" type="submit" class="">Suchen</button>
 					<a href="/suche/beitraege" class="whitespace-nowrap"
 						><i class="ri-arrow-left-long-line"></i> Zurück zur einfachen Suche</a

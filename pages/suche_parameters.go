@@ -65,7 +65,7 @@ func NewSearchParameters(e *core.RequestEvent, p Parameters) (*SearchParameters,
 	year := e.Request.URL.Query().Get(SEARCH_PARAM_YEAR) == "on"
 
 	yearstring := e.Request.URL.Query().Get(SEARCH_PARAM_YEAR + "string")
-	typestring := e.Request.URL.Query().Get(BEITRAEGE_PARAM_TYPE)
+	typestring := e.Request.URL.Query().Get(BEITRAEGE_PARAM_TYPE + "string")
 
 	series := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES) == "on"
 	seriesstring := e.Request.URL.Query().Get(BAENDE_PARAM_SERIES + "string")

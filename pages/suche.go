@@ -64,6 +64,7 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 
 		data := make(map[string]interface{})
 		data["parameters"] = allparas
+		data["types"] = dbmodels.MUSENALM_TYPE_VALUES
 		return engine.Response200(e, p.Template+paras.Collection+"/", data, p.Layout)
 	})
 
@@ -85,6 +86,7 @@ func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engi
 	data["filters"] = filterparams
 	data["parameters"] = params
 	data["result"] = result
+	data["types"] = dbmodels.MUSENALM_TYPE_VALUES
 	return engine.Response200(e, p.Template+params.Collection+"/", data, p.Layout)
 }
 

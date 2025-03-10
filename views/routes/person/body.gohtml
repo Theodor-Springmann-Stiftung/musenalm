@@ -57,7 +57,7 @@
 			{{ $model.result.Agent.BiographicalData }}
 		</span>
 		{{- if $model.result.Agent.References }}
-			<span class="inline-block bg-stone-200 px-2 mx-1 font-sans text-base rounded ">
+			<span class="inline-block bg-stone-200 px-2 mx-1 font-sans text-sm rounded align-middle">
 				{{ $model.result.Agent.References }}
 			</span>
 		{{ end }}
@@ -67,7 +67,7 @@
 				{{- range $i, $p := $arr -}}
 					<a
 						href="/personen/?letter={{- Upper (First $model.result.Agent.Name) -}}&filter={{ Lower $p }}#{{- $model.result.Agent.Id -}}"
-						class="inline-block bg-slate-200 px-2 text-base font-sans rounded mx-1
+						class="inline-block bg-slate-200 px-2 text-sm font-sans rounded mx-1 align-middle
 						hover:text-slate-900 no-underline">
 						{{- $p -}}
 					</a>
