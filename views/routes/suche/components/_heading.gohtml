@@ -15,13 +15,21 @@
 			>
 			-->
 		<a
-			href="/suche/baende"
+			{{ if $model.Placeholder -}}
+				href="/suche/baende?p={{ $model.Placeholder }}"
+			{{- else -}}
+				href="/suche/baende"
+			{{- end -}}
 			class="block no-underline text-xl"
 			{{ if eq $model.Collection "baende" }}aria-current="page"{{- end -}}
 			>Bänden</a
 		>
 		<a
-			href="/suche/beitraege"
+			{{ if $model.Placeholder -}}
+				href="/suche/beitraege?p={{ $model.Placeholder }}"
+			{{- else -}}
+				href="/suche/beitraege"
+			{{- end -}}
 			class="block no-underline text-xl"
 			{{ if eq $model.Collection "beitraege" }}aria-current="page"{{- end -}}
 			>Beiträgen</a

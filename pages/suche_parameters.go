@@ -303,7 +303,7 @@ func (p SearchParameters) ToQueryParamsBaende() string {
 }
 
 func (p SearchParameters) IsBeitraegeSearch() bool {
-	return p.Collection == "beitraege" && (p.Query != "" || p.AlmString != "" || p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.YearString != "" || p.EntryString != "" || p.IncipitString != "")
+	return p.Collection == "beitraege" && (p.Query != "" || p.TypeString != "" || p.AlmString != "" || p.AnnotationsString != "" || p.PersonsString != "" || p.TitleString != "" || p.YearString != "" || p.EntryString != "" || p.IncipitString != "")
 }
 
 func (p SearchParameters) IsBaendeSearch() bool {

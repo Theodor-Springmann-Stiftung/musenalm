@@ -7,7 +7,7 @@
 	<div class="flex flex-row justify-between gap-x-3 w-full">
 		<label for="q" class="hidden">Suchbegriffe</label>
 		<input
-			{{ if $q }}value="{{ $q }}"{{- end }}
+			value="{{ $parameters.Placeholder }}"
 			type="search"
 			name="q"
 			minlength="3"

@@ -18,12 +18,13 @@ type SuchePage struct {
 }
 
 const (
-	URL_SUCHE      = "/suche/{type}"
-	URL_SUCHE_ALT  = "/suche/{$}"
-	DEFAULT_SUCHE  = "/suche/baende"
-	PARAM_EXTENDED = "extended"
-	TEMPLATE_SUCHE = "/suche/"
-	PARAM_QUERY    = "q"
+	URL_SUCHE         = "/suche/{type}"
+	URL_SUCHE_ALT     = "/suche/{$}"
+	DEFAULT_SUCHE     = "/suche/baende"
+	PARAM_EXTENDED    = "extended"
+	TEMPLATE_SUCHE    = "/suche/"
+	PARAM_QUERY       = "q"
+	PARAM_PLACEHOLDER = "p"
 )
 
 var availableTypes = []string{"baende", "beitraege"}
@@ -106,9 +107,10 @@ func (p *SuchePage) SearchBaendeRequest(app core.App, engine *templating.Engine,
 var ErrInvalidCollectionType = fmt.Errorf("Invalid collection type")
 
 type Parameters struct {
-	Extended   bool
-	Collection string
-	Query      string
+	Extended    bool
+	Collection  string
+	Query       string
+	Placeholder string
 }
 
 func NewParameters(e *core.RequestEvent) (*Parameters, error) {
@@ -122,10 +124,17 @@ func NewParameters(e *core.RequestEvent) (*Parameters, error) {
 		extended = true
 	}
 
+	query := e.Request.URL.Query().Get(PARAM_QUERY)
+	placeholder := query
+	if query == "" {
+		placeholder = e.Request.URL.Query().Get(PARAM_PLACEHOLDER)
+	}
+
 	return &Parameters{
-		Collection: collection,
-		Extended:   extended,
-		Query:      e.Request.URL.Query().Get(PARAM_QUERY),
+		Collection:  collection,
+		Extended:    extended,
+		Query:       query,
+		Placeholder: placeholder,
 	}, nil
 }
 
