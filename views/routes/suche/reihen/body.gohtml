@@ -1,7 +1,10 @@
 {{ $model := . }}
 
 
-<div id="searchcontrol" class="container-normal">
+<div
+	id="searchcontrol"
+	class="container-normal"
+	x-data="{ placeholder: '{{ $model.parameters.Placeholder }}'">
 	<div id="searchheading" class="flex flex-row justify-between min-h-14 items-end relative">
 		<nav id="searchnav" class="flex flex-row items-end">
 			<div
@@ -18,13 +21,13 @@
 			>
 			-->
 			<a
-				href="/suche/baende"
+				:href="'/suche/baende/?p='+placeholder"
 				class="block no-underline"
 				{{ if eq $model.type "baende" }}aria-current="page"{{- end -}}
 				>Bänden</a
 			>
 			<a
-				href="/suche/beitraege"
+				:href="'/suche/beitraege/?p='+placeholder"
 				class="block no-underline"
 				{{ if eq $model.type "beitraege" }}aria-current="page"{{- end -}}
 				>Beiträgen</a
