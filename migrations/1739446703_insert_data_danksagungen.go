@@ -1,4 +1,4 @@
-package migrations_danksagungen
+package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"

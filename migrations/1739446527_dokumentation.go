@@ -1,4 +1,4 @@
-package migrations_dokumentation
+package migrations
 
 import (
 	"errors"
@@ -9,13 +9,13 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-var reihen_fields = core.NewFieldsList(
+var dok_fields = core.NewFieldsList(
 	pagemodels.EditorField(pagemodels.F_TEXT),
 )
 
 func init() {
 	m.Register(func(app core.App) error {
-		collection := pageCollection()
+		collection := dokCollection()
 		if err := app.Save(collection); err != nil {
 			app.Logger().Error("Failed to save collection:", "error", err, "collection", collection)
 			return err
@@ -48,9 +48,9 @@ func init() {
 	})
 }
 
-func pageCollection() *core.Collection {
+func dokCollection() *core.Collection {
 	c := pagemodels.BasePageCollection(pagemodels.P_DOK_NAME)
-	c.Fields = append(c.Fields, reihen_fields...)
+	c.Fields = append(c.Fields, dok_fields...)
 	return c
 }
 

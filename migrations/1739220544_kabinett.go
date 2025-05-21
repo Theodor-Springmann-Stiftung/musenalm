@@ -1,4 +1,4 @@
-package migrations_index
+package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -6,9 +6,11 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
+const KABINETT_NAME = "Lesekabinett"
 
-var text = `<h1>Texte zum Almanachwesen</h1>
+const KABINETT_BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
+
+const KABINETT_TEXT = `<h1>Texte zum Almanachwesen</h1>
 <p><em>Joseph Franz von Ratschky:</em> Vorbericht. in: Wiener Musenalmanach. 1779, S. 3-6. [&darr;<a href="/assets/Lesekabinett/ratschky_in_wiener_1779.pdf" target="_blank" rel="noopener">Download</a>]</p>
 <p><em>Gottfried August B&uuml;rger:</em> Nothgedrungene Nachrede. in: G&ouml;ttinger Musenalmanach. 1782, S. 184-192. [&darr;<a href="/assets/Lesekabinett/buerger_in_goettinger_1782.pdf" target="_blank" rel="noopener">Download</a>]</p>
 <p><em>Christian Cay Lorenz Hirschfeld: </em>An die Leser. in: Gartenkalender. 1783, S. 272. [&darr;<a href="/assets/Lesekabinett/hirschfeld_in_gartenkalender_1783.pdf" target="_blank" rel="noopener">Download</a>]</p>
@@ -25,22 +27,22 @@ var text = `<h1>Texte zum Almanachwesen</h1>
 <h1>Allotria und Kuriosa</h1>
 <p><em>Anonymus:</em> Woher das Wort Almanach komme. in: Neues Wochenblatt zum Nuzzen und zur Unterhaltung f&uuml;r Kinder und junge Leute. Erstes B&auml;ndchen, erstes St&uuml;ck, Leipzig, in der Sommerschen Buchhandlung 1794, S. 8f. [&darr;<a href="/assets/Lesekabinett/allatroia_anonymus_wochenblatt_1794.pdf" target="_blank" rel="noopener">Download</a>]</p>`
 
-var texte_fields = core.NewFieldsList(
+var kabinett_fields = core.NewFieldsList(
 	pagemodels.EditorField(pagemodels.F_TEXT),
 )
 
 func init() {
 	m.Register(func(app core.App) error {
-		collection_t := texteCollection()
+		collection_t := kabinettCollection()
 		if err := app.Save(collection_t); err != nil {
 			return err
 		}
 
 		r := core.NewRecord(collection_t)
 		page := pagemodels.NewTextPage(r)
-		page.SetText(text)
-		page.SetTitle("Lesekabinett")
-		page.SetDescription(BESCHREIBUNG)
+		page.SetText(KABINETT_TEXT)
+		page.SetTitle(KABINETT_NAME)
+		page.SetDescription(KABINETT_BESCHREIBUNG)
 
 		if err := app.Save(r); err != nil {
 			return err
@@ -59,8 +61,8 @@ func init() {
 	})
 }
 
-func texteCollection() *core.Collection {
+func kabinettCollection() *core.Collection {
 	c := pagemodels.BasePageCollection(pagemodels.P_KABINETT_NAME)
-	c.Fields = append(c.Fields, texte_fields...)
+	c.Fields = append(c.Fields, kabinett_fields...)
 	return c
 }

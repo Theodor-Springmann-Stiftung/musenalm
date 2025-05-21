@@ -1,4 +1,4 @@
-package migrations_dokumentation
+package migrations
 
 import (
 	"bufio"
@@ -12,9 +12,11 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Dokumentation der Sortierung und Struktur der Almanache."
+const DOK_TITLE = "Benutzerhinweise"
 
-const START = `<h3>Sortierung der Reihentitel</h3>
+const DOK_BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Dokumentation der Sortierung und Struktur der Almanache."
+
+const DOK_TEXT = `<h3>Sortierung der Reihentitel</h3>
 <p>Wir sortieren die Reihentitel nach dem Kopf der Nominalphrase, den wir zu diesem Zweck ggf. an den Anfang stellen und mit Kommas abtrennen.</p>
 <p>Somit wird:</p>
 <p><em>Wiener Musenalmach</em></p>
@@ -494,9 +496,9 @@ func init() {
 		}
 
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
-		record.SetTitle("Benutzerhinweise")
-		record.SetText(START)
-		record.SetDescription(BESCHREIBUNG)
+		record.SetTitle(DOK_TITLE)
+		record.SetText(DOK_TEXT)
+		record.SetDescription(DOK_BESCHREIBUNG)
 
 		if err := app.Save(record); err != nil {
 			app.Logger().Error("Failed to save record", "error", err, "record", record)

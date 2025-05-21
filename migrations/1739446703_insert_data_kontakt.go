@@ -1,4 +1,4 @@
-package migrations_kontakt
+package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -6,9 +6,9 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-const START = `<p>Martin Sietzen und Dr. Jakob Br&uuml;ssermann<br>Theodor-Springmann-Stiftung<br>Hirschgasse 2 <br><br>69120 Heidelberg<br><a href="mailto:info@musenalm.de">info@musenalm.de</a></p>`
-
-const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Kontakt zur Redaktion."
+const TITLE_KONTAKT = "Kontakt"
+const TEXT_KONTAKT = `<p>Martin Sietzen und Dr. Jakob Br&uuml;ssermann<br>Theodor-Springmann-Stiftung<br>Hirschgasse 2 <br><br>69120 Heidelberg<br><a href="mailto:info@musenalm.de">info@musenalm.de</a></p>`
+const BESCHREIBUNG_KONTAKT = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Kontakt zur Redaktion."
 
 func init() {
 	m.Register(func(app core.App) error {
@@ -20,9 +20,9 @@ func init() {
 		}
 
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
-		record.SetTitle("Kontakt")
-		record.SetText(START)
-		record.SetDescription(BESCHREIBUNG)
+		record.SetTitle(TITLE_KONTAKT)
+		record.SetText(TEXT_KONTAKT)
+		record.SetDescription(BESCHREIBUNG_KONTAKT)
 
 		if err := app.Save(record); err != nil {
 			app.Logger().Error("Failed to save record", "error", err, "record", record)

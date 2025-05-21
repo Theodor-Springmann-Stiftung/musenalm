@@ -1,4 +1,4 @@
-package migrations_index
+package migrations
 
 import (
 	"bufio"
@@ -18,7 +18,8 @@ const ABS1 = "<p>Die Epoche der Almanache und Taschenbücher in der deutschsprac
 
 const ABS2 = "Die laufend aktualisierte Datenbank erfasst die Almanache nach <a href='/reihen'>Reihen</a>, <a href='/personen'>Personen</a> und verschiedenen Arten von Beiträgen — Textbeiträgen, Graphiken oder Musikbeiträgen. Umfangreiche <a href='/suche'>Suchfunktionen</a> helfen bei der Erschließung des Materials."
 
-const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts."
+const START_TITLE = "Musenalm"
+const START_BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts."
 
 func init() {
 	m.Register(func(app core.App) error {
@@ -37,10 +38,10 @@ func init() {
 		}
 
 		text := pagemodels.NewIndexTexte(core.NewRecord(index_collection))
-		text.SetTitle("Musenalm")
+		text.SetTitle(START_TITLE)
 		text.SetAbs1(ABS1)
 		text.SetAbs2(ABS2)
-		text.SetDescription(BESCHREIBUNG)
+		text.SetDescription(START_BESCHREIBUNG)
 
 		if err := app.Save(text); err != nil {
 			app.Logger().Error("Failed to save text:", "error", err, "text", text)

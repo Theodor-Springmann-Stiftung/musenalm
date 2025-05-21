@@ -1,4 +1,4 @@
-package migrations_literatur
+package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -6,9 +6,11 @@ import (
 	m "github.com/pocketbase/pocketbase/migrations"
 )
 
-const BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Weiterführende Literatur zum Almanachwesen."
+const LIT_NAME = "Literatur"
 
-const START = `<h2>Ausstellungs- und Bibliothekskataloge</h2>
+const LIT_BESCHREIBUNG = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Weiterführende Literatur zum Almanachwesen."
+
+const LIT_TEXT = `<h2>Ausstellungs- und Bibliothekskataloge</h2>
 <p><span style="font-variant: small-caps;">Baumg&auml;rtel</span>, Ehrfried (Hg.): <em>Die Almanache, Kalender und Taschenb&uuml;cher (1750&ndash;1860) der Landesbibliothek Coburg.</em>&nbsp;Wiesbaden 1970.</p>
 <p><span style="font-variant: small-caps;">Bernhardt</span>, Ursula;&nbsp;<span style="font-variant: small-caps;">Reuter-Rautenberg</span>, <span style="text-decoration: none;">Anneliese (Hgg.): </span><em>Bild und Buch. Rheinbl&uuml;then, Moosrosen und Vergi&szlig;meinnicht: Taschenb&uuml;cher f&uuml;r Frauenzimmer von Bildung</em>. Eine Studioausstellung in Zusammenarbeit mit der Badischen Landesbiliothek.&nbsp;Staatliche Kunsthalle Karlsruhe 1995.</p>
 <p><span style="font-variant: small-caps;">Braunbehrens</span>, Adrian et al. (Hgg.): <em>Kalender im Wandel der Zeiten. Eine Ausstellung der Badischen Landesbibliothek zur Erinnerung an die Kalenderreform durch Papst Gregor XIII. im Jahr 1582.</em>&nbsp;Ausstellungskatalog, Bad. Landesbibliothek 1982.</p>
@@ -125,9 +127,9 @@ func init() {
 		}
 
 		record := pagemodels.NewTextPage(core.NewRecord(collection))
-		record.SetTitle("Literatur")
-		record.SetText(START)
-		record.SetDescription(BESCHREIBUNG)
+		record.SetTitle(LIT_NAME)
+		record.SetText(LIT_TEXT)
+		record.SetDescription(LIT_BESCHREIBUNG)
 
 		return app.Save(record)
 	}, func(app core.App) error {

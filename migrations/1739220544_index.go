@@ -1,4 +1,4 @@
-package migrations_index
+package migrations
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
