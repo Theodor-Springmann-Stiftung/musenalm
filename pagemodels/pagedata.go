@@ -33,4 +33,6 @@ const (
 	F_INDEX_TEXTE_ABS1 = "Abs1"
 	F_INDEX_TEXTE_ABS2 = "Abs2"
 	F_INDEX_GO_BUTTON  = "GoButton"
+
+	P_LOGIN_NAME = "login"
 )
