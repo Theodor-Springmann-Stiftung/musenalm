@@ -425,11 +425,13 @@ const (
 	ENTRIES_TABLE  = "entries"
 	CONTENTS_TABLE = "contents"
 	ITEMS_TABLE    = "items"
+	SESSIONS_TABLE = "sessions"
 
 	ID_FIELD         = "id"
 	CREATED_FIELD    = "created"
 	UPDATED_FIELD    = "updated"
 	ANNOTATION_FIELD = "annotation"
+	EDITOR_FIELD     = "editor"
 
 	MUSENALMID_FIELD = "musenalm_id"
 	EDITSTATE_FIELD  = "edit_state"
@@ -493,4 +495,16 @@ const (
 	ITEMS_MEDIA_FIELD      = "media"
 	ITEMS_CONDITION_FIELD  = "condition"
 	ITEMS_IDENTIFIER_FIELD = "identifier"
+
+	SESSIONS_TOKEN_FIELD       = "token"
+	SESSIONS_USER_FIELD        = "user"
+	SESSIONS_IP_FIELD          = "ip"
+	SESSIONS_USER_AGENT_FIELD  = "agent"
+	SESSIONS_EXPIRES_FIELD     = "expires"
+	SESSIONS_LAST_ACCESS_FIELD = "accessed"
+	SESSIONS_STATUS_FIELD      = "status"
+	SESSIONS_PERSIST_FIELD     = "persist"
+
+	USERS_TABLE          = "users"
+	USERS_SETTINGS_FIELD = "settings"
 )
