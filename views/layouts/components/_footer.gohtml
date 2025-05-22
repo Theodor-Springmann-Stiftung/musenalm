@@ -24,10 +24,10 @@
 				{{ .page.User.Email }}
 				|
 				<i class="ri-logout-box-line"></i>
-				<a href="/login">Logout</a>
+				<a href="/logout?redirectTo={{ .page.FullPath }}">Logout</a>
 			{{ else }}
 				<i class="ri-login-box-line"></i>
-				<a href="/login">Login</a>
+				<a href="/login?redirectTo={{ .page.FullPath }}">Login</a>
 			{{ end }}
 		</div>
 	</div>

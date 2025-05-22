@@ -138,6 +138,10 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			})
 		}
 
-		return e.Redirect(303, "/reihen")
+		redirect := "/reihen"
+		if r := e.Request.URL.Query().Get("redirectTo"); r != "" {
+			redirect = r
+		}
+		return e.Redirect(303, redirect)
 	}
 }

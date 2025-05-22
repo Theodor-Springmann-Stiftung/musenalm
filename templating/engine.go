@@ -342,6 +342,7 @@ func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[str
 func requestData(request *core.RequestEvent) map[string]any {
 	data := make(map[string]any)
 	data["Path"] = request.Request.URL.Path
+	data["FullPath"] = GetRequestPathWithQuery(request.Request)
 	data["Query"] = request.Request.URL.Query()
 	data["Method"] = request.Request.Method
 	data["Host"] = request.Request.Host
@@ -361,4 +362,12 @@ func requestData(request *core.RequestEvent) map[string]any {
 	}
 
 	return data
+}
+
+func GetRequestPathWithQuery(r *http.Request) string {
+	path := r.URL.EscapedPath()
+	if r.URL.RawQuery != "" {
+		return path + "?" + r.URL.RawQuery
+	}
+	return path
 }
