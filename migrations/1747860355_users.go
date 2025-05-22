@@ -22,7 +22,16 @@ func init() {
 			Presentable: false,
 		}
 
+		roleField := &core.SelectField{
+			Name:        dbmodels.USERS_ROLE_FIELD,
+			Required:    true,
+			Presentable: true,
+			MaxSelect:   1,
+			Values:      []string{"admin", "editor", "viewer"},
+		}
+
 		collection.Fields.Add(settingsField)
+		collection.Fields.Add(roleField)
 
 		app.Logger().Info("Adding 'settings' JSON field to 'users' collection", "collectionId", collection.Id)
 
@@ -40,6 +49,7 @@ func init() {
 		}
 
 		collection.Fields.RemoveByName(dbmodels.USERS_SETTINGS_FIELD)
+		collection.Fields.RemoveByName(dbmodels.USERS_ROLE_FIELD)
 		if err := app.Save(collection); err != nil {
 			app.Logger().Warn("Failed to remove 'settings' field during rollback (it might not exist)",
 				"collectionId", collection.Id,

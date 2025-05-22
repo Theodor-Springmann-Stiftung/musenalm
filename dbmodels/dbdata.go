@@ -387,6 +387,12 @@ var MUSENALM_MIME_TYPES = []string{
 	"image/svg+xml",
 }
 
+var USER_ROLES = []string{
+	"Admin",
+	"Editor",
+	"User",
+}
+
 var AGENT_RELATIONS = []string{
 	"Schöpfer",
 	"Autor:in",
@@ -507,4 +513,7 @@ const (
 
 	USERS_TABLE          = "users"
 	USERS_SETTINGS_FIELD = "settings"
+	USERS_NAME_FIELD     = "name"
+	USERS_ROLE_FIELD     = "role"
+	USERS_AVATAR_FIELD   = "avatar"
 )

@@ -87,3 +87,11 @@ func (s *Series) Frequency() string {
 func (s *Series) SetFrequency(frequency string) {
 	s.Set(SERIES_FREQUENCY_FIELD, frequency)
 }
+
+func (s *Series) Editor() string {
+	return s.GetString(EDITOR_FIELD)
+}
+
+func (s *Series) SetEditor(editor string) {
+	s.Set(EDITOR_FIELD, editor)
+}

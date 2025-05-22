@@ -142,3 +142,15 @@ func (a *Agent) SetEditState(editState string) {
 func (a *Agent) Comment() string {
 	return a.GetString(COMMENT_FIELD)
 }
+
+func (a *Agent) SetComment(comments string) {
+	a.Set(COMMENT_FIELD, comments)
+}
+
+func (a *Agent) Editor() string {
+	return a.GetString(EDITOR_FIELD)
+}
+
+func (a *Agent) SetEditor(editor string) {
+	a.Set(EDITOR_FIELD, editor)
+}

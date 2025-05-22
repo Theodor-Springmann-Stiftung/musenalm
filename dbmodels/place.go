@@ -81,3 +81,11 @@ func (p *Place) Comment() string {
 func (p *Place) SetComment(comment string) {
 	p.Set(COMMENT_FIELD, comment)
 }
+
+func (p *Place) Editor() string {
+	return p.GetString(EDITOR_FIELD)
+}
+
+func (p *Place) SetEditor(editor string) {
+	p.Set(EDITOR_FIELD, editor)
+}

@@ -212,3 +212,11 @@ func (c *Content) Comment() string {
 func (c *Content) SetComment(comment string) {
 	c.Set(COMMENT_FIELD, comment)
 }
+
+func (c *Content) Editor() string {
+	return c.GetString(EDITOR_FIELD)
+}
+
+func (c *Content) SetEditor(editor string) {
+	c.Set(EDITOR_FIELD, editor)
+}

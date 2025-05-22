@@ -121,3 +121,11 @@ func (a *Item) Comment() string {
 func (a *Item) SetComment(comments string) {
 	a.Set(COMMENT_FIELD, comments)
 }
+
+func (a *Item) Editor() string {
+	return a.GetString(EDITOR_FIELD)
+}
+
+func (a *Item) SetEditor(editor string) {
+	a.Set(EDITOR_FIELD, editor)
+}

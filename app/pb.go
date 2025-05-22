@@ -7,7 +7,6 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/views"
-	"github.com/fsnotify/fsnotify"
 	"github.com/mattn/go-sqlite3"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
@@ -19,6 +18,9 @@ const (
 	LAYOUT_DIR = "./views/layouts"
 	ROUTES_DIR = "./views/routes"
 )
+
+type ServeFunc = func(e *core.ServeEvent) error
+type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
@@ -60,7 +62,7 @@ func New(config Config) App {
 	}
 
 	app.createPBInstance()
-	app.setupTestuser()
+	app.Bootstrap()
 
 	return app
 }
@@ -74,8 +76,12 @@ func (app *App) createPBInstance() {
 	})
 }
 
-func (app *App) setupTestuser() {
-	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+func (app *App) setupTestuser() BootFunc {
+	return func(e *core.BootstrapEvent) error {
+		if err := e.Next(); err != nil {
+			return err
+		}
+
 		superusersCol, err := e.App.FindCachedCollectionByNameOrId(core.CollectionNameSuperusers)
 		if err != nil {
 			return fmt.Errorf("Failed to fetch %q collection: %w.", core.CollectionNameSuperusers, err)
@@ -93,7 +99,7 @@ func (app *App) setupTestuser() {
 				return fmt.Errorf("Failed to delete superuser account: %w.", err)
 			}
 
-			return e.Next()
+			return nil
 		}
 
 		superuser.SetEmail(TEST_SUPERUSER_MAIL)
@@ -104,10 +110,30 @@ func (app *App) setupTestuser() {
 		}
 
 		return e.Next()
-	})
+	}
+}
+
+func (app *App) Bootstrap() error {
+	app.PB.OnBootstrap().BindFunc(app.setupTestuser())
+	return nil
 }
 
 func (app *App) Serve() error {
+	engine, err := app.createEngine()
+	if err != nil {
+		panic(err)
+	}
+
+	if app.MAConfig.Debug {
+		app.setWatchers(engine)
+	}
+
+	// INFO: we use OnServe, but here is also OnBootstrap
+	app.PB.OnServe().BindFunc(app.bindPages(engine))
+	return app.PB.Start()
+}
+
+func (app *App) createEngine() (*templating.Engine, error) {
 	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
 	engine.Globals(map[string]interface{}{
 		"isDev": app.MAConfig.Debug,
@@ -118,34 +144,29 @@ func (app *App) Serve() error {
 			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
 		}})
 
+	return engine, nil
+}
+
+func (app *App) setWatchers(engine *templating.Engine) {
 	// INFO: hot reloading for poor people
-	if app.MAConfig.Debug {
-		watcher, err := EngineWatcher(engine)
+	watcher, err := EngineWatcher(engine)
+	if err != nil {
+		app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)
+	} else {
+		watcher.AddRecursive(LAYOUT_DIR)
+		watcher.AddRecursive(ROUTES_DIR)
+		engine.Debug()
+		rwatcher, err := RefreshWatcher(engine)
 		if err != nil {
 			app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)
 		} else {
-			watcher.AddRecursive(LAYOUT_DIR)
-			watcher.AddRecursive(ROUTES_DIR)
-			engine.Debug()
-			rwatcher, err := RefreshWatcher(engine)
-			if err != nil {
-				app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)
-			} else {
-				rwatcher.Add("./views/assets")
-			}
+			rwatcher.Add("./views/assets")
 		}
-
 	}
+}
 
-	app.PB.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
-		if err := e.Next(); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+func (app *App) bindPages(engine *templating.Engine) ServeFunc {
+	return func(e *core.ServeEvent) error {
 		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
 		// INFO: we put this here, to make sure all migrations are done
 		for _, page := range pages {
@@ -163,23 +184,5 @@ func (app *App) Serve() error {
 		}
 
 		return e.Next()
-	})
-	return app.PB.Start()
-}
-
-func (app *App) watchFN(watcher *fsnotify.Watcher, engine *templating.Engine) {
-	for {
-		select {
-		case _, ok := <-watcher.Events:
-			if !ok {
-				return
-			}
-			engine.Reload()
-		case err, ok := <-watcher.Errors:
-			if !ok {
-				return
-			}
-			fmt.Println("error:", err)
-		}
 	}
 }

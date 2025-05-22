@@ -37,32 +37,40 @@ func NewConfigProvider(files []string, devfiles []string) *ConfigProvider {
 
 func (c *ConfigProvider) Read() error {
 	c.Config = &Config{}
+	c.Config = readDefaults(c.Config)
+
+	for _, file := range c.DevFiles {
+		conf, err := readSettingsFile(file)
+		if err == nil {
+			c.Config = conf
+		}
+	}
 
 	for _, file := range c.Files {
 		conf, err := readSettingsFile(file)
 		if err == nil {
 			c.Config = conf
-		} else {
-			panic(err)
 		}
 	}
 
-	for _, file := range c.DevFiles {
-		conf, err := readSettingsFile(file)
-		if c.Debug {
-			if err == nil {
-				c.Config = conf
-			} else {
-				panic(err)
-			}
-		}
-	}
 	c.Config = readSettingsEnv(c.Config)
-	c.Config = readDefaults(c.Config)
+	c.Validate()
 	return nil
 }
 
 func (c *ConfigProvider) Validate() error {
+	if c.AllowTestLogin {
+		slog.Info("Test login is enabled")
+	} else {
+		slog.Info("Test login is disabled")
+	}
+
+	if c.Debug {
+		slog.Info("Debug mode is enabled")
+	} else {
+		slog.Info("Debug mode is disabled")
+	}
+
 	return nil
 }
 

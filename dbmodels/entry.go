@@ -235,3 +235,11 @@ func (e *Entry) Comment() string {
 func (e *Entry) SetComment(comment string) {
 	e.Set(COMMENT_FIELD, comment)
 }
+
+func (e *Entry) Editor() string {
+	return e.GetString(EDITOR_FIELD)
+}
+
+func (e *Entry) SetEditor(editor string) {
+	e.Set(EDITOR_FIELD, editor)
+}
