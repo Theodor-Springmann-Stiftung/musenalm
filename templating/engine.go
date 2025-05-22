@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/net/websocket"
@@ -70,7 +71,7 @@ type Engine struct {
 
 	mu         *sync.Mutex
 	FuncMap    template.FuncMap
-	GlobalData map[string]interface{}
+	GlobalData map[string]any
 }
 
 // INFO: We pass the app here to be able to access the config and other data for functions
@@ -82,7 +83,7 @@ func NewEngine(layouts, templates *fs.FS) *Engine {
 		LayoutRegistry:   NewLayoutRegistry(*layouts),
 		TemplateRegistry: NewTemplateRegistry(*templates),
 		FuncMap:          make(template.FuncMap),
-		GlobalData:       make(map[string]interface{}),
+		GlobalData:       make(map[string]any),
 	}
 	e.funcs()
 	return &e
@@ -142,7 +143,7 @@ func (e *Engine) funcs() error {
 	return nil
 }
 
-func (e *Engine) Globals(data map[string]interface{}) {
+func (e *Engine) Globals(data map[string]any) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.GlobalData == nil {
@@ -186,13 +187,13 @@ func (e *Engine) Refresh() {
 }
 
 // INFO: fn is a function that returns either one value or two values, the second one being an error
-func (e *Engine) AddFunc(name string, fn interface{}) {
+func (e *Engine) AddFunc(name string, fn any) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.FuncMap[name] = fn
 }
 
-func (e *Engine) AddFuncs(funcs map[string]interface{}) {
+func (e *Engine) AddFuncs(funcs map[string]any) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for k, v := range funcs {
@@ -200,10 +201,10 @@ func (e *Engine) AddFuncs(funcs map[string]interface{}) {
 	}
 }
 
-func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, layout ...string) error {
+func (e *Engine) Render(out io.Writer, path string, ld map[string]any, layout ...string) error {
 	gd := e.GlobalData
 	if ld == nil {
-		ld = make(map[string]interface{})
+		ld = make(map[string]any)
 	}
 
 	// INFO: don't pollute the global data space
@@ -251,9 +252,30 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]interface{}, l
 	return nil
 }
 
-func (e *Engine) Response404(request *core.RequestEvent, err error, data map[string]interface{}) error {
+func (e *Engine) Response403(request *core.RequestEvent, err error, data map[string]any) error {
 	if data == nil {
-		data = make(map[string]interface{})
+		data = make(map[string]any)
+	}
+
+	var sb strings.Builder
+	if err != nil {
+		request.App.Logger().Error("Unauthorized 403 error fetching URL!", "error", err, "request", request.Request.URL)
+		data["Error"] = err.Error()
+	}
+
+	data["page"] = requestData(request)
+
+	err2 := e.Render(&sb, "/errors/403/", data)
+	if err2 != nil {
+		return e.Response500(request, errors.Join(err, err2), data)
+	}
+
+	return request.HTML(http.StatusNotFound, sb.String())
+}
+
+func (e *Engine) Response404(request *core.RequestEvent, err error, data map[string]any) error {
+	if data == nil {
+		data = make(map[string]any)
 	}
 
 	var sb strings.Builder
@@ -272,9 +294,9 @@ func (e *Engine) Response404(request *core.RequestEvent, err error, data map[str
 	return request.HTML(http.StatusNotFound, sb.String())
 }
 
-func (e *Engine) Response500(request *core.RequestEvent, err error, data map[string]interface{}) error {
+func (e *Engine) Response500(request *core.RequestEvent, err error, data map[string]any) error {
 	if data == nil {
-		data = make(map[string]interface{})
+		data = make(map[string]any)
 	}
 
 	var sb strings.Builder
@@ -293,9 +315,9 @@ func (e *Engine) Response500(request *core.RequestEvent, err error, data map[str
 	return request.HTML(http.StatusInternalServerError, sb.String())
 }
 
-func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[string]interface{}, layout ...string) error {
+func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[string]any, layout ...string) error {
 	if ld == nil {
-		ld = make(map[string]interface{})
+		ld = make(map[string]any)
 	}
 
 	ld["page"] = requestData(request)
@@ -317,11 +339,26 @@ func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[str
 	return request.HTML(http.StatusOK, tstring)
 }
 
-func requestData(request *core.RequestEvent) map[string]interface{} {
-	data := make(map[string]interface{})
+func requestData(request *core.RequestEvent) map[string]any {
+	data := make(map[string]any)
 	data["Path"] = request.Request.URL.Path
 	data["Query"] = request.Request.URL.Query()
 	data["Method"] = request.Request.Method
 	data["Host"] = request.Request.Host
+
+	if user := request.Get("user"); user != nil {
+		u, ok := user.(*dbmodels.FixedUser)
+		if ok {
+			data["User"] = u
+		}
+	}
+
+	if session := request.Get("session"); session != nil {
+		u, ok := session.(*dbmodels.FixedSession)
+		if ok {
+			data["Session"] = u
+		}
+	}
+
 	return data
 }

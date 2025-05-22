@@ -5,6 +5,24 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
+type FixedSession struct {
+	ID         string         `json:"id"`
+	Token      string         `json:"token"`
+	User       string         `json:"user"`
+	Created    string         `json:"created"`
+	Updated    string         `json:"updated"`
+	Expires    types.DateTime `json:"expires"`
+	IP         string         `json:"ip"`
+	UserAgent  string         `json:"user_agent"`
+	LastAccess types.DateTime `json:"last_access"`
+	Persist    bool           `json:"persist"`
+	CSRF       string         `json:"csrf"`
+}
+
+func (s *FixedSession) IsExpired() bool {
+	return s.Expires.IsZero() || s.Expires.Before(types.NowDateTime())
+}
+
 var _ core.RecordProxy = (*Place)(nil)
 
 type Session struct {
@@ -18,7 +36,7 @@ func NewSession(record *core.Record) *Session {
 }
 
 func (u *Session) TableName() string {
-	return USERS_TABLE
+	return SESSIONS_TABLE
 }
 
 func (u *Session) Token() string {
@@ -83,4 +101,32 @@ func (u *Session) Persist() bool {
 
 func (u *Session) SetPersist(persist bool) {
 	u.Set(SESSIONS_PERSIST_FIELD, persist)
+}
+
+func (u *Session) CSRF() string {
+	return u.GetString(SESSIONS_CSRF_FIELD)
+}
+
+func (u *Session) SetCSRF(csrf string) {
+	u.Set(SESSIONS_CSRF_FIELD, csrf)
+}
+
+func (u *Session) IsExpired() bool {
+	return u.Expires().IsZero() || u.Expires().Before(types.NowDateTime())
+}
+
+func (u *Session) Fixed() FixedSession {
+	return FixedSession{
+		ID:         u.Id,
+		Token:      u.Token(),
+		User:       u.User(),
+		Created:    u.Created(),
+		Updated:    u.Updated(),
+		Expires:    u.Expires(),
+		IP:         u.IP(),
+		UserAgent:  u.UserAgent(),
+		LastAccess: u.LastAccess(),
+		Persist:    u.Persist(),
+		CSRF:       u.CSRF(),
+	}
 }

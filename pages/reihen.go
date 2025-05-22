@@ -67,7 +67,7 @@ func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 
 func (p *ReihenPage) YearRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	year := e.Request.URL.Query().Get(PARAM_YEAR)
-	data := map[string]interface{}{}
+	data := make(map[string]any)
 	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 	data[PARAM_YEAR] = year
 

@@ -27,7 +27,7 @@ func init() {
 			Required:    true,
 			Presentable: true,
 			MaxSelect:   1,
-			Values:      []string{"admin", "editor", "viewer"},
+			Values:      dbmodels.USER_ROLES,
 		}
 
 		collection.Fields.Add(settingsField)

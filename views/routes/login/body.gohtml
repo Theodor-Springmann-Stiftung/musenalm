@@ -1,3 +1,6 @@
+{{ $model := . }}
+
+
 <div class="flex max-w-md mx-auto !pt-44">
 	<div class="flex-col w-full">
 		<a href="/" class="text-gray-700 hover:text-slate-950">
@@ -9,7 +12,7 @@
 			</div>
 		</div>
 		<h1 class="text-4xl self-baseline text-center w-full mt-6">Musenalm | Login</h1>
-		<form class="mt-9 w-full grid grid-cols-3 gap-4" method="POST" action="/login">
+		<form class="mt-9 w-full grid grid-cols-3 gap-4" method="POST" action="/login/">
 			<div
 				class="col-span-3 border-2 border-transparent focus-within:border-slate-600 px-2 py-1 pb-1.5
 				bg-slate-200 focus-within:bg-slate-50 rounded-md transition-all duration-100">
@@ -17,7 +20,7 @@
 					E-Mail <i class="ri-at-line"></i>
 				</label>
 				<input
-					type="text"
+					type="email"
 					name="username"
 					id="username"
 					class="mt-1 block w-full rounded-md focus:border-none focus:outline-none"
@@ -42,7 +45,29 @@
 					required
 					autocomplete="current-password" />
 			</div>
+			<div class="col-start-2 col-span-2">
+				<div class="flex justify-end items-center">
+					<input
+						type="checkbox"
+						name="persist"
+						id="persist"
+						class="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded" />
+					<label for="persist" class="ml-2 block text-sm text-gray-900"> Angemeldet bleiben </label>
+				</div>
+			</div>
 			<div class="col-span-3">
+				<input
+					type="hidden"
+					name="csrf_nonce"
+					id="csrf_nonce"
+					required
+					value="{{ $model.csrf_nonce }}" />
+				<input
+					type="hidden"
+					name="csrf_token"
+					id="csrf_token"
+					required
+					value="{{ $model.csrf_token }}" />
 				<button
 					type="submit"
 					class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md

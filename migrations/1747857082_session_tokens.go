@@ -54,6 +54,11 @@ func sessionTokensFields(usersCollectionId string) core.FieldsList {
 			Required:    true,
 			Presentable: false,
 		},
+		&core.TextField{
+			Name:        dbmodels.SESSIONS_CSRF_FIELD,
+			Required:    true,
+			Presentable: false,
+		},
 		&core.RelationField{
 			Name:          dbmodels.SESSIONS_USER_FIELD,
 			Required:      true,
@@ -80,7 +85,6 @@ func sessionTokensFields(usersCollectionId string) core.FieldsList {
 		},
 		&core.BoolField{
 			Name:        dbmodels.SESSIONS_PERSIST_FIELD,
-			Required:    true,
 			Presentable: true,
 		},
 	)

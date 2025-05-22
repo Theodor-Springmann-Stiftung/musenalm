@@ -503,6 +503,7 @@ const (
 	ITEMS_IDENTIFIER_FIELD = "identifier"
 
 	SESSIONS_TOKEN_FIELD       = "token"
+	SESSIONS_CSRF_FIELD        = "csrf"
 	SESSIONS_USER_FIELD        = "user"
 	SESSIONS_IP_FIELD          = "ip"
 	SESSIONS_USER_AGENT_FIELD  = "agent"
@@ -512,8 +513,11 @@ const (
 	SESSIONS_PERSIST_FIELD     = "persist"
 
 	USERS_TABLE          = "users"
+	USERS_EMAIL_FIELD    = "email"
 	USERS_SETTINGS_FIELD = "settings"
 	USERS_NAME_FIELD     = "name"
 	USERS_ROLE_FIELD     = "role"
 	USERS_AVATAR_FIELD   = "avatar"
+
+	SESSION_COOKIE_NAME = "sid"
 )

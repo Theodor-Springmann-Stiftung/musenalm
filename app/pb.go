@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/views"
@@ -168,6 +169,9 @@ func (app *App) setWatchers(engine *templating.Engine) {
 func (app *App) bindPages(engine *templating.Engine) ServeFunc {
 	return func(e *core.ServeEvent) error {
 		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+		// INFO: Global middleware to get the authenticated user:
+		e.Router.BindFunc(middleware.Authenticated(e.App))
+
 		// INFO: we put this here, to make sure all migrations are done
 		for _, page := range pages {
 			err := page.Up(e.App, engine)

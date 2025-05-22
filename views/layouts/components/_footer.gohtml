@@ -18,8 +18,17 @@
 			<i class="ri-code-line"></i>
 			<a href="https://github.com/Theodor-Springmann-Stiftung/musenalm">Code</a>
 			<span>&middot;</span>
-			<i class="ri-login-box-line"></i>
-			<a href="/login">Login</a>
+			{{ if .page.User }}
+				<i class="ri-user-3-line"></i>
+				Eingeloggt als
+				{{ .page.User.Email }}
+				|
+				<i class="ri-logout-box-line"></i>
+				<a href="/login">Logout</a>
+			{{ else }}
+				<i class="ri-login-box-line"></i>
+				<a href="/login">Login</a>
+			{{ end }}
 		</div>
 	</div>
 </footer>

@@ -4,11 +4,13 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/pocketbase/pocketbase/core"
 )
+
+type HandleFunc func(e *core.RequestEvent) error
 
 func init() {
 	RegisterStaticPage("/datenschutz/", pagemodels.P_DATENSCHUTZ_NAME)
-	RegisterStaticPage("/login/", pagemodels.P_LOGIN_NAME, "blank")
 	RegisterTextPage("/redaktion/kontakt/", pagemodels.P_KONTAKT_NAME)
 	RegisterTextPage("/redaktion/danksagungen/", pagemodels.P_DANK_NAME)
 	RegisterTextPage("/redaktion/literatur/", pagemodels.P_LIT_NAME)

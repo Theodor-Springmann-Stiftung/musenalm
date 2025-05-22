@@ -6,6 +6,18 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
+type FixedUser struct {
+	Id       string         `json:"id"`
+	Email    string         `json:"email"`
+	Created  types.DateTime `json:"created"`
+	Updated  types.DateTime `json:"updated"`
+	Name     string         `json:"name"`
+	Role     string         `json:"role"`
+	Avatar   string         `json:"avatar"`
+	Verified bool           `json:"verified"`
+	Settings string         `json:"settings"`
+}
+
 var _ core.RecordProxy = (*Place)(nil)
 
 type User struct {
@@ -22,7 +34,7 @@ func (u *User) TableName() string {
 	return USERS_TABLE
 }
 
-// INFO: Email is already set on the core.Record
+// INFO: Email, password functions are already set on the core.Record
 // TODO: We need to create a settings struct as soon as we have settings
 func (u *User) Name() string {
 	return u.GetString(USERS_NAME_FIELD)
@@ -58,4 +70,17 @@ func (u *User) Avatar() string {
 
 func (u *User) SetAvatar(avatar *filesystem.File) {
 	u.Set(USERS_AVATAR_FIELD, avatar)
+}
+
+func (u *User) Fixed() FixedUser {
+	return FixedUser{
+		Id:       u.Id,
+		Email:    u.Email(),
+		Created:  u.Created(),
+		Updated:  u.Updated(),
+		Name:     u.Name(),
+		Role:     u.Role(),
+		Avatar:   u.Avatar(),
+		Verified: u.Verified(),
+	}
 }
