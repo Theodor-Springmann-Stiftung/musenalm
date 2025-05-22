@@ -11,8 +11,15 @@
 				<img class="h-20 w-20 border" src="/assets/favicon.png" />
 			</div>
 		</div>
-		<h1 class="text-4xl self-baseline text-center w-full mt-6">Musenalm | Login</h1>
-		<form class="mt-9 w-full grid grid-cols-3 gap-4" method="POST">
+		<h1 class="text-4xl self-baseline text-center w-full my-6">Musenalm | Login</h1>
+		{{ if $model.error }}
+			<div
+				class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
+				border-2 mb-3">
+				{{ $model.error }}
+			</div>
+		{{ end }}
+		<form class="w-full grid grid-cols-3 gap-4" method="POST">
 			<div
 				class="col-span-3 border-2 border-transparent focus-within:border-slate-600 px-2 py-1 pb-1.5
 				bg-slate-200 focus-within:bg-slate-50 rounded-md transition-all duration-100">

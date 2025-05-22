@@ -20,8 +20,11 @@
 			<span>&middot;</span>
 			{{ if .page.User }}
 				<i class="ri-user-3-line"></i>
-				Eingeloggt als
-				{{ .page.User.Email }}
+				{{ if .page.User.Name }}
+					<b>{{ .page.User.Name }}</b>
+				{{ else }}
+					<b>{{ .page.User.Email }}</b>
+				{{ end }}
 				|
 				<i class="ri-logout-box-line"></i>
 				<a href="/logout?redirectTo={{ .page.FullPath }}">Logout</a>

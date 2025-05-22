@@ -252,25 +252,28 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]any, layout ..
 	return nil
 }
 
-func (e *Engine) Response403(request *core.RequestEvent, err error, data map[string]any) error {
-	if data == nil {
-		data = make(map[string]any)
+func (e *Engine) RenderToString(request *core.RequestEvent, ld map[string]any, path string, layout ...string) (string, error) {
+	if ld == nil {
+		ld = make(map[string]any)
 	}
 
-	var sb strings.Builder
+	ld["page"] = requestData(request)
+
+	var builder strings.Builder
+	err := e.Render(&builder, path, ld, layout...)
 	if err != nil {
-		request.App.Logger().Error("Unauthorized 403 error fetching URL!", "error", err, "request", request.Request.URL)
-		data["Error"] = err.Error()
+		return "", e.Response500(request, err, ld)
 	}
 
-	data["page"] = requestData(request)
-
-	err2 := e.Render(&sb, "/errors/403/", data)
-	if err2 != nil {
-		return e.Response500(request, errors.Join(err, err2), data)
+	tstring := builder.String()
+	if e.debug {
+		idx := strings.LastIndex(tstring, "</body>")
+		if idx != -1 {
+			tstring = tstring[:idx] + RELOAD_TEMPLATE + tstring[idx:]
+		}
 	}
 
-	return request.HTML(http.StatusNotFound, sb.String())
+	return tstring, nil
 }
 
 func (e *Engine) Response404(request *core.RequestEvent, err error, data map[string]any) error {

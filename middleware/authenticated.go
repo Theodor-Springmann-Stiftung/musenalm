@@ -55,12 +55,14 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 		if session.IsExpired() {
 			slog.Warn("Session expired", "user", user.Id, "name", user.Name, "session", session.ID)
 			cache.Delete(cookie.Value)
-			r, err := app.FindRecordById(dbmodels.SESSIONS_TABLE, session.ID)
-			e.SetCookie(deact_cookie)
-			e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
-			if err == nil {
-				app.Delete(r)
-			}
+			go func() {
+				r, err := app.FindRecordById(dbmodels.SESSIONS_TABLE, session.ID)
+				e.SetCookie(deact_cookie)
+				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
+				if err == nil {
+					app.Delete(r)
+				}
+			}()
 			return e.Next()
 		}
 
