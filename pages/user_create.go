@@ -60,6 +60,8 @@ func (p *UserCreatePage) GET(engine *templating.Engine, app core.App) HandleFunc
 		data["csrf_nonce"] = nonce
 		data["csrf_token"] = token
 
+		SetRedirect(data, e)
+
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
@@ -132,6 +134,8 @@ func (p *UserCreatePage) POST(engine *templating.Engine, app core.App) HandleFun
 		if err != nil {
 			return InvalidSignupResponse(engine, e, fmt.Sprintf("Fehler beim Erstellen des Benutzers: %s", err.Error()))
 		}
+
+		SetRedirect(data, e)
 
 		data["user"] = user
 		return engine.Response200(e, p.Template, data, p.Layout)

@@ -65,6 +65,8 @@ func (p *LoginPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 
 		Logout(e, &app)
 
+		SetRedirect(data, e)
+
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
@@ -83,6 +85,8 @@ func Unauthorized(
 	data["csrf_nonce"] = nonce
 	data["csrf_token"] = token
 	data["error"] = error.Error()
+
+	SetRedirect(data, e)
 
 	htm, err := engine.RenderToString(e, data, TEMPLATE_LOGIN, "blank")
 	if err != nil {
@@ -159,6 +163,8 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 				Secure:   true,
 			})
 		}
+
+		SetRedirect(data, e)
 
 		return RedirectTo(e)
 	}

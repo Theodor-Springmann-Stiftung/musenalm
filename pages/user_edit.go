@@ -20,7 +20,7 @@ func init() {
 	ump := &UserEditPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_USER_EDIT_NAME,
-			Layout:   "blank",
+			Layout:   "blankfooter",
 			Template: TEMPLATE_USER_EDIT,
 			URL:      URL_USER_EDIT,
 		},

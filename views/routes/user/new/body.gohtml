@@ -3,17 +3,22 @@
 
 <div class="flex max-w-md mx-auto !pt-44">
 	<div class="flex-col w-full">
-		<a href="/" class="text-gray-700 hover:text-slate-950">
-			<i class="ri-arrow-left-s-line"></i> Startseite
-		</a>
+		{{- if $model.redirect_url -}}
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Zurück
+			</a>
+		{{- else -}}
+			<a href="/" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Startseite
+			</a>
+		{{- end -}}
 		<div class="flex justify-center mt-8 items-baseline">
 			<div>
-				<img class="h-20 w-20 border" src="/assets/favicon.png" />
+				<img class="h-18 w-18 border" src="/assets/favicon.png" />
 			</div>
 		</div>
-		<h1 class="text-4xl self-baseline text-center w-full my-6">
-			Musenalm<br class="mb-3" />
-			Neuer
+		<h1 class="text-2xl self-baseline text-center w-full my-6 text-slate-900">
+			Musenalm | Neuer
 			{{ if eq $model.role "User" -}}
 				Nutzer
 			{{ else if eq $model.role "Admin" -}}

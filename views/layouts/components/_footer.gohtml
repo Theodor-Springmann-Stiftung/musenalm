@@ -17,7 +17,11 @@
 				{{ if and .request.user (eq .request.user.Role "Admin") }}
 					<a href="/user/management/access/User?redirectTo={{ .request.fullpath }}" class="">
 						<i class="ri-group-3-line"></i>
-						Benutzer einladen
+						Nutzer einladen
+					</a>
+					<a href="/user/management?redirectTo={{ .request.fullpath }}" class="">
+						<i class="ri-group-2-line"></i>
+						Benuzterverwaltung
 					</a>
 				{{ end }}
 				<a href="/logout?redirectTo={{ .request.fullpath }}" class="">
@@ -49,8 +53,10 @@
 			<span>&middot;</span>
 			{{ if .request.user }}
 				<button
-					class="inline-block cursor-pointer hover:shadow-lg hover:bg-gray-100 px-1"
-					@click="openusermenu = !openusermenu">
+					class="inline-block cursor-pointer hover:shadow-lg hover:bg-gray-100 px-1.5
+					py-0.5 rounded-xs"
+					@click="openusermenu = !openusermenu"
+					x-bind:class="openusermenu ? 'bg-gray-100 shadow-lg' : ''">
 					<i class="ri-user-3-line"></i>
 					{{ if .request.user.Name }}
 						<b>{{ .request.user.Name }}</b>

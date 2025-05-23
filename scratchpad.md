@@ -1,34 +1,3 @@
-Vorteile PocketBase
-- Log-Datenbank
-- User-Management
-- Kurze Übernahme neuer Features
-- Backup
-- Email
-
-- Hooks
-
-
-Nachteile PocketBase
-- Alles muss über Hooks gemacht werden
-- Eigener HTTP-Server
-- Eigene Cache-Implemtation
-- Eigene Cookies on Auth
-
-- Eine weitere Abhängigkeit
-
-
-Für einen Umzug:
-Alle PB-Abfragen die Record benutzen, nach sql-Abfragen umwandeln.
-Eigene DB-Connection
-Modelle umwandeln (zzt RecordProxy)
-
-
-- Abfragen Personen
-- Abfragen Person
-- Ersellen & Abfragen FTS5-Tabellen
-- Erstellen Textseiten
-
-
 TODO danach:
 - Error Pages prüfen & error-Verhalten von HTMX
 - Weißraum in den Antworten
@@ -36,8 +5,10 @@ TODO danach:
 - Cache?
 
 
+Ideen:
 - Personen: related
 - Inhaltsliste: Personen sehen komisch aus
 - Sammlungen neuer versuch
-- Inhaltsliste Personen
-    - Sortierung nach Band A-Z?
+
+- User: eigene Rolle ändern erlaubt?
+- User: Session-Token CACHE wird invalidiert

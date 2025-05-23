@@ -52,28 +52,46 @@
 
   genQRCode();
 	if (tokenElement) {
-		tokenElement.addEventListener('focus', () => tokenElement.select());
+		tokenElement.addEventListener('focus', (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
+		tokenElement.addEventListener('mousedown', (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
+		tokenElement.addEventListener('mouseup', (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
   }
 </script>
 
-<div class="flex max-w-md mx-auto !pt-44 user-invites">
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
 	<div class="flex-col w-full">
-		{{- if not $model.redirect_url -}}
-			<a href="/" class="text-gray-700 hover:text-slate-950 mb-9 block">
-				<i class="ri-arrow-left-s-line"></i> Startseite
-			</a>
-		{{- else -}}
-			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950 mb-9 block">
+		{{ if $model.redirect_url }}
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
 				<i class="ri-arrow-left-s-line"></i> Zurück
 			</a>
-		{{- end -}}
-		<!--
-		<div class="mb-6">
-			<h1 class="text-2xl font-bold text-slate-900 text-center">Benutzer einladen</h1>
+		{{ else }}
+			<a href="/" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Startseite
+			</a>
+		{{ end }}
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">
+			Nutzer einladen
+		</h1>
+		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[60ch]">
+			<i class="ri-question-line"></i>
+			Mit diesem Link können neue Accounts des jeweiligen Typs registriert werden. Geben Sie den
+			Link an Personen weiter, die Sie einladen möchten.
 		</div>
-		-->
+	</div>
+</div>
+<div class="user-invites flex container-normal mx-auto px-8 mt-4">
+	<div class="flex-col max-w-xl w-full">
 		<div
-			class="col-span-9 grid grid-cols-3 justify-between mb-4 py-1 px-1 border rounded-md gap-x-2
+			class="col-span-9 grid grid-cols-3 justify-between mb-4 py-1 px-1 border rounded-xs gap-x-2
 		bg-slate-200 user-chooser">
 			<a
 				href="/user/management/access/User?redirectTo={{ $model.redirect_url }}"
@@ -101,21 +119,22 @@
 			</div>
 		</div>
 		-->
-		<div class="col-span-7 col-start-2 mb-4 p-4 border rounded-lg shadow hidden" id="qr"></div>
+		<div class="col-span-7 col-start-2 mb-4 p-4 border rounded-xs hidden" id="qr"></div>
 		<div class="col-span-9 mb-6 flex flex-col">
 			<div class="flex flex-row">
 				<input
 					type="text"
 					name="token"
 					id="token"
-					class="w-full text-center border border-slate-300 rounded-md shadow-sm
+					class="w-full text-center border border-slate-300 rounded-xs
 					focus:border-slate-500 focus:ring-slate-500 p-1 px-2 overflow-ellipsis"
 					value="{{ $model.access_url }}"
 					deactive
 					readonly />
 				<button
 					type="button"
-					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent rounded-md
+					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
@@ -125,83 +144,75 @@
 				<a
 					href="{{ $model.relative_url }}"
 					target="_blank"
-					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent rounded-md
+					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
 					<i class="ri-external-link-line"></i>
 				</a>
-			</div>
-			<div class="col-span-9 text-center text-slate-400 mb-1 mt-3">
-				Gültig bis zum
-				{{ $model.validUntil }}
-			</div>
-			<div class="mt-2 text-sm text-slate-600 flex flex-row gap-x-2">
-				<div>
-					<i class="ri-information-line"></i>
-				</div>
-				<div>
-					Unter diesem Link können neue Accounts registriert werden. Geben Sie diesen Link an neue
-					Nutzer der Datenbank weiter.
-				</div>
-			</div>
-			{{ if eq $model.role "User" }}
-				<div class="mt-1 text-sm text-blue-600 flex flex-row gap-x-2">
-					<div>
-						<i class="ri-information-line"></i>
-					</div>
-					<div>Benutzer können private Felder und Daten einsehen, aber nicht bearbeiten.</div>
-				</div>
-			{{ else if eq $model.role "Admin" }}
-				<div class="mt-1 text-sm text-red-600 flex flex-row gap-x-2">
-					<div>
-						<i class="ri-information-line"></i>
-					</div>
-					<div>
-						Administratoren können alle Felder und Daten einsehen und bearbeiten. Administratoren
-						können Nutzer einladen und löschen.
-					</div>
-				</div>
-			{{ else if eq $model.role "Editor" }}
-				<div class="mt-1 text-sm text-orange-600 flex flex-row gap-x-2">
-					<div>
-						<i class="ri-information-line"></i>
-					</div>
-					<div>Redakteure können alle Felder und Daten der Datenbank einsehen und bearbeiten.</div>
-				</div>
-			{{- end -}}
-		</div>
-		<form class="w-full grid grid-cols-9 gap-4" method="POST">
-			<input
-				type="hidden"
-				name="csrf_nonce"
-				id="csrf_nonce"
-				required
-				value="{{ $model.csrf_nonce }}" />
-			<input
-				type="hidden"
-				name="csrf_token"
-				id="csrf_token"
-				required
-				value="{{ $model.csrf_token }}" />
+				<form class="" method="POST">
+					<input
+						type="hidden"
+						name="csrf_nonce"
+						id="csrf_nonce"
+						required
+						value="{{ $model.csrf_nonce }}" />
+					<input
+						type="hidden"
+						name="csrf_token"
+						id="csrf_token"
+						required
+						value="{{ $model.csrf_token }}" />
 
-			<div class="col-span-9 flex flex-row items-center justify-center">
-				<button
-					type="submit"
-					class="inline-flex justify-center py-2 px-3 border border-transparent rounded-full
+					<div class="col-span-9 flex flex-row items-center justify-center">
+						<button
+							type="submit"
+							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-					<i class="ri-loop-left-line"></i>
-				</button>
+							<i class="ri-loop-left-line"></i>
+						</button>
+					</div>
+				</form>
 			</div>
-			<!--
-			<div class="col-span-3">
-				<a href="/forgot-password" class="text-sm text-slate-600 hover:text-slate-900">
-					Passwort vergessen?
-				</a>
+			<div class="col-span-9 text-right text-slate-400 mb-1 mt-3">
+				Gültig bis
+				{{ $model.validUntil }}
 			</div>
-			-->
-		</form>
+			{{ if eq $model.role "User" }}
+				<div class="max-w-[60ch] mt-1 text-sm text-blue-600 flex flex-row gap-x-2 hyphens-auto">
+					<div>
+						<i class="ri-error-warning-line"></i>
+					</div>
+					<div>
+						Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder
+						löschen.
+					</div>
+				</div>
+			{{ else if eq $model.role "Admin" }}
+				<div class="max-w-[60ch] mt-1 text-sm text-red-600 flex flex-row gap-x-2 hyphens-auto">
+					<div>
+						<i class="ri-error-warning-line"></i>
+					</div>
+					<div>
+						Administratoren können alle Felder und Datensätze einsehen, bearbeiten und löschen.
+						Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.
+					</div>
+				</div>
+			{{ else if eq $model.role "Editor" }}
+				<div class="max-w-[60ch] mt-1 text-sm text-orange-600 flex flex-row gap-x-2 hyphens-auto">
+					<div>
+						<i class="ri-error-warning-line"></i>
+					</div>
+					<div>
+						Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten und
+						löschen.
+					</div>
+				</div>
+			{{- end -}}
+		</div>
 	</div>
 </div>

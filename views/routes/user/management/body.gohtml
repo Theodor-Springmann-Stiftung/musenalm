@@ -1,0 +1,66 @@
+{{ $model := . }}
+
+
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
+	<div class="flex-col w-full">
+		{{ if $model.redirect_url }}
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Zurück
+			</a>
+		{{ else }}
+			<a href="/" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Startseite
+			</a>
+		{{ end }}
+		<h1
+			class="text-2xl self-baseline w-full my-6 font-bold
+		text-slate-900">
+			Benutzerverwaltung
+		</h1>
+	</div>
+</div>
+<div class="flex container-normal mx-auto px-8 mt-4">
+	<div class="flex-col max-w-2xl w-full">
+		{{ if $model.success }}
+			<div
+				class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
+				border-2 mb-3">
+				{{ $model.success }}
+			</div>
+		{{ end }}
+		{{ if $model.error }}
+			<div
+				class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
+				border-2 mb-3">
+				{{ $model.error }}
+			</div>
+		{{ end }}
+		<table>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>E-Mail</th>
+					<th>Rolle</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{ range $u := $model.users }}
+					<tr>
+						<td>{{ $u.Name }}</td>
+						<td>{{ $u.Email }}</td>
+						<td>{{ $u.Role }}</td>
+						<td>
+							<a
+								href="/user/{{ $u.Id }}/edit?redirectTo={{ $model.request.fullpath }}"
+								class="text-blue-500 hover:text-blue-700">
+								<i class="ri-edit-line"></i> Bearbeiten
+							</a>
+						</td>
+					</tr>
+				{{ end }}
+			</tbody>
+		</table>
+	</div>
+</div>

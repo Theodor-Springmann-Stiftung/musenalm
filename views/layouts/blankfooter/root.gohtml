@@ -1,0 +1,97 @@
+<!doctype html>
+<html class="w-full h-full" {{ if .lang }}lang="{{ .lang }}"{{ end }}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="htmx-config"
+			content='{"defaultSwapStyle":"outerHTML", "scrollBehavior": "instant"}' />
+
+		{{ block "head" . }}
+			<!-- Default Head elements -->
+		{{ end }}
+
+		{{ if .isDev }}
+			<link rel="icon" href="/assets/logo/dev_favicon.png" />
+			<meta name="robots" content="noindex" />
+		{{ else }}
+			{{ if .url }}
+				<link rel="canonical" href="{{ .url }}" />
+			{{ end }}
+			<link rel="icon" href="/assets/logo/favicon.png" />
+		{{ end }}
+
+
+		<script src="/assets/js/alpine.min.js" defer></script>
+		<script src="/assets/js/htmx.min.js" defer></script>
+		<script src="/assets/js/htmx-response-targets.js" defer></script>
+		<script src="/assets/js/mark.min.js" defer></script>
+
+		<script type="module" src="/assets/scripts.js"></script>
+		<link href="/assets/css/remixicon.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="/assets/css/fonts.css" />
+		<link rel="stylesheet" type="text/css" href="/assets/style.css" />
+
+		<script type="module">
+			document.body.addEventListener("htmx:responseError", function (event) {
+				const config = event.detail.requestConfig;
+				if (config.boosted) {
+					document.body.innerHTML = event.detail.xhr.responseText;
+					const newUrl = event.detail.xhr.responseURL || config.url;
+					window.history.pushState(null, "", newUrl);
+				}
+			});
+		</script>
+	</head>
+
+	<body class="w-full min-h-full" hx-ext="response-targets" hx-boost="true">
+		<div class="flex flex-col min-h-screen w-full">
+			<header class="container-normal py-0 px-0" id="header">
+				<div id="mainmenu" class="pb-1.5 bg-slate-100 px-8 py-6">
+					<div class="flex flex-row justify-between">
+						<div class="flex flex-row gap-x-3">
+							<div class="grow-0">
+								<a href="/" class="no-underline"
+									><img class="h-14 w-14 border" src="/assets/favicon.png"
+								/></a>
+							</div>
+							<div class="flex flex-col">
+								<h1 class="font-bold text-2xl tracking-wide">
+									<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
+								</h1>
+								<h2 class="italic text-slate-800">{{ .site.desc }}</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+			</header>
+
+			<main class="">
+				{{ block "body" . }}
+					<!-- Default app body... -->
+				{{ end }}
+			</main>
+
+			{{ block "_footer" . }}
+			{{ end }}
+
+
+			<scroll-button></scroll-button>
+
+			{{ block "scripts" . }}
+				<!-- Default scripts... -->
+			{{ end }}
+
+
+			<script type="module">
+				const hash = window.location.hash;
+				if (hash) {
+					const stripped = hash.slice(1);
+					const element = document.getElementById(stripped);
+					if (element) {
+						element.setAttribute("aria-current", "location");
+					}
+				}
+			</script>
+		</div>
+	</body>
+</html>

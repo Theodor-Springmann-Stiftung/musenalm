@@ -513,7 +513,7 @@
 	}
 
 	.user-invites .user-chooser a {
-		@apply py-1 rounded no-underline;
+		@apply py-1 rounded-xs no-underline;
 	}
 
 	.user-invites .user-chooser a[aria-current="page"] {
