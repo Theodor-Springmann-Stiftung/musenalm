@@ -23,27 +23,27 @@
 		 [&>*]:px-2 [&>*]:pt-1 [&>*]:-mb-1.5">
 			<a
 				href="/reihen/"
-				{{ if and $model.page (HasPrefix $model.page.Path "/reihe") -}}
+				{{ if and $model.request (HasPrefix $model.request.path "/reihe") -}}
 					aria-current="page"
 				{{- end -}}
 				>Reihen</a
 			>
 			<a
 				href="/personen/"
-				{{ if and $model.page (HasPrefix $model.page.Path "/person") -}}
+				{{ if and $model.request (HasPrefix $model.request.path "/person") -}}
 					aria-current="page"
 				{{- end -}}
 				>Personen</a
 			>
 			<a
 				href="/suche/"
-				{{ if and $model.page (HasPrefix $model.page.Path "/suche") -}}
+				{{ if and $model.request (HasPrefix $model.request.path "/suche") -}}
 					aria-current="page"
 				{{- end -}}
 				>Suche</a
 			>
 			<button
-				{{ if and $model.page (HasPrefix $model.page.Path "/redaktion") -}}
+				{{ if and $model.request (HasPrefix $model.request.path "/redaktion") -}}
 					aria-current="true"
 				{{- end }}
 				data-url="/redaktion/"
@@ -64,42 +64,42 @@
 		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
 		<a
 			href="/redaktion/einleitung/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/einleitung") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/einleitung") -}}
 				aria-current="page"
 			{{- end -}}
 			>Einleitung</a
 		>
 		<a
 			href="/redaktion/benutzerhinweise/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/benutzerhinweise") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/benutzerhinweise") -}}
 				aria-current="page"
 			{{- end -}}
 			>Benutzerhinweise</a
 		>
 		<a
 			href="/redaktion/literatur/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/literatur") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/literatur") -}}
 				aria-current="page"
 			{{- end -}}
 			>Literatur</a
 		>
 		<a
 			href="/redaktion/lesekabinett/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/lesekabinett") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/lesekabinett") -}}
 				aria-current="page"
 			{{- end -}}
 			>Lesekabinett</a
 		>
 		<a
 			href="/redaktion/danksagungen/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/danksagungen") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/danksagungen") -}}
 				aria-current="page"
 			{{- end -}}
 			>Danksagungen</a
 		>
 		<a
 			href="/redaktion/kontakt/"
-			{{ if and $model.page (HasPrefix $model.page.Path "/redaktion/kontakt") -}}
+			{{ if and $model.request (HasPrefix $model.request.path "/redaktion/kontakt") -}}
 				aria-current="page"
 			{{- end -}}
 			>Kontakt</a

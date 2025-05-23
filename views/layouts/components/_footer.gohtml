@@ -18,19 +18,19 @@
 			<i class="ri-code-line"></i>
 			<a href="https://github.com/Theodor-Springmann-Stiftung/musenalm">Code</a>
 			<span>&middot;</span>
-			{{ if .page.User }}
+			{{ if .request.user }}
 				<i class="ri-user-3-line"></i>
-				{{ if .page.User.Name }}
-					<b>{{ .page.User.Name }}</b>
+				{{ if .request.user.Name }}
+					<b>{{ .request.user.Name }}</b>
 				{{ else }}
-					<b>{{ .page.User.Email }}</b>
+					<b>{{ .request.user.Email }}</b>
 				{{ end }}
 				|
 				<i class="ri-logout-box-line"></i>
-				<a href="/logout?redirectTo={{ .page.FullPath }}">Logout</a>
+				<a href="/logout?redirectTo={{ .request.fullpath }}">Logout</a>
 			{{ else }}
 				<i class="ri-login-box-line"></i>
-				<a href="/login?redirectTo={{ .page.FullPath }}">Login</a>
+				<a href="/login?redirectTo={{ .request.fullpath }}">Login</a>
 			{{ end }}
 		</div>
 	</div>

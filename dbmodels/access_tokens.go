@@ -5,6 +5,16 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
+type FixedAccessToken struct {
+	Token   string         `json:"token"`
+	User    string         `json:"user"`
+	Created string         `json:"created"`
+	Updated string         `json:"updated"`
+	Expires types.DateTime `json:"expires"`
+	URL     string         `json:"url"`
+	Status  string         `json:"status"`
+}
+
 var _ core.RecordProxy = (*AccessToken)(nil)
 
 type AccessToken struct {
@@ -67,4 +77,16 @@ func (u *AccessToken) Status() string {
 
 func (u *AccessToken) SetStatus(status string) {
 	u.Set(ACCESS_TOKENS_STATUS_FIELD, status)
+}
+
+func (u *AccessToken) Fixed() *FixedAccessToken {
+	return &FixedAccessToken{
+		Token:   u.Token(),
+		User:    u.User(),
+		Created: u.Created(),
+		Updated: u.Updated(),
+		Expires: u.Expires(),
+		URL:     u.URL(),
+		Status:  u.Status(),
+	}
 }

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/net/websocket"
@@ -257,7 +256,8 @@ func (e *Engine) RenderToString(request *core.RequestEvent, ld map[string]any, p
 		ld = make(map[string]any)
 	}
 
-	ld["page"] = requestData(request)
+	r := NewRequest(request)
+	ld["request"] = r.Data()
 
 	var builder strings.Builder
 	err := e.Render(&builder, path, ld, layout...)
@@ -287,7 +287,8 @@ func (e *Engine) Response404(request *core.RequestEvent, err error, data map[str
 		data["Error"] = err.Error()
 	}
 
-	data["page"] = requestData(request)
+	r := NewRequest(request)
+	data["request"] = r.Data()
 
 	err2 := e.Render(&sb, "/errors/404/", data)
 	if err2 != nil {
@@ -308,7 +309,8 @@ func (e *Engine) Response500(request *core.RequestEvent, err error, data map[str
 		data["Error"] = err.Error()
 	}
 
-	data["page"] = requestData(request)
+	r := NewRequest(request)
+	data["request"] = r.Data()
 
 	err2 := e.Render(&sb, "/errors/500/", data)
 	if err != nil {
@@ -323,7 +325,8 @@ func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[str
 		ld = make(map[string]any)
 	}
 
-	ld["page"] = requestData(request)
+	r := NewRequest(request)
+	ld["request"] = r.Data()
 
 	var builder strings.Builder
 	err := e.Render(&builder, path, ld, layout...)
@@ -340,37 +343,4 @@ func (e *Engine) Response200(request *core.RequestEvent, path string, ld map[str
 	}
 
 	return request.HTML(http.StatusOK, tstring)
-}
-
-func requestData(request *core.RequestEvent) map[string]any {
-	data := make(map[string]any)
-	data["Path"] = request.Request.URL.Path
-	data["FullPath"] = GetRequestPathWithQuery(request.Request)
-	data["Query"] = request.Request.URL.Query()
-	data["Method"] = request.Request.Method
-	data["Host"] = request.Request.Host
-
-	if user := request.Get("user"); user != nil {
-		u, ok := user.(*dbmodels.FixedUser)
-		if ok {
-			data["User"] = u
-		}
-	}
-
-	if session := request.Get("session"); session != nil {
-		u, ok := session.(*dbmodels.FixedSession)
-		if ok {
-			data["Session"] = u
-		}
-	}
-
-	return data
-}
-
-func GetRequestPathWithQuery(r *http.Request) string {
-	path := r.URL.EscapedPath()
-	if r.URL.RawQuery != "" {
-		return path + "?" + r.URL.RawQuery
-	}
-	return path
 }

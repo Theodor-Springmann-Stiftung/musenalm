@@ -63,7 +63,7 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.Ap
 			return p.SearchBeitraegeRequest(app, engine, e, *allparas)
 		}
 
-		data := make(map[string]interface{})
+		data := make(map[string]any)
 		data["parameters"] = allparas
 		data["types"] = dbmodels.MUSENALM_TYPE_VALUES
 		return engine.Response200(e, p.Template+paras.Collection+"/", data, p.Layout)
@@ -77,7 +77,7 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 }
 
 func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 	filterparams := NewBeitraegeFilterParameters(e)
 	result, err := NewSearchBeitraege(app, params, filterparams)
 	if err != nil {
@@ -92,7 +92,7 @@ func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engi
 }
 
 func (p *SuchePage) SearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	result, err := NewSearchBaende(app, params)
 	if err != nil {

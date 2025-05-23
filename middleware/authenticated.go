@@ -88,10 +88,10 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 				}
 
 				u := dbmodels.NewUser(r)
-				e.Set("access_token_user", u)
+				e.Set("access_token_user", u.Fixed())
 			}
 
-			e.Set("access_token", a)
+			e.Set("access_token", a.Fixed())
 		}
 
 		return e.Next()
