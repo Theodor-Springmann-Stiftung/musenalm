@@ -11,7 +11,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-var cache = collections.NewUserSessionCache(1000, 5*time.Minute)
+var SESSION_CACHE = collections.NewUserSessionCache(1000, 5*time.Minute)
 var deact_cookie = &http.Cookie{
 	Name:   dbmodels.SESSION_COOKIE_NAME,
 	MaxAge: -1,
@@ -30,7 +30,7 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 			return e.Next()
 		}
 
-		user, session, loaded := cache.Get(cookie.Value)
+		user, session, loaded := SESSION_CACHE.Get(cookie.Value)
 		if !loaded {
 			record, err := app.FindFirstRecordByData(dbmodels.SESSIONS_TABLE, dbmodels.SESSIONS_TOKEN_FIELD, cookie.Value)
 			if err != nil {
@@ -47,16 +47,16 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 				return e.Next()
 			}
 			u := dbmodels.NewUser(r)
-			user, session = cache.Set(u, s)
+			user, session = SESSION_CACHE.Set(u, s)
 		}
 
 		slog.Debug("User session detected", "user", user.Id, "name", user.Name, "session", session.ID)
 
-		if session.IsExpired() {
+		if session.IsExpired() || user.Deactivated {
 			// TODO: (Maybe) less rigid handling here: for creation or update of items forgive shortly
 			// expired tokens, if CSRF and everything else is a match.
 			slog.Warn("Session expired", "user", user.Id, "name", user.Name, "session", session.ID)
-			cache.Delete(cookie.Value)
+			SESSION_CACHE.Delete(cookie.Value)
 			go func() {
 				r, err := app.FindRecordById(dbmodels.SESSIONS_TABLE, session.ID)
 				e.SetCookie(deact_cookie)

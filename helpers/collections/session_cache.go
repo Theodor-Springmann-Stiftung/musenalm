@@ -99,6 +99,13 @@ func (c *UserSessionCache) Delete(sessionTokenClear string) {
 	}
 }
 
+func (c *UserSessionCache) Clear() {
+	c.cache.Clear()
+	c.mu.Lock()
+	c.approximateSize = 0
+	c.mu.Unlock()
+}
+
 func (c *UserSessionCache) startCleanupRoutine() {
 	ticker := time.NewTicker(c.cleanupInterval)
 	defer ticker.Stop()

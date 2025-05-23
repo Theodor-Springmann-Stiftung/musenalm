@@ -39,4 +39,6 @@ const (
 
 	P_USER_MGMT_ACCESS_NAME = "user_management_access"
 	P_USER_CREATE_NAME      = "user_create"
+
+	P_USER_EDIT_NAME = "user_edit"
 )

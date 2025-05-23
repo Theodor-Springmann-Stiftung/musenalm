@@ -124,6 +124,11 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("Benuztername oder Passwort falsch. Bitte versuchen Sie es erneut."), data)
 		}
 
+		user := dbmodels.NewUser(record)
+		if user.Deactivated() {
+			return Unauthorized(engine, e, fmt.Errorf("Ihr Benutzerkonto ist deaktiviert. Bitte kontaktieren Sie den Administrator."), data)
+		}
+
 		duration := time.Minute * 60
 		if formdata.Persistent == "on" {
 			duration = time.Hour * 24 * 90

@@ -76,10 +76,7 @@ func (p *UserManagementAccessPage) GET(engine *templating.Engine, app core.App) 
 		data["csrf_nonce"] = nonce
 		data["csrf_token"] = token
 
-		redirect_url := e.Request.URL.Query().Get("redirectTo")
-		if redirect_url != "" {
-			data["redirect_url"] = redirect_url
-		}
+		SetRedirect(data, e)
 
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
@@ -109,11 +106,15 @@ func (p *UserManagementAccessPage) POST(engine *templating.Engine, app core.App)
 		data["relative_url"] = path_access + "?token=" + token.Token()
 		data["validUntil"] = token.Expires().Time().Format("02.01.2006 15:04")
 
-		redirect_url := e.Request.URL.Query().Get("redirectTo")
-		if redirect_url != "" {
-			data["redirect_url"] = redirect_url
-		}
+		SetRedirect(data, e)
 
 		return engine.Response200(e, p.Template, data, p.Layout)
+	}
+}
+
+func SetRedirect(data map[string]any, e *core.RequestEvent) {
+	redirect_url := e.Request.URL.Query().Get("redirectTo")
+	if redirect_url != "" {
+		data["redirect_url"] = redirect_url
 	}
 }

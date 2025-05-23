@@ -5,6 +5,7 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
@@ -56,6 +57,8 @@ func Logout(e *core.RequestEvent, app *core.App) {
 			if err == nil && record != nil {
 				app.Delete(record)
 			}
+
+			middleware.SESSION_CACHE.Delete(cookie.Value)
 		}()
 	}
 }

@@ -74,6 +74,9 @@ func InvalidSignupResponse(engine *templating.Engine, e *core.RequestEvent, erro
 
 	data["csrf_nonce"] = nonce
 	data["csrf_token"] = token
+
+	SetRedirect(data, e)
+
 	str, err := engine.RenderToString(e, data, TEMPLATE_USER_CREATE, "blank")
 	if err != nil {
 		return engine.Response500(e, err, data)
