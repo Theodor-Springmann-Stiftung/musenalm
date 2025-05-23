@@ -180,18 +180,17 @@
 			-->
 		</form>
 
-		<div class="col-span-1 mt-8 justify-self-end self-end items-end flex flex-row justify-end">
+		<div class="col-span-1 mt-12 justify-self-end self-end items-end flex flex-row justify-end">
 			{{ if not $model.user.Deactivated }}
 				<button
 					type="submit"
 					formmethod="POST"
 					formaction="/user/{{ $model.user.Id }}/deactivate"
 					type="button"
-					class="inline-flex justify-center py-2 px-3  border border-transparent hover:border-red-800
-							rounded-lg text-sm font-medium text-red-800 bg-red-200 hover:bg-red-300 cursor-pointer
-							focus:outline-none
-						focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline">
-					<i class="ri-prohibited-2-line mr-1"></i> Deaktivieren
+					class="inline-flex justify-center py-2 px-3 underline decoration-dotted
+					hover:decoration-solid
+							rounded-lg text-sm font-medium text-red-800 cursor-pointer">
+					Deaktivieren
 				</button>
 			{{ else }}
 				<button
@@ -202,7 +201,7 @@
 					class="inline-flex justify-center py-2 px-4 border border-transparent hover:border-red-800
 							rounded-lg text-sm font-medium text-red-800 bg-red-200 hover:bg-red-300 cursor-pointer
 							focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline">
-					<i class="ri-restart-line"></i>
+					<i class="ri-restart-line"></i> Aktivieren
 				</button>
 			{{ end }}
 		</div>

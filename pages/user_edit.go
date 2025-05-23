@@ -180,6 +180,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			return InvalidDataResponse(engine, e, err.Error(), &fu)
 		}
 
+		// TODO: this is lazy, we just need to delete the sessions of the changed user
 		middleware.SESSION_CACHE.Clear()
 
 		fu = user_proxy.Fixed()
