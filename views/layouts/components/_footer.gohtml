@@ -1,5 +1,31 @@
 {{- $date := Today -}}
-<footer class="container-normal pb-1.5 text-base text-gray-800">
+<footer
+	class="container-normal pb-1.5 text-base text-gray-800 relative"
+	x-data="{ openusermenu: false }">
+	<div class="" x-show="openusermenu">
+		<div
+			class="absolute right-0 bottom-10 bg-white border border-gray-300 rounded-md shadow mt-2
+		[&>a]:no-underline [&>a]:text-gray-700 [&>a]:hover:bg-gray-100 [&>a]:hover:text-gray-900
+		[&>a]:block [&>a]:px-3 [&>a]:py-2 [&>a]:text-sm [&>a]:rounded-md [&>a]:w-full [&>a]:text-left
+		[&>a]:whitespace-nowrap [&>a]:transition-all [&>a]:duration-200 [&>a]:border-b
+		[&>a]:last:border-b-0">
+			<a href="/user/edit" class="">
+				<i class="ri-user-3-line"></i>
+				Profil bearbeiten
+			</a>
+			{{ if and .request.user (eq .request.user.Role "Admin") }}
+				<a href="/user/management/access/User?redirectTo={{ .request.fullpath }}" class="">
+					<i class="ri-group-3-line"></i>
+					Benutzer einladen
+				</a>
+			{{ end }}
+			<a href="/logout?redirectTo={{ .request.fullpath }}" class="">
+				<i class="ri-logout-box-line"></i>
+				Ausloggen
+			</a>
+		</div>
+	</div>
+
 	<div class="mt-12 pt-3 flex flex-row justify-between">
 		<div>
 			<i class="ri-creative-commons-line"></i>
@@ -19,15 +45,20 @@
 			<a href="https://github.com/Theodor-Springmann-Stiftung/musenalm">Code</a>
 			<span>&middot;</span>
 			{{ if .request.user }}
-				<i class="ri-user-3-line"></i>
-				{{ if .request.user.Name }}
-					<b>{{ .request.user.Name }}</b>
-				{{ else }}
-					<b>{{ .request.user.Email }}</b>
-				{{ end }}
+				<button class="inline-block cursor-pointer" @click="openusermenu = !openusermenu">
+					<i class="ri-user-3-line"></i>
+					{{ if .request.user.Name }}
+						<b>{{ .request.user.Name }}</b>
+					{{ else }}
+						<b>{{ .request.user.Email }}</b>
+					{{ end }}
+					<i class="ri-arrow-up-s-fill"></i>
+				</button>
+				<!--
 				|
 				<i class="ri-logout-box-line"></i>
 				<a href="/logout?redirectTo={{ .request.fullpath }}">Logout</a>
+				-->
 			{{ else }}
 				<i class="ri-login-box-line"></i>
 				<a href="/login?redirectTo={{ .request.fullpath }}">Login</a>

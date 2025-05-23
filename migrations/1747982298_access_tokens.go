@@ -63,7 +63,7 @@ func accessTokensFields(usersCollectionId string) core.FieldsList {
 		},
 		&core.RelationField{
 			Name:          dbmodels.ACCESS_TOKENS_USER_FIELD,
-			Required:      true,
+			Required:      false,
 			CollectionId:  usersCollectionId,
 			CascadeDelete: true,
 			Presentable:   true,

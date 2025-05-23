@@ -36,4 +36,7 @@ const (
 
 	P_LOGIN_NAME  = "login"
 	P_LOGOUT_NAME = "logout"
+
+	P_USER_MGMT_ACCESS_NAME = "user_management_access"
+	P_USER_CREATE_NAME      = "user_create"
 )

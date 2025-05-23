@@ -512,6 +512,14 @@
 		@apply !text-slate-900 bg-stone-50;
 	}
 
+	.user-invites .user-chooser a {
+		@apply py-1 rounded no-underline;
+	}
+
+	.user-invites .user-chooser a[aria-current="page"] {
+		@apply font-bold !bg-stone-50 relative border-b z-20 shadow;
+	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);

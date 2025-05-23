@@ -7,12 +7,17 @@ import (
 
 type FixedAccessToken struct {
 	Token   string         `json:"token"`
+	CSRF    string         `json:"csrf"`
 	User    string         `json:"user"`
 	Created string         `json:"created"`
 	Updated string         `json:"updated"`
 	Expires types.DateTime `json:"expires"`
 	URL     string         `json:"url"`
 	Status  string         `json:"status"`
+}
+
+func (s *FixedAccessToken) IsExpired() bool {
+	return s.Expires.IsZero() || s.Expires.Before(types.NowDateTime())
 }
 
 var _ core.RecordProxy = (*AccessToken)(nil)
@@ -41,6 +46,14 @@ func (u *AccessToken) SetToken(token string) {
 
 func (u *AccessToken) User() string {
 	return u.GetString(ACCESS_TOKENS_USER_FIELD)
+}
+
+func (u *AccessToken) CSRF() string {
+	return u.GetString(ACCESS_TOKENS_CSRF_FIELD)
+}
+
+func (u *AccessToken) SetCSRF(csrf string) {
+	u.Set(ACCESS_TOKENS_CSRF_FIELD, csrf)
 }
 
 func (u *AccessToken) SetUser(userId string) {
@@ -77,6 +90,10 @@ func (u *AccessToken) Status() string {
 
 func (u *AccessToken) SetStatus(status string) {
 	u.Set(ACCESS_TOKENS_STATUS_FIELD, status)
+}
+
+func (u *AccessToken) IsExpired() bool {
+	return u.Expires().IsZero() || u.Expires().Before(types.NowDateTime())
 }
 
 func (u *AccessToken) Fixed() *FixedAccessToken {
