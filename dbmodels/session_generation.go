@@ -67,6 +67,7 @@ func CreateSessionToken(
 	session.SetLastAccess(types.NowDateTime())
 	session.SetUserAgent(userAgent)
 	session.SetIP(ipAddress)
+	session.SetStatus(TOKEN_STATUS_VALUES[0]) // Active
 
 	if errSave := app.Save(session); errSave != nil {
 		app.Logger().Error("Failed to save session token record", "error", errSave, "userID", userID)

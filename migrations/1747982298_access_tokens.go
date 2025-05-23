@@ -16,25 +16,27 @@ func init() {
 			return err
 		}
 
-		collection := sessionTokensTable()
-		fields := sessionTokensFields(usersCollection.Id)
+		collection := accessTokensTable()
+		fields := accessTokensFields(usersCollection.Id)
 		dbmodels.SetCreatedUpdatedFields(&fields)
 		collection.Fields = fields
 
-		dbmodels.AddIndex(collection, dbmodels.SESSIONS_TOKEN_FIELD, true)
-		dbmodels.AddIndex(collection, dbmodels.SESSIONS_USER_FIELD, false)
-		dbmodels.AddIndex(collection, dbmodels.SESSIONS_EXPIRES_FIELD, false)
-		dbmodels.AddIndex(collection, dbmodels.SESSIONS_LAST_ACCESS_FIELD, false)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_TOKEN_FIELD, true)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_USER_FIELD, false)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_EXPIRES_FIELD, false)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_LAST_ACCESS_FIELD, false)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_URL_FIELD, false)
+		dbmodels.AddIndex(collection, dbmodels.ACCESS_TOKENS_STATUS_FIELD, false)
 
 		return app.Save(collection)
 
 	}, func(app core.App) error {
-		collection, err := app.FindCollectionByNameOrId(dbmodels.SESSIONS_TABLE)
+		collection, err := app.FindCollectionByNameOrId(dbmodels.ACCESS_TOKENS_TABLE)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "no rows in result set") {
 				return nil
 			}
-			app.Logger().Error("Failed to find collection for deletion", "collection", dbmodels.SESSIONS_TABLE, "error", err)
+			app.Logger().Error("Failed to find collection for deletion", "collection", dbmodels.ACCESS_TOKENS_TABLE, "error", err)
 			return err
 		}
 
@@ -42,53 +44,45 @@ func init() {
 	})
 }
 
-func sessionTokensTable() *core.Collection {
-	collection := core.NewBaseCollection(dbmodels.SESSIONS_TABLE)
+func accessTokensTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.ACCESS_TOKENS_TABLE)
 	return collection
 }
 
-func sessionTokensFields(usersCollectionId string) core.FieldsList {
+func accessTokensFields(usersCollectionId string) core.FieldsList {
 	fields := core.NewFieldsList(
 		&core.TextField{
-			Name:        dbmodels.SESSIONS_TOKEN_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_TOKEN_FIELD,
 			Required:    true,
 			Presentable: false,
 		},
 		&core.TextField{
-			Name:        dbmodels.SESSIONS_CSRF_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_CSRF_FIELD,
 			Required:    true,
 			Presentable: false,
 		},
 		&core.RelationField{
-			Name:          dbmodels.SESSIONS_USER_FIELD,
+			Name:          dbmodels.ACCESS_TOKENS_USER_FIELD,
 			Required:      true,
 			CollectionId:  usersCollectionId,
 			CascadeDelete: true,
 			Presentable:   true,
 		},
 		&core.DateField{
-			Name:        dbmodels.SESSIONS_EXPIRES_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_EXPIRES_FIELD,
 			Required:    true,
 			Presentable: true,
 		},
 		&core.DateField{
-			Name:        dbmodels.SESSIONS_LAST_ACCESS_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_LAST_ACCESS_FIELD,
 			Presentable: false,
 		},
 		&core.TextField{
-			Name:        dbmodels.SESSIONS_IP_FIELD,
-			Presentable: false,
-		},
-		&core.TextField{
-			Name:        dbmodels.SESSIONS_USER_AGENT_FIELD,
-			Presentable: false,
-		},
-		&core.BoolField{
-			Name:        dbmodels.SESSIONS_PERSIST_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_URL_FIELD,
 			Presentable: true,
 		},
 		&core.SelectField{
-			Name:        dbmodels.SESSIONS_STATUS_FIELD,
+			Name:        dbmodels.ACCESS_TOKENS_STATUS_FIELD,
 			Required:    true,
 			Presentable: true,
 			MaxSelect:   1,

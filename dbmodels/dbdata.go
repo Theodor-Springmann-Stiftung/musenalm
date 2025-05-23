@@ -4,6 +4,13 @@ import "github.com/pocketbase/pocketbase/tools/types"
 
 var EDITORSTATE_VALUES = []string{"Unknown", "ToDo", "Seen", "Partially Edited", "Waiting", "Review", "Edited"}
 
+var TOKEN_STATUS_VALUES = []string{
+	"active",
+	"expired",
+	"invalid",
+	"revoked",
+}
+
 var ITEM_TYPE_VALUES = []string{
 	"Original",
 	"Reproduktion",
@@ -425,13 +432,14 @@ var PUBLIC_LIST_RULE = types.Pointer("")
 const (
 	FTS_LIMIT = 100000
 
-	PLACES_TABLE   = "places"
-	AGENTS_TABLE   = "agents"
-	SERIES_TABLE   = "series"
-	ENTRIES_TABLE  = "entries"
-	CONTENTS_TABLE = "contents"
-	ITEMS_TABLE    = "items"
-	SESSIONS_TABLE = "sessions"
+	PLACES_TABLE        = "places"
+	AGENTS_TABLE        = "agents"
+	SERIES_TABLE        = "series"
+	ENTRIES_TABLE       = "entries"
+	CONTENTS_TABLE      = "contents"
+	ITEMS_TABLE         = "items"
+	SESSIONS_TABLE      = "sessions"
+	ACCESS_TOKENS_TABLE = "access_tokens"
 
 	ID_FIELD         = "id"
 	CREATED_FIELD    = "created"
@@ -512,12 +520,22 @@ const (
 	SESSIONS_STATUS_FIELD      = "status"
 	SESSIONS_PERSIST_FIELD     = "persist"
 
-	USERS_TABLE          = "users"
-	USERS_EMAIL_FIELD    = "email"
-	USERS_SETTINGS_FIELD = "settings"
-	USERS_NAME_FIELD     = "name"
-	USERS_ROLE_FIELD     = "role"
-	USERS_AVATAR_FIELD   = "avatar"
+	USERS_TABLE             = "users"
+	USERS_EMAIL_FIELD       = "email"
+	USERS_SETTINGS_FIELD    = "settings"
+	USERS_NAME_FIELD        = "name"
+	USERS_ROLE_FIELD        = "role"
+	USERS_AVATAR_FIELD      = "avatar"
+	USERS_VERIFIED_FIELD    = "verified"
+	USERS_DEACTIVATED_FIELD = "deactivated"
+
+	ACCESS_TOKENS_TOKEN_FIELD       = "token"
+	ACCESS_TOKENS_CSRF_FIELD        = "csrf"
+	ACCESS_TOKENS_USER_FIELD        = "user"
+	ACCESS_TOKENS_URL_FIELD         = "url"
+	ACCESS_TOKENS_EXPIRES_FIELD     = "expires"
+	ACCESS_TOKENS_LAST_ACCESS_FIELD = "accessed"
+	ACCESS_TOKENS_STATUS_FIELD      = "status"
 
 	SESSION_COOKIE_NAME = "sid"
 )

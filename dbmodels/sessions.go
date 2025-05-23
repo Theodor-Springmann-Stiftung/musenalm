@@ -115,6 +115,14 @@ func (u *Session) IsExpired() bool {
 	return u.Expires().IsZero() || u.Expires().Before(types.NowDateTime())
 }
 
+func (u *Session) Status() string {
+	return u.GetString(SESSIONS_STATUS_FIELD)
+}
+
+func (u *Session) SetStatus(status string) {
+	u.Set(SESSIONS_STATUS_FIELD, status)
+}
+
 func (u *Session) Fixed() FixedSession {
 	return FixedSession{
 		ID:         u.Id,

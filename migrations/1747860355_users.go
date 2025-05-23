@@ -30,8 +30,15 @@ func init() {
 			Values:      dbmodels.USER_ROLES,
 		}
 
+		deactivatedField := &core.BoolField{
+			Name:        dbmodels.USERS_DEACTIVATED_FIELD,
+			Required:    false,
+			Presentable: false,
+		}
+
 		collection.Fields.Add(settingsField)
 		collection.Fields.Add(roleField)
+		collection.Fields.Add(deactivatedField)
 
 		app.Logger().Info("Adding 'settings' JSON field to 'users' collection", "collectionId", collection.Id)
 
@@ -50,6 +57,7 @@ func init() {
 
 		collection.Fields.RemoveByName(dbmodels.USERS_SETTINGS_FIELD)
 		collection.Fields.RemoveByName(dbmodels.USERS_ROLE_FIELD)
+		collection.Fields.RemoveByName(dbmodels.USERS_DEACTIVATED_FIELD)
 		if err := app.Save(collection); err != nil {
 			app.Logger().Warn("Failed to remove 'settings' field during rollback (it might not exist)",
 				"collectionId", collection.Id,

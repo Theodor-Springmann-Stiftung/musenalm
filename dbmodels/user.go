@@ -7,15 +7,16 @@ import (
 )
 
 type FixedUser struct {
-	Id       string         `json:"id"`
-	Email    string         `json:"email"`
-	Created  types.DateTime `json:"created"`
-	Updated  types.DateTime `json:"updated"`
-	Name     string         `json:"name"`
-	Role     string         `json:"role"`
-	Avatar   string         `json:"avatar"`
-	Verified bool           `json:"verified"`
-	Settings string         `json:"settings"`
+	Id          string         `json:"id"`
+	Email       string         `json:"email"`
+	Created     types.DateTime `json:"created"`
+	Updated     types.DateTime `json:"updated"`
+	Name        string         `json:"name"`
+	Role        string         `json:"role"`
+	Avatar      string         `json:"avatar"`
+	Verified    bool           `json:"verified"`
+	Settings    string         `json:"settings"`
+	Deactivated bool           `json:"deactivated"`
 }
 
 var _ core.RecordProxy = (*Place)(nil)
@@ -72,15 +73,24 @@ func (u *User) SetAvatar(avatar *filesystem.File) {
 	u.Set(USERS_AVATAR_FIELD, avatar)
 }
 
+func (u *User) Deactivated() bool {
+	return u.GetBool(USERS_DEACTIVATED_FIELD)
+}
+
+func (u *User) SetDeactivated(deactivated bool) {
+	u.Set(USERS_DEACTIVATED_FIELD, deactivated)
+}
+
 func (u *User) Fixed() FixedUser {
 	return FixedUser{
-		Id:       u.Id,
-		Email:    u.Email(),
-		Created:  u.Created(),
-		Updated:  u.Updated(),
-		Name:     u.Name(),
-		Role:     u.Role(),
-		Avatar:   u.Avatar(),
-		Verified: u.Verified(),
+		Id:          u.Id,
+		Email:       u.Email(),
+		Created:     u.Created(),
+		Updated:     u.Updated(),
+		Name:        u.Name(),
+		Role:        u.Role(),
+		Avatar:      u.Avatar(),
+		Verified:    u.Verified(),
+		Deactivated: u.Deactivated(),
 	}
 }
