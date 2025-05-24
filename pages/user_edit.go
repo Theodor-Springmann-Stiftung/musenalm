@@ -6,6 +6,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
@@ -74,6 +75,32 @@ func (p *UserEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 
 		return engine.Response200(e, TEMPLATE_USER_EDIT, data, p.Layout)
 	}
+}
+
+func DeleteSessionsForUser(app core.App, uid string) error {
+	defer middleware.SESSION_CACHE.DeleteSessionByUserID(uid)
+	records := []*core.Record{}
+	err := app.RecordQuery(dbmodels.SESSIONS_TABLE).
+		Where(dbx.HashExp{dbmodels.SESSIONS_USER_FIELD: uid}).
+		All(&records)
+	if err != nil {
+		return err
+	}
+
+	err = app.RunInTransaction(func(tx core.App) error {
+		for _, r := range records {
+			if err := tx.Delete(r); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func InvalidDataResponse(engine *templating.Engine, e *core.RequestEvent, error string, user *dbmodels.FixedUser) error {
@@ -153,10 +180,12 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 		user_proxy.SetEmail(formdata.Email)
 		user_proxy.SetName(formdata.Name)
 
+		rolechanged := false
 		if formdata.Role != "" && formdata.Role != user_proxy.Role() {
 			if user.Role == "Admin" &&
 				(formdata.Role == "User" || formdata.Role == "Editor" || formdata.Role == "Admin") {
 				user_proxy.SetRole(formdata.Role)
+				rolechanged = true
 			} else {
 				return InvalidDataResponse(engine, e, "Rolle nicht erlaubt", &fu)
 			}
@@ -180,8 +209,16 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			return InvalidDataResponse(engine, e, err.Error(), &fu)
 		}
 
-		// TODO: this is lazy, we just need to delete the sessions of the changed user
-		middleware.SESSION_CACHE.Clear()
+		if rolechanged {
+			if err := DeleteSessionsForUser(app, user_proxy.Id); err != nil {
+				return InvalidDataResponse(engine, e, "Fehler beim Löschen der Sitzungen: "+err.Error(), &fu)
+			}
+
+			if user_proxy.Id == user.Id {
+				// INFO: user changed his own role, so we log him out
+				return e.Redirect(303, "/login/")
+			}
+		}
 
 		fu = user_proxy.Fixed()
 		data["user"] = &fu

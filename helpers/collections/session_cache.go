@@ -99,6 +99,28 @@ func (c *UserSessionCache) Delete(sessionTokenClear string) {
 	}
 }
 
+func (c *UserSessionCache) DeleteSessionByUserID(uid string) {
+	if uid == "" {
+		return
+	}
+
+	c.cache.Range(func(key, value any) bool {
+		entry, ok := value.(*cacheEntry)
+		if !ok {
+			c.cache.Delete(key)
+			return true
+		}
+
+		if entry.user.Id == uid {
+			c.cache.Delete(key)
+			c.mu.Lock()
+			c.approximateSize--
+			c.mu.Unlock()
+		}
+		return true
+	})
+}
+
 func (c *UserSessionCache) Clear() {
 	c.cache.Clear()
 	c.mu.Lock()

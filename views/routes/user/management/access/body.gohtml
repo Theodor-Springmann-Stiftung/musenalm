@@ -88,131 +88,135 @@
 		</div>
 	</div>
 </div>
+
 <div class="user-invites flex container-normal mx-auto px-8 mt-4">
-	<div class="flex-col max-w-xl w-full">
-		<div
-			class="col-span-9 grid grid-cols-3 justify-between mb-4 py-1 px-1 border rounded-xs gap-x-2
-		bg-slate-200 user-chooser">
-			<a
-				href="/user/management/access/User?redirectTo={{ $model.redirect_url }}"
-				class="text-center px-4 text-gray-700 hover:text-slate-950 block"
-				{{ if eq $model.role "User" }}aria-current="page"{{ end }}>
-				Benutzer
-			</a>
-			<a
-				href="/user/management/access/Editor?redirectTo={{ $model.redirect_url }}"
-				class="text-gray-700 hover:text-slate-950 block px-4 text-center"
-				{{ if eq $model.role "Editor" }}aria-current="page"{{ end }}>
-				Redakteur
-			</a>
-			<a
-				href="/user/management/access/Admin?redirectTo={{ $model.redirect_url }}"
-				class="text-gray-700 hover:text-slate-950 text-center px-4 block"
-				{{ if eq $model.role "Admin" }}aria-current="page"{{ end }}>
-				Admin
-			</a>
-		</div>
-		<!--
-		<div class="flex justify-center mt-8 items-baseline">
-			<div>
-				<img class="h-20 w-20 border" src="/assets/favicon.png" />
-			</div>
-		</div>
-		-->
-		<div class="col-span-7 col-start-2 mb-4 p-4 border rounded-xs hidden" id="qr"></div>
-		<div class="col-span-9 mb-6 flex flex-col">
-			<div class="flex flex-row">
-				<input
-					type="text"
-					name="token"
-					id="token"
-					class="w-full text-center border border-slate-300 rounded-xs
+	<div class="flex flex-row w-full">
+		<div class="flex-col max-w-xl w-full">
+			<!-- QR Code -->
+			<div class="mb-4 p-4 border rounded-xs hidden" id="qr"></div>
+
+			<!-- Access URL and Token -->
+			<div class="mb-6 flex flex-col">
+				<div class="flex flex-row">
+					<input
+						type="text"
+						name="token"
+						id="token"
+						class="w-full text-center border border-slate-300 rounded-xs
 					focus:border-slate-500 focus:ring-slate-500 p-1 px-2 overflow-ellipsis"
-					value="{{ $model.access_url }}"
-					deactive
-					readonly />
-				<button
-					type="button"
-					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+						value="{{ $model.access_url }}"
+						deactive
+						readonly />
+					<button
+						type="button"
+						class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-					onclick="navigator.clipboard.writeText('{{ $model.access_url }}')">
-					<i class="ri-file-copy-line"></i>
-				</button>
-				<a
-					href="{{ $model.relative_url }}"
-					target="_blank"
-					class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+						onclick="navigator.clipboard.writeText('{{ $model.access_url }}')">
+						<i class="ri-file-copy-line"></i>
+					</button>
+					<a
+						href="{{ $model.relative_url }}"
+						target="_blank"
+						class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-					<i class="ri-external-link-line"></i>
-				</a>
-				<form class="" method="POST">
-					<input
-						type="hidden"
-						name="csrf_nonce"
-						id="csrf_nonce"
-						required
-						value="{{ $model.csrf_nonce }}" />
-					<input
-						type="hidden"
-						name="csrf_token"
-						id="csrf_token"
-						required
-						value="{{ $model.csrf_token }}" />
-
-					<div class="col-span-9 flex flex-row items-center justify-center">
-						<button
-							type="submit"
-							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+						<i class="ri-external-link-line"></i>
+					</a>
+					<form class="" method="POST">
+						<input
+							type="hidden"
+							name="csrf_nonce"
+							id="csrf_nonce"
+							required
+							value="{{ $model.csrf_nonce }}" />
+						<input
+							type="hidden"
+							name="csrf_token"
+							id="csrf_token"
+							required
+							value="{{ $model.csrf_token }}" />
+						<div class="col-span-9 flex flex-row items-center justify-center">
+							<button
+								type="submit"
+								class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-							<i class="ri-loop-left-line"></i>
-						</button>
-					</div>
-				</form>
+								<i class="ri-loop-left-line"></i>
+							</button>
+						</div>
+					</form>
+				</div>
+				<div class="text-right text-slate-400 mb-1 mt-3">
+					Gültig bis
+					{{ $model.validUntil }}
+				</div>
 			</div>
-			<div class="col-span-9 text-right text-slate-400 mb-1 mt-3">
-				Gültig bis
-				{{ $model.validUntil }}
-			</div>
-			{{ if eq $model.role "User" }}
-				<div class="max-w-[60ch] mt-1 text-sm text-blue-600 flex flex-row gap-x-2 hyphens-auto">
-					<div>
-						<i class="ri-error-warning-line"></i>
-					</div>
-					<div>
-						Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder
-						löschen.
-					</div>
-				</div>
-			{{ else if eq $model.role "Admin" }}
-				<div class="max-w-[60ch] mt-1 text-sm text-red-600 flex flex-row gap-x-2 hyphens-auto">
-					<div>
-						<i class="ri-error-warning-line"></i>
-					</div>
-					<div>
-						Administratoren können alle Felder und Datensätze einsehen, bearbeiten und löschen.
-						Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.
-					</div>
-				</div>
-			{{ else if eq $model.role "Editor" }}
-				<div class="max-w-[60ch] mt-1 text-sm text-orange-600 flex flex-row gap-x-2 hyphens-auto">
-					<div>
-						<i class="ri-error-warning-line"></i>
-					</div>
-					<div>
-						Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten und
-						löschen.
-					</div>
-				</div>
-			{{- end -}}
+			<!-- End of Access URL and Token -->
 		</div>
+		<!-- End of First Column -->
+
+		<!-- Second column -->
+		<div class="ml-12 flex flex-col">
+			<!-- User Role Chooser -->
+			<div class="user-chooser flex flex-col gap-y-3">
+				<a
+					href="/user/management/access/User?redirectTo={{ $model.redirect_url }}"
+					{{ if eq $model.role "User" }}aria-current="page"{{ end }}>
+					Benutzer
+				</a>
+				{{ if eq $model.role "User" }}
+					<div class="max-w-[60ch] text-sm text-blue-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>
+							Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder
+							löschen.
+						</div>
+					</div>
+				{{- end -}}
+				<a
+					href="/user/management/access/Editor?redirectTo={{ $model.redirect_url }}"
+					{{ if eq $model.role "Editor" }}aria-current="page"{{ end }}>
+					Redakteur
+				</a>
+				{{- if eq $model.role "Editor" -}}
+					<div class="max-w-[60ch] text-sm text-orange-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>
+							Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten und
+							löschen.
+						</div>
+					</div>
+				{{- end -}}
+				<a
+					href="/user/management/access/Admin?redirectTo={{ $model.redirect_url }}"
+					{{ if eq $model.role "Admin" }}aria-current="page"{{ end }}>
+					Admin
+				</a>
+				{{- if eq $model.role "Admin" -}}
+					<div class="max-w-[60ch] text-sm text-red-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>
+							Administratoren können alle Felder und Datensätze einsehen, bearbeiten und löschen.
+							Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.
+						</div>
+					</div>
+				{{- end -}}
+			</div>
+			<!-- End of User Role Chooser -->
+		</div>
+		<!-- End of second column -->
 	</div>
 </div>
