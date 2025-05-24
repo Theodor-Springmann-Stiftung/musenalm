@@ -532,6 +532,34 @@
 		@apply border-red-600;
 	}
 
+	.user-mgmt thead th {
+		@apply text-left font-bold border-b-2 border-slate-800 py-2 px-3;
+	}
+
+	.user-mgmt tbody tr td {
+		@apply px-3 py-1.5;
+	}
+
+	.user-mgmt tbody tr:nth-child(odd) td {
+		@apply bg-slate-100;
+	}
+
+	.user-mgmt tbody tr:nth-child(even) td {
+		@apply bg-slate-50;
+	}
+
+	.user-mgmt tbody tr td:last-of-type {
+		@apply align-middle text-right pr-4;
+	}
+
+	.user-mgmt tbody tr.deactivated td:not(:last-of-type) {
+		@apply text-gray-400 line-through;
+	}
+
+	.user-mgmt form button {
+		@apply bg-slate-700 text-gray-200 text-base rounded-xs font-sans transition-all duration-75 px-3 py-1.5 hover:bg-slate-800 hover:text-white cursor-pointer;
+	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);

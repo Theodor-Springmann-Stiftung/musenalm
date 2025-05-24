@@ -20,7 +20,7 @@
 	</div>
 </div>
 <div class="flex container-normal mx-auto px-8 mt-4">
-	<div class="flex-col max-w-2xl w-full">
+	<div class="flex-col w-full">
 		{{ if $model.success }}
 			<div
 				class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
@@ -35,28 +35,64 @@
 				{{ $model.error }}
 			</div>
 		{{ end }}
-		<table>
+		<table class="user-mgmt w-full text-lg">
 			<thead>
 				<tr>
 					<th>Name</th>
 					<th>E-Mail</th>
 					<th>Rolle</th>
-					<th></th>
+					<th>Aktive Logins</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
 				{{ range $u := $model.users }}
-					<tr>
+					<tr class="{{ if $u.Deactivated }}deactivated{{ end }}">
 						<td>{{ $u.Name }}</td>
 						<td>{{ $u.Email }}</td>
 						<td>{{ $u.Role }}</td>
+						<td>{{ index $model.session_counts $u.Id }}</td>
 						<td>
-							<a
-								href="/user/{{ $u.Id }}/edit?redirectTo={{ $model.request.fullpath }}"
-								class="text-blue-500 hover:text-blue-700">
-								<i class="ri-edit-line"></i> Bearbeiten
-							</a>
+							<form class="flex flex-row gap-x-4 justify-end">
+								<input
+									type="hidden"
+									name="csrf_nonce"
+									id="csrf_nonce"
+									required
+									value="{{ $model.csrf_nonce }}" />
+								<input
+									type="hidden"
+									name="csrf_token"
+									id="csrf_token"
+									required
+									value="{{ $model.csrf_token }}" />
+								<button
+									formmethod="GET"
+									formaction="/user/{{ $u.Id }}/edit?redirectTo={{ $model.request.fullpath }}">
+									<i class="ri-pencil-line"></i>
+								</button>
+								<button
+									formmethod="POST"
+									formaction="/user/{{ $u.Id }}/logout"
+									class="text-orange-800 bg-orange-200 hover:bg-orange-300">
+									<i class="ri-logout-box-r-line"></i>
+								</button>
+								{{- if $u.Deactivated }}
+									<button
+										formmethod="GET"
+										formaction="/user/{{ $u.Id }}/activate"
+										class="text-blue-800 bg-blue-200 hover:bg-blue-300">
+										<i class="ri-check-line"></i>
+									</button>
+								{{- else -}}
+									<button
+										formmethod="GET"
+										formaction="/user/{{ $u.Id }}/deactivate"
+										class="text-red-800 bg-red-200 hover:bg-red-300">
+										<i class="ri-prohibited-2-line"></i>
+									</button>
+								{{- end -}}
+							</form>
 						</td>
 					</tr>
 				{{ end }}

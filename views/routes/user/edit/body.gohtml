@@ -176,6 +176,13 @@
 					placeholder=""
 					required />
 			</div>
+			<div class="col-span-3 flex justify-end" x-bind:style="!openpw ? 'display:none' : ''">
+					<input type="checkbox" name="logout" id="logout"  class="mr-2"
+				x-bind:style="!openpw ? 'display:none' : ''" />
+					<label for="logout" class="text-sm text-gray-700 font-bold">
+						</i><i class="ri-logout-box-line"></i> überall ausloggen
+					</label>
+			</div>
 			<div class="col-span-1 col-start-2">
 				<a
 					href="/user/{{ $model.user.Id }}/edit?redirectTo={{ $model.redirect_url }}"
@@ -206,13 +213,6 @@
 					Speichern
 				</button>
 			</div>
-			<!--
-			<div class="col-span-3">
-				<a href="/forgot-password" class="text-sm text-slate-600 hover:text-slate-900">
-					Passwort vergessen?
-				</a>
-			</div>
-			-->
 		</form>
 
 		<div class="col-span-1 mt-12 justify-self-end self-end items-end flex flex-row justify-end">

@@ -17,6 +17,11 @@ const (
 	TEMPLATE_USER_MANAGEMENT = "/user/management/"
 )
 
+type SessionCount struct {
+	Count  int    `json:"count" db:"count"`
+	UserId string `json:"user" db:"user"`
+}
+
 func init() {
 	ump := &UserManagementPage{
 		StaticPage: pagemodels.StaticPage{
@@ -41,6 +46,21 @@ func (p *UserManagementPage) Setup(router *router.Router[*core.RequestEvent], ap
 	return nil
 }
 
+func GetSessionsCounts(app core.App) ([]*SessionCount, error) {
+	query := app.RecordQuery(dbmodels.SESSIONS_TABLE).
+		Select("COUNT(*) AS count", dbmodels.SESSIONS_USER_FIELD).
+		GroupBy(dbmodels.SESSIONS_USER_FIELD).
+		OrderBy("count DESC")
+
+	var counts []*SessionCount
+	err := query.All(&counts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get session counts: %w", err)
+	}
+
+	return counts, nil
+}
+
 func (p *UserManagementPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		records := []*core.Record{}
@@ -54,9 +74,20 @@ func (p *UserManagementPage) GET(engine *templating.Engine, app core.App) Handle
 			users = append(users, dbmodels.NewUser(record))
 		}
 
+		sessionCounts, err := GetSessionsCounts(app)
+		if err != nil {
+			return engine.Response500(e, err, nil)
+		}
+
+		scmap := make(map[string]int)
+		for _, sc := range sessionCounts {
+			scmap[sc.UserId] = sc.Count
+		}
+
 		data := make(map[string]any)
 		data["users"] = users
 		data["len"] = len(users)
+		data["session_counts"] = scmap
 
 		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
 		if err != nil {

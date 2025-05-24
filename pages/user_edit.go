@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"log/slog"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
@@ -158,6 +160,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			Password       string `form:"password"`
 			PasswordRepeat string `form:"password_repeat"`
 			OldPassword    string `form:"old_password"`
+			Logout         string `form:"logout"`
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
@@ -191,6 +194,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			}
 		}
 
+		passwordchanged := false
 		if formdata.Password != "" || formdata.PasswordRepeat != "" || formdata.OldPassword != "" {
 			if user.Role != "Admin" && formdata.OldPassword == "" {
 				return InvalidDataResponse(engine, e, "Altes Passwort erforderlich", &fu)
@@ -203,13 +207,16 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			}
 
 			user_proxy.SetPassword(formdata.Password)
+			passwordchanged = true
 		}
 
 		if err := app.Save(user_proxy); err != nil {
 			return InvalidDataResponse(engine, e, err.Error(), &fu)
 		}
 
-		if rolechanged {
+		slog.Info("UserEditPage: User edited", "user_id", user_proxy.Id, "role_changed", rolechanged, "password_changed", passwordchanged, "formdata", formdata)
+		if rolechanged || (passwordchanged && formdata.Logout == "on") {
+			slog.Error("UserEditPage: Deleting sessions for user", "user_id", user_proxy.Id, "role_changed", rolechanged, "password_changed", passwordchanged)
 			if err := DeleteSessionsForUser(app, user_proxy.Id); err != nil {
 				return InvalidDataResponse(engine, e, "Fehler beim Löschen der Sitzungen: "+err.Error(), &fu)
 			}
@@ -219,6 +226,8 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 				return e.Redirect(303, "/login/")
 			}
 		}
+
+		go middleware.SESSION_CACHE.DeleteSessionByUserID(user_proxy.Id)
 
 		fu = user_proxy.Fixed()
 		data["user"] = &fu
