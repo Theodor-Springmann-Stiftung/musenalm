@@ -10,5 +10,5 @@ Ideen:
 - Inhaltsliste: Personen sehen komisch aus
 - Sammlungen neuer versuch
 
-- User: eigene Rolle ändern erlaubt?
-- User: Session-Token CACHE wird invalidiert
+- Logout auf einer geschützen Seite: weiterleitung (evtl. referer nutzen?) -> evtl. footer-logout link ändern auf AdminPage
+- Tooltips

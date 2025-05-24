@@ -25,7 +25,7 @@ var CSRF_CACHE *security.CSRFProtector
 // - rate limiting
 
 func init() {
-	csrf_cache, err := security.NewCSRFProtector(time.Minute*5, time.Minute)
+	csrf_cache, err := security.NewCSRFProtector(time.Minute*10, time.Minute)
 	if err != nil {
 		panic(err)
 	}
