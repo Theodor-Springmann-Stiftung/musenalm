@@ -104,7 +104,7 @@ func (p *UserManagementPage) getData(app core.App, data map[string]any) error {
 
 	csrfNonce, csrfToken, err := CSRF_CACHE.GenerateTokenBundle()
 	if err != nil {
-		return fmt.Errorf("Konnte kein CSRF-Token generieren", err)
+		return fmt.Errorf("Konnte kein CSRF-Token generieren.")
 	}
 	data["csrf_nonce"] = csrfNonce
 	data["csrf_token"] = csrfToken
@@ -123,30 +123,12 @@ func (p *UserManagementPage) ErrorResponse(engine *templating.Engine, e *core.Re
 	data["csrf_nonce"] = nonce
 	data["csrf_token"] = token
 
-	SetRedirect(data, e)
-
 	str, err := engine.RenderToString(e, data, p.Template, p.Layout)
 
 	return e.HTML(400, str)
 }
 
 func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.App) HandleFunc {
-	return p.UserAction(engine, app, func(user *dbmodels.User) {
-		user.SetDeactivated(true)
-	})
-}
-
-func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.App) HandleFunc {
-	return p.UserAction(engine, app, func(user *dbmodels.User) {
-		user.SetDeactivated(false)
-	})
-}
-
-func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App) HandleFunc {
-	return p.UserAction(engine, app, func(user *dbmodels.User) {})
-}
-
-func (p *UserManagementPage) UserAction(engine *templating.Engine, app core.App, fn func(user *dbmodels.User)) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		formdata := struct {
 			User  string `form:"uid"`
@@ -155,7 +137,7 @@ func (p *UserManagementPage) UserAction(engine *templating.Engine, app core.App,
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Formular nicht binden: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
 		}
 
 		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
@@ -169,7 +151,7 @@ func (p *UserManagementPage) UserAction(engine *templating.Engine, app core.App,
 
 		u := dbmodels.NewUser(user)
 
-		fn(u)
+		u.SetDeactivated(true)
 
 		if err := app.Save(u); err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht deaktivieren: %w", err))
@@ -187,6 +169,95 @@ func (p *UserManagementPage) UserAction(engine *templating.Engine, app core.App,
 			return e.Redirect(303, "/login/")
 		}
 
+		e.Response.Header().Add("HX-Push-Url", "false")
+		return engine.Response200(e, p.Template, data, p.Layout)
+	}
+}
+
+func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		formdata := struct {
+			User  string `form:"uid"`
+			CSRF  string `form:"csrf_token"`
+			Nonce string `form:"csrf_nonce"`
+		}{}
+
+		if err := e.BindBody(&formdata); err != nil {
+			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
+		}
+
+		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+			return p.ErrorResponse(engine, e, err)
+		}
+
+		user, err := app.FindRecordById(dbmodels.USERS_TABLE, formdata.User)
+		if err != nil {
+			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
+		}
+
+		u := dbmodels.NewUser(user)
+
+		u.SetDeactivated(false)
+
+		if err := app.Save(u); err != nil {
+			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht aktivieren: %w", err))
+		}
+
+		go DeleteSessionsForUser(app, u.Id)
+
+		data := make(map[string]any)
+		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde aktiviert."
+
+		p.getData(app, data)
+
+		req := templating.NewRequest(e)
+		if req.User() != nil && req.User().Id == u.Id {
+			return e.Redirect(303, "/login/")
+		}
+
+		e.Response.Header().Add("HX-Push-Url", "false")
+		return engine.Response200(e, p.Template, data, p.Layout)
+	}
+}
+
+func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		formdata := struct {
+			User  string `form:"uid"`
+			CSRF  string `form:"csrf_token"`
+			Nonce string `form:"csrf_nonce"`
+		}{}
+
+		if err := e.BindBody(&formdata); err != nil {
+			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
+		}
+
+		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+			return p.ErrorResponse(engine, e, err)
+		}
+
+		user, err := app.FindRecordById(dbmodels.USERS_TABLE, formdata.User)
+		if err != nil {
+			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
+		}
+
+		u := dbmodels.NewUser(user)
+		go DeleteSessionsForUser(app, u.Id)
+
+		data := make(map[string]any)
+		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde überall ausgeloggt."
+
+		p.getData(app, data)
+
+		req := templating.NewRequest(e)
+		if req.User() != nil && req.User().Id == u.Id {
+			return e.Redirect(301, "/login/")
+		}
+
+		// TODO: is there a better way to do this?
+		// This destroys the URL FullPath thing, bc fullURL is set to /user/management/logout/
+		// Same above
+		e.Response.Header().Add("HX-Push-Url", "false")
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }

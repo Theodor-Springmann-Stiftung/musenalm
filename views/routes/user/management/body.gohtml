@@ -69,9 +69,11 @@
 									id="csrf_token"
 									required
 									value="{{ $model.csrf_token }}" />
+								<!-- INFO: we dont use request.fullpath here, since this can be /logout /activate
+									or /deactivate, which would not work with the redirectTo query param -->
 								<button
 									formmethod="GET"
-									formaction="/user/{{ $u.Id }}/edit?redirectTo={{ $model.request.fullpath }}">
+									formaction="/user/{{ $u.Id }}/edit?redirectTo=/user/management">
 									<i class="ri-pencil-line"></i>
 								</button>
 								<button
