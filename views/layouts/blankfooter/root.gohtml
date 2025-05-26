@@ -45,24 +45,8 @@
 
 	<body class="w-full min-h-full" hx-ext="response-targets" hx-boost="true">
 		<div class="flex flex-col min-h-screen w-full">
-			<header class="container-normal py-0 px-0" id="header">
-				<div id="mainmenu" class="pb-1.5 bg-slate-100 px-8 py-6">
-					<div class="flex flex-row justify-between">
-						<div class="flex flex-row gap-x-3">
-							<div class="grow-0">
-								<a href="/" class="no-underline"
-									><img class="h-14 w-14 border" src="/assets/favicon.png"
-								/></a>
-							</div>
-							<div class="flex flex-col">
-								<h1 class="font-bold text-2xl tracking-wide">
-									<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
-								</h1>
-								<h2 class="italic text-slate-800">{{ .site.desc }}</h2>
-							</div>
-						</div>
-					</div>
-				</div>
+			<header class="container-normal bg-slate-100 px-2 py-2" id="header">
+				{{ template "_menu" . }}
 			</header>
 
 			<main class="">
