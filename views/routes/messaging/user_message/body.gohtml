@@ -1,0 +1,17 @@
+{{ $model := . }}
+<div id="user-message">
+	{{ if $model.success }}
+		<div
+			class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
+		border-2 mb-3">
+			{{ $model.success }}
+		</div>
+	{{ end }}
+	{{ if $model.error }}
+		<div
+			class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
+		border-2 mb-3">
+			{{ $model.error }}
+		</div>
+	{{ end }}
+</div>

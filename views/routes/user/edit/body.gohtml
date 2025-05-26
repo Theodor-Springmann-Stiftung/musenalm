@@ -17,20 +17,7 @@
 </div>
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col max-w-2xl w-full">
-		{{ if $model.success }}
-			<div
-				class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
-				border-2 mb-3">
-				{{ $model.success }}
-			</div>
-		{{ end }}
-		{{ if $model.error }}
-			<div
-				class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
-				border-2 mb-3">
-				{{ $model.error }}
-			</div>
-		{{ end }}
+		{{ template "_usermessage" $model }}
 		<form class="w-full grid grid-cols-3 gap-4" method="POST" x-data="{ openpw: false }">
 			<div
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
@@ -115,8 +102,8 @@
 						<i class="ri-information-line text-gray-700 mt-2 mr-2 align-top"></i>
 					</div>
 					<p class="text-sm text-gray-700 max-w-[80ch]">
-						Achtung! Wenn Sie die Rolle eines Benutzers ändern, wird dieser von allen laufenden
-						Sitzungen abgemeldet und muss sich erneut anmelden.
+						Achtung! Wenn Sie die Rolle eines Benutzers ändern, wird dieser unter Umständen von
+						laufenden Sitzungen abgemeldet und muss sich erneut anmelden.
 					</p>
 				</div>
 			{{- end -}}

@@ -21,20 +21,22 @@
 </div>
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col w-full">
-		{{ if $model.success }}
-			<div
-				class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
+		<div id="user-message">
+			{{ if $model.success }}
+				<div
+					class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
 				border-2 mb-3">
-				{{ $model.success }}
-			</div>
-		{{ end }}
-		{{ if $model.error }}
-			<div
-				class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
+					{{ $model.success }}
+				</div>
+			{{ end }}
+			{{ if $model.error }}
+				<div
+					class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
 				border-2 mb-3">
-				{{ $model.error }}
-			</div>
-		{{ end }}
+					{{ $model.error }}
+				</div>
+			{{ end }}
+		</div>
 		<table class="user-mgmt w-full text-lg">
 			<thead>
 				<tr>
@@ -54,6 +56,7 @@
 						<td>{{ index $model.session_counts $u.Id }}</td>
 						<td>
 							<form class="flex flex-row gap-x-4 justify-end">
+								<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
 								<input
 									type="hidden"
 									name="csrf_nonce"
@@ -72,22 +75,25 @@
 									<i class="ri-pencil-line"></i>
 								</button>
 								<button
+									hx-push-url="false"
 									formmethod="POST"
-									formaction="/user/{{ $u.Id }}/logout"
+									formaction="/user/management/logout/"
 									class="text-orange-800 bg-orange-200 hover:bg-orange-300">
 									<i class="ri-logout-box-r-line"></i>
 								</button>
 								{{- if $u.Deactivated }}
 									<button
-										formmethod="GET"
-										formaction="/user/{{ $u.Id }}/activate"
+										hx-push-url="false"
+										formmethod="POST"
+										formaction="/user/management/activate/"
 										class="text-blue-800 bg-blue-200 hover:bg-blue-300">
 										<i class="ri-check-line"></i>
 									</button>
 								{{- else -}}
 									<button
-										formmethod="GET"
-										formaction="/user/{{ $u.Id }}/deactivate"
+										hx-push-url="false"
+										formmethod="POST"
+										formaction="/user/management/deactivate/"
 										class="text-red-800 bg-red-200 hover:bg-red-300">
 										<i class="ri-prohibited-2-line"></i>
 									</button>
