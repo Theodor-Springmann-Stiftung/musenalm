@@ -107,26 +107,32 @@
 						value="{{ $model.access_url }}"
 						deactive
 						readonly />
-					<button
-						type="button"
-						class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					<tool-tip position="top">
+						<div class="data-tip font-bold hidden">Kopieren</div>
+						<button
+							type="button"
+							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-						onclick="navigator.clipboard.writeText('{{ $model.access_url }}')">
-						<i class="ri-file-copy-line"></i>
-					</button>
-					<a
-						href="{{ $model.relative_url }}"
-						target="_blank"
-						class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+							onclick="navigator.clipboard.writeText('{{ $model.access_url }}')">
+							<i class="ri-file-copy-line"></i>
+						</button>
+					</tool-tip>
+					<tool-tip position="top">
+						<div class="data-tip font-bold hidden">In neuem Fenster öffnen</div>
+						<a
+							href="{{ $model.relative_url }}"
+							target="_blank"
+							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-						<i class="ri-external-link-line"></i>
-					</a>
+							<i class="ri-external-link-line"></i>
+						</a>
+					</tool-tip>
 					<form class="" method="POST">
 						<input
 							type="hidden"
@@ -141,15 +147,18 @@
 							required
 							value="{{ $model.csrf_token }}" />
 						<div class="col-span-9 flex flex-row items-center justify-center">
-							<button
-								type="submit"
-								class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+							<tool-tip position="top">
+								<div class="data-tip font-bold hidden">Link invalidieren</div>
+								<button
+									type="submit"
+									class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
 					rounded-xs
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-								<i class="ri-loop-left-line"></i>
-							</button>
+									<i class="ri-loop-left-line"></i>
+								</button>
+							</tool-tip>
 						</div>
 					</form>
 				</div>

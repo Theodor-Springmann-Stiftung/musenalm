@@ -318,14 +318,7 @@ class z extends HTMLElement {
     super(), this._tooltipBox = null, this._timeout = 200, this._hideTimeout = null, this._hiddenTimeout = null;
   }
   connectedCallback() {
-    this.classList.add(
-      "w-full",
-      "h-full",
-      "relative",
-      "block",
-      "leading-none",
-      "[&>*]:leading-normal"
-    );
+    this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal");
     const t = this.querySelector(".data-tip"), e = t ? t.innerHTML : "Tooltip";
     t && t.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = e, this._tooltipBox.className = [
       "opacity-0",

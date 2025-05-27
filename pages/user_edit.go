@@ -1,7 +1,9 @@
 package pages
 
 import (
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -27,7 +29,7 @@ func init() {
 	ump := &UserEditPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_USER_EDIT_NAME,
-			Layout:   "blankfooter",
+			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 			Template: TEMPLATE_USER_EDIT,
 			URL:      URL_USER_EDIT,
 		},
@@ -52,29 +54,38 @@ func (p *UserEditPage) Setup(router *router.Router[*core.RequestEvent], app core
 func (p *UserEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		data := make(map[string]any)
-
-		uid := e.Request.PathValue(UID_PATH_VALUE)
-
-		u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
+		err := p.getData(app, data, e)
 		if err != nil {
-			return engine.Response404(e, err, nil)
+			return engine.Response500(e, err, data)
 		}
-
-		fu := dbmodels.NewUser(u).Fixed()
-
-		data["user"] = &fu
-
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
-		if err != nil {
-			return engine.Response500(e, err, nil)
-		}
-		data["csrf_token"] = token
-		data["csrf_nonce"] = nonce
-
-		SetRedirect(data, e)
 
 		return engine.Response200(e, TEMPLATE_USER_EDIT, data, p.Layout)
 	}
+}
+
+func (p *UserEditPage) getData(app core.App, data map[string]any, e *core.RequestEvent) error {
+	uid := e.Request.PathValue(UID_PATH_VALUE)
+	u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
+	if err != nil {
+		return fmt.Errorf("Konnte Nutzer nicht finden: %w", err)
+	}
+
+	user := dbmodels.NewUser(u)
+	fu := user.Fixed()
+
+	data["user"] = &fu
+	data["db_user"] = user
+
+	nonce, token, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
+	if err != nil {
+		return fmt.Errorf("Konnte CSRF-Token nicht generieren: %w", err)
+	}
+	data["csrf_token"] = token
+	data["csrf_nonce"] = nonce
+
+	SetRedirect(data, e)
+
+	return nil
 }
 
 func DeleteSessionsForUser(app core.App, uid string) error {
@@ -89,7 +100,9 @@ func DeleteSessionsForUser(app core.App, uid string) error {
 
 	err = app.RunInTransaction(func(tx core.App) error {
 		for _, r := range records {
-			if err := tx.Delete(r); err != nil {
+			session := dbmodels.NewSession(r)
+			session.SetStatus(dbmodels.TOKEN_STATUS_VALUES[3])
+			if err := tx.Save(r); err != nil {
 				return err
 			}
 		}
@@ -103,18 +116,12 @@ func DeleteSessionsForUser(app core.App, uid string) error {
 	return nil
 }
 
-func (p *UserEditPage) InvalidDataResponse(engine *templating.Engine, e *core.RequestEvent, error string, user *dbmodels.FixedUser) error {
+func (p *UserEditPage) InvalidDataResponse(engine *templating.Engine, e *core.RequestEvent, error string, user dbmodels.FixedUser) error {
 	data := make(map[string]any)
-	data["error"] = error
-	data["user"] = user
-
-	nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
+	err := p.getData(e.App, data, e)
 	if err != nil {
 		return engine.Response500(e, err, data)
 	}
-
-	data["csrf_nonce"] = nonce
-	data["csrf_token"] = token
 
 	str, err := engine.RenderToString(e, data, p.Template, p.Layout)
 	if err != nil {
@@ -126,93 +133,84 @@ func (p *UserEditPage) InvalidDataResponse(engine *templating.Engine, e *core.Re
 
 func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		uid := e.Request.PathValue(UID_PATH_VALUE)
-		req := templating.NewRequest(e)
-		user := req.User()
-
-		if user == nil {
-			return engine.Response404(e, nil, nil)
-		}
-
-		if user.Id != uid && user.Role != "Admin" {
-			return engine.Response404(e, nil, nil)
-		}
-
-		u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-
-		user_proxy := dbmodels.NewUser(u)
-		user_proxy.SetDeactivated(true)
-
-		if err := app.Save(user_proxy); err != nil {
-			return engine.Response500(e, err, nil)
-		}
-
-		go middleware.SESSION_CACHE.DeleteSessionByUserID(user_proxy.Id)
-
-		if user_proxy.Id == user.Id {
-			// INFO: user deactivated his own account, so we log him out
-			return e.Redirect(303, "/login/")
-		}
-
 		data := make(map[string]any)
-		uf := user_proxy.Fixed()
-		data["user"] = &uf
-		data["success"] = "Benutzer " + uf.Name + " deaktiviert."
-
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
+		err := p.getData(app, data, e)
 		if err != nil {
 			return engine.Response500(e, err, data)
 		}
 
-		data["csrf_token"] = token
-		data["csrf_nonce"] = nonce
+		formdata := struct {
+			CSRF  string `form:"csrf_token"`
+			Nonce string `form:"csrf_nonce"`
+		}{}
 
-		return engine.Response200(e, TEMPLATE_USER_EDIT, data, p.Layout)
+		user := data["db_user"].(*dbmodels.User)
+
+		if err := e.BindBody(&formdata); err != nil {
+			return p.InvalidDataResponse(engine, e, "Formulardaten ungültig.", user.Fixed())
+		}
+
+		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+			return p.InvalidDataResponse(engine, e, err.Error(), user.Fixed())
+		}
+
+		user.SetDeactivated(true)
+
+		if err := app.Save(user); err != nil {
+			return p.InvalidDataResponse(engine, e, "Konnte Nutzer nicht deaktivieren: "+err.Error(), user.Fixed())
+		}
+
+		DeleteSessionsForUser(app, user.Id)
+
+		req := templating.NewRequest(e)
+		if req.User() != nil && req.User().Id == user.Id {
+			return e.Redirect(303, "/login/")
+		}
+
+		fu := user.Fixed()
+		data["user"] = &fu
+		data["success"] = "Nutzer " + fu.Name + "(" + fu.Email + ") wurde deaktiviert."
+
+		e.Response.Header().Add("HX-Push-Url", "false")
+		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
 
 func (p *UserEditPage) POSTActivate(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		uid := e.Request.PathValue(UID_PATH_VALUE)
-		req := templating.NewRequest(e)
-		user := req.User()
-
-		u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-
-		user_proxy := dbmodels.NewUser(u)
-		user_proxy.SetDeactivated(false)
-
-		if err := app.Save(user_proxy); err != nil {
-			return engine.Response500(e, err, nil)
-		}
-
-		go middleware.SESSION_CACHE.DeleteSessionByUserID(user_proxy.Id)
-
-		if user_proxy.Id == user.Id {
-			// INFO: user deactivated his own account, so we log him out
-			return e.Redirect(303, "/login/")
-		}
-
 		data := make(map[string]any)
-		uf := user_proxy.Fixed()
-		data["user"] = &uf
-		data["success"] = "Benutzer " + uf.Name + " aktiviert."
-
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
+		err := p.getData(app, data, e)
 		if err != nil {
 			return engine.Response500(e, err, data)
 		}
 
-		data["csrf_token"] = token
-		data["csrf_nonce"] = nonce
+		user := data["db_user"].(*dbmodels.User)
 
-		return engine.Response200(e, TEMPLATE_USER_EDIT, data, p.Layout)
+		formdata := struct {
+			CSRF  string `form:"csrf_token"`
+			Nonce string `form:"csrf_nonce"`
+		}{}
+
+		if err := e.BindBody(&formdata); err != nil {
+			return p.InvalidDataResponse(engine, e, "Formulardaten ungültig.", user.Fixed())
+		}
+
+		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+			return p.InvalidDataResponse(engine, e, err.Error(), user.Fixed())
+		}
+
+		user.SetDeactivated(false)
+
+		if err := app.Save(user); err != nil {
+			return p.InvalidDataResponse(engine, e, "Konnte Nutzer nicht aktivieren: "+err.Error(), user.Fixed())
+		}
+
+		fu := user.Fixed()
+		data["user"] = &fu
+		data["success"] = "Nutzer " + fu.Name + "(" + fu.Email + ") wurde aktiviert."
+
+		e.Response.Header().Add("HX-Push-Url", "false")
+		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
 
@@ -223,14 +221,6 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 		uid := e.Request.PathValue(UID_PATH_VALUE)
 		req := templating.NewRequest(e)
 		user := req.User()
-
-		if user == nil {
-			return engine.Response404(e, nil, nil)
-		}
-
-		if user.Id != uid && user.Role != "Admin" {
-			return engine.Response404(e, nil, nil)
-		}
 
 		u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
 		if err != nil {
@@ -252,19 +242,19 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
-			return p.InvalidDataResponse(engine, e, err.Error(), &fu)
+			return p.InvalidDataResponse(engine, e, err.Error(), fu)
 		}
 
 		if formdata.CsrfNonce != "" && formdata.CsrfToken != "" {
 			if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.CsrfNonce, formdata.CsrfToken); err != nil {
-				return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", &fu)
+				return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", fu)
 			}
 		} else {
-			return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", &fu)
+			return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", fu)
 		}
 
 		if formdata.Email == "" || formdata.Name == "" {
-			return p.InvalidDataResponse(engine, e, "Bitte alle Felder ausfüllen", &fu)
+			return p.InvalidDataResponse(engine, e, "Bitte alle Felder ausfüllen", fu)
 		}
 
 		// INFO: at this point email and name changes are allowed
@@ -278,20 +268,20 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 				user_proxy.SetRole(formdata.Role)
 				rolechanged = true
 			} else {
-				return p.InvalidDataResponse(engine, e, "Rolle nicht erlaubt", &fu)
+				return p.InvalidDataResponse(engine, e, "Rolle nicht erlaubt", fu)
 			}
 		}
 
 		passwordchanged := false
 		if formdata.Password != "" || formdata.PasswordRepeat != "" || formdata.OldPassword != "" {
 			if user.Role != "Admin" && formdata.OldPassword == "" {
-				return p.InvalidDataResponse(engine, e, "Altes Passwort erforderlich", &fu)
+				return p.InvalidDataResponse(engine, e, "Altes Passwort erforderlich", fu)
 			} else if user.Role != "Admin" && !user_proxy.ValidatePassword(formdata.OldPassword) {
-				return p.InvalidDataResponse(engine, e, "Altes Passwort falsch", &fu)
+				return p.InvalidDataResponse(engine, e, "Altes Passwort falsch", fu)
 			}
 
 			if formdata.Password != formdata.PasswordRepeat {
-				return p.InvalidDataResponse(engine, e, "Passwörter stimmen nicht überein", &fu)
+				return p.InvalidDataResponse(engine, e, "Passwörter stimmen nicht überein", fu)
 			}
 
 			user_proxy.SetPassword(formdata.Password)
@@ -299,14 +289,14 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 		}
 
 		if err := app.Save(user_proxy); err != nil {
-			return p.InvalidDataResponse(engine, e, err.Error(), &fu)
+			return p.InvalidDataResponse(engine, e, err.Error(), fu)
 		}
 
 		slog.Info("UserEditPage: User edited", "user_id", user_proxy.Id, "role_changed", rolechanged, "password_changed", passwordchanged, "formdata", formdata)
 		if rolechanged || (passwordchanged && formdata.Logout == "on") {
 			slog.Error("UserEditPage: Deleting sessions for user", "user_id", user_proxy.Id, "role_changed", rolechanged, "password_changed", passwordchanged)
 			if err := DeleteSessionsForUser(app, user_proxy.Id); err != nil {
-				return p.InvalidDataResponse(engine, e, "Fehler beim Löschen der Sitzungen: "+err.Error(), &fu)
+				return p.InvalidDataResponse(engine, e, "Fehler beim Löschen der Sitzungen: "+err.Error(), fu)
 			}
 
 			if user_proxy.Id == user.Id {
@@ -325,7 +315,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 
 		data["success"] = "Benutzer erfolgreich bearbeitet"
 
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
+		nonce, token, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
 		if err != nil {
 			return engine.Response500(e, err, nil)
 		}

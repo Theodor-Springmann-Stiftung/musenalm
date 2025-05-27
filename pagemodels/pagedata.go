@@ -1,6 +1,7 @@
 package pagemodels
 
 const (
+	LAYOUT_LOGIN_PAGES = "blankfooter"
 	P_KABINETT_NAME    = "lesekabinett"
 	P_BEITRAG_NAME     = "beitrag"
 	P_DATENSCHUTZ_NAME = "datenschutz"
@@ -43,4 +44,6 @@ const (
 	P_USER_EDIT_NAME = "user_edit"
 
 	P_USER_MGMT_NAME = "user_management"
+
+	P_ALMANACH_EDIT_NAME = "almanach_edit"
 )

@@ -139,6 +139,27 @@ func NewCSRFProtector(nonceExpiration, nonceCleanupInterval time.Duration) (*CSR
 	}, nil
 }
 
+func (p *CSRFProtector) GenerateTokenBundleWithExpiration(nonceExpiration time.Duration) (nonceB64 string, validationTokenB64 string, err error) {
+	if nonceExpiration <= 0 {
+		return "", "", errors.New("invalid nonce expiration duration")
+	}
+
+	nonceBytes := make([]byte, defaultNonceSize)
+	if _, errRand := rand.Read(nonceBytes); errRand != nil {
+		return "", "", fmt.Errorf("failed to generate nonce bytes: %w", errRand)
+	}
+	nonceB64 = base64.URLEncoding.EncodeToString(nonceBytes)
+
+	p.nonceCache.addWithExpiration(nonceB64, nonceExpiration)
+
+	mac := hmac.New(sha256.New, p.serverSecret)
+	mac.Write([]byte(nonceB64)) // Sign the base64 encoded nonce string
+	validationTokenBytes := mac.Sum(nil)
+	validationTokenB64 = base64.URLEncoding.EncodeToString(validationTokenBytes)
+
+	return nonceB64, validationTokenB64, nil
+}
+
 func (p *CSRFProtector) GenerateTokenBundle() (nonceB64 string, validationTokenB64 string, err error) {
 	nonceBytes := make([]byte, defaultNonceSize)
 	if _, errRand := rand.Read(nonceBytes); errRand != nil {
@@ -158,7 +179,7 @@ func (p *CSRFProtector) GenerateTokenBundle() (nonceB64 string, validationTokenB
 
 func (p *CSRFProtector) ValidateTokenBundle(nonceSubmittedB64 string, validationTokenSubmittedB64 string) (bool, error) {
 	if nonceSubmittedB64 == "" || validationTokenSubmittedB64 == "" {
-		return false, errors.New("submitted nonce or validation token is empty")
+		return false, errors.New("Leeres CSRF-Token oder Nonce übermittelt.")
 	}
 
 	mac := hmac.New(sha256.New, p.serverSecret)
@@ -167,15 +188,15 @@ func (p *CSRFProtector) ValidateTokenBundle(nonceSubmittedB64 string, validation
 
 	validationTokenSubmittedBytes, err := base64.URLEncoding.DecodeString(validationTokenSubmittedB64)
 	if err != nil {
-		return false, fmt.Errorf("failed to decode submitted validation token: %w", err)
+		return false, errors.New("HMAC-Dekodierung des CSRF-Tokens fehlgeschlagen,")
 	}
 
 	if !hmac.Equal(validationTokenSubmittedBytes, expectedMACTokenBytes) {
-		return false, errors.New("validation token (HMAC) mismatch")
+		return false, errors.New("CSRF-Token ungültig, HMAC-Überprüfung fehlgeschlagen")
 	}
 
 	if !p.nonceCache.Use(nonceSubmittedB64) {
-		return false, errors.New("nonce not found in cache, expired, or already used")
+		return false, errors.New("CSRF-Token ungültig, Nonce abgelaufen oder bereits verwendet.")
 	}
 
 	return true, nil

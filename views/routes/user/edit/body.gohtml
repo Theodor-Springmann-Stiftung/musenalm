@@ -208,27 +208,48 @@
 
 		<div class="col-span-1 mt-12 justify-self-end self-end items-end flex flex-row justify-end">
 			{{ if not $model.user.Deactivated }}
-				<button
-					type="submit"
-					formmethod="POST"
-					formaction="/user/{{ $model.user.Id }}/deactivate"
-					type="button"
-					class="inline-flex justify-center py-2 px-3 underline decoration-dotted
-					hover:decoration-solid
-							rounded-lg text-sm font-medium text-red-800 cursor-pointer">
-					Deaktivieren
-				</button>
+				<form action="/user/{{ $model.user.Id }}/deactivate/" method="POST">
+					<input
+						type="hidden"
+						name="csrf_nonce"
+						id="csrf_nonce"
+						required
+						value="{{ $model.csrf_nonce }}" />
+					<input
+						type="hidden"
+						name="csrf_token"
+						id="csrf_token"
+						required
+						value="{{ $model.csrf_token }}" />
+					<button
+						type="submit"
+						type="button"
+						class="cursor-pointer text-red-700 hover:text-red-900 pr-4 mt-6">
+						<i class="ri-prohibited-2-line"></i>
+						Deaktivieren
+					</button>
+				</form>
 			{{ else }}
-				<button
-					type="submit"
-					formmethod="POST"
-					formaction="/user/{{ $model.user.Id }}/activate"
-					type="button"
-					class="inline-flex justify-center py-2 px-4 border border-transparent hover:border-red-800
-							rounded-lg text-sm font-medium text-red-800 bg-red-200 hover:bg-red-300 cursor-pointer
-							focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline">
-					<i class="ri-restart-line"></i> Aktivieren
-				</button>
+				<form action="/user/{{ $model.user.Id }}/activate/" method="POST">
+					<input
+						type="hidden"
+						name="csrf_nonce"
+						id="csrf_nonce"
+						required
+						value="{{ $model.csrf_nonce }}" />
+					<input
+						type="hidden"
+						name="csrf_token"
+						id="csrf_token"
+						required
+						value="{{ $model.csrf_token }}" />
+					<button
+						type="submit"
+						type="button"
+						class="cursor-pointer text-green-700 hover:text-green-900 pr-4 mt-6">
+						<i class="ri-restart-line"></i> Aktivieren
+					</button>
+				</form>
 			{{ end }}
 		</div>
 	</div>

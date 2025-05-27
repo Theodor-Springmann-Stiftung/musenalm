@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -102,7 +103,7 @@ func (p *UserManagementPage) getData(app core.App, data map[string]any) error {
 	data["len"] = len(users)
 	data["session_counts"] = scmap
 
-	csrfNonce, csrfToken, err := CSRF_CACHE.GenerateTokenBundle()
+	csrfNonce, csrfToken, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
 	if err != nil {
 		return fmt.Errorf("Konnte kein CSRF-Token generieren.")
 	}
@@ -116,15 +117,17 @@ func (p *UserManagementPage) ErrorResponse(engine *templating.Engine, e *core.Re
 	data := make(map[string]any)
 	data["error"] = err.Error()
 
-	nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
+	err = p.getData(e.App, data)
 	if err != nil {
-		return engine.Response500(e, err, data)
+		engine.Response500(e, fmt.Errorf("Nutzerdaten konnten nicht geladen werden: %w", err), data)
 	}
-	data["csrf_nonce"] = nonce
-	data["csrf_token"] = token
 
 	str, err := engine.RenderToString(e, data, p.Template, p.Layout)
+	if err != nil {
+		engine.Response500(e, fmt.Errorf("Konnte Fehlerseite nicht rendern: %w", err), data)
+	}
 
+	e.Response.Header().Add("HX-Push-Url", "false")
 	return e.HTML(400, str)
 }
 
@@ -157,7 +160,7 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht deaktivieren: %w", err))
 		}
 
-		go DeleteSessionsForUser(app, u.Id)
+		DeleteSessionsForUser(app, u.Id)
 
 		data := make(map[string]any)
 		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde deaktiviert."
@@ -242,7 +245,7 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 		}
 
 		u := dbmodels.NewUser(user)
-		go DeleteSessionsForUser(app, u.Id)
+		DeleteSessionsForUser(app, u.Id)
 
 		data := make(map[string]any)
 		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde überall ausgeloggt."

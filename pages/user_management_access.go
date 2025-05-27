@@ -11,6 +11,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 const (
@@ -60,6 +61,10 @@ func (p *UserManagementAccessPage) GET(engine *templating.Engine, app core.App) 
 			access_token = token
 		} else {
 			access_token = dbmodels.NewAccessToken(record)
+			access_token.SetExpires(types.NowDateTime().Add(7 * 24 * time.Hour))
+			if err := app.Save(access_token); err != nil {
+				return engine.Response500(e, err, nil)
+			}
 		}
 
 		// TODO: check if access token exists, if not generate

@@ -52,7 +52,13 @@
 					<tr class="{{ if $u.Deactivated }}deactivated{{ end }}">
 						<td>{{ $u.Name }}</td>
 						<td>{{ $u.Email }}</td>
-						<td>{{ $u.Role }}</td>
+						{{- if eq $u.Role "Admin" -}}
+							<td class="">Administrator</td>
+						{{- else if eq $u.Role "Editor" -}}
+							<td class="">Redakteur</td>
+						{{- else -}}
+							<td class="">Benutzer</td>
+						{{- end -}}
 						<td>{{ index $model.session_counts $u.Id }}</td>
 						<td>
 							<form class="flex flex-row gap-x-4 justify-end">
@@ -71,34 +77,43 @@
 									value="{{ $model.csrf_token }}" />
 								<!-- INFO: we dont use request.fullpath here, since this can be /logout /activate
 									or /deactivate, which would not work with the redirectTo query param -->
-								<button
-									formmethod="GET"
-									formaction="/user/{{ $u.Id }}/edit?redirectTo=/user/management">
-									<i class="ri-pencil-line"></i>
-								</button>
-								<button
-									hx-push-url="false"
-									formmethod="POST"
-									formaction="/user/management/logout/"
-									class="text-orange-800 bg-orange-200 hover:bg-orange-300">
-									<i class="ri-logout-box-r-line"></i>
-								</button>
+								<tool-tip position="top">
+									<div class="data-tip font-bold hidden">Bearbeiten</div>
+									<button
+										formmethod="GET"
+										formaction="/user/{{ $u.Id }}/edit?redirectTo=/user/management">
+										<i class="ri-pencil-line"></i>
+									</button>
+								</tool-tip>
+								<tool-tip position="top">
+									<div class="data-tip font-bold hidden">Logout</div>
+									<button
+										formmethod="POST"
+										formaction="/user/management/logout/"
+										class="text-orange-800 bg-orange-200 hover:bg-orange-300">
+										<i class="ri-logout-box-r-line"></i>
+									</button>
+								</tool-tip>
 								{{- if $u.Deactivated }}
-									<button
-										hx-push-url="false"
-										formmethod="POST"
-										formaction="/user/management/activate/"
-										class="text-blue-800 bg-blue-200 hover:bg-blue-300">
-										<i class="ri-check-line"></i>
-									</button>
+									<tool-tip position="top">
+										<div class="data-tip font-bold hidden">Reaktivieren</div>
+										<button
+											formmethod="POST"
+											formaction="/user/management/activate/"
+											class="text-green-800 bg-green-200 hover:bg-green-300">
+											<i class="ri-restart-line"></i>
+										</button>
+									</tool-tip>
 								{{- else -}}
-									<button
-										hx-push-url="false"
-										formmethod="POST"
-										formaction="/user/management/deactivate/"
-										class="text-red-800 bg-red-200 hover:bg-red-300">
-										<i class="ri-prohibited-2-line"></i>
-									</button>
+									<tool-tip position="top">
+										<div class="data-tip font-bold hidden">Deaktivieren</div>
+										<button
+											formmethod="POST"
+											formaction="/user/management/deactivate/"
+											class="text-red-800 bg-red-200 hover:bg-red-300">
+											<i class="ri-prohibited-2-line"></i>
+										</button>
+									</tool-tip>
 								{{- end -}}
 							</form>
 						</td>
