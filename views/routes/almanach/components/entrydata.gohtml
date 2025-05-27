@@ -19,10 +19,15 @@
 
 
 <div class="container-oversize mt-12 pb-0 mb-0">
-	<div class="pb-1.5 ml-32"><i class="ri-book-line"></i> Almanach</div>
-	{{- if $model.request.user -}}
-		DDD
-	{{- end -}}
+	<div class="pb-1.5 mx-32 flex flex-row items-center justify-between gap-2">
+		<div><i class="ri-book-line"></i> Almanach</div>
+		{{- if (IsAdminOrEditor $model.request.user) -}}
+			<div>
+				<i class="ri-edit-line"></i>
+				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit">Bearbeiten</a>
+			</div>
+		{{- end -}}
+	</div>
 	<div class="pt-0 {{ if $hasContents -}}contentsentrydata{{- end -}}" id="entrydata">
 		<div class="container-normal !py-8">
 			<div class="flex flex-col">

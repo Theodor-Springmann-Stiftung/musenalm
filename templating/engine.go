@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/net/websocket"
@@ -138,6 +139,10 @@ func (e *Engine) funcs() error {
 
 	// TOC
 	e.AddFunc("TOCFromHTML", functions.TOCFromHTML)
+
+	// User Functions
+	e.AddFunc("IsAdminOrEditor", dbmodels.IsAdminOrEditor)
+	e.AddFunc("IsAdmin", dbmodels.IsAdmin)
 
 	return nil
 }
