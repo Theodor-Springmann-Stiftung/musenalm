@@ -47,11 +47,11 @@
 	<!-- INFO: 2. Header -->
 	<div id="pageheading" class="headingcontainer">
 		<h1 class="heading">Bände nach Reihentiteln</h1>
-		{{ template "notifier" . }}
+		{{ template "notifier" $model }}
 
 		{{ if not (or .search .hidden) }}
 			<div class="mt-2">
-				{{ template "alphabet" Dict "active" .letter "letters" $model.common.Letters "search" .search }}
+				{{ template "alphabet" $model }}
 			</div>
 		{{ else }}
 			<div class="mt-2 border-b w-full"></div>

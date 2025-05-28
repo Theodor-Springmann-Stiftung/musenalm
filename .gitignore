@@ -1,6 +1,7 @@
 pb_data/
+backup/
 _tmp/
-import/
+import/Almanach-Bilder/
 Almanach-Bilder/
 musenalm
 node_modules

@@ -1,43 +1,9 @@
-var T = (r) => {
+var v = (r) => {
   throw TypeError(r);
 };
-var _ = (r, t, e) => t.has(r) || T("Cannot " + e);
-var c = (r, t, e) => (_(r, t, "read from private field"), e ? e.call(r) : t.get(r)), l = (r, t, e) => t.has(r) ? T("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(r) : t.set(r, e), u = (r, t, e, i) => (_(r, t, "write to private field"), i ? i.call(r, e) : t.set(r, e), e), g = (r, t, e) => (_(r, t, "access private method"), e);
-const k = "script[xslt-onload]", y = "xslt-template", S = "xslt-transformed", M = "filter-list", m = "filter-list-list", B = "filter-list-item", C = "filter-list-input", w = "filter-list-searchable", I = "scroll-button", q = "tool-tip", P = "abbrev-tooltips", R = "int-link", H = "popup-image", $ = "tab-list", O = "filter-pill", N = "image-reel";
-var d, b, E;
-class V {
-  constructor() {
-    l(this, b);
-    l(this, d);
-    u(this, d, /* @__PURE__ */ new Map());
-  }
-  setup() {
-    let t = htmx.findAll(k);
-    for (let e of t)
-      g(this, b, E).call(this, e);
-  }
-  hookupHTMX() {
-    htmx.on("htmx:load", (t) => {
-      this.setup();
-    });
-  }
-}
-d = new WeakMap(), b = new WeakSet(), E = function(t) {
-  if (t.getAttribute(S) === "true" || !t.hasAttribute(y))
-    return;
-  let e = "#" + t.getAttribute(y), i = c(this, d).get(e);
-  if (!i) {
-    let h = htmx.find(e);
-    if (h) {
-      let A = h.innerHTML ? new DOMParser().parseFromString(h.innerHTML, "application/xml") : h.contentDocument;
-      i = new XSLTProcessor(), i.importStylesheet(A), c(this, d).set(e, i);
-    } else
-      throw new Error("Unknown XSLT template: " + e);
-  }
-  let s = new DOMParser().parseFromString(t.innerHTML, "application/xml"), a = i.transformToFragment(s, document), n = new XMLSerializer().serializeToString(a);
-  t.outerHTML = n;
-};
-class F extends HTMLElement {
+var f = (r, t, e) => t.has(r) || v("Cannot " + e);
+var g = (r, t, e) => (f(r, t, "read from private field"), e ? e.call(r) : t.get(r)), d = (r, t, e) => t.has(r) ? v("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(r) : t.set(r, e), c = (r, t, e, i) => (f(r, t, "write to private field"), i ? i.call(r, e) : t.set(r, e), e), m = (r, t, e) => (f(r, t, "access private method"), e);
+class x extends HTMLElement {
   constructor() {
     super(), this._value = "", this.render();
   }
@@ -106,13 +72,13 @@ class F extends HTMLElement {
 		`;
   }
 }
-var o, x, f, L;
-class U extends HTMLElement {
+const u = "filter-list-list", y = "filter-list-item", T = "filter-list-input", _ = "filter-list-searchable";
+var l, h, b;
+class w extends HTMLElement {
   constructor() {
     super();
-    l(this, f);
-    l(this, o, !1);
-    l(this, x, "");
+    d(this, h);
+    d(this, l, !1);
     this._items = [], this._url = "", this._filterstart = !1, this._placeholder = "Liste filtern...", this._queryparam = "", this._startparams = null, this.render();
   }
   static get observedAttributes() {
@@ -125,7 +91,7 @@ class U extends HTMLElement {
     return this._items;
   }
   connectedCallback() {
-    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && u(this, o, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
+    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && c(this, l, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
   }
   attributeChangedCallback(e, i, s) {
     e === "data-url" && i !== s && (this._url = s, this.render()), e === "data-filterstart" && i !== s && (this._filterstart = s === "true", this.render()), e === "data-placeholder" && i !== s && (this._placeholder = s, this.render()), e === "data-queryparam" && i !== s && (this._queryparam = s, this.render());
@@ -134,14 +100,14 @@ class U extends HTMLElement {
     e.target && e.target.tagName.toLowerCase() === "input" && (this._filter = e.target.value, this.renderList());
   }
   onGainFocus(e) {
-    e.target && e.target.tagName.toLowerCase() === "input" && (u(this, o, !1), this.renderList());
+    e.target && e.target.tagName.toLowerCase() === "input" && (c(this, l, !1), this.renderList());
   }
   onLoseFocus(e) {
     let i = this.querySelector("input");
     if (e.target && e.target === i) {
       if (relatedElement = e.relatedTarget, relatedElement && this.contains(relatedElement))
         return;
-      i.value = "", this._filter = "", this._filterstart && u(this, o, !0), this.renderList();
+      i.value = "", this._filter = "", this._filterstart && c(this, l, !0), this.renderList();
     }
   }
   onEnter(e) {
@@ -154,10 +120,10 @@ class U extends HTMLElement {
   mark() {
     if (typeof Mark != "function")
       return;
-    let e = this.querySelector("#" + m);
+    let e = this.querySelector("#" + u);
     if (!e)
       return;
-    let i = new Mark(e.querySelectorAll("." + w));
+    let i = new Mark(e.querySelectorAll("." + _));
     this._filter && i.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -197,7 +163,7 @@ class U extends HTMLElement {
   }
   getLinkText(e) {
     let i = this.getSearchText(e);
-    return i === "" ? "" : `<span class="${w}">${i}</span>`;
+    return i === "" ? "" : `<span class="${_}">${i}</span>`;
   }
   getURL(e) {
     if (this._queryparam) {
@@ -207,7 +173,7 @@ class U extends HTMLElement {
     return this._url + this.getHREFEncoded(e);
   }
   renderList() {
-    let e = this.querySelector("#" + m);
+    let e = this.querySelector("#" + u);
     e && (e.outerHTML = this.List()), this.mark();
   }
   render() {
@@ -219,7 +185,7 @@ class U extends HTMLElement {
         `, htmx && htmx.process(this);
   }
   ActiveDot(e) {
-    return g(this, f, L).call(this, e), "";
+    return m(this, h, b).call(this, e), "";
   }
   NoItems(e) {
     return e.length === 0 ? '<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>' : "";
@@ -232,7 +198,7 @@ class U extends HTMLElement {
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${C} w-full placeholder:italic px-2 py-0.5" />
+								class="${T} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -247,7 +213,7 @@ class U extends HTMLElement {
         e = this._items.filter((s) => i.every((a) => this.getSearchText(s).toLowerCase().includes(a.toLowerCase())));
       }
     return `
-							<div id="${m}" class="${m} pt-1 max-h-60 overflow-auto bg-stone-50 ${c(this, o) ? "hidden" : ""}">
+							<div id="${u}" class="${u} pt-1 max-h-60 overflow-auto bg-stone-50 ${g(this, l) ? "hidden" : ""}">
 								${e.map(
       (i, s) => `
 									<a
@@ -256,8 +222,8 @@ class U extends HTMLElement {
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${B} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
-										${g(this, f, L).call(this, i) ? 'aria-current="page"' : ""}>
+										class="${y} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										${m(this, h, b).call(this, i) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(i)}
 										${this.getLinkText(i)}
 									</a>
@@ -268,13 +234,13 @@ class U extends HTMLElement {
 				`;
   }
 }
-o = new WeakMap(), x = new WeakMap(), f = new WeakSet(), L = function(e) {
+l = new WeakMap(), h = new WeakSet(), b = function(e) {
   if (!e)
     return !1;
   let i = this.getHREF(e);
   return i === "" ? !1 : this._queryparam && (new URLSearchParams(window.location.search).get(this._queryparam) || "") === i ? !0 : !!window.location.href.endsWith(i);
 };
-class D extends HTMLElement {
+class E extends HTMLElement {
   constructor() {
     super(), this.handleScroll = this.handleScroll.bind(this), this.scrollToTop = this.scrollToTop.bind(this);
   }
@@ -310,7 +276,7 @@ class D extends HTMLElement {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
-class z extends HTMLElement {
+class A extends HTMLElement {
   static get observedAttributes() {
     return ["position", "timeout"];
   }
@@ -411,7 +377,7 @@ class z extends HTMLElement {
     }
   }
 }
-class G extends HTMLElement {
+class k extends HTMLElement {
   constructor() {
     super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
   }
@@ -519,7 +485,7 @@ class G extends HTMLElement {
     this.overlay.parentNode.removeChild(this.overlay), this.overlay = null;
   }
 }
-class K extends HTMLElement {
+class S extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
@@ -602,7 +568,7 @@ class K extends HTMLElement {
     return null;
   }
 }
-class p extends HTMLElement {
+class o extends HTMLElement {
   static get observedAttributes() {
     return ["data-text", "data-abbrevmap"];
   }
@@ -665,7 +631,7 @@ class p extends HTMLElement {
     };
   }
   constructor() {
-    super(), this._abbrevMap = p.defaultAbbrevMap;
+    super(), this._abbrevMap = o.defaultAbbrevMap;
   }
   connectedCallback() {
     this.render();
@@ -675,13 +641,13 @@ class p extends HTMLElement {
   }
   _parseAndSetAbbrevMap(t) {
     if (!t) {
-      this._abbrevMap = p.defaultAbbrevMap;
+      this._abbrevMap = o.defaultAbbrevMap;
       return;
     }
     try {
       this._abbrevMap = JSON.parse(t);
     } catch {
-      this._abbrevMap = p.defaultAbbrevMap;
+      this._abbrevMap = o.defaultAbbrevMap;
     }
   }
   setAbbrevMap(t) {
@@ -705,11 +671,11 @@ class p extends HTMLElement {
       }
       const a = this.findLongestAbbrevAt(t, s, e);
       if (a) {
-        const { match: n, meaning: h } = a;
+        const { match: n, meaning: L } = a;
         i += `
             <tool-tip position="top" class="!inline" timeout="300">
               <div class="data-tip p-2 text-sm text-white bg-gray-700 rounded shadow">
-                ${h}
+                ${L}
               </div>
               <span class="cursor-help text-blue-900 hover:text-slate-800">
                 ${n}
@@ -731,7 +697,7 @@ class p extends HTMLElement {
     return /\s|[.,;:!?]/.test(t);
   }
 }
-class j extends HTMLElement {
+class B extends HTMLElement {
   constructor() {
     super();
   }
@@ -749,11 +715,11 @@ class j extends HTMLElement {
     }
   }
 }
-var v;
-class X extends HTMLElement {
+var p;
+class M extends HTMLElement {
   constructor() {
     super();
-    l(this, v, 176);
+    d(this, p, 176);
     this._images = [];
   }
   connectedCallback() {
@@ -769,24 +735,24 @@ class X extends HTMLElement {
   calculateShownImages() {
     const e = this.getBoundingClientRect();
     console.log(e);
-    const i = Math.floor(e.width / (c(this, v) + 10));
+    const i = Math.floor(e.width / (g(this, p) + 10));
     for (let s = 0; s < this._images.length; s++)
       s < i - 1 ? this._images[s].classList.remove("hidden") : this._images[s].classList.add("hidden");
   }
 }
-v = new WeakMap();
-customElements.define(R, j);
-customElements.define(P, p);
-customElements.define(M, U);
-customElements.define(I, D);
-customElements.define(q, z);
-customElements.define(H, G);
-customElements.define($, K);
-customElements.define(O, F);
-customElements.define(N, X);
+p = new WeakMap();
+const C = "filter-list", I = "scroll-button", q = "tool-tip", R = "abbrev-tooltips", P = "int-link", $ = "popup-image", H = "tab-list", N = "filter-pill", O = "image-reel";
+customElements.define(P, B);
+customElements.define(R, o);
+customElements.define(C, w);
+customElements.define(I, E);
+customElements.define(q, A);
+customElements.define($, k);
+customElements.define(H, S);
+customElements.define(N, x);
+customElements.define(O, M);
 export {
-  p as AbbreviationTooltips,
-  U as FilterList,
-  D as ScrollButton,
-  V as XSLTParseProcess
+  o as AbbreviationTooltips,
+  w as FilterList,
+  E as ScrollButton
 };

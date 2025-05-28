@@ -365,6 +365,7 @@ var MUSENALM_MIME_TYPES = []string{
 	"image/png",
 	"image/vnd.mozilla.apng",
 	"image/jpeg",
+	"image/jpg",
 	"image/jp2",
 	"image/jpx",
 	"image/jpm",

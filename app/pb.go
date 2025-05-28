@@ -168,7 +168,8 @@ func (app *App) setWatchers(engine *templating.Engine) {
 
 func (app *App) bindPages(engine *templating.Engine) ServeFunc {
 	return func(e *core.ServeEvent) error {
-		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+		r := e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+		r.Bind(apis.Gzip())
 		// INFO: Global middleware to get the authenticated user:
 		e.Router.BindFunc(middleware.Authenticated(e.App))
 

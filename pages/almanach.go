@@ -34,9 +34,14 @@ type AlmanachPage struct {
 }
 
 func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
-	router.GET(p.URL, func(e *core.RequestEvent) error {
+	router.GET(p.URL, p.GET(engine, app))
+	return nil
+}
+
+func (p *AlmanachPage) GET(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
-		data := make(map[string]interface{})
+		data := make(map[string]any)
 		filters := NewBeitraegeFilterParameters(e)
 		result, err := NewAlmanachResult(app, id, filters)
 		if err != nil {
@@ -51,9 +56,7 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core
 		}
 
 		return engine.Response200(e, p.Template, data)
-	})
-
-	return nil
+	}
 }
 
 type AlmanachResult struct {

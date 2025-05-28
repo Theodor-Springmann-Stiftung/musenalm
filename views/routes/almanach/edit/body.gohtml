@@ -1,0 +1,31 @@
+{{ $model := . }}
+<!-- Data:
+type AlmanachResult struct {
+	Entry          *dbmodels.Entry
+	Places         []*dbmodels.Place
+	Series         []*dbmodels.Series
+	Contents       []*dbmodels.Content
+	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
+	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents  []*dbmodels.REntriesAgents
+	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+
+	Types    []string
+	HasScans bool
+}
+-->
+
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
+	<div class="flex-col w-full">
+		{{ if $model.redirect_url }}
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Zurück
+			</a>
+		{{ else }}
+			<a href="/" class="text-gray-700 hover:text-slate-950">
+				<i class="ri-arrow-left-s-line"></i> Startseite
+			</a>
+		{{ end }}
+		<h1 class="text-2xl self-baseline w-full my-6 font-bold text-slate-900">Almanach bearbeiten</h1>
+	</div>
+</div>

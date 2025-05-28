@@ -39,8 +39,21 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], app 
 
 func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
 		data := make(map[string]any)
+		filters := NewBeitraegeFilterParameters(e)
+		result, err := NewAlmanachResult(app, id, filters)
+		if err != nil {
+			engine.Response404(e, err, nil)
+		}
+		data["result"] = result
+		data["filters"] = filters
 
-		return engine.Response200(e, p.Template, data)
+		abbrs, err := pagemodels.GetAbks(app)
+		if err == nil {
+			data["abbrs"] = abbrs
+		}
+
+		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }

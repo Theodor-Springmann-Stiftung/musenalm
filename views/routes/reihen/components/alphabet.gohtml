@@ -1,16 +1,16 @@
 {{ $model := . }}
 
-{{ if $model.letters }}
+{{ if and $model.common $model.common.Letters }}
 	<div class="flex flex-row border-b px-3 border-zinc-300 items-end min-h-14">
 		<div id="alphabet" class="alphabet flex flex-row items-end text-xl">
-			{{ range $id, $r := .letters }}
+			{{ range $id, $r := $model.common.Letters }}
 				<a
 					class="odd:bg-stone-100 even:bg-zinc-100 mr-1 border-zinc-300 border-x border-t [&>a[aria-current='page']]:font-bold
 				px-2 no-underline transition-all duration-75
-				{{ if not $model.active -}}inactive{{- end -}}"
+				{{ if not $model.letter -}}inactive{{- end -}}"
 					:class="search ? 'inactive' : 'active'"
 					href="?letter={{ $r }}"
-					{{ if eq $model.active $r }}aria-current="page"{{ end }}
+					{{ if eq $model.letter $r }}aria-current="page"{{ end }}
 					hx-indicator="body"
 					hx-select="main"
 					hx-target="main"
@@ -30,20 +30,37 @@
 				<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
 			</div>
 			<div class="pb-0 border-b-4 border-zinc-300 grow">
-				<input
-					class="px-1.5 font-serif placeholder:italic w-full"
-					type="search"
-					name="search"
-					value="{{ $model.search }}"
-					placeholder="Almanach-Nr oder Suchbegriff"
-					x-model="search"
-					hx-get=""
-					hx-trigger="input changed delay=1500ms, keyup[key=='Enter']"
-					hx-select="#searchcontent"
-					hx-target="#searchcontent"
-					hx-swap="outerHTML"
-					autocomplete="off"
-					{{ if $model.search }}disabled="true"{{ end }} />
+				<form
+					method="GET"
+					hx-boost="false"
+					x-target="searchcontent"
+					role="search"
+					aria-label="Reihentitelsuche">
+					{{- if $model.letter -}}
+						<input type="hidden" name="letter" value="{{- $model.letter -}}" />
+					{{- end -}}
+					{{- if and $model.result $model.result.Agent -}}
+						<input type="hidden" name="agent" value="{{- $model.result.Agent.Id -}}" />
+					{{- end -}}
+					{{- if and $model.result $model.result.Place -}}
+						<input type="hidden" name="place" value="{{- $model.result.Place.Id -}}" />
+					{{- end -}}
+					{{- if $model.year -}}
+						<input type="hidden" name="year" value="{{- $model.year -}}" />
+					{{- end -}}
+					<input
+						class="px-1.5 font-serif placeholder:italic w-full"
+						type="search"
+						name="search"
+						value="{{ $model.search }}"
+						placeholder="Almanach-Nr oder Suchbegriff"
+						x-model="search"
+						@input.debounce="$el.form.requestSubmit()"
+						@search="$el.form.requestSubmit()"
+						autocomplete="off"
+						{{ if $model.search }}disabled="true"{{ end }} />
+					<button x-show="false">Suchen</button>
+				</form>
 			</div>
 			<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
 				{{- if not $model.search -}}

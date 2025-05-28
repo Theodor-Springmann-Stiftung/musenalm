@@ -1,5 +1,11 @@
 {{ $model := . }}
 
+{{ $isPerson := and $model.filter (or (eq $model.filter "noorg") (eq $model.filter "musik") (eq
+	$model.filter "text") (eq $model.filter "graphik") (eq $model.filter "hrsg"))
+}}
+
+{{ $isOrg := and $model.filter (eq $model.filter "org") }}
+
 
 <div class="ml-12 shrink-0 grow-0 mr-2.5">
 	<div class="min-w-[22.5rem] max-w-96 flex flex-row relative ml-auto">
@@ -7,20 +13,32 @@
 			<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
 		</div>
 		<div class="pb-0 border-b-4 border-zinc-300 grow">
-			<input
-				class="px-1.5 font-serif placeholder:italic w-full"
-				type="search"
-				name="search"
-				value="{{ $model.search }}"
-				placeholder="Suchbegriff"
-				x-model="search"
-				hx-get=""
-				hx-trigger="input delay:1000ms, keyup[enter]"
-				hx-select="#searchresults"
-				hx-target="#searchresults"
-				hx-swap="outerHTML"
-				autocomplete="off"
-				{{ if $model.search }}disabled="true"{{ end }} />
+			<form
+				method="GET"
+				hx-boost="false"
+				x-target="searchresults"
+				role="search"
+				aria-label="Personensuche">
+				{{- if $model.filter -}}
+					<input type="hidden" name="filter" value="{{- $model.filter -}}" />
+				{{- end -}}
+				{{- if $model.letter -}}
+					<input type="hidden" name="letter" value="{{- $model.letter -}}" />
+				{{- end -}}
+				<input
+					value="{{ $model.search }}"
+					placeholder="Suchbegriff"
+					type="search"
+					name="search"
+					class="px-1.5 font-serif placeholder:italic w-full"
+					aria-label="Personensuche"
+					x-model="search"
+					autocomplete="off"
+					@input.debounce="$el.form.requestSubmit()"
+					@search="$el.form.requestSubmit()"
+					{{ if $model.search }}disabled="true"{{ end }} />
+				<button x-show="false">Suchen</button>
+			</form>
 		</div>
 		<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
 			{{- if not $model.search -}}
