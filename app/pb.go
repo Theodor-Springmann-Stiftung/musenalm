@@ -89,9 +89,9 @@ func (app *App) setupTestuser() BootFunc {
 		}
 
 		superuser, err := e.App.FindAuthRecordByEmail(superusersCol, TEST_SUPERUSER_MAIL)
-		if err != nil {
+		if err != nil && app.MAConfig.AllowTestLogin {
 			superuser = core.NewRecord(superusersCol)
-		} else if !app.MAConfig.AllowTestLogin {
+		} else if err == nil && !app.MAConfig.AllowTestLogin {
 			// INFO: we to it as a raw query here since PB does not support deleting the last superuser
 			_, err = e.App.DB().
 				NewQuery("DELETE FROM " + superusersCol.Name + " WHERE id = '" + superuser.Id + "'").
@@ -100,6 +100,8 @@ func (app *App) setupTestuser() BootFunc {
 				return fmt.Errorf("Failed to delete superuser account: %w.", err)
 			}
 
+			return nil
+		} else if err != nil {
 			return nil
 		}
 

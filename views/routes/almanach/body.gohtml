@@ -114,51 +114,57 @@
 			<div class="flex flex-row justify-end">
 				{{- if gt (len $model.result.Types) 1 -}}
 					<div>
-						<label
-							for="typefilter"
-							class="align-baseline h-min self-end pb-1 mr-1.5 text-sm	font-sans text-stone-700">
-							Kategorie
-						</label>
-						<select
-							class="h-min pb-1 border-b-4 border-zinc-300 px-1.5 mr-8"
-							name="typefilter"
-							id="typefilter"
-							autocomplete="off"
-							hx-get="./"
-							trigger="change"
-							hx-indicator="body"
-							hx-select="#almanachcontents"
-							hx-target="#almanachcontents"
-							hx-swap="outerHTML show:none">
-							<option value="">Alle</option>
-							{{- range $i, $t := $model.result.Types -}}
-								<option value="{{- $t -}}" {{- if eq $model.filters.Type $t -}}selected{{- end -}}>
-									{{- $t -}}
-								</option>
-							{{- end -}}
-						</select>
+						<form
+							method="GET"
+							hx-boost="false"
+							x-target="almanachcontents"
+							aria-label="Filter für Beitragstypen">
+							<label
+								for="typefilter"
+								class="align-baseline h-min self-end pb-1 mr-1.5 text-sm	font-sans text-stone-700">
+								Kategorie
+							</label>
+							<select
+								class="h-min pb-1 border-b-4 border-zinc-300 px-1.5 mr-8"
+								name="typefilter"
+								id="typefilter"
+								autocomplete="off"
+								@change.debounce="$el.form.requestSubmit()">
+								<option value="">Alle</option>
+								{{- range $i, $t := $model.result.Types -}}
+									<option
+										value="{{- $t -}}"
+										{{- if eq $model.filters.Type $t -}}selected{{- end -}}>
+										{{- $t -}}
+									</option>
+								{{- end -}}
+							</select>
+							<button x-show="false">Filtern</button>
+						</form>
 					</div>
 				{{- end -}}
 				{{- if $model.result.HasScans -}}
 					<div>
-						<label
-							for="onlyscans"
-							class="align-baseline h-min self-end pb-1 mr-1.5 text-sm	font-sans text-stone-700">
-							Nur Digitalisate anzeigen
-						</label>
-						<input
-							class=""
-							type="checkbox"
-							id="onlyscans"
-							name="onlyscans"
-							autocomplete="off"
-							hx-get="./"
-							trigger="change"
-							hx-select="#almanachcontents"
-							hx-target="#almanachcontents"
-							hx-swap="outerHTML show:none"
-							hx-indicator="body"
-							{{ if $model.filters.OnlyScans -}}checked{{- end -}} />
+						<form
+							method="GET"
+							hx-boost="false"
+							x-target="almanachcontents"
+							aria-label="Filter für digialisierte Beiträge">
+							<label
+								for="onlyscans"
+								class="align-baseline h-min self-end pb-1 mr-1.5 text-sm	font-sans text-stone-700">
+								Nur Digitalisate anzeigen
+							</label>
+							<input
+								class=""
+								type="checkbox"
+								id="onlyscans"
+								name="onlyscans"
+								autocomplete="off"
+								@change.debounce="$el.form.requestSubmit()"
+								{{ if $model.filters.OnlyScans -}}checked{{- end -}} />
+							<button x-show="false">Filtern</button>
+						</form>
 					</div>
 				{{- end -}}
 			</div>
