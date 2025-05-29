@@ -1,31 +1,31 @@
-var $ = Object.defineProperty;
-var I = (l) => {
-  throw TypeError(l);
+var tt = Object.defineProperty;
+var w = (a) => {
+  throw TypeError(a);
 };
-var D = (l, i, t) => i in l ? $(l, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[i] = t;
-var _ = (l, i, t) => D(l, typeof i != "symbol" ? i + "" : i, t), g = (l, i, t) => i.has(l) || I("Cannot " + t);
-var f = (l, i, t) => (g(l, i, "read from private field"), t ? t.call(l) : i.get(l)), c = (l, i, t) => i.has(l) ? I("Cannot add the same private member more than once") : i instanceof WeakSet ? i.add(l) : i.set(l, t), u = (l, i, t, e) => (g(l, i, "write to private field"), e ? e.call(l, t) : i.set(l, t), t), b = (l, i, t) => (g(l, i, "access private method"), t);
-class N extends HTMLElement {
+var et = (a, s, t) => s in a ? tt(a, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : a[s] = t;
+var u = (a, s, t) => et(a, typeof s != "symbol" ? s + "" : s, t), S = (a, s, t) => s.has(a) || w("Cannot " + t);
+var L = (a, s, t) => (S(a, s, "read from private field"), t ? t.call(a) : s.get(a)), _ = (a, s, t) => s.has(a) ? w("Cannot add the same private member more than once") : s instanceof WeakSet ? s.add(a) : s.set(a, t), f = (a, s, t, e) => (S(a, s, "write to private field"), e ? e.call(a, t) : s.set(a, t), t), v = (a, s, t) => (S(a, s, "access private method"), t);
+class it extends HTMLElement {
   constructor() {
     super(), this._value = "", this.render();
   }
   static get observedAttributes() {
     return ["data-text", "data-queryparam", "data-value"];
   }
-  set value(i) {
-    this.setAttribute("data-value", i);
+  set value(s) {
+    this.setAttribute("data-value", s);
   }
   get value() {
     return this.getAttribute("data-value") || "";
   }
-  set text(i) {
-    this.setAttribute("data-text", i);
+  set text(s) {
+    this.setAttribute("data-text", s);
   }
   get text() {
     return this.getAttribute("data-text") || "";
   }
-  set queryparam(i) {
-    this.setAttribute("data-queryparam", i);
+  set queryparam(s) {
+    this.setAttribute("data-queryparam", s);
   }
   get queryparam() {
     return this.getAttribute("data-queryparam") || "";
@@ -33,13 +33,13 @@ class N extends HTMLElement {
   connectedCallback() {
     this._filter = this.text, this._queryparam = this.queryparam, this.render(), htmx.process(this);
   }
-  attributeChangedCallback(i, t, e) {
-    t !== e && (i === "data-text" && (this._filter = e), i === "data-queryparam" && (this._queryparam = e), i === "data-value" && (this._value = e), this.render());
+  attributeChangedCallback(s, t, e) {
+    t !== e && (s === "data-text" && (this._filter = e), s === "data-queryparam" && (this._queryparam = e), s === "data-value" && (this._value = e), this.render());
   }
   getURL() {
     if (this._queryparam) {
-      let i = new URL(window.location), t = new URLSearchParams(i.search);
-      return t.delete(this._queryparam), t.delete("page"), i.search = t.toString(), i.toString();
+      let s = new URL(window.location), t = new URLSearchParams(s.search);
+      return t.delete(this._queryparam), t.delete("page"), s.search = t.toString(), s.toString();
     }
     return "#";
   }
@@ -74,13 +74,13 @@ class N extends HTMLElement {
 		`;
   }
 }
-const p = "filter-list-list", q = "filter-list-item", H = "filter-list-input", T = "filter-list-searchable";
-var o, d, S;
-class U extends HTMLElement {
+const g = "filter-list-list", st = "filter-list-item", nt = "filter-list-input", x = "filter-list-searchable";
+var h, m, y;
+class lt extends HTMLElement {
   constructor() {
     super();
-    c(this, d);
-    c(this, o, !1);
+    _(this, m);
+    _(this, h, !1);
     this._items = [], this._url = "", this._filterstart = !1, this._placeholder = "Liste filtern...", this._queryparam = "", this._startparams = null, this.render();
   }
   static get observedAttributes() {
@@ -93,23 +93,23 @@ class U extends HTMLElement {
     return this._items;
   }
   connectedCallback() {
-    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && u(this, o, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
+    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && f(this, h, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
   }
-  attributeChangedCallback(t, e, s) {
-    t === "data-url" && e !== s && (this._url = s, this.render()), t === "data-filterstart" && e !== s && (this._filterstart = s === "true", this.render()), t === "data-placeholder" && e !== s && (this._placeholder = s, this.render()), t === "data-queryparam" && e !== s && (this._queryparam = s, this.render());
+  attributeChangedCallback(t, e, i) {
+    t === "data-url" && e !== i && (this._url = i, this.render()), t === "data-filterstart" && e !== i && (this._filterstart = i === "true", this.render()), t === "data-placeholder" && e !== i && (this._placeholder = i, this.render()), t === "data-queryparam" && e !== i && (this._queryparam = i, this.render());
   }
   onInput(t) {
     t.target && t.target.tagName.toLowerCase() === "input" && (this._filter = t.target.value, this.renderList());
   }
   onGainFocus(t) {
-    t.target && t.target.tagName.toLowerCase() === "input" && (u(this, o, !1), this.renderList());
+    t.target && t.target.tagName.toLowerCase() === "input" && (f(this, h, !1), this.renderList());
   }
   onLoseFocus(t) {
     let e = this.querySelector("input");
     if (t.target && t.target === e) {
       if (relatedElement = t.relatedTarget, relatedElement && this.contains(relatedElement))
         return;
-      e.value = "", this._filter = "", this._filterstart && u(this, o, !0), this.renderList();
+      e.value = "", this._filter = "", this._filterstart && f(this, h, !0), this.renderList();
     }
   }
   onEnter(t) {
@@ -122,10 +122,10 @@ class U extends HTMLElement {
   mark() {
     if (typeof Mark != "function")
       return;
-    let t = this.querySelector("#" + p);
+    let t = this.querySelector("#" + g);
     if (!t)
       return;
-    let e = new Mark(t.querySelectorAll("." + T));
+    let e = new Mark(t.querySelectorAll("." + x));
     this._filter && e.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -165,17 +165,17 @@ class U extends HTMLElement {
   }
   getLinkText(t) {
     let e = this.getSearchText(t);
-    return e === "" ? "" : `<span class="${T}">${e}</span>`;
+    return e === "" ? "" : `<span class="${x}">${e}</span>`;
   }
   getURL(t) {
     if (this._queryparam) {
-      let e = new URL(window.location), s = new URLSearchParams(e.search);
-      return s.set(this._queryparam, this.getHREF(t)), s.delete("page"), e.search = s.toString(), e.toString();
+      let e = new URL(window.location), i = new URLSearchParams(e.search);
+      return i.set(this._queryparam, this.getHREF(t)), i.delete("page"), e.search = i.toString(), e.toString();
     }
     return this._url + this.getHREFEncoded(t);
   }
   renderList() {
-    let t = this.querySelector("#" + p);
+    let t = this.querySelector("#" + g);
     t && (t.outerHTML = this.List()), this.mark();
   }
   render() {
@@ -187,7 +187,7 @@ class U extends HTMLElement {
         `, htmx && htmx.process(this);
   }
   ActiveDot(t) {
-    return b(this, d, S).call(this, t), "";
+    return v(this, m, y).call(this, t), "";
   }
   NoItems(t) {
     return t.length === 0 ? '<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>' : "";
@@ -200,7 +200,7 @@ class U extends HTMLElement {
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${H} w-full placeholder:italic px-2 py-0.5" />
+								class="${nt} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -212,20 +212,20 @@ class U extends HTMLElement {
         t = this._items.filter((e) => this.getSearchText(e).toLowerCase().startsWith(this._filter.toLowerCase()));
       else {
         let e = this._filter.split(" ");
-        t = this._items.filter((s) => e.every((n) => this.getSearchText(s).toLowerCase().includes(n.toLowerCase())));
+        t = this._items.filter((i) => e.every((n) => this.getSearchText(i).toLowerCase().includes(n.toLowerCase())));
       }
     return `
-							<div id="${p}" class="${p} pt-1 max-h-60 overflow-auto bg-stone-50 ${f(this, o) ? "hidden" : ""}">
+							<div id="${g}" class="${g} pt-1 max-h-60 overflow-auto bg-stone-50 ${L(this, h) ? "hidden" : ""}">
 								${t.map(
-      (e, s) => `
+      (e, i) => `
 									<a
 										href="${this.getURL(e)}"
 										hx-indicator="body"
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${q} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
-										${b(this, d, S).call(this, e) ? 'aria-current="page"' : ""}>
+										class="${st} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${i % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										${v(this, m, y).call(this, e) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(e)}
 										${this.getLinkText(e)}
 									</a>
@@ -236,13 +236,13 @@ class U extends HTMLElement {
 				`;
   }
 }
-o = new WeakMap(), d = new WeakSet(), S = function(t) {
+h = new WeakMap(), m = new WeakSet(), y = function(t) {
   if (!t)
     return !1;
   let e = this.getHREF(t);
   return e === "" ? !1 : this._queryparam && (new URLSearchParams(window.location.search).get(this._queryparam) || "") === e ? !0 : !!window.location.href.endsWith(e);
 };
-class F extends HTMLElement {
+class at extends HTMLElement {
   constructor() {
     super(), this.handleScroll = this.handleScroll.bind(this), this.scrollToTop = this.scrollToTop.bind(this);
   }
@@ -278,7 +278,7 @@ class F extends HTMLElement {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
-class G extends HTMLElement {
+class rt extends HTMLElement {
   static get observedAttributes() {
     return ["position", "timeout"];
   }
@@ -287,8 +287,8 @@ class G extends HTMLElement {
   }
   connectedCallback() {
     this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal");
-    const i = this.querySelector(".data-tip"), t = i ? i.innerHTML : "Tooltip";
-    i && i.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = t, this._tooltipBox.className = [
+    const s = this.querySelector(".data-tip"), t = s ? s.innerHTML : "Tooltip";
+    s && s.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = t, this._tooltipBox.className = [
       "opacity-0",
       "hidden",
       "absolute",
@@ -306,8 +306,8 @@ class G extends HTMLElement {
       "font-sans"
     ].join(" "), this.appendChild(this._tooltipBox), this._updatePosition(), this.addEventListener("mouseenter", () => this._showTooltip()), this.addEventListener("mouseleave", () => this._hideTooltip());
   }
-  attributeChangedCallback(i, t, e) {
-    i === "position" && this._tooltipBox && this._updatePosition(), i === "timeout" && e && (this._timeout = parseInt(e) || 200);
+  attributeChangedCallback(s, t, e) {
+    s === "position" && this._tooltipBox && this._updatePosition(), s === "timeout" && e && (this._timeout = parseInt(e) || 200);
   }
   _showTooltip() {
     clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._tooltipBox.classList.remove("hidden"), setTimeout(() => {
@@ -379,7 +379,7 @@ class G extends HTMLElement {
     }
   }
 }
-class W extends HTMLElement {
+class ot extends HTMLElement {
   constructor() {
     super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
   }
@@ -387,14 +387,14 @@ class W extends HTMLElement {
     this.classList.add("cursor-pointer"), this.classList.add("select-none"), this._imageURL = this.getAttribute("data-image-url") || "", this._hideDLButton = this.getAttribute("data-hide-dl-button") || !1, this._preview = this.querySelector("img"), this._description = this.querySelector(".image-description"), this._preview && this._preview.addEventListener("click", () => {
       this.showOverlay();
     });
-    let i = this.closest("image-reel, .image-reel");
-    i || (i = document), this._others = Array.from(i.querySelectorAll("popup-image:not(.hidden)")), this._thisindex = this._others.indexOf(this);
+    let s = this.closest("image-reel, .image-reel");
+    s || (s = document), this._others = Array.from(s.querySelectorAll("popup-image:not(.hidden)")), this._thisindex = this._others.indexOf(this);
   }
   disconnectedCallback() {
     this.overlay && this.overlay.parentNode && this.overlay.parentNode.removeChild(this.overlay);
   }
-  Keys(i) {
-    i.repeat || (i.preventDefault(), i.key === "ArrowRight" ? this.next() : i.key === "ArrowLeft" ? this.prev() : i.key === "Escape" && this.hideOverlay());
+  Keys(s) {
+    s.repeat || (s.preventDefault(), s.key === "ArrowRight" ? this.next() : s.key === "ArrowLeft" ? this.prev() : s.key === "Escape" && this.hideOverlay());
   }
   next() {
     this._others[this._thisindex + 1] ? (this.hideOverlay(), this._others[this._thisindex + 1].showOverlay()) : document.addEventListener("keydown", this.Keys.bind(this), { once: !0 });
@@ -432,15 +432,15 @@ class W extends HTMLElement {
 					</div>
       </div>
     `;
-    const i = this.overlay.querySelector("#closebutton");
-    i && i.addEventListener("click", () => {
+    const s = this.overlay.querySelector("#closebutton");
+    s && s.addEventListener("click", () => {
       this.hideOverlay();
     });
     const t = this.overlay.querySelector("#nextbtn");
     t && t.addEventListener("click", this.next.bind(this));
     const e = this.overlay.querySelector("#prevbtn");
-    e && e.addEventListener("click", this.prev.bind(this)), this.overlay.addEventListener("click", (s) => {
-      s.target === this.overlay && this.hideOverlay();
+    e && e.addEventListener("click", this.prev.bind(this)), this.overlay.addEventListener("click", (i) => {
+      i.target === this.overlay && this.hideOverlay();
     }), document.addEventListener("keydown", this.Keys.bind(this), { once: !0 }), document.body.appendChild(this.overlay);
   }
   descriptionImgClass() {
@@ -487,7 +487,7 @@ class W extends HTMLElement {
     this.overlay.parentNode.removeChild(this.overlay), this.overlay = null;
   }
 }
-class K extends HTMLElement {
+class ht extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
@@ -496,36 +496,36 @@ class K extends HTMLElement {
   connectedCallback() {
     this._headings = Array.from(this.querySelectorAll(".tab-list-head")), this._contents = Array.from(this.querySelectorAll(".tab-list-panel")), this.hookupEvtHandlers(), this.hideDependent(), this._headings.length === 1 && this.expand(0);
   }
-  expand(i) {
-    i < 0 || i >= this._headings.length || (this.shown = i, this._contents.forEach((t, e) => {
-      e === i ? (t.classList.remove("hidden"), this._headings[e].setAttribute("aria-pressed", "true")) : (t.classList.add("hidden"), this._headings[e].setAttribute("aria-pressed", "false"));
+  expand(s) {
+    s < 0 || s >= this._headings.length || (this.shown = s, this._contents.forEach((t, e) => {
+      e === s ? (t.classList.remove("hidden"), this._headings[e].setAttribute("aria-pressed", "true")) : (t.classList.add("hidden"), this._headings[e].setAttribute("aria-pressed", "false"));
     }));
   }
   hookupEvtHandlers() {
-    for (let i of this._headings)
-      i.addEventListener("click", this.handleTabClick.bind(this)), i.classList.add("cursor-pointer"), i.classList.add("select-none"), i.setAttribute("role", "button"), i.setAttribute("aria-pressed", "false"), i.setAttribute("tabindex", "0");
-    for (let i of this._contents)
-      i.classList.add("hidden");
+    for (let s of this._headings)
+      s.addEventListener("click", this.handleTabClick.bind(this)), s.classList.add("cursor-pointer"), s.classList.add("select-none"), s.setAttribute("role", "button"), s.setAttribute("aria-pressed", "false"), s.setAttribute("tabindex", "0");
+    for (let s of this._contents)
+      s.classList.add("hidden");
   }
   restore() {
-    for (let i of this._headings)
-      i.classList.add("cursor-pointer"), i.classList.add("select-none"), i.setAttribute("role", "button"), i.setAttribute("aria-pressed", "false"), i.setAttribute("tabindex", "0"), i.classList.remove("pointer-events-none"), i.classList.remove("!text-slate-900");
-    for (let i of this._contents)
-      i.classList.add("hidden");
+    for (let s of this._headings)
+      s.classList.add("cursor-pointer"), s.classList.add("select-none"), s.setAttribute("role", "button"), s.setAttribute("aria-pressed", "false"), s.setAttribute("tabindex", "0"), s.classList.remove("pointer-events-none"), s.classList.remove("!text-slate-900");
+    for (let s of this._contents)
+      s.classList.add("hidden");
   }
   disable() {
-    for (let i of this._headings)
-      i.classList.remove("cursor-pointer"), i.classList.remove("select-none"), i.removeAttribute("role"), i.removeAttribute("aria-pressed"), i.removeAttribute("tabindex"), i.classList.add("pointer-events-none"), i.classList.add("!text-slate-900");
+    for (let s of this._headings)
+      s.classList.remove("cursor-pointer"), s.classList.remove("select-none"), s.removeAttribute("role"), s.removeAttribute("aria-pressed"), s.removeAttribute("tabindex"), s.classList.add("pointer-events-none"), s.classList.add("!text-slate-900");
   }
   showAll() {
-    this._showall = !0, this.shown = -1, this.disable(), this._contents.forEach((i, t) => {
-      i.classList.remove("hidden");
-      let e = this._headings[t], s = e.querySelectorAll(".show-opened");
-      for (let a of s)
-        a.classList.add("hidden");
+    this._showall = !0, this.shown = -1, this.disable(), this._contents.forEach((s, t) => {
+      s.classList.remove("hidden");
+      let e = this._headings[t], i = e.querySelectorAll(".show-opened");
+      for (let l of i)
+        l.classList.add("hidden");
       let n = e.querySelectorAll(".show-closed");
-      for (let a of n)
-        a.classList.add("hidden");
+      for (let l of n)
+        l.classList.add("hidden");
     });
   }
   default() {
@@ -533,27 +533,27 @@ class K extends HTMLElement {
   }
   hideDependent() {
     if (this.shown < 0)
-      for (const i of this._headings)
-        this._hideAllDep(i, !1);
+      for (const s of this._headings)
+        this._hideAllDep(s, !1);
     else
-      this._headings.forEach((i, t) => {
-        this._hideAllDep(i, t === this.shown);
+      this._headings.forEach((s, t) => {
+        this._hideAllDep(s, t === this.shown);
       });
   }
-  _hideAllDep(i, t) {
-    const e = i.querySelectorAll(".show-closed");
+  _hideAllDep(s, t) {
+    const e = s.querySelectorAll(".show-closed");
     for (let n of e)
       t ? n.classList.add("hidden") : n.classList.remove("hidden");
-    const s = Array.from(i.querySelectorAll(".show-opened"));
-    for (let n of s)
+    const i = Array.from(s.querySelectorAll(".show-opened"));
+    for (let n of i)
       t ? n.classList.remove("hidden") : n.classList.add("hidden");
   }
-  handleTabClick(i) {
-    if (!i.target) {
+  handleTabClick(s) {
+    if (!s.target) {
       console.warn("Invalid event target");
       return;
     }
-    const t = this.findParentWithClass(i.target, "tab-list-head");
+    const t = this.findParentWithClass(s.target, "tab-list-head");
     if (!t) {
       console.warn("No parent found with class 'tab-list-head'");
       return;
@@ -561,16 +561,16 @@ class K extends HTMLElement {
     const e = this._headings.indexOf(t);
     e === this.shown ? (this._contents[e].classList.toggle("hidden"), this._headings[e].setAttribute("aria-pressed", "false"), this.shown = -1) : this.expand(e), this.hideDependent();
   }
-  findParentWithClass(i, t) {
-    for (; i; ) {
-      if (i.classList && i.classList.contains(t))
-        return i;
-      i = i.parentElement;
+  findParentWithClass(s, t) {
+    for (; s; ) {
+      if (s.classList && s.classList.contains(t))
+        return s;
+      s = s.parentElement;
     }
     return null;
   }
 }
-class h extends HTMLElement {
+class p extends HTMLElement {
   static get observedAttributes() {
     return ["data-text", "data-abbrevmap"];
   }
@@ -633,73 +633,73 @@ class h extends HTMLElement {
     };
   }
   constructor() {
-    super(), this._abbrevMap = h.defaultAbbrevMap;
+    super(), this._abbrevMap = p.defaultAbbrevMap;
   }
   connectedCallback() {
     this.render();
   }
-  attributeChangedCallback(i, t, e) {
-    t !== e && (i === "data-abbrevmap" && this._parseAndSetAbbrevMap(e), this.render());
+  attributeChangedCallback(s, t, e) {
+    t !== e && (s === "data-abbrevmap" && this._parseAndSetAbbrevMap(e), this.render());
   }
-  _parseAndSetAbbrevMap(i) {
-    if (!i) {
-      this._abbrevMap = h.defaultAbbrevMap;
+  _parseAndSetAbbrevMap(s) {
+    if (!s) {
+      this._abbrevMap = p.defaultAbbrevMap;
       return;
     }
     try {
-      this._abbrevMap = JSON.parse(i);
+      this._abbrevMap = JSON.parse(s);
     } catch {
-      this._abbrevMap = h.defaultAbbrevMap;
+      this._abbrevMap = p.defaultAbbrevMap;
     }
   }
-  setAbbrevMap(i) {
-    typeof i == "object" && i !== null && (this._abbrevMap = i, this.render());
+  setAbbrevMap(s) {
+    typeof s == "object" && s !== null && (this._abbrevMap = s, this.render());
   }
   get text() {
     return this.getAttribute("data-text") || "";
   }
-  set text(i) {
-    this.setAttribute("data-text", i);
+  set text(s) {
+    this.setAttribute("data-text", s);
   }
   render() {
     this.innerHTML = this.transformText(this.text, this._abbrevMap);
   }
-  transformText(i, t) {
-    let e = "", s = 0;
-    for (; s < i.length; ) {
-      if (s > 0 && !this.isSpaceOrPunct(i[s - 1])) {
-        e += i[s], s++;
+  transformText(s, t) {
+    let e = "", i = 0;
+    for (; i < s.length; ) {
+      if (i > 0 && !this.isSpaceOrPunct(s[i - 1])) {
+        e += s[i], i++;
         continue;
       }
-      const n = this.findLongestAbbrevAt(i, s, t);
+      const n = this.findLongestAbbrevAt(s, i, t);
       if (n) {
-        const { match: a, meaning: r } = n;
+        const { match: l, meaning: r } = n;
         e += `
             <tool-tip position="top" class="!inline" timeout="300">
               <div class="data-tip p-2 text-sm text-white bg-gray-700 rounded shadow">
                 ${r}
               </div>
               <span class="cursor-help text-blue-900 hover:text-slate-800">
-                ${a}
+                ${l}
               </span>
             </tool-tip>
-          `, s += a.length;
+          `, i += l.length;
       } else
-        e += i[s], s++;
+        e += s[i], i++;
     }
     return e;
   }
-  findLongestAbbrevAt(i, t, e) {
-    let s = null, n = 0;
-    for (const a of Object.keys(e))
-      i.startsWith(a, t) && a.length > n && (s = a, n = a.length);
-    return s ? { match: s, meaning: e[s] } : null;
+  findLongestAbbrevAt(s, t, e) {
+    let i = null, n = 0;
+    for (const l of Object.keys(e))
+      s.startsWith(l, t) && l.length > n && (i = l, n = l.length);
+    return i ? { match: i, meaning: e[i] } : null;
   }
-  isSpaceOrPunct(i) {
-    return /\s|[.,;:!?]/.test(i);
+  isSpaceOrPunct(s) {
+    return /\s|[.,;:!?]/.test(s);
   }
 }
-class V extends HTMLElement {
+class dt extends HTMLElement {
   constructor() {
     super();
   }
@@ -709,7 +709,7 @@ class V extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListener("click", this.handleClick);
   }
-  handleClick(i) {
+  handleClick(s) {
     const t = this.getAttribute("data-jump");
     if (t) {
       const e = document.querySelector(t);
@@ -717,16 +717,16 @@ class V extends HTMLElement {
     }
   }
 }
-var m;
-class z extends HTMLElement {
+var b;
+class ct extends HTMLElement {
   constructor() {
     super();
-    c(this, m, 176);
+    _(this, b, 176);
     this._images = [];
   }
   connectedCallback() {
     this._images = Array.from(this.querySelectorAll(".primages")), this.calculateShownImages();
-    const t = new ResizeObserver((e, s) => {
+    const t = new ResizeObserver((e, i) => {
       this.calculateShownImages();
     });
     this._resizeObserver = t, t.observe(this);
@@ -737,79 +737,162 @@ class z extends HTMLElement {
   calculateShownImages() {
     const t = this.getBoundingClientRect();
     console.log(t);
-    const e = Math.floor(t.width / (f(this, m) + 10));
-    for (let s = 0; s < this._images.length; s++)
-      s < e - 1 ? this._images[s].classList.remove("hidden") : this._images[s].classList.add("hidden");
+    const e = Math.floor(t.width / (L(this, b) + 10));
+    for (let i = 0; i < this._images.length; i++)
+      i < e - 1 ? this._images[i].classList.remove("hidden") : this._images[i].classList.add("hidden");
   }
 }
-m = new WeakMap();
-const j = "msp-component-wrapper", x = "msp-selected-items-container", J = "msp-selected-item-pill", X = "msp-selected-item-text", A = "msp-selected-item-delete-btn", Y = "msp-controls-area", C = "msp-input-area-wrapper", E = "msp-input-area-default-border", v = "msp-input-area-staged", w = "msp-staging-area-container", P = "msp-staged-item-pill", Z = "msp-staged-item-text", k = "msp-staged-role-select", Q = "msp-staged-cancel-btn", O = "msp-text-input", M = "msp-add-button", B = "msp-options-list", tt = "msp-option-item", et = "msp-option-item-name", it = "msp-option-item-detail", st = "msp-option-item-highlighted", L = "msp-hidden-select", nt = "msp-state-no-selection", at = "msp-state-has-selection", lt = "msp-state-list-open", rt = "msp-state-item-staged";
-class R extends HTMLElement {
+b = new WeakMap();
+const ut = "msr-component-wrapper", O = "msr-selected-items-container", k = "msr-placeholder-no-selection-text", pt = "msr-selected-item-pill", mt = "msr-selected-item-text", _t = "msr-item-name", ft = "msr-item-additional-data", gt = "msr-selected-item-role", B = "msr-selected-item-delete-btn", Et = "msr-controls-area", M = "msr-pre-add-button", R = "msr-input-area-wrapper", E = "msr-input-area-default-border", I = "msr-input-area-staged", $ = "msr-staging-area-container", bt = "msr-staged-item-pill", St = "msr-staged-item-text", A = "msr-staged-role-select", P = "msr-staged-cancel-btn", N = "msr-text-input", D = "msr-add-button", H = "msr-options-list", q = "msr-option-item", Lt = "msr-option-item-name", vt = "msr-option-item-detail", U = "msr-option-item-highlighted", T = "msr-hidden-select", It = "msr-state-no-selection", At = "msr-state-has-selection", Tt = "msr-state-list-open", Ct = "msr-state-item-staged";
+class Y extends HTMLElement {
   constructor() {
     super();
-    _(this, "_blurTimeout", null);
-    this.internals_ = this.attachInternals(), this._value = [], this._stagedItem = null, this._options = [
-      { id: "par_fr", name: "Paris", country: "France" },
-      { id: "par_us", name: "Paris", country: "USA" },
-      { id: "lon_uk", name: "London", country: "UK" },
-      { id: "lon_ca", name: "London", country: "Canada" },
-      { id: "ber_de", name: "Berlin", country: "Germany" },
-      { id: "mad_es", name: "Madrid", country: "Spain" },
-      { id: "rom_it", name: "Rome", country: "Italy" },
-      { id: "tok_jp", name: "Tokyo", country: "Japan" },
-      { id: "syd_au", name: "Sydney", country: "Australia" },
-      { id: "spr_il", name: "Springfield", country: "USA (IL)" },
-      { id: "spr_ma", name: "Springfield", country: "USA (MA)" },
-      { id: "van_ca", name: "Vancouver", country: "Canada" },
-      { id: "van_us", name: "Vancouver", country: "USA (WA)" }
-    ], this._roles = ["Origin", "Destination", "Stop"], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._setupTemplates(), this._bindEventHandlers();
+    u(this, "_blurTimeout", null);
+    this.internals_ = this.attachInternals(), this._value = [], this._stagedItem = null, this._showAddButton = !0, this._placeholderNoSelection = "Keine Elemente ausgewählt", this._placeholderSearch = "Elemente suchen...", this._placeholderRoleSelect = "Rolle auswählen...", this._options = [], this._roles = [
+      "Leitung",
+      "Unterstützung",
+      "Berater",
+      "Beobachter",
+      "Spezialist",
+      "Koordinator"
+    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._setupTemplates(), this._bindEventHandlers();
+  }
+  static get observedAttributes() {
+    return [
+      "disabled",
+      "name",
+      "value",
+      "show-add-button",
+      "placeholder-no-selection",
+      "placeholder-search",
+      "placeholder-role-select"
+    ];
+  }
+  get showAddButton() {
+    return this._showAddButton;
+  }
+  set showAddButton(t) {
+    const e = typeof t == "string" ? t.toLowerCase() !== "false" : !!t;
+    this._showAddButton !== e && (this._showAddButton = e, this.setAttribute("show-add-button", String(e)), this.preAddButtonElement && this._updatePreAddButtonVisibility());
+  }
+  get placeholderNoSelection() {
+    return this._placeholderNoSelection;
+  }
+  set placeholderNoSelection(t) {
+    const e = String(t || "Keine Elemente ausgewählt");
+    this._placeholderNoSelection !== e && (this._placeholderNoSelection = e, this.setAttribute("placeholder-no-selection", e), this.selectedItemsContainer && this._value.length === 0 && this._renderSelectedItems());
+  }
+  get placeholderSearch() {
+    return this._placeholderSearch;
+  }
+  set placeholderSearch(t) {
+    const e = String(t || "Elemente suchen...");
+    this._placeholderSearch !== e && (this._placeholderSearch = e, this.setAttribute("placeholder-search", e), this.inputElement && (this.inputElement.placeholder = e));
+  }
+  get placeholderRoleSelect() {
+    return this._placeholderRoleSelect;
+  }
+  set placeholderRoleSelect(t) {
+    const e = String(t || "Rolle auswählen...");
+    this._placeholderRoleSelect !== e && (this._placeholderRoleSelect = e, this.setAttribute("placeholder-role-select", e), this._stagedItem && this.stagedItemPillContainer && this._renderStagedPillOrInput());
+  }
+  attributeChangedCallback(t, e, i) {
+    if (e !== i)
+      switch (t) {
+        case "disabled":
+          this.disabledCallback(this.hasAttribute("disabled"));
+          break;
+        case "name":
+          this.hiddenSelect && (this.hiddenSelect.name = i);
+          break;
+        case "value":
+          break;
+        case "show-add-button":
+          this.showAddButton = i;
+          break;
+        case "placeholder-no-selection":
+          this.placeholderNoSelection = i;
+          break;
+        case "placeholder-search":
+          this.placeholderSearch = i;
+          break;
+        case "placeholder-role-select":
+          this.placeholderRoleSelect = i;
+          break;
+      }
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${tt} px-3 py-2 text-sm cursor-pointer transition-colors duration-75 group">
-                        <span data-ref="nameEl" class="${et} font-semibold"></span>
-                        <span data-ref="detailEl" class="${it} text-xs ml-2"></span>
+                    <li role="option" class="${q} group">
+                        <span data-ref="nameEl" class="${Lt}"></span>
+                        <span data-ref="detailEl" class="${vt}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
-                    <span class="${J} flex items-center">
-                        <span data-ref="textEl" class="${X}"></span>
-                        <button type="button" data-ref="deleteBtn" class="${A} ml-2">&times;</button>
+                    <span class="${pt} group">
+                        <span data-ref="textEl" class="${mt}"></span>
+                        <button type="button" data-ref="deleteBtn" class="${B} ml-2">&times;</button>
                     </span>
                 `, this.stagedPlacePillTemplate = document.createElement("template"), this.stagedPlacePillTemplate.innerHTML = `
-                    <span class="${P} flex items-center">
-                        <span data-ref="nameEl" class="${Z}"></span>
+                    <span class="${bt} flex items-center">
+                        <span data-ref="nameEl" class="${St}"></span>
                     </span>
                 `, this.stagedCancelBtnTemplate = document.createElement("template"), this.stagedCancelBtnTemplate.innerHTML = `
-                    <button type="button" class="${Q} flex items-center justify-center w-5 h-5">&times;</button>
+                    <button type="button" class="${P} flex items-center justify-center">&times;</button>
+                `, this.stagedRoleSelectTemplate = document.createElement("template"), this.stagedRoleSelectTemplate.innerHTML = `
+                    <select class="${A}">
+                    </select>
                 `;
   }
   _bindEventHandlers() {
     this._handleInput = this._handleInput.bind(this), this._handleKeyDown = this._handleKeyDown.bind(this), this._handleInputKeyDown = this._handleInputKeyDown.bind(this), this._handleFocus = this._handleFocus.bind(this), this._handleBlur = this._handleBlur.bind(this), this._handleOptionMouseDown = this._handleOptionMouseDown.bind(this), this._handleOptionClick = this._handleOptionClick.bind(this), this._handleAddButtonClick = this._handleAddButtonClick.bind(this), this._handleCancelStagedItem = this._handleCancelStagedItem.bind(this), this._handleStagedRoleChange = this._handleStagedRoleChange.bind(this);
   }
-  _getPlaceById(t) {
+  _getItemById(t) {
     return this._options.find((e) => e.id === t);
   }
-  _getAvailableRolesForPlace(t) {
-    const e = this._value.filter((s) => s.placeId === t).map((s) => s.role);
-    return this._roles.filter((s) => !e.includes(s));
+  _getAvailableRolesForItem(t) {
+    const e = this._value.filter((i) => i.itemId === t).map((i) => i.role);
+    return this._roles.filter((i) => !e.includes(i));
+  }
+  setRoles(t) {
+    if (Array.isArray(t) && t.every((e) => typeof e == "string")) {
+      this._roles = [...t], this._stagedItem && this._stagedItem.item && (this._getAvailableRolesForItem(this._stagedItem.item.id).includes(this._stagedItem.currentRole) || (this._stagedItem.currentRole = ""), this._renderStagedPillOrInput(), this._updateAddButtonState());
+      const e = this._value.filter((i) => this._roles.includes(i.role));
+      e.length !== this._value.length && (this.value = e.map((i) => `${i.itemId},${i.role}`));
+    } else
+      console.error("setRoles expects an array of strings.");
+  }
+  setOptions(t) {
+    if (Array.isArray(t) && t.every((e) => e && typeof e.id == "string" && typeof e.name == "string")) {
+      this._options = [...t];
+      const e = this._value.filter((i) => this._getItemById(i.itemId));
+      e.length !== this._value.length && (this.value = e.map((i) => `${i.itemId},${i.role}`)), this._stagedItem && this._stagedItem.item && !this._getItemById(this._stagedItem.item.id) && this._handleCancelStagedItem(), this._filteredOptions = [], this._highlightedIndex = -1, this.inputElement && this.inputElement.value ? this._handleInput({ target: this.inputElement }) : this._hideOptionsList();
+    } else
+      console.error("setOptions expects an array of objects with id and name properties.");
   }
   get value() {
     return this._value;
   }
   set value(t) {
-    Array.isArray(t) ? this._value = t.map((e) => {
-      if (typeof e == "string") {
-        const s = e.split(",");
-        if (s.length === 2) {
-          const n = this._getPlaceById(s[0]), a = s[1];
-          if (n && this._roles.includes(a))
-            return this._value.find(
-              (y) => y.placeId === s[0] && y.role === a
-            ) ? null : { placeId: s[0], role: a, instanceId: crypto.randomUUID() };
+    if (Array.isArray(t)) {
+      const e = t.map((l) => {
+        if (typeof l == "string") {
+          const r = l.split(",");
+          if (r.length === 2) {
+            const o = r[0].trim(), d = r[1].trim();
+            if (this._getItemById(o) && this._roles.includes(d))
+              return { itemId: o, role: d, instanceId: crypto.randomUUID() };
+          }
         }
+        return null;
+      }).filter((l) => l !== null), i = [], n = /* @__PURE__ */ new Set();
+      for (const l of e) {
+        const r = `${l.itemId},${l.role}`;
+        n.has(r) || (i.push(l), n.add(r));
       }
-      return null;
-    }).filter((e) => e !== null) : this._value = [], this._updateFormValue(), this.selectedItemsContainer && this._renderSelectedItems(), this._updateRootElementStateClasses();
+      this._value = i;
+    } else
+      this._value = [];
+    this._updateFormValue(), this.selectedItemsContainer && this._renderSelectedItems(), this._updateRootElementStateClasses();
   }
   get name() {
     return this.getAttribute("name");
@@ -818,28 +901,22 @@ class R extends HTMLElement {
     this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
   }
   connectedCallback() {
-    if (this._render(), this.inputAreaWrapper = this.querySelector(`.${C}`), this.inputElement = this.querySelector(`.${O}`), this.stagedItemPillContainer = this.querySelector(`.${w}`), this.optionsListElement = this.querySelector(`.${B}`), this.selectedItemsContainer = this.querySelector(`.${x}`), this.addButtonElement = this.querySelector(`.${M}`), this.hiddenSelect = this.querySelector(`.${L}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updateRootElementStateClasses(), this.hasAttribute("value"))
+    if (this.placeholderNoSelection = this.getAttribute("placeholder-no-selection") || this._placeholderNoSelection, this.placeholderSearch = this.getAttribute("placeholder-search") || this._placeholderSearch, this.placeholderRoleSelect = this.getAttribute("placeholder-role-select") || this._placeholderRoleSelect, this._render(), this.inputAreaWrapper = this.querySelector(`.${R}`), this.inputElement = this.querySelector(`.${N}`), this.stagedItemPillContainer = this.querySelector(`.${$}`), this.optionsListElement = this.querySelector(`.${H}`), this.selectedItemsContainer = this.querySelector(`.${O}`), this.addButtonElement = this.querySelector(`.${D}`), this.preAddButtonElement = this.querySelector(`.${M}`), this.hiddenSelect = this.querySelector(`.${T}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.hasAttribute("show-add-button") ? this.showAddButton = this.getAttribute("show-add-button") : this.setAttribute("show-add-button", String(this._showAddButton)), this.inputElement && (this.inputElement.placeholder = this.placeholderSearch), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+      const t = this.getAttribute("value");
       try {
-        const t = JSON.parse(this.getAttribute("value"));
-        this.value = t;
-      } catch (t) {
-        const e = this.getAttribute("value");
-        if (e.startsWith("[") && e.endsWith("]")) {
-          console.warn(
-            "Failed to parse value attribute as JSON array, attempting manual parse:",
-            e,
-            t
-          );
+        const e = JSON.parse(t);
+        Array.isArray(e) ? this.value = e : (console.warn("Parsed value attribute is not an array:", e), this.value = []);
+      } catch (e) {
+        if (console.warn("Failed to parse value attribute as JSON array. Attribute was:", t, e), t.startsWith("[") && t.endsWith("]"))
           try {
-            const s = e.slice(1, -1).split('","').map((n) => n.replace(/"/g, "").trim());
-            this.value = s;
-          } catch (s) {
-            console.error("Manual parse of value attribute also failed:", e, s), this.value = [];
+            const i = t.slice(1, -1).split(",").map((n) => n.replace(/"/g, "").trim()).filter((n) => n);
+            this.value = i;
+          } catch (i) {
+            console.error("Manual parse of value attribute also failed:", t, i), this.value = [];
           }
-        } else
-          this.value = [e];
+        else t.includes(",") ? this.value = [t] : this.value = [];
       }
-    else
+    } else
       this._renderSelectedItems(), this._synchronizeHiddenSelect();
     this.hasAttribute("disabled") && this.disabledCallback(!0);
   }
@@ -851,223 +928,211 @@ class R extends HTMLElement {
   formDisabledCallback(t) {
     this.disabledCallback(t);
   }
+  disabledCallback(t) {
+    this.inputElement && (this.inputElement.disabled = t), this.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${B}`).forEach(
+      (i) => i.disabled = t
+    );
+    const e = this.querySelector(`.${A}`);
+    e && (e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t), this._updateAddButtonState(), this._updatePreAddButtonVisibility();
+  }
   formResetCallback() {
-    this.value = [], this._stagedItem = null, this._renderStagedPillOrInput(), this._hideOptionsList(), this._updateAddButtonState(), this.inputElement && (this.inputElement.value = ""), this._updateRootElementStateClasses();
+    this.value = [], this._stagedItem = null, this._renderStagedPillOrInput(), this._hideOptionsList(), this.inputElement && (this.inputElement.value = ""), this._updateRootElementStateClasses();
   }
   formStateRestoreCallback(t, e) {
-    Array.isArray(t) && t.every((s) => typeof s == "string" && s.includes(",")) ? this.value = t : this.value = [], this._updateRootElementStateClasses();
+    Array.isArray(t) && t.every((i) => typeof i == "string" && i.includes(",")) ? this.value = t : this.value = [], this._updateRootElementStateClasses(), this._updatePreAddButtonVisibility();
   }
   _synchronizeHiddenSelect() {
     this.hiddenSelect && (this.hiddenSelect.innerHTML = "", this._value.forEach((t) => {
+      var i;
       const e = document.createElement("option");
-      e.value = `${t.placeId},${t.role}`, e.textContent = `${t.placeId} (${t.role})`, e.selected = !0, this.hiddenSelect.appendChild(e);
+      e.value = `${t.itemId},${t.role}`, e.textContent = `${((i = this._getItemById(t.itemId)) == null ? void 0 : i.name) || t.itemId} (${t.role})`, e.selected = !0, this.hiddenSelect.appendChild(e);
     }));
   }
   _updateFormValue() {
     this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
   }
-  disabledCallback(t) {
-    this.inputElement && (this.inputElement.disabled = t), this.addButtonElement && (this.addButtonElement.classList.toggle(
-      "hidden",
-      t || !this._stagedItem || !this._stagedItem.currentRole
-    ), this.addButtonElement.disabled = t || !this._stagedItem || !this._stagedItem.currentRole), this.classList.toggle("opacity-50", t), this.classList.toggle("cursor-not-allowed", t), this.selectedItemsContainer && this.selectedItemsContainer.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${A}`).forEach(
-      (s) => s.disabled = t
-    );
-    const e = this.querySelector(`.${k}`);
-    e && (e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t);
-  }
   _updateRootElementStateClasses() {
-    this.classList.toggle(nt, this._value.length === 0), this.classList.toggle(at, this._value.length > 0), this.classList.toggle(lt, this._isOptionsListVisible), this.classList.toggle(rt, !!this._stagedItem);
+    this.classList.toggle(It, this._value.length === 0), this.classList.toggle(At, this._value.length > 0), this.classList.toggle(Tt, this._isOptionsListVisible), this.classList.toggle(Ct, !!this._stagedItem);
   }
   _render() {
-    const t = this.id || `msp-${crypto.randomUUID().slice(0, 8)}`;
+    const t = this.id || `msr-${crypto.randomUUID().slice(0, 8)}`;
     this.id || this.setAttribute("id", t), this.innerHTML = `
                     <style>
-                        .${L} {
-                            display: none !important;
-                            visibility: hidden !important;
-                            position: absolute !important;
-                            width: 0 !important;
-                            height: 0 !important;
-                            opacity: 0 !important;
-                            pointer-events: none !important;
+                        .${T} {
+                            display: none !important; visibility: hidden !important; position: absolute !important;
+                            width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important;
                         }
                     </style>
-                    <div class="${j} relative">
-                        <div class="${x} flex flex-wrap gap-2 mb-2 min-h-[42px]" aria-live="polite"></div>
-                        <div class="${Y} flex items-center space-x-2">
-                            <div class="${C} flex-grow min-h-[42px] flex items-center flex-wrap gap-1 p-1 rounded-md" tabindex="-1">
-                                <span class="${w} flex items-center gap-2"></span>
-                                <input type="text" class="${O} flex-1 min-w-[60px] outline-none bg-transparent" placeholder="Search...">
-                            </div>
-                            <button type="button" class="${M} hidden px-4 py-2 text-sm rounded-md">Add</button>
+                    <div class="${ut} relative">
+                        <div class="${O} flex flex-wrap gap-1 mb-2 min-h-[2.625rem] rounded-md" aria-live="polite">
+                           ${this._value.length === 0 ? `<span class="${k}">${this.placeholderNoSelection}</span>` : ""}
                         </div>
-                        <ul role="listbox" class="${B} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
-                        <select multiple name="${this.getAttribute("name") || "places_with_roles_default"}" id="hidden-select-${t}" class="${L}" aria-hidden="true"></select>
+                        <div class="${Et} flex items-center">
+                            <div class="${R} ${E} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
+                                <span class="${$} flex items-center gap-2"></span>
+                                <input type="text"
+                                       class="${N} flex-1 min-w-[100px] outline-none"
+                                       placeholder="${this.placeholderSearch}"
+                                       aria-haspopup="listbox"
+                                       aria-expanded="false">
+                            </div>
+                            <button type="button"
+                                    class="${M} hidden flex items-center justify-center ml-2"
+                                    aria-label="Element schnell hinzufügen">
+                                +
+                            </button>
+                            <button type="button" class="${D} hidden ml-2">Hinzufügen</button>
+                        </div>
+                        <ul role="listbox" id="${t}-options-list" class="${H} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "items_with_roles_default"}" id="hidden-select-${t}" class="${T}" aria-hidden="true"></select>
                     </div>
                 `;
   }
-  _createStagedPlacePillElement(t) {
-    const s = this.stagedPlacePillTemplate.content.cloneNode(!0).firstElementChild;
-    return s.classList.add(P), s.querySelector('[data-ref="nameEl"]').textContent = t.name, s;
+  _createStagedItemPillElement(t) {
+    const i = this.stagedPlacePillTemplate.content.cloneNode(!0).firstElementChild;
+    return i.querySelector('[data-ref="nameEl"]').textContent = t.name, i;
   }
   _createStagedRoleSelectElement(t, e) {
-    const s = document.createElement("select");
-    s.className = `${k} px-2 py-1 text-sm rounded-md border`;
-    const n = document.createElement("option");
-    if (n.value = "", n.textContent = "Select Role...", n.disabled = !0, e || (n.selected = !0), s.appendChild(n), t.length === 0 && !this._roles.includes(e)) {
-      const a = document.createElement("option");
-      a.textContent = "No roles left", a.disabled = !0, s.appendChild(a), s.disabled = !0;
-    } else
-      t.forEach((a) => {
-        const r = document.createElement("option");
-        r.value = a, r.textContent = a, a === e && (r.selected = !0), s.appendChild(r);
-      }), s.disabled = t.length === 0 && e === "";
-    return s.addEventListener("change", this._handleStagedRoleChange), s;
+    const n = this.stagedRoleSelectTemplate.content.cloneNode(!0).firstElementChild;
+    let l = `<option value="" disabled ${e ? "" : "selected"}>${this.placeholderRoleSelect}</option>`;
+    return t.length === 0 && !this._roles.includes(e) ? (l += "<option disabled>Keine Rollen verfügbar</option>", n.disabled = !0) : (t.forEach((r) => {
+      l += `<option value="${r}" ${r === e ? "selected" : ""}>${r}</option>`;
+    }), n.disabled = t.length === 0 && e === ""), n.innerHTML = l, n.addEventListener("change", this._handleStagedRoleChange), n;
   }
   _createStagedCancelButtonElement(t) {
-    const s = this.stagedCancelBtnTemplate.content.cloneNode(!0).firstElementChild;
-    return s.setAttribute("aria-label", `Cancel staging ${t}`), s.addEventListener("click", this._handleCancelStagedItem), s;
+    const i = this.stagedCancelBtnTemplate.content.cloneNode(!0).firstElementChild;
+    return i.setAttribute("aria-label", `Auswahl von ${t} abbrechen`), i.addEventListener("click", this._handleCancelStagedItem), i;
   }
   _renderStagedPillOrInput() {
     if (!(!this.stagedItemPillContainer || !this.inputElement || !this.inputAreaWrapper)) {
-      if (this.stagedItemPillContainer.innerHTML = "", this._stagedItem && this._stagedItem.place) {
-        this.inputAreaWrapper.classList.remove(
-          E,
-          "border",
-          "border-gray-300",
-          "focus-within:border-blue-500",
-          "focus-within:ring-1",
-          "focus-within:ring-blue-500"
-        ), this.inputAreaWrapper.classList.add(
-          v,
-          "border",
-          "border-transparent"
-        );
-        const t = this._createStagedPlacePillElement(this._stagedItem.place);
+      if (this.stagedItemPillContainer.innerHTML = "", this._stagedItem && this._stagedItem.item) {
+        this.inputAreaWrapper.classList.remove(E), this.inputAreaWrapper.classList.add(I);
+        const t = this._createStagedItemPillElement(this._stagedItem.item);
         this.stagedItemPillContainer.appendChild(t);
-        const e = this._getAvailableRolesForPlace(this._stagedItem.place.id), s = this._createStagedRoleSelectElement(
+        const e = this._getAvailableRolesForItem(this._stagedItem.item.id), i = this._createStagedRoleSelectElement(
           e,
           this._stagedItem.currentRole
         );
-        this.stagedItemPillContainer.appendChild(s);
-        const n = this._createStagedCancelButtonElement(this._stagedItem.place.name);
-        this.stagedItemPillContainer.appendChild(n), this.inputElement.classList.add("hidden"), this.inputElement.value = "";
+        this.stagedItemPillContainer.appendChild(i);
+        const n = this._createStagedCancelButtonElement(this._stagedItem.item.name);
+        this.stagedItemPillContainer.appendChild(n), this.inputElement.classList.add("hidden"), this.inputElement.value = "", this.inputElement.removeAttribute("aria-activedescendant"), this.inputElement.setAttribute("aria-expanded", "false");
       } else
-        this.inputAreaWrapper.classList.add(
-          E,
-          "border",
-          "border-gray-300",
-          "focus-within:border-blue-500",
-          "focus-within:ring-1",
-          "focus-within:ring-blue-500"
-        ), this.inputAreaWrapper.classList.remove(
-          v,
-          "border-transparent"
-        ), this.inputElement.classList.remove("hidden");
-      this._updateAddButtonState(), this._updateRootElementStateClasses();
+        this.inputAreaWrapper.classList.add(E), this.inputAreaWrapper.classList.remove(I), this.inputElement.classList.remove("hidden");
+      this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses();
     }
   }
+  _updatePreAddButtonVisibility() {
+    if (!this.preAddButtonElement) return;
+    const t = this.hasAttribute("disabled"), e = !this._stagedItem, i = this.showAddButton && e && !t;
+    this.preAddButtonElement.classList.toggle("hidden", !i), this.preAddButtonElement.disabled = t;
+  }
   _handleStagedRoleChange(t) {
-    this._stagedItem && (this._stagedItem.currentRole = t.target.value, this._updateAddButtonState(), t.target.focus());
+    this._stagedItem && (this._stagedItem.currentRole = t.target.value, this._updateAddButtonState());
   }
   _handleCancelStagedItem(t) {
-    t && t.stopPropagation(), this._stagedItem = null, this._renderStagedPillOrInput(), this._updateAddButtonState(), this.inputElement && (this.inputElement.value = "", this.inputElement.focus()), this._hideOptionsList(), this._updateRootElementStateClasses();
+    t && t.stopPropagation(), this._stagedItem = null, this._renderStagedPillOrInput(), this.inputElement && (this.inputElement.value = "", this.inputElement.focus()), this._hideOptionsList();
   }
   _createSelectedItemElement(t) {
-    const e = this._getPlaceById(t.placeId);
+    const e = this._getItemById(t.itemId);
     if (!e) return null;
-    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild;
-    n.querySelector('[data-ref="textEl"]').textContent = `${e.name} (${e.country}) - ${t.role}`;
-    const a = n.querySelector('[data-ref="deleteBtn"]');
-    return a.setAttribute("aria-label", `Remove ${e.name} as ${t.role}`), a.dataset.instanceId = t.instanceId, a.disabled = this.hasAttribute("disabled"), a.addEventListener("click", (r) => {
-      r.stopPropagation(), this._handleDeleteSelectedItem(t.instanceId);
+    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="textEl"]');
+    let r = `<span class="${_t}">${e.name}</span>`, o = e.additional_data ? ` <span class="${ft}">(${e.additional_data})</span>` : "", d = ` <span class="${gt}">${t.role}</span>`;
+    l.innerHTML = `${r}${o}${d}`;
+    const c = n.querySelector('[data-ref="deleteBtn"]');
+    return c.setAttribute("aria-label", `Entferne ${e.name} als ${t.role}`), c.dataset.instanceId = t.instanceId, c.disabled = this.hasAttribute("disabled"), c.addEventListener("click", (Q) => {
+      Q.stopPropagation(), this._handleDeleteSelectedItem(t.instanceId);
     }), n;
   }
   _renderSelectedItems() {
-    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.forEach((t) => {
+    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${k}">${this.placeholderNoSelection}</span>` : this._value.forEach((t) => {
       const e = this._createSelectedItemElement(t);
       e && this.selectedItemsContainer.appendChild(e);
-    }), this._value.length === 0 && (this.selectedItemsContainer.innerHTML = '<span class="italic">No places selected</span>'), this._updateRootElementStateClasses());
+    }), this._updateRootElementStateClasses());
   }
   _updateAddButtonState() {
     if (this.addButtonElement) {
-      const t = this.hasAttribute("disabled"), e = this._stagedItem && this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole), s = !this._stagedItem || !e || t;
-      this.addButtonElement.classList.toggle("hidden", s), this.addButtonElement.disabled = s;
+      const t = this.hasAttribute("disabled"), e = this._stagedItem && this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole), i = !this._stagedItem || !e || t;
+      this.addButtonElement.classList.toggle("hidden", i), this.addButtonElement.disabled = i;
     }
   }
   _createOptionElement(t, e) {
-    const n = this.optionTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="nameEl"]'), r = n.querySelector('[data-ref="detailEl"]');
-    return a.textContent = t.name, r.textContent = `(${t.country})`, n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex)), e === this._highlightedIndex && (n.classList.add(st), n.id = `highlighted-option-${this.id || "multi-select"}`), n;
+    const n = this.optionTemplate.content.cloneNode(!0).firstElementChild;
+    return n.querySelector('[data-ref="nameEl"]').textContent = t.name, n.querySelector('[data-ref="detailEl"]').textContent = t.additional_data ? `(${t.additional_data})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex)), n.id = `${this.id || "msr"}-option-${t.id}`, e === this._highlightedIndex && n.classList.add(U), n;
   }
   _renderOptionsList() {
-    if (this.optionsListElement) {
+    if (!(!this.optionsListElement || !this.inputElement)) {
       if (this.optionsListElement.innerHTML = "", this._filteredOptions.length === 0 || !this._isOptionsListVisible)
-        this.optionsListElement.classList.add("hidden");
+        this.optionsListElement.classList.add("hidden"), this.inputElement.setAttribute("aria-expanded", "false"), this.inputElement.removeAttribute("aria-activedescendant"), this.inputElement.removeAttribute("aria-controls");
       else {
-        this.optionsListElement.classList.remove("hidden"), this._filteredOptions.forEach((e, s) => {
-          const n = this._createOptionElement(e, s);
+        this.optionsListElement.classList.remove("hidden"), this.inputElement.setAttribute("aria-expanded", "true"), this.inputElement.setAttribute("aria-controls", this.optionsListElement.id), this._filteredOptions.forEach((e, i) => {
+          const n = this._createOptionElement(e, i);
           this.optionsListElement.appendChild(n);
         });
         const t = this.optionsListElement.querySelector(
-          `#highlighted-option-${this.id || "multi-select"}`
+          `.${U}`
         );
-        t && t.scrollIntoView({ block: "nearest" });
+        t ? (t.scrollIntoView({ block: "nearest" }), this.inputElement.setAttribute("aria-activedescendant", t.id)) : this.inputElement.removeAttribute("aria-activedescendant");
       }
       this._updateRootElementStateClasses();
     }
   }
   _stageItem(t) {
-    if (this._getAvailableRolesForPlace(t.id).length === 0) {
-      console.warn(`Cannot stage ${t.name}, no available roles.`);
+    if (this._getAvailableRolesForItem(t.id).length === 0)
       return;
-    }
-    this._stagedItem = { place: t, currentRole: "" }, this.inputElement && (this.inputElement.value = ""), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._hideOptionsList();
-    const s = this.stagedItemPillContainer.querySelector("select");
-    s && !s.disabled ? s.focus() : this.addButtonElement && !this.addButtonElement.disabled && this.addButtonElement.focus(), this._updateRootElementStateClasses();
+    this._stagedItem = { item: t, currentRole: "" }, this.inputElement && (this.inputElement.value = "", this.inputElement.setAttribute("aria-expanded", "false"), this.inputElement.removeAttribute("aria-activedescendant")), this._renderStagedPillOrInput(), this._hideOptionsList();
+    const i = this.stagedItemPillContainer.querySelector(
+      `.${A}`
+    );
+    i && !i.disabled ? i.focus() : this.addButtonElement && !this.addButtonElement.disabled && this.addButtonElement.focus();
   }
   _handleAddButtonClick() {
-    if (this._stagedItem && this._stagedItem.place && this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole)) {
+    if (!this.hasAttribute("disabled") && this._stagedItem && this._stagedItem.item && this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole)) {
       const t = {
-        placeId: this._stagedItem.place.id,
+        itemId: this._stagedItem.item.id,
         role: this._stagedItem.currentRole,
         instanceId: crypto.randomUUID()
       };
       if (this._value.find(
-        (s) => s.placeId === t.placeId && s.role === t.role
+        (i) => i.itemId === t.itemId && i.role === t.role
       )) {
-        console.warn("Attempted to add duplicate place-role combination:", t), this._handleCancelStagedItem();
+        this._handleCancelStagedItem();
         return;
       }
-      this._value.push(t), this._updateFormValue(), this._renderSelectedItems(), this._stagedItem = null, this._renderStagedPillOrInput(), this._updateAddButtonState(), this.inputElement && (this.inputElement.value = "", this.inputElement.focus()), this._hideOptionsList();
-    } else
-      console.warn("Add button clicked but staged item or role is invalid.", this._stagedItem);
-    this._updateRootElementStateClasses();
+      this._value.push(t), this._updateFormValue(), this._renderSelectedItems(), this._stagedItem = null, this._renderStagedPillOrInput(), this.inputElement && (this.inputElement.value = "", this.inputElement.focus()), this._hideOptionsList();
+    }
   }
   _handleInput(t) {
-    this._stagedItem && (this._stagedItem = null, this._renderStagedPillOrInput(), this._updateAddButtonState());
+    if (this.hasAttribute("disabled")) return;
+    this._stagedItem ? (this._stagedItem = null, this._renderStagedPillOrInput()) : this._updatePreAddButtonVisibility();
     const e = t.target.value;
     if (e.length === 0)
       this._filteredOptions = [], this._isOptionsListVisible = !1;
     else {
-      const s = e.toLowerCase();
-      this._filteredOptions = this._options.filter((n) => this._getAvailableRolesForPlace(n.id).length === 0 || this._stagedItem && this._stagedItem.place.id === n.id ? !1 : n.name.toLowerCase().includes(s) || n.country.toLowerCase().includes(s)), this._isOptionsListVisible = this._filteredOptions.length > 0;
+      const i = e.toLowerCase();
+      this._filteredOptions = this._options.filter((n) => this._getAvailableRolesForItem(n.id).length === 0 || this._stagedItem && this._stagedItem.item.id === n.id ? !1 : n.name.toLowerCase().includes(i) || n.additional_data && n.additional_data.toLowerCase().includes(i)), this._isOptionsListVisible = this._filteredOptions.length > 0;
     }
     this._highlightedIndex = this._filteredOptions.length > 0 ? 0 : -1, this._renderOptionsList();
   }
   _handleKeyDown(t) {
-    t.key === "Escape" && (this._isOptionsListVisible ? (t.preventDefault(), this._hideOptionsList(), this.inputElement && this.inputElement.focus()) : this._stagedItem && (t.preventDefault(), this._handleCancelStagedItem(t)));
+    var e;
+    if (!this.hasAttribute("disabled")) {
+      if (t.key === "Enter" && this._stagedItem && this._stagedItem.item) {
+        const i = document.activeElement, n = (e = this.stagedItemPillContainer) == null ? void 0 : e.querySelector(
+          `.${P}`
+        );
+        if (i === n) {
+          t.preventDefault(), this._handleCancelStagedItem(t);
+          return;
+        } else if (this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole)) {
+          t.preventDefault(), this._handleAddButtonClick();
+          return;
+        }
+      }
+      t.key === "Escape" && (this._isOptionsListVisible ? (t.preventDefault(), this._hideOptionsList(), this.inputElement && this.inputElement.focus()) : this._stagedItem && (t.preventDefault(), this._handleCancelStagedItem(t)));
+    }
   }
   _handleInputKeyDown(t) {
-    if (!(this.inputElement && this.inputElement.disabled)) {
-      if (t.key === "Backspace" && this.inputElement && this.inputElement.value === "" && !this._stagedItem && this._value.length > 0) {
-        t.preventDefault(), this._handleDeleteSelectedItem(this._value[this._value.length - 1].instanceId);
-        return;
-      }
-      if (this._stagedItem && this._stagedItem.currentRole && this._roles.includes(this._stagedItem.currentRole) && t.key === "Enter" && (document.activeElement === this.addButtonElement || this.stagedItemPillContainer && this.stagedItemPillContainer.contains(document.activeElement))) {
-        t.preventDefault(), this._handleAddButtonClick();
-        return;
-      }
+    if (!(this.hasAttribute("disabled") || this.inputElement && this.inputElement.disabled)) {
       if (!this._isOptionsListVisible || this._filteredOptions.length === 0) {
         t.key === "Enter" && this.inputElement && this.inputElement.value === "" && t.preventDefault();
         return;
@@ -1081,7 +1146,308 @@ class R extends HTMLElement {
           break;
         case "Enter":
         case "Tab":
-          t.preventDefault(), this._highlightedIndex > -1 && this._filteredOptions[this._highlightedIndex] ? this._stageItem(this._filteredOptions[this._highlightedIndex]) : t.key === "Tab" && this._hideOptionsList();
+          this._highlightedIndex > -1 && this._filteredOptions[this._highlightedIndex] ? (t.preventDefault(), this._stageItem(this._filteredOptions[this._highlightedIndex])) : t.key === "Tab" && this._hideOptionsList();
+          break;
+      }
+    }
+  }
+  _hideOptionsList() {
+    this._isOptionsListVisible = !1, this._highlightedIndex = -1, this.optionsListElement && this._renderOptionsList(), this.inputElement && (this.inputElement.setAttribute("aria-expanded", "false"), this.inputElement.removeAttribute("aria-activedescendant"));
+  }
+  _handleFocus() {
+    if (!(this.hasAttribute("disabled") || this.inputElement && this.inputElement.disabled || this._stagedItem)) {
+      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(E), this.inputAreaWrapper.classList.remove(I)), this.inputElement && this.inputElement.value.length > 0) {
+        const t = this.inputElement.value.toLowerCase();
+        this._filteredOptions = this._options.filter((e) => this._getAvailableRolesForItem(e.id).length === 0 ? !1 : e.name.toLowerCase().includes(t) || e.additional_data && e.additional_data.toLowerCase().includes(t)), this._filteredOptions.length > 0 ? (this._isOptionsListVisible = !0, this._highlightedIndex = 0, this._renderOptionsList()) : this._hideOptionsList();
+      } else
+        this._hideOptionsList();
+      this._updateRootElementStateClasses(), this._updatePreAddButtonVisibility();
+    }
+  }
+  _handleBlur(t) {
+    this._blurTimeout = setTimeout(() => {
+      const e = document.activeElement;
+      e !== this.addButtonElement && e !== this.preAddButtonElement && !(this.stagedItemPillContainer && this.stagedItemPillContainer.contains(e)) && !(this.optionsListElement && this.optionsListElement.contains(e)) && !this.contains(e) && this._hideOptionsList();
+    }, 150);
+  }
+  _handleOptionMouseDown(t) {
+    t.preventDefault();
+  }
+  _handleOptionClick(t) {
+    if (this.hasAttribute("disabled")) return;
+    const e = t.target.closest(`li[data-id].${q}`);
+    if (e) {
+      const i = e.dataset.id, n = this._filteredOptions.find((l) => l.id === i);
+      n && this._stageItem(n);
+    }
+  }
+  _handleDeleteSelectedItem(t) {
+    this.hasAttribute("disabled") || (this._value = this._value.filter((e) => e.instanceId !== t), this._updateFormValue(), this._renderSelectedItems(), this._stagedItem && this._stagedItem.item && this._renderStagedPillOrInput(), this.inputElement && this.inputElement.focus(), this._updatePreAddButtonVisibility());
+  }
+}
+u(Y, "formAssociated", !0);
+const yt = "mss-component-wrapper", F = "mss-selected-items-container", wt = "mss-selected-item-pill", xt = "mss-selected-item-text", Ot = "mss-selected-item-pill-detail", V = "mss-selected-item-delete-btn", W = "mss-input-controls-container", G = "mss-input-wrapper", K = "mss-input-wrapper-focused", z = "mss-text-input", j = "mss-create-new-button", J = "mss-options-list", kt = "mss-option-item", Bt = "mss-option-item-name", Mt = "mss-option-item-detail", X = "mss-option-item-highlighted", C = "mss-hidden-select", Rt = "mss-no-items-text", $t = "mss-state-no-selection", Pt = "mss-state-has-selection", Nt = "mss-state-list-open";
+class Z extends HTMLElement {
+  constructor() {
+    super();
+    u(this, "_blurTimeout", null);
+    this.internals_ = this.attachInternals(), this._value = [], this._options = [
+      { id: "marie_curie", name: "Marie Curie", additional_data: "Physicist and Chemist" },
+      { id: "leonardo_da_vinci", name: "Leonardo da Vinci", additional_data: "Polymath" },
+      { id: "albert_einstein", name: "Albert Einstein", additional_data: "Theoretical Physicist" },
+      { id: "ada_lovelace", name: "Ada Lovelace", additional_data: "Mathematician and Writer" },
+      { id: "isaac_newton", name: "Isaac Newton", additional_data: "Mathematician and Physicist" },
+      {
+        id: "galileo_galilei",
+        name: "Galileo Galilei",
+        additional_data: "Astronomer and Physicist"
+      },
+      { id: "charles_darwin", name: "Charles Darwin", additional_data: "Naturalist" },
+      { id: "nikola_tesla", name: "Nikola Tesla", additional_data: "Inventor and Engineer" },
+      { id: "jane_austen", name: "Jane Austen", additional_data: "Novelist" },
+      {
+        id: "william_shakespeare",
+        name: "William Shakespeare",
+        additional_data: "Playwright and Poet"
+      }
+    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._placeholder = this.getAttribute("placeholder") || "Search items...", this._showCreateButton = this.getAttribute("show-create-button") !== "false", this._setupTemplates(), this._bindEventHandlers();
+  }
+  _setupTemplates() {
+    this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
+                    <li role="option" class="${kt}">
+                        <span data-ref="nameEl" class="${Bt}"></span>
+                        <span data-ref="detailEl" class="${Mt}"></span>
+                    </li>
+                `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
+                    <span class="${wt} flex items-center">
+                        <span data-ref="textEl" class="${xt}"></span>
+                        <span data-ref="detailEl" class="${Ot} hidden"></span>
+                        <button type="button" data-ref="deleteBtn" class="${V}">&times;</button>
+                    </span>
+                `;
+  }
+  _bindEventHandlers() {
+    this._handleInput = this._handleInput.bind(this), this._handleKeyDown = this._handleKeyDown.bind(this), this._handleFocus = this._handleFocus.bind(this), this._handleBlur = this._handleBlur.bind(this), this._handleOptionMouseDown = this._handleOptionMouseDown.bind(this), this._handleOptionClick = this._handleOptionClick.bind(this), this._handleCreateNewButtonClick = this._handleCreateNewButtonClick.bind(this), this._handleSelectedItemsContainerClick = this._handleSelectedItemsContainerClick.bind(this);
+  }
+  _getItemById(t) {
+    return this._options.find((e) => e.id === t);
+  }
+  get placeholder() {
+    return this._placeholder;
+  }
+  set placeholder(t) {
+    this._placeholder = t, this.inputElement && (this.inputElement.placeholder = this._placeholder), this.setAttribute("placeholder", t);
+  }
+  get showCreateButton() {
+    return this._showCreateButton;
+  }
+  set showCreateButton(t) {
+    const e = String(t).toLowerCase() !== "false" && t !== !1;
+    this._showCreateButton !== e && (this._showCreateButton = e, this.createNewButton && this.createNewButton.classList.toggle("hidden", !this._showCreateButton), this.setAttribute("show-create-button", this._showCreateButton ? "true" : "false"));
+  }
+  setOptions(t) {
+    if (Array.isArray(t) && t.every((e) => e && typeof e.id == "string" && typeof e.name == "string")) {
+      this._options = [...t];
+      const e = this._value.filter((i) => this._getItemById(i));
+      e.length !== this._value.length ? this.value = e : this.selectedItemsContainer && this._renderSelectedItems(), this._filteredOptions = [], this._highlightedIndex = -1, this.inputElement && this.inputElement.value ? this._handleInput({ target: this.inputElement }) : this._hideOptionsList();
+    } else console.error("setOptions expects an array of objects with id and name properties.");
+  }
+  get value() {
+    return this._value;
+  }
+  set value(t) {
+    const e = JSON.stringify(this._value.sort());
+    if (Array.isArray(t))
+      this._value = [
+        ...new Set(t.filter((n) => typeof n == "string" && this._getItemById(n)))
+      ];
+    else if (typeof t == "string" && t.trim() !== "") {
+      const n = t.trim();
+      this._getItemById(n) && !this._value.includes(n) ? this._value = [n] : this._getItemById(n) || (this._value = this._value.filter((l) => l !== n));
+    } else this._value = [];
+    const i = JSON.stringify(this._value.sort());
+    e !== i && (this._updateFormValue(), this.selectedItemsContainer && this._renderSelectedItems(), this._updateRootElementStateClasses(), this.dispatchEvent(new Event("change", { bubbles: !0 })));
+  }
+  get name() {
+    return this.getAttribute("name");
+  }
+  set name(t) {
+    this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
+  }
+  connectedCallback() {
+    if (this._render(), this.inputControlsContainer = this.querySelector(`.${W}`), this.inputWrapper = this.querySelector(`.${G}`), this.inputElement = this.querySelector(`.${z}`), this.createNewButton = this.querySelector(`.${j}`), this.optionsListElement = this.querySelector(`.${J}`), this.selectedItemsContainer = this.querySelector(`.${F}`), this.hiddenSelect = this.querySelector(`.${C}`), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+      const t = this.getAttribute("value");
+      try {
+        this.value = JSON.parse(t);
+      } catch {
+        this.value = t.split(",").map((i) => i.trim()).filter(Boolean);
+      }
+    } else
+      this._renderSelectedItems(), this._synchronizeHiddenSelect();
+    this.hasAttribute("disabled") && this.disabledCallback(!0);
+  }
+  disconnectedCallback() {
+    this.inputElement && (this.inputElement.removeEventListener("input", this._handleInput), this.inputElement.removeEventListener("keydown", this._handleKeyDown), this.inputElement.removeEventListener("focus", this._handleFocus), this.inputElement.removeEventListener("blur", this._handleBlur)), this.optionsListElement && (this.optionsListElement.removeEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.removeEventListener("click", this._handleOptionClick)), this.createNewButton && this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer && this.selectedItemsContainer.removeEventListener(
+      "click",
+      this._handleSelectedItemsContainerClick
+    ), clearTimeout(this._blurTimeout);
+  }
+  static get observedAttributes() {
+    return ["disabled", "name", "value", "placeholder", "show-create-button"];
+  }
+  attributeChangedCallback(t, e, i) {
+    if (e !== i)
+      if (t === "disabled") this.disabledCallback(this.hasAttribute("disabled"));
+      else if (t === "name" && this.hiddenSelect) this.hiddenSelect.name = i;
+      else if (t === "value" && this.inputElement)
+        try {
+          this.value = JSON.parse(i);
+        } catch {
+          this.value = i.split(",").map((l) => l.trim()).filter(Boolean);
+        }
+      else t === "placeholder" ? this.placeholder = i : t === "show-create-button" && (this.showCreateButton = i);
+  }
+  formAssociatedCallback(t) {
+  }
+  formDisabledCallback(t) {
+    this.disabledCallback(t);
+  }
+  formResetCallback() {
+    this.value = [], this._hideOptionsList(), this.inputElement && (this.inputElement.value = ""), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this._updateRootElementStateClasses(), this._renderSelectedItems();
+  }
+  formStateRestoreCallback(t, e) {
+    this.value = Array.isArray(t) ? t : [], this._updateRootElementStateClasses();
+  }
+  _synchronizeHiddenSelect() {
+    this.hiddenSelect && (this.hiddenSelect.innerHTML = "", this._value.forEach((t) => {
+      const e = document.createElement("option");
+      e.value = t;
+      const i = this._getItemById(t);
+      e.textContent = i ? i.name : t, e.selected = !0, this.hiddenSelect.appendChild(e);
+    }));
+  }
+  _updateFormValue() {
+    this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
+  }
+  disabledCallback(t) {
+    this.inputElement && (this.inputElement.disabled = t), this.createNewButton && (this.createNewButton.disabled = t), this.toggleAttribute("disabled", t), this.querySelectorAll(`.${V}`).forEach(
+      (e) => e.disabled = t
+    ), this.hiddenSelect && (this.hiddenSelect.disabled = t), t && this._hideOptionsList();
+  }
+  _updateRootElementStateClasses() {
+    this.classList.toggle($t, this._value.length === 0), this.classList.toggle(Pt, this._value.length > 0), this.classList.toggle(Nt, this._isOptionsListVisible);
+  }
+  _render() {
+    const t = this.id || `mss-${crypto.randomUUID().slice(0, 8)}`;
+    this.id || this.setAttribute("id", t), this.innerHTML = `
+                    <style>
+                        .${C} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
+                    </style>
+                    <div class="${yt} relative">
+                        <div class="${F} flex flex-wrap gap-1 mb-1 min-h-[38px]" aria-live="polite" tabindex="-1"></div>
+                        <div class="${W} flex items-center space-x-2">
+                            <div class="${G} relative rounded-md flex items-center flex-grow">
+                                <input type="text"
+                                       class="${z} w-full outline-none bg-transparent text-sm"
+                                       placeholder="${this.placeholder}"
+                                       aria-autocomplete="list"
+                                       aria-expanded="${this._isOptionsListVisible}"
+                                       aria-controls="options-list-${t}"
+                                       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="combobox" />
+                            </div>
+                            <button type="button" class="${j} ${this.showCreateButton ? "" : "hidden"}" title="Create new item from input">+</button>
+                        </div>
+                        <ul id="options-list-${t}" role="listbox" class="${J} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${t}" class="${C}" aria-hidden="true"></select>
+                    </div>
+                `;
+  }
+  _createSelectedItemElement(t) {
+    const e = this._getItemById(t);
+    if (!e) return null;
+    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="textEl"]'), r = n.querySelector('[data-ref="detailEl"]'), o = n.querySelector('[data-ref="deleteBtn"]');
+    return l.textContent = e.name, e.additional_data ? (r.textContent = `(${e.additional_data})`, r.classList.remove("hidden")) : r.classList.add("hidden"), o.setAttribute("aria-label", `Remove ${e.name}`), o.dataset.id = t, o.disabled = this.hasAttribute("disabled"), o.addEventListener("click", (d) => {
+      d.stopPropagation(), this._handleDeleteSelectedItem(t);
+    }), n;
+  }
+  _renderSelectedItems() {
+    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${Rt}">No items selected</span>` : this._value.forEach((t) => {
+      const e = this._createSelectedItemElement(t);
+      e && this.selectedItemsContainer.appendChild(e);
+    }), this._updateRootElementStateClasses());
+  }
+  _createOptionElement(t, e) {
+    const n = this.optionTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="nameEl"]'), r = n.querySelector('[data-ref="detailEl"]');
+    l.textContent = t.name, r.textContent = t.additional_data ? `(${t.additional_data})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex));
+    const o = `option-${this.id || "mss"}-${t.id}`;
+    return n.id = o, e === this._highlightedIndex && (n.classList.add(X), this.inputElement && this.inputElement.setAttribute("aria-activedescendant", o)), n;
+  }
+  _renderOptionsList() {
+    if (!(!this.optionsListElement || !this.inputElement)) {
+      if (this.optionsListElement.innerHTML = "", this.inputElement.removeAttribute("aria-activedescendant"), this._filteredOptions.length === 0 || !this._isOptionsListVisible)
+        this.optionsListElement.classList.add("hidden"), this.inputElement.setAttribute("aria-expanded", "false");
+      else {
+        this.optionsListElement.classList.remove("hidden"), this.inputElement.setAttribute("aria-expanded", "true"), this._filteredOptions.forEach((e, i) => {
+          const n = this._createOptionElement(e, i);
+          this.optionsListElement.appendChild(n);
+        });
+        const t = this.optionsListElement.querySelector(
+          `.${X}`
+        );
+        t && (t.scrollIntoView({ block: "nearest" }), this.inputElement.setAttribute("aria-activedescendant", t.id));
+      }
+      this._updateRootElementStateClasses();
+    }
+  }
+  _handleSelectedItemsContainerClick(t) {
+    t.target === this.selectedItemsContainer && this.inputElement && !this.inputElement.disabled && this.inputElement.focus();
+  }
+  _handleCreateNewButtonClick() {
+    if (this.hasAttribute("disabled") || !this.showCreateButton) return;
+    const t = this.inputElement ? this.inputElement.value.trim() : "";
+    this.dispatchEvent(
+      new CustomEvent("createnew", {
+        detail: { value: t },
+        bubbles: !0,
+        composed: !0
+      })
+    );
+  }
+  _handleInput(t) {
+    const e = t.target.value;
+    if (e.length === 0)
+      this._filteredOptions = [], this._isOptionsListVisible = !1;
+    else {
+      const i = e.toLowerCase();
+      this._filteredOptions = this._options.filter((n) => {
+        if (this._value.includes(n.id)) return !1;
+        const l = n.name.toLowerCase().includes(i), r = n.additional_data && n.additional_data.toLowerCase().includes(i);
+        return l || r;
+      }), this._isOptionsListVisible = this._filteredOptions.length > 0;
+    }
+    this._highlightedIndex = this._filteredOptions.length > 0 ? 0 : -1, this._renderOptionsList();
+  }
+  _handleKeyDown(t) {
+    if (!this.inputElement.disabled) {
+      if (!this._isOptionsListVisible || this._filteredOptions.length === 0) {
+        t.key === "Escape" && this._hideOptionsList(), (t.key === "ArrowDown" || t.key === "ArrowUp") && this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement });
+        return;
+      }
+      switch (t.key) {
+        case "ArrowDown":
+          t.preventDefault(), this._highlightedIndex = (this._highlightedIndex + 1) % this._filteredOptions.length, this._renderOptionsList();
+          break;
+        case "ArrowUp":
+          t.preventDefault(), this._highlightedIndex = (this._highlightedIndex - 1 + this._filteredOptions.length) % this._filteredOptions.length, this._renderOptionsList();
+          break;
+        case "Enter":
+          t.preventDefault(), this._highlightedIndex > -1 && this._filteredOptions[this._highlightedIndex] && this._selectItem(this._filteredOptions[this._highlightedIndex].id);
+          break;
+        case "Escape":
+          t.preventDefault(), this._hideOptionsList();
+          break;
+        case "Tab":
+          this._hideOptionsList();
           break;
       }
     }
@@ -1090,29 +1456,11 @@ class R extends HTMLElement {
     this._isOptionsListVisible = !1, this._highlightedIndex = -1, this.optionsListElement && this._renderOptionsList();
   }
   _handleFocus() {
-    if (!(this.inputElement && (this.inputElement.disabled || this._stagedItem))) {
-      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(
-        E,
-        "border",
-        "border-gray-300",
-        "focus-within:border-blue-500",
-        "focus-within:ring-1",
-        "focus-within:ring-blue-500"
-      ), this.inputAreaWrapper.classList.remove(
-        v,
-        "border-transparent"
-      )), this.inputElement && this.inputElement.value.length > 0) {
-        const t = this.inputElement.value.toLowerCase();
-        this._filteredOptions = this._options.filter((e) => this._getAvailableRolesForPlace(e.id).length === 0 || this._stagedItem && this._stagedItem.place.id === e.id ? !1 : e.name.toLowerCase().includes(t) || e.country.toLowerCase().includes(t)), this._filteredOptions.length > 0 ? (this._isOptionsListVisible = !0, this._highlightedIndex = 0, this._renderOptionsList()) : this._hideOptionsList();
-      } else
-        this._hideOptionsList();
-      this._updateRootElementStateClasses();
-    }
+    this.inputElement.disabled || (this.inputWrapper && this.inputWrapper.classList.add(K), this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement }), this._updateRootElementStateClasses());
   }
-  _handleBlur(t) {
-    !this._stagedItem && this.inputAreaWrapper, this._blurTimeout = setTimeout(() => {
-      const e = document.activeElement;
-      e !== this.addButtonElement && !(this.stagedItemPillContainer && this.stagedItemPillContainer.contains(e)) && !(this.optionsListElement && this.optionsListElement.contains(e)) && !this.contains(e) && this._hideOptionsList();
+  _handleBlur() {
+    this.inputWrapper && this.inputWrapper.classList.remove(K), this._blurTimeout = setTimeout(() => {
+      this.contains(document.activeElement) || this._hideOptionsList();
     }, 150);
   }
   _handleOptionMouseDown(t) {
@@ -1120,29 +1468,30 @@ class R extends HTMLElement {
   }
   _handleOptionClick(t) {
     const e = t.target.closest("li[data-id]");
-    if (e) {
-      const s = e.dataset.id, n = this._filteredOptions.find((a) => a.id === s);
-      n && this._stageItem(n);
-    }
+    e && e.dataset.id && this._selectItem(e.dataset.id);
+  }
+  _selectItem(t) {
+    t && !this._value.includes(t) && (this.value = [...this._value, t]), this.inputElement && (this.inputElement.value = ""), this._filteredOptions = [], this._hideOptionsList(), this.inputElement && !this.hasAttribute("disabled") && this.inputElement.focus();
   }
   _handleDeleteSelectedItem(t) {
-    this._value = this._value.filter((e) => e.instanceId !== t), this._updateFormValue(), this._renderSelectedItems(), this.inputElement && (this.inputElement.focus(), this._handleInput({ target: this.inputElement }));
+    this.value = this._value.filter((e) => e !== t), this.inputElement && this.inputElement.value && this._handleInput({ target: this.inputElement }), this.inputElement && !this.hasAttribute("disabled") && this.inputElement.focus();
   }
 }
-_(R, "formAssociated", !0);
-const ot = "filter-list", ht = "scroll-button", dt = "tool-tip", ct = "abbrev-tooltips", ut = "int-link", pt = "popup-image", mt = "tab-list", _t = "filter-pill", gt = "image-reel", ft = "multi-select-places";
-customElements.define(ut, V);
-customElements.define(ct, h);
-customElements.define(ot, U);
-customElements.define(ht, F);
-customElements.define(dt, G);
-customElements.define(pt, W);
-customElements.define(mt, K);
-customElements.define(_t, N);
-customElements.define(gt, z);
-customElements.define(ft, R);
+u(Z, "formAssociated", !0);
+const Dt = "filter-list", Ht = "scroll-button", qt = "tool-tip", Ut = "abbrev-tooltips", Ft = "int-link", Vt = "popup-image", Wt = "tab-list", Gt = "filter-pill", Kt = "image-reel", zt = "multi-select-places", jt = "multi-select-simple";
+customElements.define(Ft, dt);
+customElements.define(Ut, p);
+customElements.define(Dt, lt);
+customElements.define(Ht, at);
+customElements.define(qt, rt);
+customElements.define(Vt, ot);
+customElements.define(Wt, ht);
+customElements.define(Gt, it);
+customElements.define(Kt, ct);
+customElements.define(zt, Y);
+customElements.define(jt, Z);
 export {
-  h as AbbreviationTooltips,
-  U as FilterList,
-  F as ScrollButton
+  p as AbbreviationTooltips,
+  lt as FilterList,
+  at as ScrollButton
 };
