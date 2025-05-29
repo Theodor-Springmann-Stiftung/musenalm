@@ -1,6 +1,8 @@
 package templating
 
 import (
+	"fmt"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -82,4 +84,11 @@ func (r *Request) IsEditor() bool {
 		return user.Role == "Editor"
 	}
 	return false
+}
+
+func (r *Request) CheckCSRF(target string) error {
+	if r.Session() == nil || target == "" || r.Session().Token != target {
+		return fmt.Errorf("CSRF-Token nicht vorhanden oder ungültig")
+	}
+	return nil
 }

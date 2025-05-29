@@ -17,8 +17,16 @@
 </div>
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col max-w-2xl w-full">
-		{{ template "_usermessage" $model }}
-		<form class="w-full grid grid-cols-3 gap-4" method="POST" x-data="{ openpw: false }">
+		<form
+			class="w-full grid grid-cols-3 gap-4"
+			id="changeuserform"
+			x-target="changeuserform footer"
+			hx-boost="false"
+			method="POST"
+			x-data="{ openpw: false }">
+			<div class="col-span-3">
+				{{ template "_usermessage" $model }}
+			</div>
 			<div
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600

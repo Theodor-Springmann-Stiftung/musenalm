@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -76,12 +75,8 @@ func (p *UserEditPage) getData(app core.App, data map[string]any, e *core.Reques
 	data["user"] = &fu
 	data["db_user"] = user
 
-	nonce, token, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
-	if err != nil {
-		return fmt.Errorf("Konnte CSRF-Token nicht generieren: %w", err)
-	}
-	data["csrf_token"] = token
-	data["csrf_nonce"] = nonce
+	req := templating.NewRequest(e)
+	data["csrf_token"] = req.Session().Token
 
 	SetRedirect(data, e)
 
@@ -135,13 +130,13 @@ func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) H
 	return func(e *core.RequestEvent) error {
 		data := make(map[string]any)
 		err := p.getData(app, data, e)
+		req := templating.NewRequest(e)
 		if err != nil {
 			return engine.Response500(e, err, data)
 		}
 
 		formdata := struct {
-			CSRF  string `form:"csrf_token"`
-			Nonce string `form:"csrf_nonce"`
+			CSRF string `form:"csrf_token"`
 		}{}
 
 		user := data["db_user"].(*dbmodels.User)
@@ -150,8 +145,12 @@ func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) H
 			return p.InvalidDataResponse(engine, e, "Formulardaten ungültig.", user.Fixed())
 		}
 
-		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
 			return p.InvalidDataResponse(engine, e, err.Error(), user.Fixed())
+		}
+
+		if formdata.CSRF != req.Session().Token {
+			return p.InvalidDataResponse(engine, e, "CSRF-Token ungültig", user.Fixed())
 		}
 
 		user.SetDeactivated(true)
@@ -162,7 +161,6 @@ func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) H
 
 		DeleteSessionsForUser(app, user.Id)
 
-		req := templating.NewRequest(e)
 		if req.User() != nil && req.User().Id == user.Id {
 			return e.Redirect(303, "/login/")
 		}
@@ -179,6 +177,7 @@ func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) H
 func (p *UserEditPage) POSTActivate(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		data := make(map[string]any)
+		req := templating.NewRequest(e)
 		err := p.getData(app, data, e)
 		if err != nil {
 			return engine.Response500(e, err, data)
@@ -187,15 +186,14 @@ func (p *UserEditPage) POSTActivate(engine *templating.Engine, app core.App) Han
 		user := data["db_user"].(*dbmodels.User)
 
 		formdata := struct {
-			CSRF  string `form:"csrf_token"`
-			Nonce string `form:"csrf_nonce"`
+			CSRF string `form:"csrf_token"`
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
 			return p.InvalidDataResponse(engine, e, "Formulardaten ungültig.", user.Fixed())
 		}
 
-		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
 			return p.InvalidDataResponse(engine, e, err.Error(), user.Fixed())
 		}
 
@@ -233,8 +231,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			Email          string `form:"username"`
 			Name           string `form:"name"`
 			Role           string `form:"role"`
-			CsrfNonce      string `form:"csrf_nonce"`
-			CsrfToken      string `form:"csrf_token"`
+			CSRF           string `form:"csrf_token"`
 			Password       string `form:"password"`
 			PasswordRepeat string `form:"password_repeat"`
 			OldPassword    string `form:"old_password"`
@@ -245,12 +242,8 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			return p.InvalidDataResponse(engine, e, err.Error(), fu)
 		}
 
-		if formdata.CsrfNonce != "" && formdata.CsrfToken != "" {
-			if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.CsrfNonce, formdata.CsrfToken); err != nil {
-				return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", fu)
-			}
-		} else {
-			return p.InvalidDataResponse(engine, e, "CSRF ungültig oder abgelaufen", fu)
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
+			return p.InvalidDataResponse(engine, e, err.Error(), fu)
 		}
 
 		if formdata.Email == "" || formdata.Name == "" {
@@ -315,13 +308,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 
 		data["success"] = "Benutzer erfolgreich bearbeitet"
 
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
-		if err != nil {
-			return engine.Response500(e, err, nil)
-		}
-		data["csrf_token"] = token
-		data["csrf_nonce"] = nonce
-
+		data["csrf_token"] = req.Session().Token
 		return engine.Response200(e, TEMPLATE_USER_EDIT, data, p.Layout)
 	}
 }
