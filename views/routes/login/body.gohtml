@@ -18,14 +18,29 @@
 			</div>
 		</div>
 		<h1 class="text-2xl self-baseline text-center w-full my-6 text-slate-900">Musenalm | Login</h1>
-		{{ if $model.error }}
-			<div
-				class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
-				border-2 mb-3">
-				{{ $model.error }}
+		<form
+			class="w-full grid grid-cols-3 gap-4"
+			method="POST"
+			hx-boost="false"
+			x-target.4xx="ajax-replace"
+			x-target.away="_top"
+			x-target="body"
+			aria-label="Login-Formular">
+			<div id="ajax-replace" class="col-span-3">
+				{{ template "_usermessage" $model }}
+				<input
+					type="hidden"
+					name="csrf_nonce"
+					id="csrf_nonce"
+					required
+					value="{{ $model.csrf_nonce }}" />
+				<input
+					type="hidden"
+					name="csrf_token"
+					id="csrf_token"
+					required
+					value="{{ $model.csrf_token }}" />
 			</div>
-		{{ end }}
-		<form class="w-full grid grid-cols-3 gap-4" method="POST">
 			<div
 				class="col-span-3 border-2 border-transparent focus-within:border-slate-600 px-2 py-1 pb-1.5
 				bg-slate-200 focus-within:bg-slate-50 rounded-md transition-all duration-100">
@@ -69,18 +84,6 @@
 				</div>
 			</div>
 			<div class="col-span-3">
-				<input
-					type="hidden"
-					name="csrf_nonce"
-					id="csrf_nonce"
-					required
-					value="{{ $model.csrf_nonce }}" />
-				<input
-					type="hidden"
-					name="csrf_token"
-					id="csrf_token"
-					required
-					value="{{ $model.csrf_token }}" />
 				<button
 					type="submit"
 					class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md

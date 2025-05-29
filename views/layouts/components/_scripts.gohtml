@@ -1,0 +1,10 @@
+<script type="module">
+	const hash = window.location.hash;
+	if (hash) {
+		const stripped = hash.slice(1);
+		const element = document.getElementById(stripped);
+		if (element) {
+			element.setAttribute("aria-current", "location");
+		}
+	}
+</script>

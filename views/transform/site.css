@@ -86,6 +86,10 @@
 		@apply ml-14 list-disc;
 	}
 
+	label {
+		@apply select-none;
+	}
+
 	#mainmenu nav > a {
 		@apply hover:!border-zinc-200;
 	}
