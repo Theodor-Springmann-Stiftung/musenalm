@@ -8,6 +8,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/security"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
@@ -48,7 +49,8 @@ type LoginPage struct {
 
 func (p *LoginPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET(URL_LOGIN, p.GET(engine, app))
-	router.POST(URL_LOGIN, p.POST(engine, app))
+	r := router.POST(URL_LOGIN, p.POST(engine, app))
+	r.BindFunc(middleware.RateLimiter(30, time.Minute*2, time.Hour*6))
 	return nil
 }
 
