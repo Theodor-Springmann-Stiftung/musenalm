@@ -2,7 +2,9 @@ package dbmodels
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -13,6 +15,13 @@ import (
 const (
 	secureTokenByteLength = 64
 )
+
+func HashStringSHA256(data string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(data))
+	hashedBytes := hasher.Sum(nil)
+	return hex.EncodeToString(hashedBytes)
+}
 
 func generateSecureRandomToken(length int) (string, error) {
 	if length <= 0 {
@@ -55,7 +64,8 @@ func CreateSessionToken(
 	session := NewSession(record)
 
 	// Set required fields with hashed tokens
-	session.SetToken(sessionTokenClear)
+	session.SessionTokenClear = sessionTokenClear
+	session.SetToken(HashStringSHA256(sessionTokenClear))
 	session.SetCSRF(csrfTokenClear)
 	session.SetUser(userID)
 
@@ -67,7 +77,7 @@ func CreateSessionToken(
 	session.SetLastAccess(types.NowDateTime())
 	session.SetUserAgent(userAgent)
 	session.SetIP(ipAddress)
-	session.SetStatus(TOKEN_STATUS_VALUES[0]) // Active
+	session.SetStatus(TOKEN_STATUS_VALUES[0])
 
 	if errSave := app.Save(session); errSave != nil {
 		app.Logger().Error("Failed to save session token record", "error", errSave, "userID", userID)

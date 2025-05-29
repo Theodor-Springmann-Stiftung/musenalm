@@ -32,7 +32,8 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 
 		user, session, loaded := SESSION_CACHE.Get(cookie.Value)
 		if !loaded {
-			record, err := app.FindFirstRecordByData(dbmodels.SESSIONS_TABLE, dbmodels.SESSIONS_TOKEN_FIELD, cookie.Value)
+			hashedsession := dbmodels.HashStringSHA256(cookie.Value)
+			record, err := app.FindFirstRecordByData(dbmodels.SESSIONS_TABLE, dbmodels.SESSIONS_TOKEN_FIELD, hashedsession)
 			if err != nil {
 				e.SetCookie(deact_cookie)
 				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")

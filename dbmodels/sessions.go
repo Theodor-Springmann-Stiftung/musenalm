@@ -26,6 +26,7 @@ func (s *FixedSession) IsExpired() bool {
 var _ core.RecordProxy = (*Place)(nil)
 
 type Session struct {
+	SessionTokenClear string `json:"-"`
 	core.BaseRecordProxy
 }
 

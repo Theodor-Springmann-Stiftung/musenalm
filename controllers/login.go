@@ -135,13 +135,13 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("Ihr Benutzerkonto ist deaktiviert. Bitte kontaktieren Sie den Administrator."), data)
 		}
 
-		duration := time.Minute * 60
+		duration := time.Hour * 2
 		if formdata.Persistent == "on" {
 			duration = time.Hour * 24 * 90
 		}
 
 		token, err := dbmodels.CreateSessionToken(app, record.Id, e.RealIP(), e.Request.UserAgent(), formdata.Persistent == "on", duration)
-		if err != nil {
+		if err != nil || token == nil || token.SessionTokenClear == "" {
 			return engine.Response500(e, err, data)
 		}
 
@@ -150,7 +150,7 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 				Name:     dbmodels.SESSION_COOKIE_NAME,
 				Path:     "/",
 				MaxAge:   int(duration.Seconds()),
-				Value:    token.Token(),
+				Value:    token.SessionTokenClear,
 				SameSite: http.SameSiteLaxMode,
 				HttpOnly: true,
 				Secure:   true,
@@ -159,7 +159,7 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			e.SetCookie(&http.Cookie{
 				Name:     dbmodels.SESSION_COOKIE_NAME,
 				Path:     "/",
-				Value:    token.Token(),
+				Value:    token.SessionTokenClear,
 				SameSite: http.SameSiteLaxMode,
 				HttpOnly: true,
 				Secure:   true,
