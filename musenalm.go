@@ -6,7 +6,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
-	_ "github.com/Theodor-Springmann-Stiftung/musenalm/pages"
+	_ "github.com/Theodor-Springmann-Stiftung/musenalm/controllers"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 )
 

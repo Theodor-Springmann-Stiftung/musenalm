@@ -1,4 +1,4 @@
-package pages
+package controllers
 
 type ContentListFilterParams struct {
 	Agent     string
