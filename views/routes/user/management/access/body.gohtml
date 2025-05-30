@@ -92,8 +92,8 @@
 	<div class="flex flex-row w-full">
 		<div class="flex-col max-w-xl w-full">
 			<!-- QR Code -->
-			<div class="mb-4 p-4 border rounded-xs min-w-full aspect-square">
-				<div id="qr"></div>
+			<div class="mb-4 border rounded-xs min-w-full aspect-square">
+				<div id="qr" class="m-4 aspect-square"></div>
 			</div>
 
 			<!-- Access URL and Token -->
@@ -135,7 +135,7 @@
 							<i class="ri-external-link-line"></i>
 						</a>
 					</tool-tip>
-					<form class="" method="POST" hx-boost="false" x-target="token access-link" @ajax:after="genQRCode()">
+					<form class="" method="POST" hx-boost="false" x-target="token access-link qrinfo" @ajax:after="genQRCode()">
 						<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
 						<div class="col-span-9 flex flex-row items-center justify-center">
 							<tool-tip position="top">
@@ -153,10 +153,7 @@
 						</div>
 					</form>
 				</div>
-				<div class="text-right text-slate-400 mb-1 mt-3">
-					Gültig bis
-					{{ $model.validUntil }}
-				</div>
+				<div class="text-right text-slate-400 mb-1 mt-3" id="qrinfo">7 Tage gültig &ndash; {{ $model.validUntil }}</div>
 			</div>
 			<!-- End of Access URL and Token -->
 		</div>
