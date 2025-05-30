@@ -134,22 +134,38 @@ function ShowBoostedErrors() {
 	});
 }
 
-function FormHasChanged(form) {
-	if (!form || !(form instanceof HTMLFormElement)) {
-		return false;
-	}
-	const resetButton = form.querySelector("reset-button");
-	if (resetButton && resetButton.changed) {
-		return true;
+// INFO: Hooks up to all the reset button children of the target element.
+// If an element has a changed state, it will trigger the action with `true`.
+// If no elements are changed, it will trigger the action with `false`.
+// @param {HTMLElement} target - The parent element containing reset buttons.
+// @param {Function} action - The function to call with the change state.
+function HookupRBChange(target, action) {
+	if (!(target instanceof HTMLElement)) {
+		console.warn("Target must be an HTMLElement.");
+		return;
 	}
 
-	return false;
+	if (typeof action !== "function") {
+		console.warn("Action must be a function.");
+		return;
+	}
+
+	const btns = target.querySelectorAll(RESET_BUTTON_ELEMENT);
+	target.addEventListener("rbichange", (event) => {
+		for (const btn of btns) {
+			if (btn.isCurrentlyModified()) {
+				action(event.details, true);
+				return;
+			}
+		}
+		action(event.details, false);
+	});
 }
 
 window.ShowBoostedErrors = ShowBoostedErrors;
 window.GenQRCode = GenQRCode;
 window.SelectableInput = SelectableInput;
 window.PathPlusQuery = PathPlusQuery;
-window.FormHasChanged = FormHasChanged;
+window.HookupRBChange = HookupRBChange;
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink };

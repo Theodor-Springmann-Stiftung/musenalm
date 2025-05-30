@@ -14,15 +14,16 @@
 
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col max-w-2xl w-full">
-		<form
-			class="w-full flex flex-col gap-4 dbform"
-			id="changeuserform"
-			x-target="changeuserform
-		footer"
-			hx-boost="false"
-			method="POST"
-			x-data="{ openpw: false }"
-			@rbichange="FormHasChanged($el) ? resetb.classList.add('hidden') : resetb.classList.remove('hidden')">
+		<form class="w-full flex flex-col gap-4 dbform" id="changeuserform" x-target="changeuserform footer" hx-boost="false" method="POST" x-data="{ openpw: false }">
+			<script type="module">
+				HookupRBChange(changeuserform, (_, changed) => {
+					if (changed) {
+						resetb.classList.remove("hidden");
+					} else {
+						resetb.classList.add("hidden");
+					}
+				});
+			</script>
 			<!-- INFO: MESSAGES -->
 			<div class="col-span-3">
 				{{ template "_usermessage" $model }}

@@ -1,13 +1,12 @@
 const RBI_BUTTON_BASE_CLASS = "rbi-button";
 const RBI_ICON_CLASS = "rbi-icon";
-
 export class ResetButton extends HTMLElement {
 	constructor() {
 		super();
 		this.initialStates = new Map();
 		this._controlledElements = [];
 		this.button = null;
-		this.changed = false;
+		this.lastOverallModifiedState = null;
 
 		this.handleInputChange = this.handleInputChange.bind(this);
 		this.handleReset = this.handleReset.bind(this);
@@ -18,7 +17,6 @@ export class ResetButton extends HTMLElement {
 	}
 
 	connectedCallback() {
-		// Use an HTML template literal string to define the button's structure
 		const buttonHTML = `
               <button type="button" class="${RBI_BUTTON_BASE_CLASS} cursor-pointer disabled:cursor-default" aria-label="Reset field">
 								<tool-tip position="right">
@@ -27,13 +25,12 @@ export class ResetButton extends HTMLElement {
 								</tool-tip>
               </button>
             `;
-		this.innerHTML = buttonHTML; // Set the inner HTML of the custom element
-		this.button = this.querySelector("button"); // Get the button element
+		this.innerHTML = buttonHTML;
+		this.button = this.querySelector("button");
 
 		if (this.button) {
 			this.button.addEventListener("click", this.handleReset);
 		} else {
-			// This case should ideally not be reached if the HTML string is correct
 			console.error("ResetButtonIndividual: Button element not found after setting innerHTML.");
 		}
 
@@ -69,6 +66,7 @@ export class ResetButton extends HTMLElement {
 		});
 		this._controlledElements = [];
 		this.initialStates.clear();
+		this.lastOverallModifiedState = null;
 
 		const controlIds = (this.getAttribute("controls") || "")
 			.split(",")
@@ -78,6 +76,7 @@ export class ResetButton extends HTMLElement {
 		if (!controlIds.length && this.button) {
 			this.button.disabled = true;
 			this.button.setAttribute("aria-disabled", "true");
+			this.checkIfModified();
 			return;
 		}
 
@@ -165,6 +164,7 @@ export class ResetButton extends HTMLElement {
 		}
 	}
 
+	// Internal helper to check a single element
 	isElementModified(element) {
 		const initialState = this.initialStates.get(element.id);
 		if (!initialState) return false;
@@ -185,12 +185,25 @@ export class ResetButton extends HTMLElement {
 		}
 	}
 
+	// Public method to check overall modification state
+	isCurrentlyModified() {
+		if (this._controlledElements.length === 0) {
+			return false; // Not modified if there are no elements to control
+		}
+		for (const el of this._controlledElements) {
+			if (this.isElementModified(el)) {
+				return true; // Found one modified element
+			}
+		}
+		return false; // No elements were modified
+	}
+
 	checkIfModified() {
-		let overallModified = false;
+		const overallModified = this.isCurrentlyModified(); // Use the new public method
+
+		// Update classes for controlled elements
 		this._controlledElements.forEach((el) => {
-			const modified = this.isElementModified(el);
-			if (modified) {
-				overallModified = true;
+			if (this.isElementModified(el)) {
 				el.classList.add("modified-element");
 			} else {
 				el.classList.remove("modified-element");
@@ -220,7 +233,7 @@ export class ResetButton extends HTMLElement {
 			}
 		}
 
-		if (this.changed !== overallModified) {
+		if (this.lastOverallModifiedState !== overallModified) {
 			const event = new CustomEvent("rbichange", {
 				bubbles: true,
 				composed: true,
@@ -231,7 +244,7 @@ export class ResetButton extends HTMLElement {
 				},
 			});
 			this.dispatchEvent(event);
-			this.changed = overallModified;
+			this.lastOverallModifiedState = overallModified;
 		}
 	}
 
