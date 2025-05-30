@@ -1,8 +1,5 @@
 {{- $date := Today -}}
-<footer
-	id="footer"
-	class="container-normal pb-1.5 text-base text-gray-800 relative"
-	x-data="{ openusermenu: false }">
+<footer id="footer" class="container-normal pb-1.5 text-base text-gray-800 relative" x-data="{ openusermenu: false }">
 	{{- if .request.user -}}
 		<div class="" x-show="openusermenu">
 			<div
@@ -27,7 +24,7 @@
 				{{ end }}
 				<a href="/logout?redirectTo={{ .request.fullpath }}" class="">
 					<i class="ri-logout-box-line"></i>
-					Ausloggen
+					Logout
 				</a>
 			</div>
 		</div>
