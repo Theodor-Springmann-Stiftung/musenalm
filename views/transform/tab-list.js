@@ -7,6 +7,7 @@ export class TabList extends HTMLElement {
 		this.shown = -1;
 		this._headings = [];
 		this._contents = [];
+		this._checkbox = null;
 	}
 
 	connectedCallback() {
@@ -36,6 +37,19 @@ export class TabList extends HTMLElement {
 				this._headings[i].setAttribute("aria-pressed", "false");
 			}
 		});
+	}
+
+	hookupShowAll(checkbox) {
+		if (checkbox) {
+			this._checkbox = checkbox;
+			checkbox.addEventListener("change", (event) => {
+				if (event.target.checked) {
+					this.showAll();
+				} else {
+					this.default();
+				}
+			});
+		}
 	}
 
 	hookupEvtHandlers() {

@@ -64,12 +64,11 @@ func (p *UserEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 
 func (p *UserEditPage) getData(app core.App, data map[string]any, e *core.RequestEvent) error {
 	uid := e.Request.PathValue(UID_PATH_VALUE)
-	u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
+	user, err := dbmodels.Users_ID(app, uid)
 	if err != nil {
 		return fmt.Errorf("Konnte Nutzer nicht finden: %w", err)
 	}
 
-	user := dbmodels.NewUser(u)
 	fu := user.Fixed()
 
 	data["user"] = &fu
@@ -220,11 +219,10 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 		req := templating.NewRequest(e)
 		user := req.User()
 
-		u, err := app.FindRecordById(dbmodels.USERS_TABLE, uid)
+		user_proxy, err := dbmodels.Users_ID(app, uid)
 		if err != nil {
 			return engine.Response404(e, err, nil)
 		}
-		user_proxy := dbmodels.NewUser(u)
 		fu := user_proxy.Fixed()
 
 		formdata := struct {

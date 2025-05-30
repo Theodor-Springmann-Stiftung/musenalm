@@ -1,26 +1,11 @@
 {
   "name": "caveman_views",
   "version": "1.0.0",
-  "description": "default views for caveman",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "tailwind": "tailwindcss -i transform/site.css -o assets/style.css",
-    "css": "postcss transform/site.css -o assets/style.css",
-    "preview": "vite preview"
-  },
+  "author": "Simon Martens",
   "repository": {
     "type": "git",
     "url": "github.com/Simon-Martens/pocketcatalog"
   },
-  "keywords": [
-    "DB",
-    "htmx",
-    "frontend"
-  ],
-  "author": "Simon Martens",
-  "license": "MIT",
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "daisyui": "^5.0.0-beta.8",
@@ -30,5 +15,20 @@
     "prettier-plugin-go-template": "^0.0.15",
     "tailwindcss": "^4.0.0",
     "vite": "^6.0.0"
-  }
+  },
+  "description": "default views for caveman",
+  "keywords": [
+    "DB",
+    "htmx",
+    "frontend"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tailwind": "tailwindcss -i transform/site.css -o assets/style.css",
+    "css": "postcss transform/site.css -o assets/style.css",
+    "preview": "vite preview"
+  },
+  "type": "module"
 }

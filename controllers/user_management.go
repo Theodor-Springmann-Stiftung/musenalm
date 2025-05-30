@@ -142,12 +142,10 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 			return p.ErrorResponse(engine, e, err)
 		}
 
-		user, err := app.FindRecordById(dbmodels.USERS_TABLE, formdata.User)
+		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
 		}
-
-		u := dbmodels.NewUser(user)
 
 		u.SetDeactivated(true)
 
@@ -187,12 +185,10 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 			return p.ErrorResponse(engine, e, err)
 		}
 
-		user, err := app.FindRecordById(dbmodels.USERS_TABLE, formdata.User)
+		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
 		}
-
-		u := dbmodels.NewUser(user)
 
 		u.SetDeactivated(false)
 
@@ -232,12 +228,11 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 			return p.ErrorResponse(engine, e, err)
 		}
 
-		user, err := app.FindRecordById(dbmodels.USERS_TABLE, formdata.User)
+		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
 		}
 
-		u := dbmodels.NewUser(user)
 		DeleteSessionsForUser(app, u.Id)
 
 		data := make(map[string]any)

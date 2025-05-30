@@ -20,15 +20,11 @@
 <div id="breadcrumbs">
 	<div>
 		<div>
-			<a href="/personen?letter={{- First $model.result.Agent.Name -}}"
-				>Personen &amp; Körperschaften</a
-			>
+			<a href="/personen?letter={{- First $model.result.Agent.Name -}}">Personen &amp; Körperschaften</a>
 			<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Agent.Name }}</b>
 		</div>
 		<div class="backbutton">
-			<a href="/personen/" class="no-underline">
-				<i class="ri-arrow-left-long-line"></i> Alle Personen &amp; Körperschaften
-			</a>
+			<a href="/personen/" class="no-underline"> <i class="ri-arrow-left-long-line"></i> Alle Personen &amp; Körperschaften </a>
 		</div>
 	</div>
 </div>
@@ -155,32 +151,17 @@
 				<input type="checkbox" id="showall" autocomplete="off" />
 				<label for="showall" class="cursor-pointer select-none ml-1">Alle anzeigen</label>
 				<script type="module">
-					const tablist = document.getElementById("entries-tabs");
-					const checkbox = document.getElementById("showall");
+					entriestabs?.hookupShowAll(showall);
 					{{- if eq (len $model.result.CResult) 1 -}}
-						if (checkbox) {
-							if (tablist) {
-								tablist.showAll();
-							}
-							checkbox.checked = true;
-							checkbox.disabled = true;
-						}
-					{{- else -}}
-					if (tablist && checkbox) {
-						checkbox.addEventListener("change", () => {
-							if (checkbox && checkbox.checked) {
-								tablist.showAll();
-							} else {
-								tablist.default();
-							}
-						});
-					}
+						entriestabs?.showAll();
+						showall?.checked = true;
+						showall?.disabled = true;
 					{{- end -}}
 				</script>
 			</div>
 		</div>
 		<div class="mt-8">
-			<tab-list id="entries-tabs">
+			<tab-list id="entriestabs">
 				{{- range $_, $e := $model.result.CResult -}}
 					{{- $contents := index $model.result.Contents $e.Id -}}
 					<div
@@ -191,8 +172,7 @@
 							<i class="ri-arrow-right-s-fill show-closed"></i>
 							<i class="ri-arrow-down-s-fill show-opened"></i>
 						</div>
-						<div
-							class="inline-block font-sans bg-slate-800 text-white h-max text-sm px-1.5 rounded">
+						<div class="inline-block font-sans bg-slate-800 text-white h-max text-sm px-1.5 rounded">
 							{{- len $contents -}}
 						</div>
 					</div>

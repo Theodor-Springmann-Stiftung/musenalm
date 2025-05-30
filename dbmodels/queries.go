@@ -133,6 +133,42 @@ func Series_ID(app core.App, id string) (*Series, error) {
 	return &ret, err
 }
 
+func Users_ID(app core.App, id string) (*User, error) {
+	ret, err := TableByID[User](app, USERS_TABLE, id)
+	return &ret, err
+}
+
+func Sessions_ID(app core.App, id string) (*Session, error) {
+	ret, err := TableByID[Session](app, SESSIONS_TABLE, id)
+	return &ret, err
+}
+
+func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
+	t := HashStringSHA256(token)
+	return TableByField[*AccessToken](
+		app,
+		ACCESS_TOKENS_TABLE,
+		ACCESS_TOKENS_TOKEN_FIELD,
+		t,
+	)
+}
+
+func Users_Email(app core.App, email string) (*User, error) {
+	ret, err := TableByField[User](app, USERS_TABLE, USERS_EMAIL_FIELD, email)
+	return &ret, err
+}
+
+func Sessions_Token(app core.App, token string) (*Session, error) {
+	t := HashStringSHA256(token)
+	ret, err := TableByField[Session](
+		app,
+		SESSIONS_TABLE,
+		SESSIONS_TOKEN_FIELD,
+		t,
+	)
+	return &ret, err
+}
+
 func Places_IDs(app core.App, ids []any) ([]*Place, error) {
 	return TableByIDs[*Place](app, PLACES_TABLE, ids)
 }

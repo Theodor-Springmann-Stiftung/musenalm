@@ -124,6 +124,8 @@ func (e *Engine) funcs() error {
 	e.AddFunc("Contains", functions.Contains)
 	e.AddFunc("Add", functions.Add)
 	e.AddFunc("Len", functions.Length)
+	e.AddFunc("GermanDate", functions.GermanDate)
+	e.AddFunc("GermanTime", functions.GermanTime)
 
 	// String Functions
 	e.AddFunc("Lower", functions.Lower)

@@ -12,6 +12,7 @@ import { IntLink } from "./int-link.js";
 import { ImageReel } from "./image-reel.js";
 import { MultiSelectRole } from "./multi-select-role.js";
 import { MultiSelectSimple } from "./multi-select-simple.js";
+import { ResetButton } from "./reset-button.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
@@ -24,6 +25,7 @@ const FILTER_PILL_ELEMENT = "filter-pill";
 const IMAGE_REEL_ELEMENT = "image-reel";
 const MULTI_SELECT_ROLE_ELEMENT = "multi-select-places";
 const MULTI_SELECT_SIMPLE_ELEMENT = "multi-select-simple";
+const RESET_BUTTON_ELEMENT = "reset-button";
 
 customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
@@ -36,5 +38,118 @@ customElements.define(FILTER_PILL_ELEMENT, FilterPill);
 customElements.define(IMAGE_REEL_ELEMENT, ImageReel);
 customElements.define(MULTI_SELECT_ROLE_ELEMENT, MultiSelectRole);
 customElements.define(MULTI_SELECT_SIMPLE_ELEMENT, MultiSelectSimple);
+customElements.define(RESET_BUTTON_ELEMENT, ResetButton);
 
-export { FilterList, ScrollButton, AbbreviationTooltips };
+function PathPlusQuery() {
+	const path = window.location.pathname;
+	const query = window.location.search;
+	const fullPath = path + query;
+	return encodeURIComponent(fullPath);
+}
+
+/**
+ * @param {number} timeout - Maximum time to wait in milliseconds.
+ * @param {number} interval - How often to check in milliseconds.
+ * @returns {Promise<Function>} Resolves with the QRCode constructor when available.
+ */
+function getQRCodeWhenAvailable(timeout = 5000, interval = 100) {
+	return new Promise((resolve, reject) => {
+		let elapsedTime = 0;
+		const checkInterval = setInterval(() => {
+			if (typeof window.QRCode === "function") {
+				clearInterval(checkInterval);
+				resolve(window.QRCode); // Resolve with the QRCode object/function
+			} else {
+				elapsedTime += interval;
+				if (elapsedTime >= timeout) {
+					clearInterval(checkInterval);
+					console.error("Timed out waiting for QRCode to become available.");
+					reject(new Error("QRCode not available after " + timeout + "ms. Check if qrcode.min.js is loaded correctly and sets window.QRCode."));
+				}
+			}
+		}, interval);
+	});
+}
+
+// INFO: We have to wait for the QRCode object to be available. It's messy.
+async function GenQRCode(value) {
+	const QRCode = await getQRCodeWhenAvailable();
+	const qrElement = document.getElementById("qr");
+	if (qrElement) {
+		// INFO: Clear previous QR code if any
+		// Also hide it initially to prevent flickering
+		qrElement.innerHTML = "";
+		qrElement.classList.add("hidden");
+		new QRCode(qrElement, {
+			text: value,
+			width: 1280,
+			height: 1280,
+			colorDark: "#000000",
+			colorLight: "#ffffff",
+			correctLevel: QRCode.CorrectLevel.H,
+		});
+		setTimeout(() => {
+			qrElement.classList.remove("hidden");
+		}, 20);
+	}
+
+	// Add event listeners to the token input field to select its content on focus or click
+}
+
+function SelectableInput(tokenElement) {
+	if (tokenElement) {
+		tokenElement.addEventListener("focus", (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
+		tokenElement.addEventListener("mousedown", (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
+		tokenElement.addEventListener("mouseup", (ev) => {
+			ev.preventDefault();
+			tokenElement.select();
+		});
+	}
+	if (tokenElement) {
+		tokenElement.addEventListener("focus", () => {
+			tokenElement.select();
+		});
+		tokenElement.addEventListener("click", () => {
+			tokenElement.select();
+		});
+	}
+}
+
+// TODO: Doesn't work properly.
+// Intended to make sure errors from boosted links are shown.
+function ShowBoostedErrors() {
+	document.body.addEventListener("htmx:responseError", function (event) {
+		const config = event.detail.requestConfig;
+		if (config.boosted) {
+			document.body.innerHTML = event.detail.xhr.responseText;
+			const newUrl = event.detail.xhr.responseURL || config.url;
+			window.history.pushState(null, "", newUrl);
+		}
+	});
+}
+
+function FormHasChanged(form) {
+	if (!form || !(form instanceof HTMLFormElement)) {
+		return false;
+	}
+	const resetButton = form.querySelector("reset-button");
+	if (resetButton && resetButton.changed) {
+		return true;
+	}
+
+	return false;
+}
+
+window.ShowBoostedErrors = ShowBoostedErrors;
+window.GenQRCode = GenQRCode;
+window.SelectableInput = SelectableInput;
+window.PathPlusQuery = PathPlusQuery;
+window.FormHasChanged = FormHasChanged;
+
+export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink };

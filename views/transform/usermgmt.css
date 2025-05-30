@@ -1,0 +1,50 @@
+@layer components {
+	.user-chooser a {
+		@apply px-4 py-2 no-underline text-gray-500 hover:text-slate-900 font-serif font-bold border-l-4 border-transparent hover:bg-slate-100 transition-all duration-75 rounded-xs;
+	}
+
+	.user-chooser a[aria-current="page"] {
+		@apply text-slate-900 font-bold bg-slate-100 border-slate-900 shadow-sm;
+	}
+
+	.user-chooser a[aria-current="page"]:nth-child(1) {
+		@apply border-blue-500;
+	}
+
+	.user-chooser a[aria-current="page"]:nth-child(2) {
+		@apply border-orange-600;
+	}
+
+	.user-chooser a[aria-current="page"]:nth-child(3) {
+		@apply border-red-600;
+	}
+
+	.user-mgmt thead th {
+		@apply text-left font-bold border-b-2 border-slate-800 py-2 px-3;
+	}
+
+	.user-mgmt tbody tr td {
+		@apply px-3 py-1.5;
+	}
+
+	.user-mgmt tbody tr:nth-child(odd) td {
+		@apply bg-slate-100;
+	}
+
+	.user-mgmt tbody tr:nth-child(even) td {
+		@apply bg-slate-50;
+	}
+
+	.user-mgmt tbody tr td:last-of-type {
+		@apply align-middle text-right pr-4;
+	}
+
+	.user-mgmt tbody tr.deactivated td:not(:last-of-type) {
+		@apply text-gray-400 line-through;
+	}
+
+	.user-mgmt form button,
+	.user-mgmt .edit-button {
+		@apply bg-slate-700 text-gray-200 text-base rounded-xs font-sans transition-all duration-75 px-3 py-1.5 hover:bg-slate-800 hover:text-white cursor-pointer;
+	}
+}

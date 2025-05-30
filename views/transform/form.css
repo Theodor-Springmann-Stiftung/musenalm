@@ -1,0 +1,276 @@
+@layer components {
+	.dbform .inputwrapper {
+		@apply rounded-xs border-2 border-transparent px-3
+				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
+				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100;
+	}
+
+	.dbform .inputwrapper .inputlabel {
+		@apply text-sm text-gray-700 font-bold;
+	}
+
+	.inputlabeltext {
+		@apply text-sm text-gray-700 font-bold;
+	}
+
+	.dbform .inputwrapper .inputselect {
+		@apply mt-1 block w-full rounded-md focus:border-none focus:outline-none
+					disabled:opacity-50;
+	}
+
+	.dbform .inputwrapper .inputinput {
+		@apply mt-1 block w-full focus:border-none focus:outline-none;
+	}
+
+	.dbform .submitbutton {
+		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 active:bg-slate-900 transition-all duration-75;
+	}
+
+	.dbform .resetbutton {
+		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium text-gray-800 bg-stone-200 hover:bg-stone-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline;
+	}
+
+	/* Multi-Select-Role example styles */
+	.msr-selected-items-container {
+		@apply rounded-md;
+	}
+	.msr-placeholder-no-selection-text {
+		@apply text-sm text-gray-500 italic px-2 py-1;
+	}
+
+	.msr-input-area-wrapper {
+		@apply p-2 rounded-md;
+	}
+	.msr-input-area-wrapper.msr-input-area-default-border {
+		@apply border border-gray-300;
+	}
+	.msr-input-area-wrapper.msr-input-area-default-border:focus-within {
+		@apply focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-400;
+	}
+	.msr-input-area-wrapper.msr-input-area-staged {
+		@apply border border-transparent;
+	}
+
+	.msr-text-input {
+		@apply bg-transparent text-sm placeholder-gray-400;
+	}
+
+	.msr-selected-item-pill {
+		@apply bg-gray-200 text-gray-700 px-3 py-[0.3rem] rounded-md text-sm inline-flex items-center m-0.5;
+	}
+	.msr-item-name {
+		@apply font-medium;
+	}
+	.msr-item-additional-data {
+		@apply text-xs ml-1 text-gray-600;
+	}
+	.msr-selected-item-role {
+		@apply font-semibold text-xs ml-1 text-gray-800;
+	}
+	.msr-selected-item-delete-btn {
+		@apply bg-transparent border-none text-gray-500 text-lg leading-none px-1 cursor-pointer opacity-60 transition-opacity duration-200;
+	}
+	.msr-selected-item-delete-btn:hover {
+		@apply hover:opacity-100 hover:text-gray-900;
+	}
+
+	.msr-staged-item-pill {
+		@apply bg-gray-100 text-gray-800 px-2 py-1 rounded-md text-sm font-medium;
+	}
+	.msr-staged-item-text {
+		@apply mr-2;
+	}
+
+	.msr-staged-role-select {
+		@apply px-2 py-1 text-sm rounded-md border border-gray-300 bg-white outline-none text-gray-700;
+	}
+	.msr-staged-role-select:focus {
+		@apply focus:border-gray-500 focus:ring-1 focus:ring-gray-400;
+	}
+
+	.msr-staged-cancel-btn {
+		@apply w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-sm leading-none cursor-pointer;
+	}
+	.msr-staged-cancel-btn:hover {
+		@apply hover:bg-gray-300 hover:text-gray-800;
+	}
+
+	.msr-pre-add-button {
+		@apply w-10 h-[42px] text-xl rounded-md bg-gray-50 text-gray-700 border border-gray-300 font-semibold outline-none;
+	}
+	.msr-pre-add-button:focus {
+		@apply focus:border-gray-500 focus:ring-1 focus:ring-gray-400;
+	}
+	.msr-pre-add-button:hover {
+		@apply hover:bg-gray-100;
+	}
+	.msr-pre-add-button:disabled {
+		@apply disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:border-gray-200;
+	}
+	.msr-pre-add-button.hidden {
+		@apply hidden;
+	}
+
+	.msr-add-button {
+		@apply px-4 py-2 text-sm rounded-md bg-gray-600 text-white font-medium;
+	}
+	.msr-add-button:hover {
+		@apply hover:bg-gray-700;
+	}
+	.msr-add-button:disabled {
+		@apply disabled:bg-gray-300 disabled:cursor-not-allowed;
+	}
+	.msr-add-button.hidden {
+		@apply hidden;
+	}
+
+	.msr-options-list {
+		@apply bg-white border border-gray-300 rounded-md shadow-md;
+	}
+	.msr-options-list.hidden {
+		@apply hidden;
+	}
+
+	.msr-option-item {
+		@apply px-3 py-2 text-sm cursor-pointer transition-colors duration-75;
+	}
+	.msr-option-item:hover {
+		@apply bg-gray-100 text-gray-800;
+	}
+	.msr-option-item-highlighted {
+		@apply bg-gray-100 text-gray-800;
+	}
+	.msr-option-item-name {
+		@apply font-medium;
+	}
+	.msr-option-item-detail {
+		@apply text-xs ml-2 text-gray-500;
+	}
+	.msr-option-item-highlighted .msr-option-item-detail,
+	.msr-option-item:hover .msr-option-item-detail {
+		/* Ensure detail text color changes on hover too */
+		@apply text-gray-600;
+	}
+
+	multi-select-role[disabled] {
+		/* This remains standard CSS as Tailwind's disabled: variant is for native elements */
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.msr-hidden-select {
+		/* No specific styling needed as it's visually hidden by JS/inline style */
+	}
+
+	/* --- MultiSelectSimple Component Base Styles (using @apply) --- */
+	.mss-component-wrapper {
+		/* 'relative' is set inline for positioning dropdown */
+	}
+
+	.mss-selected-items-container {
+		@apply border border-gray-300 p-1.5 rounded;
+		/* Tailwind classes from component: flex flex-wrap gap-1 mb-1 min-h-[38px] */
+	}
+
+	.mss-no-items-text {
+		@apply italic text-xs text-gray-500 p-1 w-full; /* Adjusted font size slightly to match 'xs' */
+	}
+
+	.mss-selected-item-pill {
+		@apply bg-gray-200 text-gray-800 py-0.5 px-2 rounded text-xs leading-5; /* Adjusted font size and padding */
+		/* Tailwind classes from component: flex items-center */
+	}
+
+	.mss-selected-item-text {
+		/* Base styles for text part of the pill */
+	}
+	.mss-selected-item-pill-detail {
+		@apply ml-1 opacity-75 text-xs text-gray-600;
+	}
+	.mss-selected-item-pill-detail.hidden {
+		@apply hidden;
+	}
+
+	.mss-selected-item-delete-btn {
+		@apply bg-transparent border-none text-gray-600 opacity-70 cursor-pointer ml-1 text-base leading-none align-middle hover:opacity-100 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed;
+	}
+
+	.mss-input-controls-container {
+		/* Tailwind classes from component: flex items-center space-x-2 */
+	}
+
+	.mss-input-wrapper {
+		@apply border border-gray-300 rounded;
+		/* Tailwind classes from component: relative flex items-center flex-grow */
+	}
+	.mss-input-wrapper-focused {
+		@apply border-indigo-600 ring-1 ring-indigo-600; /* Using ring for focus shadow */
+	}
+
+	.mss-text-input {
+		@apply py-1.5 px-2 text-sm;
+		/* Tailwind classes from component: w-full outline-none bg-transparent */
+	}
+	.mss-text-input::placeholder {
+		@apply text-gray-400 italic;
+	}
+
+	.mss-create-new-button {
+		@apply bg-gray-100 text-gray-700 border border-gray-300 py-1 px-1.5 text-sm rounded hover:bg-gray-200 hover:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:opacity-70 disabled:cursor-not-allowed;
+	}
+	.mss-create-new-button.hidden {
+		@apply !hidden; /* Ensure it hides */
+	}
+
+	.mss-options-list {
+		@apply bg-white border border-gray-300 rounded shadow-md; /* Using shadow-md as a softer default */
+		/* Tailwind classes from component: absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden */
+	}
+
+	.mss-option-item {
+		@apply text-gray-700 py-1.5 px-2.5 text-sm cursor-pointer transition-colors duration-75 hover:bg-gray-100;
+	}
+
+	.mss-option-item-name {
+		@apply font-medium;
+	}
+
+	.mss-option-item-detail {
+		@apply text-gray-500 text-xs ml-1.5;
+	}
+
+	.mss-option-item-highlighted {
+		@apply bg-indigo-100 text-indigo-800;
+	}
+	.mss-option-item-highlighted .mss-option-item-name {
+		/* @apply font-medium; */ /* Already set by .mss-option-item-name, inherit color from parent */
+	}
+	.mss-option-item-highlighted .mss-option-item-detail {
+		@apply text-indigo-700;
+	}
+
+	.mss-hidden-select {
+		/* Styles are inline in _render for !important, no change needed here */
+	}
+
+	multi-select-simple[disabled] {
+		@apply opacity-60; /* Adjusted opacity */
+	}
+	multi-select-simple[disabled] .mss-selected-items-container {
+		@apply bg-gray-100;
+	}
+	multi-select-simple[disabled] .mss-selected-item-pill {
+		@apply bg-gray-300 text-gray-500;
+	}
+	multi-select-simple[disabled] .mss-selected-item-delete-btn {
+		@apply text-gray-400;
+	}
+
+	.rbi-button {
+		@apply disabled:hidden;
+	}
+
+	select + reset-button .rbi-button {
+		@apply ml-3;
+	}
+}

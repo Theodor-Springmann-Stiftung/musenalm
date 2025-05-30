@@ -125,12 +125,11 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("Benuztername oder Passwort falsch. Bitte versuchen Sie es erneut."), data)
 		}
 
-		record, err := app.FindFirstRecordByData(dbmodels.USERS_TABLE, dbmodels.USERS_EMAIL_FIELD, formdata.Username)
-		if err != nil || !record.ValidatePassword(formdata.Password) {
+		user, err := dbmodels.Users_Email(app, formdata.Username)
+		if err != nil || !user.ValidatePassword(formdata.Password) {
 			return Unauthorized(engine, e, fmt.Errorf("Benuztername oder Passwort falsch. Bitte versuchen Sie es erneut."), data)
 		}
 
-		user := dbmodels.NewUser(record)
 		if user.Deactivated() {
 			return Unauthorized(engine, e, fmt.Errorf("Ihr Benutzerkonto ist deaktiviert. Bitte kontaktieren Sie den Administrator."), data)
 		}
@@ -140,7 +139,7 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			duration = time.Hour * 24 * 90
 		}
 
-		token, err := dbmodels.CreateSessionToken(app, record.Id, e.RealIP(), e.Request.UserAgent(), formdata.Persistent == "on", duration)
+		token, err := dbmodels.CreateSessionToken(app, user.Id, e.RealIP(), e.Request.UserAgent(), formdata.Persistent == "on", duration)
 		if err != nil || token == nil || token.SessionTokenClear == "" {
 			return engine.Response500(e, err, data)
 		}

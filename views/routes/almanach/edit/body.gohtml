@@ -9,23 +9,70 @@ type AlmanachResult struct {
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	User					 *dbmodels.User
 
 	Types    []string
 	HasScans bool
 }
 -->
 
-<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
-	<div class="flex-col w-full">
-		{{ if $model.redirect_url }}
-			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Zurück
-			</a>
-		{{ else }}
-			<a href="/" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Startseite
-			</a>
-		{{ end }}
-		<h1 class="text-2xl self-baseline w-full my-6 font-bold text-slate-900">Almanach bearbeiten</h1>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between pb-6">
+		<div class="flex flex-col justify-end-safe pt-36 flex-2/5">
+			<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="text-gray-700 hover:text-slate-950 block mb-2"><i class="ri-arrow-left-s-line"></i>Anschauen</a>
+			<h1 class="text-2xl w-full font-bold text-slate-900">Almanach bearbeiten</h1>
+			<!--
+			<div class="mt-1">
+				{{ $model.result.Entry.PreferredTitle }}
+			</div>
+			-->
+		</div>
+		<div class="flex flex-row" id="almanach-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+						<tool-tip position="right" class="!inline">
+							<div class="data-tip">Die Datenbank-ID kann zur Fehlerdiagnose hilfreich sein.</div>
+							<i class="ri-information-line"></i>
+						</tool-tip>
+					</div>
+					<div class="">{{ $model.result.Entry.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1">
+						<i class="ri-hashtag"></i> Alm-Nummer
+						<tool-tip position="right" class="!inline">
+							<div class="data-tip">Die Alm-Nr ist Teil der URL und wird automatisch vergeben.</div>
+							<i class="ri-information-line"></i>
+						</tool-tip>
+					</div>
+					<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">{{ $model.result.Entry.MusenalmID }}</div>
+				</div>
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit">
+							{{ GermanDate $model.result.Entry.Updated }};
+							{{ GermanTime
+								$model.result.Entry.Updated
+							}}
+						</div>
+						{{- if $model.result.User -}}
+							<div class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit">
+								<i class="ri-user-line mr-1"></i> {{- $model.result.User.Name -}}
+							</div>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
+</div>
+
+<div class="container-normal mx-auto px-8 mt-4">
+	{{ template "_usermessage" $model }}
+	<form class="w-full grid grid-cols-12 gap-4" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST"></form>
 </div>

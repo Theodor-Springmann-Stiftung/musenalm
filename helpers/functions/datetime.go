@@ -3,6 +3,8 @@ package functions
 import (
 	"fmt"
 	"time"
+
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Weekday struct {
@@ -18,6 +20,7 @@ type Month struct {
 }
 
 var Months = []Month{
+	{"N/A", "N/A", 0},
 	{"Januar", "Jan", 1},
 	{"Februar", "Feb", 2},
 	{"März", "Mär", 3},
@@ -30,7 +33,6 @@ var Months = []Month{
 	{"Oktober", "Okt", 10},
 	{"November", "Nov", 11},
 	{"Dezember", "Dez", 12},
-	{"N/A", "N/A", 0},
 }
 
 var Weekdays = []Weekday{
@@ -64,4 +66,28 @@ func GetMonth(month any) Month {
 
 	fmt.Println("Invalid month value", month)
 	return Months[12]
+}
+
+func GermanDate(t types.DateTime) string {
+	if t.IsZero() {
+		return "N/A"
+	}
+
+	location, _ := time.LoadLocation("Europe/Berlin")
+
+	time := t.Time().In(location)
+	month := Months[time.Month()]
+	weekday := Weekdays[time.Weekday()]
+	return fmt.Sprintf("%s, %d. %s %d", weekday.ShortName, time.Day(), month.ShortName, time.Year())
+}
+
+func GermanTime(t types.DateTime) string {
+	if t.IsZero() {
+		return "N/A"
+	}
+
+	location, _ := time.LoadLocation("Europe/Berlin")
+
+	time := t.Time().In(location)
+	return fmt.Sprintf("%02d:%02d", time.Hour(), time.Minute())
 }

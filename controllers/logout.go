@@ -53,14 +53,13 @@ func Logout(e *core.RequestEvent, app *core.App) {
 	if err == nil && app != nil {
 		go func() {
 			app := *app
-			record, err := app.FindFirstRecordByData(dbmodels.SESSIONS_TABLE, dbmodels.SESSIONS_TOKEN_FIELD, dbmodels.HashStringSHA256(cookie.Value))
-			if err == nil && record != nil {
-				session := dbmodels.NewSession(record)
+			session, err := dbmodels.Sessions_Token(app, cookie.Value)
+			if err == nil {
 				session.SetStatus(dbmodels.MUSENALM_STATUS_VALUES[1])
 				if err := app.Save(session); err != nil {
 					app.Logger().Error("Failed to update session status.", "error", err.Error())
 				}
-			} else if err != nil {
+			} else {
 				app.Logger().Error("Failed to find session record.", "error", err.Error())
 			}
 

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 var _ core.RecordProxy = (*Entry)(nil)
@@ -242,4 +243,20 @@ func (e *Entry) Editor() string {
 
 func (e *Entry) SetEditor(editor string) {
 	e.Set(EDITOR_FIELD, editor)
+}
+
+func (e *Entry) Updated() types.DateTime {
+	return e.GetDateTime(UPDATED_FIELD)
+}
+
+func (e *Entry) SetUpdated(updated types.DateTime) {
+	e.Set(UPDATED_FIELD, updated)
+}
+
+func (e *Entry) Created() types.DateTime {
+	return e.GetDateTime(CREATED_FIELD)
+}
+
+func (e *Entry) SetCreated(created types.DateTime) {
+	e.Set(CREATED_FIELD, created)
 }

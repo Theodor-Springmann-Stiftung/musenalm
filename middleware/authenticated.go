@@ -21,7 +21,8 @@ var deact_cookie = &http.Cookie{
 func Authenticated(app core.App) func(*core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		if strings.HasPrefix(e.Request.URL.Path, "/assets") ||
-			strings.HasPrefix(e.Request.URL.Path, "/api") {
+			strings.HasPrefix(e.Request.URL.Path, "/api") ||
+			strings.HasPrefix(e.Request.URL.Path, "/_") {
 			return e.Next()
 		}
 
@@ -32,22 +33,20 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 
 		user, session, loaded := SESSION_CACHE.Get(cookie.Value)
 		if !loaded {
-			hashedsession := dbmodels.HashStringSHA256(cookie.Value)
-			record, err := app.FindFirstRecordByData(dbmodels.SESSIONS_TABLE, dbmodels.SESSIONS_TOKEN_FIELD, hashedsession)
+			s, err := dbmodels.Sessions_Token(app, cookie.Value)
 			if err != nil {
 				e.SetCookie(deact_cookie)
 				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
 				return e.Next()
 			}
 
-			s := dbmodels.NewSession(record)
-			r, err := app.FindRecordById(dbmodels.USERS_TABLE, s.User())
+			slog.Debug("Session loaded from database", "session", s.Id, "user", s.User())
+			u, err := dbmodels.Users_ID(app, s.User())
 			if err != nil {
 				e.SetCookie(deact_cookie)
 				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
 				return e.Next()
 			}
-			u := dbmodels.NewUser(r)
 			user, session = SESSION_CACHE.Set(u, s)
 		}
 
@@ -59,12 +58,15 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 			slog.Warn("Session expired", "user", user.Id, "name", user.Name, "session", session.ID)
 			SESSION_CACHE.Delete(cookie.Value)
 			go func() {
-				r, err := app.FindRecordById(dbmodels.SESSIONS_TABLE, session.ID)
+				r, err := dbmodels.Sessions_ID(app, session.ID)
+				if err == nil {
+					r.SetStatus(dbmodels.TOKEN_STATUS_VALUES[1])
+					if err := app.Save(r); err != nil {
+						app.Logger().Error("Failed to save session status", "session", session.ID, "error", err)
+					}
+				}
 				e.SetCookie(deact_cookie)
 				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
-				if err == nil {
-					app.Delete(r)
-				}
 			}()
 			return e.Next()
 		}
@@ -74,21 +76,19 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 
 		token := e.Request.URL.Query().Get("token")
 		if token != "" {
-			record, err := app.FindFirstRecordByData(dbmodels.ACCESS_TOKENS_TABLE, dbmodels.ACCESS_TOKENS_TOKEN_FIELD, token)
+			a, err := dbmodels.AccessTokens_Token(app, token)
 			if err != nil {
 				slog.Error("Failed to find access token", "token", token, "error", err)
 				return e.Next()
 			}
-			a := dbmodels.NewAccessToken(record)
 
 			if a.User() != "" {
-				r, err := app.FindRecordById(dbmodels.USERS_TABLE, a.User())
+				u, err := dbmodels.Users_ID(app, a.User())
 				if err != nil {
 					slog.Error("Failed to find access token user", "user", a.User(), "error", err)
 					return e.Next()
 				}
 
-				u := dbmodels.NewUser(r)
 				e.Set("access_token_user", u.Fixed())
 			}
 

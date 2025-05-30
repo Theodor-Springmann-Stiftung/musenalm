@@ -1,5 +1,6 @@
 {{- $date := Today -}}
 <footer id="footer" class="container-normal pb-1.5 text-base text-gray-800 relative" x-data="{ openusermenu: false }">
+	<!-- INFO: User menu -->
 	{{- if .request.user -}}
 		<div class="" x-show="openusermenu">
 			<div
@@ -8,7 +9,7 @@
 		[&>a]:block [&>a]:px-3 [&>a]:py-2 [&>a]:text-sm [&>a]:w-full [&>a]:text-left
 		[&>a]:whitespace-nowrap [&>a]:transition-all [&>a]:duration-200 [&>a]:border-b
 		[&>a]:last:border-b-0">
-				<a href="/user/{{ .request.user.Id }}/edit?redirectTo={{ .request.fullpath }}" class="">
+				<a :href="'/user/{{ .request.user.Id }}/edit?redirectTo=' + window.location" class="">
 					<i class="ri-user-3-line"></i>
 					Profil bearbeiten
 				</a>
@@ -29,8 +30,9 @@
 			</div>
 		</div>
 	{{- end -}}
+	<!-- END: User menu -->
 
-
+	<!-- INFO: Actual Footer -->
 	<div class="mt-12 pt-3 flex flex-row justify-between">
 		<div>
 			<i class="ri-creative-commons-line"></i>
