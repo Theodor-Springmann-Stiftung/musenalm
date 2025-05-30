@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
@@ -55,8 +55,8 @@ func (p *UserManagementPage) Setup(router *router.Router[*core.RequestEvent], ap
 func GetSessionsCounts(app core.App) ([]*SessionCount, error) {
 	query := app.RecordQuery(dbmodels.SESSIONS_TABLE).
 		Select("COUNT(*) AS count", dbmodels.SESSIONS_USER_FIELD).
-		GroupBy(dbmodels.SESSIONS_USER_FIELD).
-		OrderBy("count DESC")
+		AndWhere(dbx.HashExp{dbmodels.SESSIONS_STATUS_FIELD: dbmodels.TOKEN_STATUS_VALUES[0]}).
+		GroupBy(dbmodels.SESSIONS_USER_FIELD)
 
 	var counts []*SessionCount
 	err := query.All(&counts)
@@ -70,14 +70,14 @@ func GetSessionsCounts(app core.App) ([]*SessionCount, error) {
 func (p *UserManagementPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		data := make(map[string]any)
-		p.getData(app, data)
+		p.getData(app, templating.NewRequest(e), data)
 		SetRedirect(data, e)
 
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
 
-func (p *UserManagementPage) getData(app core.App, data map[string]any) error {
+func (p *UserManagementPage) getData(app core.App, req *templating.Request, data map[string]any) error {
 	records := []*core.Record{}
 	err := app.RecordQuery(dbmodels.USERS_TABLE).OrderBy(dbmodels.USERS_NAME_FIELD).All(&records)
 	if err != nil {
@@ -102,22 +102,17 @@ func (p *UserManagementPage) getData(app core.App, data map[string]any) error {
 	data["users"] = users
 	data["len"] = len(users)
 	data["session_counts"] = scmap
-
-	csrfNonce, csrfToken, err := CSRF_CACHE.GenerateTokenBundleWithExpiration(2 * time.Hour)
-	if err != nil {
-		return fmt.Errorf("Konnte kein CSRF-Token generieren.")
-	}
-	data["csrf_nonce"] = csrfNonce
-	data["csrf_token"] = csrfToken
+	data["csrf_token"] = req.Session().Token
 
 	return nil
 }
 
 func (p *UserManagementPage) ErrorResponse(engine *templating.Engine, e *core.RequestEvent, err error) error {
 	data := make(map[string]any)
+	req := templating.NewRequest(e)
 	data["error"] = err.Error()
 
-	err = p.getData(e.App, data)
+	err = p.getData(e.App, req, data)
 	if err != nil {
 		engine.Response500(e, fmt.Errorf("Nutzerdaten konnten nicht geladen werden: %w", err), data)
 	}
@@ -134,16 +129,16 @@ func (p *UserManagementPage) ErrorResponse(engine *templating.Engine, e *core.Re
 func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		formdata := struct {
-			User  string `form:"uid"`
-			CSRF  string `form:"csrf_token"`
-			Nonce string `form:"csrf_nonce"`
+			User string `form:"uid"`
+			CSRF string `form:"csrf_token"`
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
 		}
 
-		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+		req := templating.NewRequest(e)
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
 			return p.ErrorResponse(engine, e, err)
 		}
 
@@ -165,9 +160,8 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 		data := make(map[string]any)
 		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde deaktiviert."
 
-		p.getData(app, data)
+		p.getData(app, req, data)
 
-		req := templating.NewRequest(e)
 		if req.User() != nil && req.User().Id == u.Id {
 			return e.Redirect(303, "/login/")
 		}
@@ -180,16 +174,16 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		formdata := struct {
-			User  string `form:"uid"`
-			CSRF  string `form:"csrf_token"`
-			Nonce string `form:"csrf_nonce"`
+			User string `form:"uid"`
+			CSRF string `form:"csrf_token"`
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
 		}
 
-		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+		req := templating.NewRequest(e)
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
 			return p.ErrorResponse(engine, e, err)
 		}
 
@@ -211,9 +205,8 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 		data := make(map[string]any)
 		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde aktiviert."
 
-		p.getData(app, data)
+		p.getData(app, req, data)
 
-		req := templating.NewRequest(e)
 		if req.User() != nil && req.User().Id == u.Id {
 			return e.Redirect(303, "/login/")
 		}
@@ -226,16 +219,16 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		formdata := struct {
-			User  string `form:"uid"`
-			CSRF  string `form:"csrf_token"`
-			Nonce string `form:"csrf_nonce"`
+			User string `form:"uid"`
+			CSRF string `form:"csrf_token"`
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
 			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
 		}
 
-		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.Nonce, formdata.CSRF); err != nil {
+		req := templating.NewRequest(e)
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
 			return p.ErrorResponse(engine, e, err)
 		}
 
@@ -250,9 +243,8 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 		data := make(map[string]any)
 		data["success"] = "Nutzer " + u.Name() + "(" + u.Email() + ") wurde überall ausgeloggt."
 
-		p.getData(app, data)
+		p.getData(app, req, data)
 
-		req := templating.NewRequest(e)
 		if req.User() != nil && req.User().Id == u.Id {
 			return e.Redirect(301, "/login/")
 		}

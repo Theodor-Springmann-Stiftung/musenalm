@@ -560,7 +560,8 @@
 		@apply text-gray-400 line-through;
 	}
 
-	.user-mgmt form button {
+	.user-mgmt form button,
+	.user-mgmt .edit-button {
 		@apply bg-slate-700 text-gray-200 text-base rounded-xs font-sans transition-all duration-75 px-3 py-1.5 hover:bg-slate-800 hover:text-white cursor-pointer;
 	}
 
@@ -765,7 +766,7 @@
 		@apply bg-gray-100 text-gray-700 border border-gray-300 py-1 px-1.5 text-sm rounded hover:bg-gray-200 hover:border-gray-400 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:opacity-70 disabled:cursor-not-allowed;
 	}
 	.mss-create-new-button.hidden {
-		@apply hidden !important; /* Ensure it hides */
+		@apply !hidden; /* Ensure it hides */
 	}
 
 	.mss-options-list {

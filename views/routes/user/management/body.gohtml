@@ -4,13 +4,9 @@
 <div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
 	<div class="flex-col w-full">
 		{{ if $model.redirect_url }}
-			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Zurück
-			</a>
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Zurück </a>
 		{{ else }}
-			<a href="/" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Startseite
-			</a>
+			<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
 		{{ end }}
 		<h1
 			class="text-2xl self-baseline w-full my-6 font-bold
@@ -19,24 +15,10 @@
 		</h1>
 	</div>
 </div>
+
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col w-full">
-		<div id="user-message">
-			{{ if $model.success }}
-				<div
-					class="text-green-800 text-sm mt-2 rounded bg-green-200 p-2 font-bold border-green-700
-				border-2 mb-3">
-					{{ $model.success }}
-				</div>
-			{{ end }}
-			{{ if $model.error }}
-				<div
-					class="text-red-800 text-sm mt-2 rounded bg-red-200 p-2 font-bold border-red-700
-				border-2 mb-3">
-					{{ $model.error }}
-				</div>
-			{{ end }}
-		</div>
+		{{ template "_usermessage" $model }}
 		<table class="user-mgmt w-full text-lg">
 			<thead>
 				<tr>
@@ -49,7 +31,7 @@
 			</thead>
 			<tbody>
 				{{ range $u := $model.users }}
-					<tr class="{{ if $u.Deactivated }}deactivated{{ end }}">
+					<tr class="{{ if $u.Deactivated }}deactivated{{ end }}" id="user-{{ $u.Id }}">
 						<td>{{ $u.Name }}</td>
 						<td>{{ $u.Email }}</td>
 						{{- if eq $u.Role "Admin" -}}
@@ -61,61 +43,64 @@
 						{{- end -}}
 						<td>{{ index $model.session_counts $u.Id }}</td>
 						<td>
-							<form class="flex flex-row gap-x-4 justify-end">
-								<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
-								<input
-									type="hidden"
-									name="csrf_nonce"
-									id="csrf_nonce"
-									required
-									value="{{ $model.csrf_nonce }}" />
-								<input
-									type="hidden"
-									name="csrf_token"
-									id="csrf_token"
-									required
-									value="{{ $model.csrf_token }}" />
-								<!-- INFO: we dont use request.fullpath here, since this can be /logout /activate
-									or /deactivate, which would not work with the redirectTo query param -->
-								<tool-tip position="top">
-									<div class="data-tip font-bold hidden">Bearbeiten</div>
-									<button
-										formmethod="GET"
-										formaction="/user/{{ $u.Id }}/edit?redirectTo=/user/management">
-										<i class="ri-pencil-line"></i>
-									</button>
-								</tool-tip>
-								<tool-tip position="top">
-									<div class="data-tip font-bold hidden">Logout</div>
-									<button
-										formmethod="POST"
-										formaction="/user/management/logout/"
-										class="text-orange-800 bg-orange-200 hover:bg-orange-300">
-										<i class="ri-logout-box-r-line"></i>
-									</button>
-								</tool-tip>
+							<div class="flex flex-row justify-end items-center gap-2">
+								<!-- INFO: User edit button -->
+								<div class="edit-button">
+									<tool-tip position="top">
+										<div class="data-tip font-bold hidden">Bearbeiten</div>
+										<a href="/user/{{ $u.Id }}/edit?redirectTo=/user/management" class="text-gray-200 no-underline">
+											<i class="ri-pencil-line"></i>
+										</a>
+									</tool-tip>
+								</div>
+
+								<!-- INFO: User logout button -->
+								<form
+									{{- if eq $u.Id $model.request.user.Id }}
+										x-init @ajax:before="confirm('Sie werden ausgeloggt und müssen sich neu einloggen. Sicher?') || $event.preventDefault()"
+									{{ end }}
+									class=""
+									method="POST"
+									action="/user/management/logout/"
+									hx-boost="false"
+									x-target="user-{{ $u.Id }} user-message"
+									x-target.away="_top">
+									<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
+									<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+									<tool-tip position="top">
+										<div class="data-tip font-bold hidden">Logout</div>
+										<button class="text-red-900 bg-red-200 hover:bg-red-300">
+											<i class="ri-logout-box-r-line"></i>
+										</button>
+									</tool-tip>
+								</form>
+
+								<!-- INFO: User activate/deactivate button -->
 								{{- if $u.Deactivated }}
-									<tool-tip position="top">
-										<div class="data-tip font-bold hidden">Reaktivieren</div>
-										<button
-											formmethod="POST"
-											formaction="/user/management/activate/"
-											class="text-green-800 bg-green-200 hover:bg-green-300">
-											<i class="ri-restart-line"></i>
-										</button>
-									</tool-tip>
+									<form x-init @ajax:before="confirm('Der Benutzer {{ $u.Name }} wird wieder aktiviert und kann sich einloggen. Sicher?') || $event.preventDefault()" class="" method="POST" action="/user/management/activate/" hx-boost="false" x-target="user-{{ $u.Id }} user-message">
+										<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
+										<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+										<tool-tip position="top">
+											<div class="data-tip font-bold hidden">Reaktivieren</div>
+											<button class="bg-green-600 hover:bg-green-700">
+												<i class="ri-restart-line"></i>
+											</button>
+										</tool-tip>
+									</form>
 								{{- else -}}
-									<tool-tip position="top">
-										<div class="data-tip font-bold hidden">Deaktivieren</div>
-										<button
-											formmethod="POST"
-											formaction="/user/management/deactivate/"
-											class="text-red-800 bg-red-200 hover:bg-red-300">
-											<i class="ri-prohibited-2-line"></i>
-										</button>
-									</tool-tip>
+									<form x-init @ajax:before="confirm('Der Benutzer {{ $u.Name }} wird ausgeloggt und kann sich nicht mehr einloggen. Sicher?') || $event.preventDefault()" class="" method="POST" action="/user/management/deactivate/" hx-boost="false" x-target="user-{{ $u.Id }} user-message" x-target.away="_top">
+										<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
+										<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+										<tool-tip position="top">
+											<div class="data-tip font-bold hidden">Deaktivieren</div>
+											<button class="bg-red-600 hover:bg-red-700">
+												<i class="ri-prohibited-2-line"></i>
+											</button>
+										</tool-tip>
+									</form>
 								{{- end -}}
-							</form>
+
+							</div>
 						</td>
 					</tr>
 				{{ end }}

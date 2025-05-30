@@ -4,26 +4,17 @@
 <div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
 	<div class="flex-col w-full">
 		{{ if $model.redirect_url }}
-			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Zurück
-			</a>
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Zurück </a>
 		{{ else }}
-			<a href="/" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Startseite
-			</a>
+			<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
 		{{ end }}
 		<h1 class="text-2xl self-baseline w-full my-6 font-bold text-slate-900">Profil bearbeiten</h1>
 	</div>
 </div>
+
 <div class="flex container-normal mx-auto px-8 mt-4">
 	<div class="flex-col max-w-2xl w-full">
-		<form
-			class="w-full grid grid-cols-3 gap-4"
-			id="changeuserform"
-			x-target="changeuserform footer"
-			hx-boost="false"
-			method="POST"
-			x-data="{ openpw: false }">
+		<form class="w-full grid grid-cols-3 gap-4" id="changeuserform" x-target="changeuserform footer" hx-boost="false" method="POST" x-data="{ openpw: false }">
 			<div class="col-span-3">
 				{{ template "_usermessage" $model }}
 			</div>
@@ -31,44 +22,21 @@
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
-				<label for="username" class="text-sm text-gray-700 font-bold">
-					Name <i class="ri-text"></i>
-				</label>
-				<input
-					type="text"
-					name="name"
-					id="name"
-					class="mt-1 block w-full focus:border-none focus:outline-none"
-					placeholder=""
-					required
-					autocomplete="off"
-					value="{{ $model.user.Name }}"
-					autofocus />
+				<label for="username" class="text-sm text-gray-700 font-bold"> Name <i class="ri-text"></i> </label>
+				<input type="text" name="name" id="name" class="mt-1 block w-full focus:border-none focus:outline-none" placeholder="" required autocomplete="off" value="{{ $model.user.Name }}" autofocus />
 			</div>
 			<div
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
-				<label for="username" class="text-sm text-gray-700 font-bold">
-					E-Mail <i class="ri-at-line"></i>
-				</label>
-				<input
-					type="email"
-					name="username"
-					id="username"
-					autocomplete="off"
-					class="mt-1 block w-full rounded-md focus:border-none focus:outline-none"
-					placeholder=""
-					required
-					value="{{ $model.user.Email }}" />
+				<label for="username" class="text-sm text-gray-700 font-bold"> E-Mail <i class="ri-at-line"></i> </label>
+				<input type="email" name="username" id="username" autocomplete="off" class="mt-1 block w-full rounded-md focus:border-none focus:outline-none" placeholder="" required value="{{ $model.user.Email }}" />
 			</div>
 			<div
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
-				<label for="role" class="text-sm text-gray-700 font-bold">
-					Rolle <i class="ri-user-3-line"></i>
-				</label>
+				<label for="role" class="text-sm text-gray-700 font-bold"> Rolle <i class="ri-user-3-line"></i> </label>
 				<select
 					{{ if not (eq $model.request.user.Role "Admin") -}}
 						disabled
@@ -78,15 +46,9 @@
 					autocomplete="off"
 					class="mt-1 block w-full rounded-md focus:border-none focus:outline-none
 					disabled:opacity-50">
-					<option value="User" {{ if eq $model.user.Role "User" }}selected{{ end }}>
-						Benutzer
-					</option>
-					<option value="Editor" {{ if eq $model.user.Role "Editor" }}selected{{ end }}>
-						Redakteur
-					</option>
-					<option value="Admin" {{ if eq $model.user.Role "Admin" }}selected{{ end }}>
-						Administrator
-					</option>
+					<option value="User" {{ if eq $model.user.Role "User" }}selected{{ end }}>Benutzer</option>
+					<option value="Editor" {{ if eq $model.user.Role "Editor" }}selected{{ end }}>Redakteur</option>
+					<option value="Admin" {{ if eq $model.user.Role "Admin" }}selected{{ end }}>Administrator</option>
 				</select>
 			</div>
 			{{- if and
@@ -98,29 +60,20 @@
 					<div class="align-top">
 						<i class="ri-information-line text-gray-700 mt-2 mr-2 align-top"></i>
 					</div>
-					<p class="text-sm text-gray-700 max-w-[80ch]">
-						Achtung! Wenn Sie Ihre eigenen Berechtigungen ändern, verlieren Sie die Möglichkeit,
-						diese Änderungen rückgängig zu machen. Weiter werden Sie von allen laufenden Sitzungen
-						abgemeldet und müssen sich erneut anmelden.
-					</p>
+					<p class="text-sm text-gray-700 max-w-[80ch]">Achtung! Wenn Sie Ihre eigenen Berechtigungen ändern, verlieren Sie die Möglichkeit, diese Änderungen rückgängig zu machen. Weiter werden Sie von allen laufenden Sitzungen abgemeldet und müssen sich erneut anmelden.</p>
 				</div>
 			{{- else if (eq $model.request.user.Role "Admin") -}}
 				<div class="flex flex-row col-span-3">
 					<div class="align-top">
 						<i class="ri-information-line text-gray-700 mt-2 mr-2 align-top"></i>
 					</div>
-					<p class="text-sm text-gray-700 max-w-[80ch]">
-						Achtung! Wenn Sie die Rolle eines Benutzers ändern, wird dieser unter Umständen von
-						laufenden Sitzungen abgemeldet und muss sich erneut anmelden.
-					</p>
+					<p class="text-sm text-gray-700 max-w-[80ch]">Achtung! Wenn Sie die Rolle eines Benutzers ändern, wird dieser unter Umständen von laufenden Sitzungen abgemeldet und muss sich erneut anmelden.</p>
 				</div>
 			{{- end -}}
 			<div class="col-span-3">
 				<div class="flex items-center">
 					<input type="checkbox" name="openpw" id="openpw" x-model="openpw" class="mr-2" />
-					<label for="openpw" class="text-sm text-gray-700 font-bold">
-						Passwort ändern <i class="ri-key-2-line"></i>
-					</label>
+					<label for="openpw" class="text-sm text-gray-700 font-bold"> Passwort ändern <i class="ri-key-2-line"></i> </label>
 				</div>
 			</div>
 			{{- if not (eq $model.request.user.Role "Admin") -}}
@@ -130,13 +83,7 @@
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
 					<label for="password_old" class="text-sm text-gray-700 font-bold"> Altes Passwort </label>
-					<input
-						x-bind:type="openpw ? 'password' : 'hidden'"
-						name="password_old"
-						id="password_old"
-						class="mt-1 block w-full rounded-md focus:border-none focus:outline-none"
-						placeholder=""
-						required />
+					<input x-bind:type="openpw ? 'password' : 'hidden'" name="password_old" id="password_old" class="mt-1 block w-full rounded-md focus:border-none focus:outline-none" placeholder="" required />
 				</div>
 			{{- end -}}
 			<div
@@ -145,42 +92,19 @@
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
 				<label for="password" class="text-sm text-gray-700 font-bold"> Neues Passwort </label>
-				<input
-					x-bind:type="openpw ? 'password' : 'hidden'"
-					minlength="10"
-					name="password"
-					id="password"
-					class="mt-1 block w-full rounded-md focus:border-none focus:outline-none"
-					placeholder=""
-					required />
+				<input x-bind:type="openpw ? 'password' : 'hidden'" minlength="10" name="password" id="password" class="mt-1 block w-full rounded-md focus:border-none focus:outline-none" placeholder="" required />
 			</div>
 			<div
 				x-bind:style="!openpw ? 'display:none' : ''"
 				class="rounded-xs col-span-3 border-2 border-transparent px-3
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
 				bg-slate-200 focus-within:bg-slate-100 transition-all duration-100">
-				<label for="password_repeat" class="text-sm text-gray-700 font-bold">
-					Passwort wiederholen
-				</label>
-				<input
-					x-bind:type="openpw ? 'password' : 'hidden'"
-					minlength="10"
-					name="password_repeat"
-					id="password_repeat"
-					class="mt-1 block w-full rounded-md focus:border-none focus:outline-none"
-					placeholder=""
-					required />
+				<label for="password_repeat" class="text-sm text-gray-700 font-bold"> Passwort wiederholen </label>
+				<input x-bind:type="openpw ? 'password' : 'hidden'" minlength="10" name="password_repeat" id="password_repeat" class="mt-1 block w-full rounded-md focus:border-none focus:outline-none" placeholder="" required />
 			</div>
 			<div class="col-span-3 flex justify-end" x-bind:style="!openpw ? 'display:none' : ''">
-				<input
-					type="checkbox"
-					name="logout"
-					id="logout"
-					class="mr-2"
-					x-bind:style="!openpw ? 'display:none' : ''" />
-				<label for="logout" class="text-sm text-gray-700 font-bold">
-					überall ausloggen <i class="ri-logout-box-line"></i>
-				</label>
+				<input type="checkbox" name="logout" id="logout" class="mr-2" x-bind:style="!openpw ? 'display:none' : ''" />
+				<label for="logout" class="text-sm text-gray-700 font-bold"> überall ausloggen <i class="ri-logout-box-line"></i> </label>
 			</div>
 			<div class="col-span-1 col-start-2">
 				<a
@@ -192,18 +116,7 @@
 				</a>
 			</div>
 			<div class="col-span-1 col-start-3">
-				<input
-					type="hidden"
-					name="csrf_nonce"
-					id="csrf_nonce"
-					required
-					value="{{ $model.csrf_nonce }}" />
-				<input
-					type="hidden"
-					name="csrf_token"
-					id="csrf_token"
-					required
-					value="{{ $model.csrf_token }}" />
+				<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
 				<button
 					type="submit"
 					class="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md
@@ -216,47 +129,17 @@
 
 		<div class="col-span-1 mt-12 justify-self-end self-end items-end flex flex-row justify-end">
 			{{ if not $model.user.Deactivated }}
-				<form action="/user/{{ $model.user.Id }}/deactivate/" method="POST">
-					<input
-						type="hidden"
-						name="csrf_nonce"
-						id="csrf_nonce"
-						required
-						value="{{ $model.csrf_nonce }}" />
-					<input
-						type="hidden"
-						name="csrf_token"
-						id="csrf_token"
-						required
-						value="{{ $model.csrf_token }}" />
-					<button
-						type="submit"
-						type="button"
-						class="cursor-pointer text-red-700 hover:text-red-900 pr-4 mt-6">
+				<form id="actbtn" x-init @ajax:before="confirm('Der Benutzer {{ $model.user.Name }} wird deaktiviert und kann sich nicht mehr einloggen. Sicher?') || $event.preventDefault()" action="/user/{{ $model.user.Id }}/deactivate/" method="POST" hx-boost="false" x-target="user-message footer actbtn" x-target.away="_top">
+					<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+					<button type="submit" type="button" class="cursor-pointer text-red-700 hover:text-red-900 pr-4 mt-6">
 						<i class="ri-prohibited-2-line"></i>
 						Deaktivieren
 					</button>
 				</form>
 			{{ else }}
-				<form action="/user/{{ $model.user.Id }}/activate/" method="POST">
-					<input
-						type="hidden"
-						name="csrf_nonce"
-						id="csrf_nonce"
-						required
-						value="{{ $model.csrf_nonce }}" />
-					<input
-						type="hidden"
-						name="csrf_token"
-						id="csrf_token"
-						required
-						value="{{ $model.csrf_token }}" />
-					<button
-						type="submit"
-						type="button"
-						class="cursor-pointer text-green-700 hover:text-green-900 pr-4 mt-6">
-						<i class="ri-restart-line"></i> Aktivieren
-					</button>
+				<form id="actbtn" x-init @ajax:before="confirm('Der Benutzer {{ $model.user.Name }} wird wieder aktiviert und kann sich einloggen. Sicher?') || $event.preventDefault()" action="/user/{{ $model.user.Id }}/activate/" method="POST" hx-boost="false" x-target="user-message footer actbtn" x-target.away="_top">
+					<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+					<button type="submit" type="button" class="cursor-pointer text-green-700 hover:text-green-900 pr-4 mt-6"><i class="ri-restart-line"></i> Aktivieren</button>
 				</form>
 			{{ end }}
 		</div>
