@@ -4,87 +4,86 @@
 <script src="/assets/js/qrcode.min.js"></script>
 
 <script type="module">
-  const qrElement = document.getElementById('qr');
-  const tokenElement = document.getElementById('token');
-  const accessUrl = "{{ $model.access_url }}";
-
-  /**
-   * @param {number} timeout - Maximum time to wait in milliseconds.
-   * @param {number} interval - How often to check in milliseconds.
-   * @returns {Promise<Function>} Resolves with the QRCode constructor when available.
-   */
-  function getQRCodeWhenAvailable(timeout = 5000, interval = 100) {
-    return new Promise((resolve, reject) => {
-      let elapsedTime = 0;
-      const checkInterval = setInterval(() => {
-        if (typeof window.QRCode === 'function') {
-          clearInterval(checkInterval);
-          resolve(window.QRCode); // Resolve with the QRCode object/function
-        } else {
-          elapsedTime += interval;
-          if (elapsedTime >= timeout) {
-            clearInterval(checkInterval);
-            console.error('Timed out waiting for QRCode to become available.');
-            reject(new Error('QRCode not available after ' + timeout + 'ms. Check if qrcode.min.js is loaded correctly and sets window.QRCode.'));
-          }
-        }
-      }, interval);
-    });
-  }
+	/**
+	 * @param {number} timeout - Maximum time to wait in milliseconds.
+	 * @param {number} interval - How often to check in milliseconds.
+	 * @returns {Promise<Function>} Resolves with the QRCode constructor when available.
+	 */
+	function getQRCodeWhenAvailable(timeout = 5000, interval = 100) {
+		return new Promise((resolve, reject) => {
+			let elapsedTime = 0;
+			const checkInterval = setInterval(() => {
+				if (typeof window.QRCode === "function") {
+					clearInterval(checkInterval);
+					resolve(window.QRCode); // Resolve with the QRCode object/function
+				} else {
+					elapsedTime += interval;
+					if (elapsedTime >= timeout) {
+						clearInterval(checkInterval);
+						console.error("Timed out waiting for QRCode to become available.");
+						reject(new Error("QRCode not available after " + timeout + "ms. Check if qrcode.min.js is loaded correctly and sets window.QRCode."));
+					}
+				}
+			}, interval);
+		});
+	}
 
 	// INFO: We have to wait for the QRCode object to be available. It's messy.
-  async function genQRCode() {
+	async function genQRCode() {
+		console.debug("Generating QR Code...");
 		const QRCode = await getQRCodeWhenAvailable();
-		if (qrElement && accessUrl && qrElement.innerHTML.trim() === '') {
+		const tokenElement = document.getElementById("token");
+		const qrElement = document.getElementById("qr");
+		if (qrElement) {
+			// INFO: Clear previous QR code if any
+			// Also hide it initially to prevent flickering
+			qrElement.innerHTML = "";
+			qrElement.classList.add("hidden");
 			new QRCode(qrElement, {
-				text: accessUrl,
+				text: tokenElement.value,
 				width: 1280,
 				height: 1280,
 				colorDark: "#000000",
 				colorLight: "#ffffff",
-				correctLevel: QRCode.CorrectLevel.H
+				correctLevel: QRCode.CorrectLevel.H,
 			});
 			setTimeout(() => {
-				qrElement.classList.remove('hidden');
+				qrElement.classList.remove("hidden");
 			}, 20);
 		}
-  }
 
-  genQRCode();
-	if (tokenElement) {
-		tokenElement.addEventListener('focus', (ev) => {
-			ev.preventDefault();
-			tokenElement.select();
-		});
-		tokenElement.addEventListener('mousedown', (ev) => {
-			ev.preventDefault();
-			tokenElement.select();
-		});
-		tokenElement.addEventListener('mouseup', (ev) => {
-			ev.preventDefault();
-			tokenElement.select();
-		});
-  }
+		// Add event listeners to the token input field to select its content on focus or click
+		if (tokenElement) {
+			tokenElement.addEventListener("focus", (ev) => {
+				ev.preventDefault();
+				tokenElement.select();
+			});
+			tokenElement.addEventListener("mousedown", (ev) => {
+				ev.preventDefault();
+				tokenElement.select();
+			});
+			tokenElement.addEventListener("mouseup", (ev) => {
+				ev.preventDefault();
+				tokenElement.select();
+			});
+		}
+	}
+
+	genQRCode();
+	window.genQRCode = genQRCode;
 </script>
 
 <div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
 	<div class="flex-col w-full">
 		{{ if $model.redirect_url }}
-			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Zurück
-			</a>
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Zurück </a>
 		{{ else }}
-			<a href="/" class="text-gray-700 hover:text-slate-950">
-				<i class="ri-arrow-left-s-line"></i> Startseite
-			</a>
+			<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
 		{{ end }}
-		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">
-			Nutzer einladen
-		</h1>
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Nutzer einladen</h1>
 		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[60ch]">
 			<i class="ri-question-line"></i>
-			Mit diesem Link können neue Accounts registriert werden. Geben Sie den Link an Personen
-			weiter, die Sie einladen möchten.
+			Mit diesem Link können neue Accounts registriert werden. Geben Sie den Link an Personen weiter, die Sie einladen möchten.
 		</div>
 	</div>
 </div>
@@ -93,10 +92,12 @@
 	<div class="flex flex-row w-full">
 		<div class="flex-col max-w-xl w-full">
 			<!-- QR Code -->
-			<div class="mb-4 p-4 border rounded-xs hidden" id="qr"></div>
+			<div class="mb-4 p-4 border rounded-xs min-w-full aspect-square">
+				<div id="qr"></div>
+			</div>
 
 			<!-- Access URL and Token -->
-			<div class="mb-6 flex flex-col">
+			<div class="mb-6 flex flex-col" id="token-container">
 				<div class="flex flex-row">
 					<input
 						type="text"
@@ -116,13 +117,14 @@
 					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
 					focus:outline-none no-underline
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-							onclick="navigator.clipboard.writeText('{{ $model.access_url }}')">
+							onclick="navigator.clipboard.writeText(token.value)">
 							<i class="ri-file-copy-line"></i>
 						</button>
 					</tool-tip>
 					<tool-tip position="top">
 						<div class="data-tip font-bold hidden">In neuem Fenster öffnen</div>
 						<a
+							id="access-link"
 							href="{{ $model.relative_url }}"
 							target="_blank"
 							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
@@ -133,19 +135,8 @@
 							<i class="ri-external-link-line"></i>
 						</a>
 					</tool-tip>
-					<form class="" method="POST">
-						<input
-							type="hidden"
-							name="csrf_nonce"
-							id="csrf_nonce"
-							required
-							value="{{ $model.csrf_nonce }}" />
-						<input
-							type="hidden"
-							name="csrf_token"
-							id="csrf_token"
-							required
-							value="{{ $model.csrf_token }}" />
+					<form class="" method="POST" hx-boost="false" x-target="token access-link" @ajax:after="genQRCode()">
+						<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
 						<div class="col-span-9 flex flex-row items-center justify-center">
 							<tool-tip position="top">
 								<div class="data-tip font-bold hidden">Link invalidieren</div>
@@ -175,52 +166,31 @@
 		<div class="ml-12 flex flex-col">
 			<!-- User Role Chooser -->
 			<div class="user-chooser flex flex-col gap-y-3">
-				<a
-					href="/user/management/access/User?redirectTo={{ $model.redirect_url }}"
-					{{ if eq $model.role "User" }}aria-current="page"{{ end }}>
-					Benutzer
-				</a>
+				<a href="/user/management/access/User?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "User" }}aria-current="page"{{ end }}> Benutzer </a>
 				{{ if eq $model.role "User" }}
 					<div class="max-w-[60ch] text-sm text-blue-600 flex flex-row gap-x-2 hyphens-auto">
 						<div>
 							<i class="ri-error-warning-line"></i>
 						</div>
-						<div>
-							Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder
-							löschen.
-						</div>
+						<div>Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder löschen.</div>
 					</div>
 				{{- end -}}
-				<a
-					href="/user/management/access/Editor?redirectTo={{ $model.redirect_url }}"
-					{{ if eq $model.role "Editor" }}aria-current="page"{{ end }}>
-					Redakteur
-				</a>
+				<a href="/user/management/access/Editor?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "Editor" }}aria-current="page"{{ end }}> Redakteur </a>
 				{{- if eq $model.role "Editor" -}}
 					<div class="max-w-[60ch] text-sm text-orange-600 flex flex-row gap-x-2 hyphens-auto">
 						<div>
 							<i class="ri-error-warning-line"></i>
 						</div>
-						<div>
-							Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten oder
-							löschen.
-						</div>
+						<div>Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten oder löschen.</div>
 					</div>
 				{{- end -}}
-				<a
-					href="/user/management/access/Admin?redirectTo={{ $model.redirect_url }}"
-					{{ if eq $model.role "Admin" }}aria-current="page"{{ end }}>
-					Admin
-				</a>
+				<a href="/user/management/access/Admin?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "Admin" }}aria-current="page"{{ end }}> Admin </a>
 				{{- if eq $model.role "Admin" -}}
 					<div class="max-w-[60ch] text-sm text-red-600 flex flex-row gap-x-2 hyphens-auto">
 						<div>
 							<i class="ri-error-warning-line"></i>
 						</div>
-						<div>
-							Administratoren können alle Felder und Datensätze einsehen, bearbeiten oder löschen.
-							Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.
-						</div>
+						<div>Administratoren können alle Felder und Datensätze einsehen, bearbeiten oder löschen. Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.</div>
 					</div>
 				{{- end -}}
 			</div>

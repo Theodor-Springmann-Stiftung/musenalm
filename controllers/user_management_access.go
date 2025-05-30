@@ -74,12 +74,8 @@ func (p *UserManagementAccessPage) GET(engine *templating.Engine, app core.App) 
 		data["relative_url"] = path_access + "?token=" + access_token.Token()
 		data["validUntil"] = access_token.Expires().Time().Local().Format("02.01.2006 15:04")
 
-		nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
-		if err != nil {
-			return engine.Response500(e, err, data)
-		}
-		data["csrf_nonce"] = nonce
-		data["csrf_token"] = token
+		req := templating.NewRequest(e)
+		data["csrf_token"] = req.Session().Token
 
 		SetRedirect(data, e)
 
@@ -92,6 +88,19 @@ func (p *UserManagementAccessPage) POST(engine *templating.Engine, app core.App)
 		role := e.Request.PathValue("role")
 		if role != "User" && role != "Editor" && role != "Admin" {
 			return engine.Response404(e, fmt.Errorf("invalid role: %s", role), nil)
+		}
+
+		formdata := struct {
+			CSRF string `json:"csrf_token" form:"csrf_token"`
+		}{}
+
+		if err := e.BindBody(&formdata); err != nil {
+			return engine.Response500(e, fmt.Errorf("invalid form data: %w", err), nil)
+		}
+
+		req := templating.NewRequest(e)
+		if err := req.CheckCSRF(formdata.CSRF); err != nil {
+			return engine.Response500(e, fmt.Errorf("invalid CSRF token: %w", err), nil)
 		}
 
 		path_access := URL_USER_CREATE + role
@@ -110,6 +119,7 @@ func (p *UserManagementAccessPage) POST(engine *templating.Engine, app core.App)
 		data["access_url"] = "https://musenalm.de" + path_access + "?token=" + token.Token()
 		data["relative_url"] = path_access + "?token=" + token.Token()
 		data["validUntil"] = token.Expires().Time().Format("02.01.2006 15:04")
+		data["csrf_token"] = req.Session().Token
 
 		SetRedirect(data, e)
 
