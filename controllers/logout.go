@@ -55,7 +55,7 @@ func Logout(e *core.RequestEvent, app *core.App) {
 			app := *app
 			session, err := dbmodels.Sessions_Token(app, cookie.Value)
 			if err == nil {
-				session.SetStatus(dbmodels.MUSENALM_STATUS_VALUES[1])
+				session.SetStatus(dbmodels.TOKEN_STATUS_VALUES[1])
 				if err := app.Save(session); err != nil {
 					app.Logger().Error("Failed to update session status.", "error", err.Error())
 				}
