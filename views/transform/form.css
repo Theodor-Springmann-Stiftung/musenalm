@@ -270,6 +270,109 @@
 		@apply disabled:hidden;
 	}
 
+	.ts-menu {
+		position: relative;
+		display: inline-block;
+	}
+	.ts-menu-popup {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		background-color: white;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		z-index: 1000;
+		min-width: 220px; /* Slightly wider for longer labels */
+		margin-top: 4px;
+	}
+	.ts-menu-toggle-button {
+		padding: 10px 15px;
+		font-size: 1rem;
+		color: #ffffff;
+		background-color: #3498db;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			background-color 0.2s ease,
+			opacity 0.2s ease;
+	}
+	.ts-menu-toggle-button:hover {
+		background-color: #2980b9;
+	}
+	.ts-menu-toggle-button:focus {
+		outline: 2px solid #2980b9;
+		outline-offset: 2px;
+	}
+	.ts-menu-toggle-button:disabled {
+		background-color: #bdc3c7;
+		cursor: not-allowed;
+		opacity: 0.7;
+	}
+	.ts-menu-list {
+		list-style: none;
+		padding: 8px 0;
+		margin: 0;
+	}
+	.ts-menu-list-item {
+	}
+	.ts-menu-placeholder-message {
+		padding: 10px 15px;
+		font-style: italic;
+		color: #7f8c8d;
+		text-align: center;
+		display: none;
+	}
+	.ts-menu-item-action {
+		display: block;
+		width: 100%;
+		text-align: left;
+		padding: 10px 15px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: 0.95rem;
+		color: #333;
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease;
+	}
+	.ts-menu-item-action:hover {
+		background-color: #ecf0f1;
+	}
+	.ts-item-is-selected {
+		font-weight: bold;
+		color: #2980b9;
+		background-color: #e8f4f8;
+	}
+	.ts-content-close-button {
+		position: absolute;
+		top: 8px; /* Adjusted for better alignment with padding */
+		right: 8px; /* Adjusted */
+		background-color: #e74c3c;
+		color: white;
+		border: none;
+		border-radius: 50%;
+		width: 22px; /* Slightly larger */
+		height: 22px; /* Slightly larger */
+		font-size: 13px;
+		line-height: 20px;
+		text-align: center;
+		cursor: pointer;
+		font-weight: bold;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		transition: background-color 0.2s ease;
+	}
+	.ts-content-close-button:hover {
+		background-color: #c0392b;
+	}
+	.form-submit-button {
+		margin-top: 20px;
+		padding: 12px 20px;
+	}
+
 	select + reset-button .rbi-button {
 		@apply ml-3;
 	}
