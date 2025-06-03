@@ -68,7 +68,6 @@ type AlmanachResult struct {
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
-	User           *dbmodels.User
 
 	Types    []string
 	HasScans bool
@@ -167,16 +166,6 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		agentsMap[a.Id] = a
 	}
 
-	var user *dbmodels.User
-	if entry.Editor() != "" {
-		u, err := dbmodels.Users_ID(app, entry.Editor())
-		if err == nil {
-			user = u
-		} else {
-			app.Logger().Error("Failed to load user for entry editor", "entry", entry.Id, "error", err)
-		}
-	}
-
 	ret := &AlmanachResult{
 		Entry:          entry,
 		Places:         places,
@@ -188,7 +177,6 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		ContentsAgents: caMap,
 		Types:          types,
 		HasScans:       hs,
-		User:           user,
 	}
 
 	ret.Collections()

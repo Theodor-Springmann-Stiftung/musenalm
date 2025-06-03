@@ -19,7 +19,34 @@ type AlmanachResult struct {
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between pb-6">
 		<div class="flex flex-col justify-end-safe pt-36 flex-2/5">
-			<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="text-gray-700 hover:text-slate-950 block mb-2"><i class="ri-arrow-left-s-line"></i>Anschauen</a>
+			<div class="flex flex-row gap-x-3 mb-2">
+				<div>
+					<a
+						href="/almanach/{{ $model.result.Entry.MusenalmID }}"
+						class="text-gray-700
+					hover:text-slate-950 block  no-underline"
+						><i class="ri-arrow-left-s-line"></i>Anschauen</a
+					>
+				</div>
+				&middot;
+				<div class="flex flex-row">
+					{{- if $model.result.Prev -}}
+						<div>
+							<a href="/almanach/{{ $model.result.Prev.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block "><i class="ri-arrow-left-s-line"></i></a>
+						</div>
+					{{- end -}}
+					<div>{{ $model.result.Entry.MusenalmID }}</div>
+					{{- if $model.result.Next -}}
+						<div>
+							<a href="/almanach/{{ $model.result.Next.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
+						</div>
+					{{- end -}}
+				</div>
+				&middot;
+				<div>
+					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700 no-underline hover:text-slate-950 block "><i class="ri-loop-left-line"></i></a>
+				</div>
+			</div>
 			<h1 class="text-2xl w-full font-bold text-slate-900">Almanach bearbeiten</h1>
 			<!--
 			<div class="mt-1">
@@ -74,5 +101,8 @@ type AlmanachResult struct {
 
 <div class="container-normal mx-auto px-8 mt-4">
 	{{ template "_usermessage" $model }}
-	<form class="w-full grid grid-cols-12 gap-4" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST"></form>
+	<form class="w-full grid grid-cols-12 gap-4" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="last_edited" value="{{ $model.result.Entry.Updated }}" />
+	</form>
 </div>

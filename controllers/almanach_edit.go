@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -40,14 +41,16 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], app 
 func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
 		data := make(map[string]any)
 		filters := NewBeitraegeFilterParameters(e)
-		result, err := NewAlmanachResult(app, id, filters)
+		result, err := NewAlmanachEditResult(app, id, filters)
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
 		data["result"] = result
 		data["filters"] = filters
+		data["csrf_token"] = req.Session().Token
 
 		abbrs, err := pagemodels.GetAbks(app)
 		if err == nil {
@@ -56,4 +59,38 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
+}
+
+type AlmanachEditResult struct {
+	Next *dbmodels.Entry
+	Prev *dbmodels.Entry
+	User *dbmodels.User
+	AlmanachResult
+}
+
+func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParameters) (*AlmanachEditResult, error) {
+	result, err := NewAlmanachResult(app, id, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	var user *dbmodels.User
+	if result.Entry.Editor() != "" {
+		u, err := dbmodels.Users_ID(app, result.Entry.Editor())
+		if err == nil {
+			user = u
+		} else {
+			app.Logger().Error("Failed to load user for entry editor", "entry", result.Entry.Id, "error", err)
+		}
+	}
+
+	next := result.Entry.Next(app)
+	prev := result.Entry.Prev(app)
+
+	return &AlmanachEditResult{
+		User:           user,
+		AlmanachResult: *result,
+		Next:           next,
+		Prev:           prev,
+	}, nil
 }
