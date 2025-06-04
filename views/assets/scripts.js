@@ -1,11 +1,11 @@
-var ht = Object.defineProperty;
-var O = (l) => {
+var ut = Object.defineProperty;
+var k = (l) => {
   throw TypeError(l);
 };
-var dt = (l, i, t) => i in l ? ht(l, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[i] = t;
-var p = (l, i, t) => dt(l, typeof i != "symbol" ? i + "" : i, t), A = (l, i, t) => i.has(l) || O("Cannot " + t);
-var T = (l, i, t) => (A(l, i, "read from private field"), t ? t.call(l) : i.get(l)), m = (l, i, t) => i.has(l) ? O("Cannot add the same private member more than once") : i instanceof WeakSet ? i.add(l) : i.set(l, t), g = (l, i, t, e) => (A(l, i, "write to private field"), e ? e.call(l, t) : i.set(l, t), t), b = (l, i, t) => (A(l, i, "access private method"), t);
-class ct extends HTMLElement {
+var pt = (l, i, t) => i in l ? ut(l, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : l[i] = t;
+var p = (l, i, t) => pt(l, typeof i != "symbol" ? i + "" : i, t), T = (l, i, t) => i.has(l) || k("Cannot " + t);
+var C = (l, i, t) => (T(l, i, "read from private field"), t ? t.call(l) : i.get(l)), m = (l, i, t) => i.has(l) ? k("Cannot add the same private member more than once") : i instanceof WeakSet ? i.add(l) : i.set(l, t), g = (l, i, t, e) => (T(l, i, "write to private field"), e ? e.call(l, t) : i.set(l, t), t), b = (l, i, t) => (T(l, i, "access private method"), t);
+class mt extends HTMLElement {
   constructor() {
     super(), this._value = "", this.render();
   }
@@ -74,9 +74,9 @@ class ct extends HTMLElement {
 		`;
   }
 }
-const E = "filter-list-list", ut = "filter-list-item", pt = "filter-list-input", k = "filter-list-searchable";
-var d, f, M;
-class mt extends HTMLElement {
+const E = "filter-list-list", _t = "filter-list-item", ft = "filter-list-input", R = "filter-list-searchable";
+var d, f, O;
+class gt extends HTMLElement {
   constructor() {
     super();
     m(this, f);
@@ -125,7 +125,7 @@ class mt extends HTMLElement {
     let t = this.querySelector("#" + E);
     if (!t)
       return;
-    let e = new Mark(t.querySelectorAll("." + k));
+    let e = new Mark(t.querySelectorAll("." + R));
     this._filter && e.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -165,7 +165,7 @@ class mt extends HTMLElement {
   }
   getLinkText(t) {
     let e = this.getSearchText(t);
-    return e === "" ? "" : `<span class="${k}">${e}</span>`;
+    return e === "" ? "" : `<span class="${R}">${e}</span>`;
   }
   getURL(t) {
     if (this._queryparam) {
@@ -187,7 +187,7 @@ class mt extends HTMLElement {
         `, htmx && htmx.process(this);
   }
   ActiveDot(t) {
-    return b(this, f, M).call(this, t), "";
+    return b(this, f, O).call(this, t), "";
   }
   NoItems(t) {
     return t.length === 0 ? '<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>' : "";
@@ -200,7 +200,7 @@ class mt extends HTMLElement {
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${pt} w-full placeholder:italic px-2 py-0.5" />
+								class="${ft} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -215,7 +215,7 @@ class mt extends HTMLElement {
         t = this._items.filter((s) => e.every((n) => this.getSearchText(s).toLowerCase().includes(n.toLowerCase())));
       }
     return `
-							<div id="${E}" class="${E} pt-1 max-h-60 overflow-auto bg-stone-50 ${T(this, d) ? "hidden" : ""}">
+							<div id="${E}" class="${E} pt-1 max-h-60 overflow-auto bg-stone-50 ${C(this, d) ? "hidden" : ""}">
 								${t.map(
       (e, s) => `
 									<a
@@ -224,8 +224,8 @@ class mt extends HTMLElement {
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${ut} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
-										${b(this, f, M).call(this, e) ? 'aria-current="page"' : ""}>
+										class="${_t} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										${b(this, f, O).call(this, e) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(e)}
 										${this.getLinkText(e)}
 									</a>
@@ -236,13 +236,13 @@ class mt extends HTMLElement {
 				`;
   }
 }
-d = new WeakMap(), f = new WeakSet(), M = function(t) {
+d = new WeakMap(), f = new WeakSet(), O = function(t) {
   if (!t)
     return !1;
   let e = this.getHREF(t);
   return e === "" ? !1 : this._queryparam && (new URLSearchParams(window.location.search).get(this._queryparam) || "") === e ? !0 : !!window.location.href.endsWith(e);
 };
-class _t extends HTMLElement {
+class bt extends HTMLElement {
   constructor() {
     super(), this.handleScroll = this.handleScroll.bind(this), this.scrollToTop = this.scrollToTop.bind(this);
   }
@@ -278,7 +278,7 @@ class _t extends HTMLElement {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
-class ft extends HTMLElement {
+class Et extends HTMLElement {
   static get observedAttributes() {
     return ["position", "timeout"];
   }
@@ -379,7 +379,7 @@ class ft extends HTMLElement {
     }
   }
 }
-class gt extends HTMLElement {
+class vt extends HTMLElement {
   constructor() {
     super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
   }
@@ -487,7 +487,7 @@ class gt extends HTMLElement {
     this.overlay.parentNode.removeChild(this.overlay), this.overlay = null;
   }
 }
-class bt extends HTMLElement {
+class St extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
@@ -704,7 +704,7 @@ class _ extends HTMLElement {
     return /\s|[.,;:!?]/.test(i);
   }
 }
-class Et extends HTMLElement {
+class Lt extends HTMLElement {
   constructor() {
     super();
   }
@@ -723,7 +723,7 @@ class Et extends HTMLElement {
   }
 }
 var L;
-class St extends HTMLElement {
+class It extends HTMLElement {
   constructor() {
     super();
     m(this, L, 176);
@@ -742,14 +742,14 @@ class St extends HTMLElement {
   calculateShownImages() {
     const t = this.getBoundingClientRect();
     console.log(t);
-    const e = Math.floor(t.width / (T(this, L) + 10));
+    const e = Math.floor(t.width / (C(this, L) + 10));
     for (let s = 0; s < this._images.length; s++)
       s < e - 1 ? this._images[s].classList.remove("hidden") : this._images[s].classList.add("hidden");
   }
 }
 L = new WeakMap();
-const vt = "msr-component-wrapper", B = "msr-selected-items-container", R = "msr-placeholder-no-selection-text", Lt = "msr-selected-item-pill", It = "msr-selected-item-text", At = "msr-item-name", Tt = "msr-item-additional-data", Ct = "msr-selected-item-role", $ = "msr-selected-item-delete-btn", yt = "msr-controls-area", N = "msr-pre-add-button", P = "msr-input-area-wrapper", S = "msr-input-area-default-border", C = "msr-input-area-staged", D = "msr-staging-area-container", wt = "msr-staged-item-pill", xt = "msr-staged-item-text", y = "msr-staged-role-select", H = "msr-staged-cancel-btn", q = "msr-text-input", U = "msr-add-button", F = "msr-options-list", V = "msr-option-item", Mt = "msr-option-item-name", Ot = "msr-option-item-detail", W = "msr-option-item-highlighted", w = "msr-hidden-select", kt = "msr-state-no-selection", Bt = "msr-state-has-selection", Rt = "msr-state-list-open", $t = "msr-state-item-staged";
-class nt extends HTMLElement {
+const At = "msr-component-wrapper", B = "msr-selected-items-container", $ = "msr-placeholder-no-selection-text", Tt = "msr-selected-item-pill", Ct = "msr-selected-item-text", yt = "msr-item-name", wt = "msr-item-additional-data", xt = "msr-selected-item-role", N = "msr-selected-item-delete-btn", Mt = "msr-controls-area", P = "msr-pre-add-button", D = "msr-input-area-wrapper", v = "msr-input-area-default-border", y = "msr-input-area-staged", H = "msr-staging-area-container", Ot = "msr-staged-item-pill", kt = "msr-staged-item-text", w = "msr-staged-role-select", q = "msr-staged-cancel-btn", U = "msr-text-input", F = "msr-add-button", V = "msr-options-list", z = "msr-option-item", Rt = "msr-option-item-name", Bt = "msr-option-item-detail", W = "msr-option-item-highlighted", x = "msr-hidden-select", $t = "msr-state-no-selection", Nt = "msr-state-has-selection", Pt = "msr-state-list-open", Dt = "msr-state-item-staged";
+class lt extends HTMLElement {
   constructor() {
     super();
     p(this, "_blurTimeout", null);
@@ -828,23 +828,23 @@ class nt extends HTMLElement {
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${V} group">
-                        <span data-ref="nameEl" class="${Mt}"></span>
-                        <span data-ref="detailEl" class="${Ot}"></span>
+                    <li role="option" class="${z} group">
+                        <span data-ref="nameEl" class="${Rt}"></span>
+                        <span data-ref="detailEl" class="${Bt}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
-                    <span class="${Lt} group">
-                        <span data-ref="textEl" class="${It}"></span>
-                        <button type="button" data-ref="deleteBtn" class="${$} ml-2">&times;</button>
+                    <span class="${Tt} group">
+                        <span data-ref="textEl" class="${Ct}"></span>
+                        <button type="button" data-ref="deleteBtn" class="${N} ml-2">&times;</button>
                     </span>
                 `, this.stagedPlacePillTemplate = document.createElement("template"), this.stagedPlacePillTemplate.innerHTML = `
-                    <span class="${wt} flex items-center">
-                        <span data-ref="nameEl" class="${xt}"></span>
+                    <span class="${Ot} flex items-center">
+                        <span data-ref="nameEl" class="${kt}"></span>
                     </span>
                 `, this.stagedCancelBtnTemplate = document.createElement("template"), this.stagedCancelBtnTemplate.innerHTML = `
-                    <button type="button" class="${H} flex items-center justify-center">&times;</button>
+                    <button type="button" class="${q} flex items-center justify-center">&times;</button>
                 `, this.stagedRoleSelectTemplate = document.createElement("template"), this.stagedRoleSelectTemplate.innerHTML = `
-                    <select class="${y}">
+                    <select class="${w}">
                     </select>
                 `;
   }
@@ -906,7 +906,7 @@ class nt extends HTMLElement {
     this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
   }
   connectedCallback() {
-    if (this.placeholderNoSelection = this.getAttribute("placeholder-no-selection") || this._placeholderNoSelection, this.placeholderSearch = this.getAttribute("placeholder-search") || this._placeholderSearch, this.placeholderRoleSelect = this.getAttribute("placeholder-role-select") || this._placeholderRoleSelect, this._render(), this.inputAreaWrapper = this.querySelector(`.${P}`), this.inputElement = this.querySelector(`.${q}`), this.stagedItemPillContainer = this.querySelector(`.${D}`), this.optionsListElement = this.querySelector(`.${F}`), this.selectedItemsContainer = this.querySelector(`.${B}`), this.addButtonElement = this.querySelector(`.${U}`), this.preAddButtonElement = this.querySelector(`.${N}`), this.hiddenSelect = this.querySelector(`.${w}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.hasAttribute("show-add-button") ? this.showAddButton = this.getAttribute("show-add-button") : this.setAttribute("show-add-button", String(this._showAddButton)), this.inputElement && (this.inputElement.placeholder = this.placeholderSearch), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+    if (this.placeholderNoSelection = this.getAttribute("placeholder-no-selection") || this._placeholderNoSelection, this.placeholderSearch = this.getAttribute("placeholder-search") || this._placeholderSearch, this.placeholderRoleSelect = this.getAttribute("placeholder-role-select") || this._placeholderRoleSelect, this._render(), this.inputAreaWrapper = this.querySelector(`.${D}`), this.inputElement = this.querySelector(`.${U}`), this.stagedItemPillContainer = this.querySelector(`.${H}`), this.optionsListElement = this.querySelector(`.${V}`), this.selectedItemsContainer = this.querySelector(`.${B}`), this.addButtonElement = this.querySelector(`.${F}`), this.preAddButtonElement = this.querySelector(`.${P}`), this.hiddenSelect = this.querySelector(`.${x}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.hasAttribute("show-add-button") ? this.showAddButton = this.getAttribute("show-add-button") : this.setAttribute("show-add-button", String(this._showAddButton)), this.inputElement && (this.inputElement.placeholder = this.placeholderSearch), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
       const t = this.getAttribute("value");
       try {
         const e = JSON.parse(t);
@@ -934,10 +934,10 @@ class nt extends HTMLElement {
     this.disabledCallback(t);
   }
   disabledCallback(t) {
-    this.inputElement && (this.inputElement.disabled = t), this.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${$}`).forEach(
+    this.inputElement && (this.inputElement.disabled = t), this.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${N}`).forEach(
       (s) => s.disabled = t
     );
-    const e = this.querySelector(`.${y}`);
+    const e = this.querySelector(`.${w}`);
     e && (e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t), this._updateAddButtonState(), this._updatePreAddButtonVisibility();
   }
   formResetCallback() {
@@ -957,39 +957,39 @@ class nt extends HTMLElement {
     this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
   }
   _updateRootElementStateClasses() {
-    this.classList.toggle(kt, this._value.length === 0), this.classList.toggle(Bt, this._value.length > 0), this.classList.toggle(Rt, this._isOptionsListVisible), this.classList.toggle($t, !!this._stagedItem);
+    this.classList.toggle($t, this._value.length === 0), this.classList.toggle(Nt, this._value.length > 0), this.classList.toggle(Pt, this._isOptionsListVisible), this.classList.toggle(Dt, !!this._stagedItem);
   }
   _render() {
     const t = this.id || `msr-${crypto.randomUUID().slice(0, 8)}`;
     this.id || this.setAttribute("id", t), this.innerHTML = `
                     <style>
-                        .${w} {
+                        .${x} {
                             display: none !important; visibility: hidden !important; position: absolute !important;
                             width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important;
                         }
                     </style>
-                    <div class="${vt} relative">
+                    <div class="${At} relative">
                         <div class="${B} flex flex-wrap gap-1 mb-2 min-h-[2.625rem] rounded-md" aria-live="polite">
-                           ${this._value.length === 0 ? `<span class="${R}">${this.placeholderNoSelection}</span>` : ""}
+                           ${this._value.length === 0 ? `<span class="${$}">${this.placeholderNoSelection}</span>` : ""}
                         </div>
-                        <div class="${yt} flex items-center">
-                            <div class="${P} ${S} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
-                                <span class="${D} flex items-center gap-2"></span>
+                        <div class="${Mt} flex items-center">
+                            <div class="${D} ${v} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
+                                <span class="${H} flex items-center gap-2"></span>
                                 <input type="text"
-                                       class="${q} flex-1 min-w-[100px] outline-none"
+                                       class="${U} flex-1 min-w-[100px] outline-none"
                                        placeholder="${this.placeholderSearch}"
                                        aria-haspopup="listbox"
                                        aria-expanded="false">
                             </div>
                             <button type="button"
-                                    class="${N} hidden flex items-center justify-center ml-2"
+                                    class="${P} hidden flex items-center justify-center ml-2"
                                     aria-label="Element schnell hinzufügen">
                                 +
                             </button>
-                            <button type="button" class="${U} hidden ml-2">Hinzufügen</button>
+                            <button type="button" class="${F} hidden ml-2">Hinzufügen</button>
                         </div>
-                        <ul role="listbox" id="${t}-options-list" class="${F} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
-                        <select multiple name="${this.getAttribute("name") || "items_with_roles_default"}" id="hidden-select-${t}" class="${w}" aria-hidden="true"></select>
+                        <ul role="listbox" id="${t}-options-list" class="${V} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "items_with_roles_default"}" id="hidden-select-${t}" class="${x}" aria-hidden="true"></select>
                     </div>
                 `;
   }
@@ -1011,7 +1011,7 @@ class nt extends HTMLElement {
   _renderStagedPillOrInput() {
     if (!(!this.stagedItemPillContainer || !this.inputElement || !this.inputAreaWrapper)) {
       if (this.stagedItemPillContainer.innerHTML = "", this._stagedItem && this._stagedItem.item) {
-        this.inputAreaWrapper.classList.remove(S), this.inputAreaWrapper.classList.add(C);
+        this.inputAreaWrapper.classList.remove(v), this.inputAreaWrapper.classList.add(y);
         const t = this._createStagedItemPillElement(this._stagedItem.item);
         this.stagedItemPillContainer.appendChild(t);
         const e = this._getAvailableRolesForItem(this._stagedItem.item.id), s = this._createStagedRoleSelectElement(
@@ -1022,7 +1022,7 @@ class nt extends HTMLElement {
         const n = this._createStagedCancelButtonElement(this._stagedItem.item.name);
         this.stagedItemPillContainer.appendChild(n), this.inputElement.classList.add("hidden"), this.inputElement.value = "", this.inputElement.removeAttribute("aria-activedescendant"), this.inputElement.setAttribute("aria-expanded", "false");
       } else
-        this.inputAreaWrapper.classList.add(S), this.inputAreaWrapper.classList.remove(C), this.inputElement.classList.remove("hidden");
+        this.inputAreaWrapper.classList.add(v), this.inputAreaWrapper.classList.remove(y), this.inputElement.classList.remove("hidden");
       this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses();
     }
   }
@@ -1041,15 +1041,15 @@ class nt extends HTMLElement {
     const e = this._getItemById(t.itemId);
     if (!e) return null;
     const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="textEl"]');
-    let r = `<span class="${At}">${e.name}</span>`, o = e.additional_data ? ` <span class="${Tt}">(${e.additional_data})</span>` : "", c = ` <span class="${Ct}">${t.role}</span>`;
+    let r = `<span class="${yt}">${e.name}</span>`, o = e.additional_data ? ` <span class="${wt}">(${e.additional_data})</span>` : "", c = ` <span class="${xt}">${t.role}</span>`;
     a.innerHTML = `${r}${o}${c}`;
     const u = n.querySelector('[data-ref="deleteBtn"]');
-    return u.setAttribute("aria-label", `Entferne ${e.name} als ${t.role}`), u.dataset.instanceId = t.instanceId, u.disabled = this.hasAttribute("disabled"), u.addEventListener("click", (ot) => {
-      ot.stopPropagation(), this._handleDeleteSelectedItem(t.instanceId);
+    return u.setAttribute("aria-label", `Entferne ${e.name} als ${t.role}`), u.dataset.instanceId = t.instanceId, u.disabled = this.hasAttribute("disabled"), u.addEventListener("click", (ct) => {
+      ct.stopPropagation(), this._handleDeleteSelectedItem(t.instanceId);
     }), n;
   }
   _renderSelectedItems() {
-    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${R}">${this.placeholderNoSelection}</span>` : this._value.forEach((t) => {
+    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${$}">${this.placeholderNoSelection}</span>` : this._value.forEach((t) => {
       const e = this._createSelectedItemElement(t);
       e && this.selectedItemsContainer.appendChild(e);
     }), this._updateRootElementStateClasses());
@@ -1086,7 +1086,7 @@ class nt extends HTMLElement {
       return;
     this._stagedItem = { item: t, currentRole: "" }, this.inputElement && (this.inputElement.value = "", this.inputElement.setAttribute("aria-expanded", "false"), this.inputElement.removeAttribute("aria-activedescendant")), this._renderStagedPillOrInput(), this._hideOptionsList();
     const s = this.stagedItemPillContainer.querySelector(
-      `.${y}`
+      `.${w}`
     );
     s && !s.disabled ? s.focus() : this.addButtonElement && !this.addButtonElement.disabled && this.addButtonElement.focus();
   }
@@ -1123,7 +1123,7 @@ class nt extends HTMLElement {
     if (!this.hasAttribute("disabled")) {
       if (t.key === "Enter" && this._stagedItem && this._stagedItem.item) {
         const s = document.activeElement, n = (e = this.stagedItemPillContainer) == null ? void 0 : e.querySelector(
-          `.${H}`
+          `.${q}`
         );
         if (s === n) {
           t.preventDefault(), this._handleCancelStagedItem(t);
@@ -1161,7 +1161,7 @@ class nt extends HTMLElement {
   }
   _handleFocus() {
     if (!(this.hasAttribute("disabled") || this.inputElement && this.inputElement.disabled || this._stagedItem)) {
-      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(S), this.inputAreaWrapper.classList.remove(C)), this.inputElement && this.inputElement.value.length > 0) {
+      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(v), this.inputAreaWrapper.classList.remove(y)), this.inputElement && this.inputElement.value.length > 0) {
         const t = this.inputElement.value.toLowerCase();
         this._filteredOptions = this._options.filter((e) => this._getAvailableRolesForItem(e.id).length === 0 ? !1 : e.name.toLowerCase().includes(t) || e.additional_data && e.additional_data.toLowerCase().includes(t)), this._filteredOptions.length > 0 ? (this._isOptionsListVisible = !0, this._highlightedIndex = 0, this._renderOptionsList()) : this._hideOptionsList();
       } else
@@ -1180,7 +1180,7 @@ class nt extends HTMLElement {
   }
   _handleOptionClick(t) {
     if (this.hasAttribute("disabled")) return;
-    const e = t.target.closest(`li[data-id].${V}`);
+    const e = t.target.closest(`li[data-id].${z}`);
     if (e) {
       const s = e.dataset.id, n = this._filteredOptions.find((a) => a.id === s);
       n && this._stageItem(n);
@@ -1190,9 +1190,9 @@ class nt extends HTMLElement {
     this.hasAttribute("disabled") || (this._value = this._value.filter((e) => e.instanceId !== t), this._updateFormValue(), this._renderSelectedItems(), this._stagedItem && this._stagedItem.item && this._renderStagedPillOrInput(), this.inputElement && this.inputElement.focus(), this._updatePreAddButtonVisibility());
   }
 }
-p(nt, "formAssociated", !0);
-const Nt = "mss-component-wrapper", G = "mss-selected-items-container", Pt = "mss-selected-item-pill", Dt = "mss-selected-item-text", Ht = "mss-selected-item-pill-detail", z = "mss-selected-item-delete-btn", K = "mss-input-controls-container", j = "mss-input-wrapper", Q = "mss-input-wrapper-focused", J = "mss-text-input", X = "mss-create-new-button", Y = "mss-options-list", qt = "mss-option-item", Ut = "mss-option-item-name", Ft = "mss-option-item-detail", Z = "mss-option-item-highlighted", x = "mss-hidden-select", Vt = "mss-no-items-text", Wt = "mss-state-no-selection", Gt = "mss-state-has-selection", zt = "mss-state-list-open";
-class lt extends HTMLElement {
+p(lt, "formAssociated", !0);
+const Ht = "mss-component-wrapper", G = "mss-selected-items-container", qt = "mss-selected-item-pill", Ut = "mss-selected-item-text", Ft = "mss-selected-item-pill-detail", K = "mss-selected-item-delete-btn", j = "mss-input-controls-container", Q = "mss-input-wrapper", J = "mss-input-wrapper-focused", X = "mss-text-input", Y = "mss-create-new-button", Z = "mss-options-list", Vt = "mss-option-item", zt = "mss-option-item-name", Wt = "mss-option-item-detail", tt = "mss-option-item-highlighted", M = "mss-hidden-select", Gt = "mss-no-items-text", Kt = "mss-state-no-selection", jt = "mss-state-has-selection", Qt = "mss-state-list-open";
+class at extends HTMLElement {
   constructor() {
     super();
     p(this, "_blurTimeout", null);
@@ -1219,15 +1219,15 @@ class lt extends HTMLElement {
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${qt}">
-                        <span data-ref="nameEl" class="${Ut}"></span>
-                        <span data-ref="detailEl" class="${Ft}"></span>
+                    <li role="option" class="${Vt}">
+                        <span data-ref="nameEl" class="${zt}"></span>
+                        <span data-ref="detailEl" class="${Wt}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
-                    <span class="${Pt} flex items-center">
-                        <span data-ref="textEl" class="${Dt}"></span>
-                        <span data-ref="detailEl" class="${Ht} hidden"></span>
-                        <button type="button" data-ref="deleteBtn" class="${z}">&times;</button>
+                    <span class="${qt} flex items-center">
+                        <span data-ref="textEl" class="${Ut}"></span>
+                        <span data-ref="detailEl" class="${Ft} hidden"></span>
+                        <button type="button" data-ref="deleteBtn" class="${K}">&times;</button>
                     </span>
                 `;
   }
@@ -1280,7 +1280,7 @@ class lt extends HTMLElement {
     this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
   }
   connectedCallback() {
-    if (this._render(), this.inputControlsContainer = this.querySelector(`.${K}`), this.inputWrapper = this.querySelector(`.${j}`), this.inputElement = this.querySelector(`.${J}`), this.createNewButton = this.querySelector(`.${X}`), this.optionsListElement = this.querySelector(`.${Y}`), this.selectedItemsContainer = this.querySelector(`.${G}`), this.hiddenSelect = this.querySelector(`.${x}`), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+    if (this._render(), this.inputControlsContainer = this.querySelector(`.${j}`), this.inputWrapper = this.querySelector(`.${Q}`), this.inputElement = this.querySelector(`.${X}`), this.createNewButton = this.querySelector(`.${Y}`), this.optionsListElement = this.querySelector(`.${Z}`), this.selectedItemsContainer = this.querySelector(`.${G}`), this.hiddenSelect = this.querySelector(`.${M}`), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
       const t = this.getAttribute("value");
       try {
         this.value = JSON.parse(t);
@@ -1335,35 +1335,35 @@ class lt extends HTMLElement {
     this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
   }
   disabledCallback(t) {
-    this.inputElement && (this.inputElement.disabled = t), this.createNewButton && (this.createNewButton.disabled = t), this.toggleAttribute("disabled", t), this.querySelectorAll(`.${z}`).forEach(
+    this.inputElement && (this.inputElement.disabled = t), this.createNewButton && (this.createNewButton.disabled = t), this.toggleAttribute("disabled", t), this.querySelectorAll(`.${K}`).forEach(
       (e) => e.disabled = t
     ), this.hiddenSelect && (this.hiddenSelect.disabled = t), t && this._hideOptionsList();
   }
   _updateRootElementStateClasses() {
-    this.classList.toggle(Wt, this._value.length === 0), this.classList.toggle(Gt, this._value.length > 0), this.classList.toggle(zt, this._isOptionsListVisible);
+    this.classList.toggle(Kt, this._value.length === 0), this.classList.toggle(jt, this._value.length > 0), this.classList.toggle(Qt, this._isOptionsListVisible);
   }
   _render() {
     const t = this.id || `mss-${crypto.randomUUID().slice(0, 8)}`;
     this.id || this.setAttribute("id", t), this.innerHTML = `
                     <style>
-                        .${x} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
+                        .${M} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
                     </style>
-                    <div class="${Nt} relative">
+                    <div class="${Ht} relative">
                         <div class="${G} flex flex-wrap gap-1 mb-1 min-h-[38px]" aria-live="polite" tabindex="-1"></div>
-                        <div class="${K} flex items-center space-x-2">
-                            <div class="${j} relative rounded-md flex items-center flex-grow">
+                        <div class="${j} flex items-center space-x-2">
+                            <div class="${Q} relative rounded-md flex items-center flex-grow">
                                 <input type="text"
-                                       class="${J} w-full outline-none bg-transparent text-sm"
+                                       class="${X} w-full outline-none bg-transparent text-sm"
                                        placeholder="${this.placeholder}"
                                        aria-autocomplete="list"
                                        aria-expanded="${this._isOptionsListVisible}"
                                        aria-controls="options-list-${t}"
                                        autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="combobox" />
                             </div>
-                            <button type="button" class="${X} ${this.showCreateButton ? "" : "hidden"}" title="Create new item from input">+</button>
+                            <button type="button" class="${Y} ${this.showCreateButton ? "" : "hidden"}" title="Create new item from input">+</button>
                         </div>
-                        <ul id="options-list-${t}" role="listbox" class="${Y} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
-                        <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${t}" class="${x}" aria-hidden="true"></select>
+                        <ul id="options-list-${t}" role="listbox" class="${Z} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${t}" class="${M}" aria-hidden="true"></select>
                     </div>
                 `;
   }
@@ -1376,7 +1376,7 @@ class lt extends HTMLElement {
     }), n;
   }
   _renderSelectedItems() {
-    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${Vt}">No items selected</span>` : this._value.forEach((t) => {
+    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${Gt}">No items selected</span>` : this._value.forEach((t) => {
       const e = this._createSelectedItemElement(t);
       e && this.selectedItemsContainer.appendChild(e);
     }), this._updateRootElementStateClasses());
@@ -1385,7 +1385,7 @@ class lt extends HTMLElement {
     const n = this.optionTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="nameEl"]'), r = n.querySelector('[data-ref="detailEl"]');
     a.textContent = t.name, r.textContent = t.additional_data ? `(${t.additional_data})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex));
     const o = `option-${this.id || "mss"}-${t.id}`;
-    return n.id = o, e === this._highlightedIndex && (n.classList.add(Z), this.inputElement && this.inputElement.setAttribute("aria-activedescendant", o)), n;
+    return n.id = o, e === this._highlightedIndex && (n.classList.add(tt), this.inputElement && this.inputElement.setAttribute("aria-activedescendant", o)), n;
   }
   _renderOptionsList() {
     if (!(!this.optionsListElement || !this.inputElement)) {
@@ -1397,7 +1397,7 @@ class lt extends HTMLElement {
           this.optionsListElement.appendChild(n);
         });
         const t = this.optionsListElement.querySelector(
-          `.${Z}`
+          `.${tt}`
         );
         t && (t.scrollIntoView({ block: "nearest" }), this.inputElement.setAttribute("aria-activedescendant", t.id));
       }
@@ -1461,10 +1461,10 @@ class lt extends HTMLElement {
     this._isOptionsListVisible = !1, this._highlightedIndex = -1, this.optionsListElement && this._renderOptionsList();
   }
   _handleFocus() {
-    this.inputElement.disabled || (this.inputWrapper && this.inputWrapper.classList.add(Q), this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement }), this._updateRootElementStateClasses());
+    this.inputElement.disabled || (this.inputWrapper && this.inputWrapper.classList.add(J), this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement }), this._updateRootElementStateClasses());
   }
   _handleBlur() {
-    this.inputWrapper && this.inputWrapper.classList.remove(Q), this._blurTimeout = setTimeout(() => {
+    this.inputWrapper && this.inputWrapper.classList.remove(J), this._blurTimeout = setTimeout(() => {
       this.contains(document.activeElement) || this._hideOptionsList();
     }, 150);
   }
@@ -1482,9 +1482,9 @@ class lt extends HTMLElement {
     this.value = this._value.filter((e) => e !== t), this.inputElement && this.inputElement.value && this._handleInput({ target: this.inputElement }), this.inputElement && !this.hasAttribute("disabled") && this.inputElement.focus();
   }
 }
-p(lt, "formAssociated", !0);
-const Kt = "rbi-button", jt = "rbi-icon";
-class Qt extends HTMLElement {
+p(at, "formAssociated", !0);
+const Jt = "rbi-button", Xt = "rbi-icon";
+class Yt extends HTMLElement {
   constructor() {
     super(), this.initialStates = /* @__PURE__ */ new Map(), this._controlledElements = [], this.button = null, this.lastOverallModifiedState = null, this.handleInputChange = this.handleInputChange.bind(this), this.handleReset = this.handleReset.bind(this);
   }
@@ -1493,10 +1493,10 @@ class Qt extends HTMLElement {
   }
   connectedCallback() {
     const i = `
-              <button type="button" class="${Kt} cursor-pointer disabled:cursor-default" aria-label="Reset field">
+              <button type="button" class="${Jt} cursor-pointer disabled:cursor-default" aria-label="Reset field">
 								<tool-tip position="right">
 									<div class="data-tip">Feld zurücksetzen</div>
-									<span class="${jt} ri-arrow-go-back-fill"></span>
+									<span class="${Xt} ri-arrow-go-back-fill"></span>
 								</tool-tip>
               </button>
             `;
@@ -1640,24 +1640,24 @@ class Qt extends HTMLElement {
     this.button.setAttribute("aria-label", i);
   }
 }
-const h = "hidden", tt = "dm-stay", et = "dm-title", it = "dm-menu-button", Jt = "dm-target", v = "dm-menu", st = "dm-menu-item", Xt = "dm-close-button";
-var I, at;
-class Yt extends HTMLElement {
+const h = "hidden", et = "dm-stay", it = "dm-title", st = "dm-menu-button", Zt = "dm-target", S = "dm-menu", nt = "dm-menu-item", te = "dm-close-button";
+var I, rt;
+class ee extends HTMLElement {
   constructor() {
     super();
     m(this, I);
-    b(this, I, at).call(this);
+    b(this, I, rt).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
   connectedCallback() {
-    if (this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(it)).map((t) => ({
+    if (this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(st)).map((t) => ({
       node: t,
-      stay: () => t.hasAttribute(tt) && t.getAttribute(tt) == "true",
+      stay: () => t.hasAttribute(et) && t.getAttribute(et) == "true",
       hidden: () => t.classList.contains(h),
       name: () => {
         const e = t.querySelector("label");
-        return e ? e.innerHTML : t.hasAttribute(et) ? t.getAttribute(et) : "";
+        return e ? e.innerHTML : t.hasAttribute(it) ? t.getAttribute(it) : "";
       }
-    })), this._target = document.getElementById(this.getAttribute(Jt)), this._target || (this._target = this), this._button = this.querySelector(`.${it}`), !this._button) {
+    })), this._target = document.getElementById(this.getAttribute(Zt)), this._target || (this._target = this), this._button = this.querySelector(`.${st}`), !this._button) {
       console.error("DivManagerMenu needs a button element.");
       return;
     }
@@ -1665,7 +1665,7 @@ class Yt extends HTMLElement {
       this.removeChild(t.node);
     this._button.addEventListener("click", this._toggleMenu.bind(this)), this._button.classList.add("relative");
     for (const t of this._cildren)
-      t.node.querySelectorAll(`.${Xt}`).forEach((s) => {
+      t.node.querySelectorAll(`.${te}`).forEach((s) => {
         s.addEventListener("click", (n) => {
           this.hideDiv(n, t.node);
         });
@@ -1673,11 +1673,14 @@ class Yt extends HTMLElement {
     this.renderMenu(), this.renderIntoTarget();
   }
   _toggleMenu(t) {
-    if (t.preventDefault(), t.stopPropagation(), this._menu || (this._menu = this.querySelector(`.${v}`)), !this._menu) {
+    if (t.preventDefault(), t.stopPropagation(), this._menu || (this._menu = this.querySelector(`.${S}`)), !this._menu) {
       console.error("DivManagerMenu: Menu not found.");
       return;
     }
-    this._menu.classList.contains(h) ? this._menu.classList.remove(h) : this._menu.classList.add(h);
+    this._menu.classList.contains(h) ? (this._menu.classList.remove(h), document.addEventListener("click", this.handleClickOutside)) : (this._menu.classList.add(h), document.removeEventListener("click", this.handleClickOutside));
+  }
+  handleClickOutside(t) {
+    this._menu && !this._menu.contains(t.target) && !this._button.contains(t.target) && this._menu.classList.add(h);
   }
   renderButton() {
     if (this._button) {
@@ -1710,10 +1713,10 @@ class Yt extends HTMLElement {
     s.hidden() && s.node.classList.remove(h), this._target.appendChild(s.node), this.renderMenu(), this.renderButton();
   }
   renderMenu() {
-    this._menu || (this._button.innerHTML += `<div class="${v} absolute hidden"></div>`, this._menu = this._button.querySelector(`.${v}`)), this._menu.innerHTML = `${this._cildren.map((e, s) => e.hidden() ? `
-				<button type="button" class="${st}" dm-itemno="${s}">
+    this._menu || (this._button.innerHTML += `<div class="${S} absolute hidden"></div>`, this._menu = this._button.querySelector(`.${S}`)), this._menu.innerHTML = `${this._cildren.map((e, s) => e.hidden() ? `
+				<button type="button" class="${nt}" dm-itemno="${s}">
 					${e.name()}
-				</button>` : "").join("")}`, this._menu = this.querySelector(`.${v}`), this._menu.querySelectorAll(`.${st}`).forEach((e) => {
+				</button>` : "").join("")}`, this._menu = this.querySelector(`.${S}`), this._menu.querySelectorAll(`.${nt}`).forEach((e) => {
       e.addEventListener("click", (s) => {
         this.showDiv(s, parseInt(e.getAttribute("dm-itemno"))), this._toggleMenu(s);
       });
@@ -1725,28 +1728,28 @@ class Yt extends HTMLElement {
     });
   }
 }
-I = new WeakSet(), at = function() {
+I = new WeakSet(), rt = function() {
   this._cildren = [], this._rendered = [], this._target = null, this._button = null, this._menu = null;
 };
-const Zt = "filter-list", te = "scroll-button", ee = "tool-tip", ie = "abbrev-tooltips", se = "int-link", ne = "popup-image", le = "tab-list", ae = "filter-pill", re = "image-reel", oe = "multi-select-places", he = "multi-select-simple", rt = "reset-button", de = "div-manager";
-customElements.define(se, Et);
-customElements.define(ie, _);
-customElements.define(Zt, mt);
-customElements.define(te, _t);
-customElements.define(ee, ft);
-customElements.define(ne, gt);
-customElements.define(le, bt);
-customElements.define(ae, ct);
-customElements.define(re, St);
-customElements.define(oe, nt);
-customElements.define(he, lt);
-customElements.define(rt, Qt);
-customElements.define(de, Yt);
-function ce() {
+const ie = "filter-list", se = "scroll-button", ne = "tool-tip", le = "abbrev-tooltips", ae = "int-link", re = "popup-image", oe = "tab-list", he = "filter-pill", de = "image-reel", ce = "multi-select-places", ue = "multi-select-simple", ot = "reset-button", pe = "div-manager";
+customElements.define(ae, Lt);
+customElements.define(le, _);
+customElements.define(ie, gt);
+customElements.define(se, bt);
+customElements.define(ne, Et);
+customElements.define(re, vt);
+customElements.define(oe, St);
+customElements.define(he, mt);
+customElements.define(de, It);
+customElements.define(ce, lt);
+customElements.define(ue, at);
+customElements.define(ot, Yt);
+customElements.define(pe, ee);
+function me() {
   const l = window.location.pathname, i = window.location.search, t = l + i;
   return encodeURIComponent(t);
 }
-function ue(l = 5e3, i = 100) {
+function _e(l = 5e3, i = 100) {
   return new Promise((t, e) => {
     let s = 0;
     const n = setInterval(() => {
@@ -1754,8 +1757,8 @@ function ue(l = 5e3, i = 100) {
     }, i);
   });
 }
-async function pe(l) {
-  const i = await ue(), t = document.getElementById("qr");
+async function fe(l) {
+  const i = await _e(), t = document.getElementById("qr");
   t && (t.innerHTML = "", t.classList.add("hidden"), new i(t, {
     text: l,
     width: 1280,
@@ -1767,7 +1770,7 @@ async function pe(l) {
     t.classList.remove("hidden");
   }, 20));
 }
-function me(l) {
+function ge(l) {
   l && (l.addEventListener("focus", (i) => {
     i.preventDefault(), l.select();
   }), l.addEventListener("mousedown", (i) => {
@@ -1780,7 +1783,7 @@ function me(l) {
     l.select();
   }));
 }
-function _e() {
+function be() {
   document.body.addEventListener("htmx:responseError", function(l) {
     const i = l.detail.requestConfig;
     if (i.boosted) {
@@ -1790,7 +1793,7 @@ function _e() {
     }
   });
 }
-function fe(l, i) {
+function Ee(l, i) {
   if (!(l instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -1799,7 +1802,7 @@ function fe(l, i) {
     console.warn("Action must be a function.");
     return;
   }
-  const t = l.querySelectorAll(rt);
+  const t = l.querySelectorAll(ot);
   l.addEventListener("rbichange", (e) => {
     for (const s of t)
       if (s.isCurrentlyModified()) {
@@ -1809,21 +1812,81 @@ function fe(l, i) {
     i(e.details, !1);
   });
 }
-window.ShowBoostedErrors = _e;
-window.GenQRCode = pe;
-window.SelectableInput = me;
-window.PathPlusQuery = ce;
-window.HookupRBChange = fe;
+function A(l) {
+  if (!(l instanceof HTMLTextAreaElement)) {
+    console.warn("TextareaAutoResize: Provided element is not a textarea.");
+    return;
+  }
+  l.style.height = "auto", l.style.height = `${l.scrollHeight}px`;
+}
+function ht(l) {
+  l.key === "Enter" && l.preventDefault();
+}
+function dt(l) {
+  if (!(l instanceof HTMLTextAreaElement)) {
+    console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
+    return;
+  }
+  l.addEventListener("input", () => {
+    A(l);
+  });
+}
+function ve(l) {
+  if (!(l instanceof HTMLTextAreaElement)) {
+    console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
+    return;
+  }
+  l.removeEventListener("input", () => {
+    A(l);
+  });
+}
+function Se(l) {
+  !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.addEventListener("keydown", ht);
+}
+function Le(l) {
+  !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.removeEventListener("keydown", ht);
+}
+function Ie(l, i) {
+  for (const t of l)
+    if (t.type === "childList") {
+      for (const e of t.addedNodes)
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (dt(e), A(e));
+      for (const e of t.removedNodes)
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Le(e), ve(e));
+    }
+}
+function Ae(l) {
+  if (!(l instanceof HTMLFormElement)) {
+    console.warn("FormLoad: Provided element is not a form.");
+    return;
+  }
+  const i = document.querySelectorAll("textarea");
+  for (const s of i)
+    dt(s), A(s);
+  const t = document.querySelectorAll("textarea.no-enter");
+  for (const s of t)
+    Se(s);
+  new MutationObserver(Ie).observe(l, {
+    childList: !0,
+    subtree: !0
+  });
+}
+window.ShowBoostedErrors = be;
+window.GenQRCode = fe;
+window.SelectableInput = ge;
+window.PathPlusQuery = me;
+window.HookupRBChange = Ee;
+window.FormLoad = Ae;
 export {
   _ as AbbreviationTooltips,
-  mt as FilterList,
-  ct as FilterPill,
-  St as ImageReel,
-  Et as IntLink,
-  nt as MultiSelectRole,
-  lt as MultiSelectSimple,
-  gt as PopupImage,
-  _t as ScrollButton,
-  bt as TabList,
-  ft as ToolTip
+  gt as FilterList,
+  mt as FilterPill,
+  It as ImageReel,
+  Lt as IntLink,
+  lt as MultiSelectRole,
+  at as MultiSelectSimple,
+  vt as PopupImage,
+  bt as ScrollButton,
+  St as TabList,
+  Et as ToolTip
 };

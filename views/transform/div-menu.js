@@ -18,6 +18,8 @@ export class DivManager extends HTMLElement {
 	constructor() {
 		super();
 		this.#reset();
+		// INFO: we do this to avoid binding issues with the event listener
+		this.boundHandleClickOutside = this.handleClickOutside.bind(this);
 	}
 
 	#reset() {
@@ -88,7 +90,16 @@ export class DivManager extends HTMLElement {
 
 		if (this._menu.classList.contains(TAILWIND_HIDDEN_CLASS)) {
 			this._menu.classList.remove(TAILWIND_HIDDEN_CLASS);
+			document.addEventListener("click", this.handleClickOutside);
 		} else {
+			this._menu.classList.add(TAILWIND_HIDDEN_CLASS);
+			document.removeEventListener("click", this.handleClickOutside);
+		}
+	}
+
+	handleClickOutside(event) {
+		if (!this._menu) return;
+		if (!this._menu.contains(event.target) && !this._button.contains(event.target)) {
 			this._menu.classList.add(TAILWIND_HIDDEN_CLASS);
 		}
 	}

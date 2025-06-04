@@ -27,7 +27,7 @@
 	}
 
 	.dbform .inputwrapper .inputtextarea {
-		@apply mt-1 block w-full focus:border-none focus:outline-none min-h-[20rem] resize-y;
+		@apply mt-1 block w-full focus:border-none focus:outline-none resize-y;
 	}
 
 	.dbform .submitbutton {

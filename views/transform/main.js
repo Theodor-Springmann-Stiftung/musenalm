@@ -165,10 +165,116 @@ function HookupRBChange(target, action) {
 	});
 }
 
+// @param {HTMLTextAreaElement} textarea - The textarea element.
+function TextareaAutoResize(textarea) {
+	if (!(textarea instanceof HTMLTextAreaElement)) {
+		console.warn("TextareaAutoResize: Provided element is not a textarea.");
+		return;
+	}
+
+	textarea.style.height = "auto";
+	textarea.style.height = `${textarea.scrollHeight}px`;
+}
+
+function NoEnters(event) {
+	if (event.key === "Enter") {
+		event.preventDefault();
+	}
+}
+
+function HookupTextareaAutoResize(textarea) {
+	if (!(textarea instanceof HTMLTextAreaElement)) {
+		console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
+		return;
+	}
+
+	// Reset height on input
+	textarea.addEventListener("input", () => {
+		TextareaAutoResize(textarea);
+	});
+}
+
+function DisconnectTextareaAutoResize(textarea) {
+	if (!(textarea instanceof HTMLTextAreaElement)) {
+		console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
+		return;
+	}
+
+	// Remove the input event listener
+	textarea.removeEventListener("input", () => {
+		TextareaAutoResize(textarea);
+	});
+}
+
+// INFO: Prevents Enter key from being used in textareas.
+// @param {HTMLTextAreaElement} textarea - The textarea element to hook up the no-enter
+// functionality.
+function HookupNoEnters(textarea) {
+	if (!(textarea instanceof HTMLTextAreaElement) && textarea.classList.contains("no-enter")) {
+		return;
+	}
+
+	textarea.addEventListener("keydown", NoEnters);
+}
+
+// @param {HTMLTextAreaElement} textarea - The textarea element to disconnect the no-enter
+function DisconnectNoEnters(textarea) {
+	if (!(textarea instanceof HTMLTextAreaElement) && textarea.classList.contains("no-enter")) {
+		return;
+	}
+
+	textarea.removeEventListener("keydown", NoEnters);
+}
+
+function MutateObserve(mutations, observer) {
+	for (const mutation of mutations) {
+		if (mutation.type === "childList") {
+			for (const node of mutation.addedNodes) {
+				if (node.nodeType === Node.ELEMENT_NODE && node.matches("textarea")) {
+					HookupTextareaAutoResize(node);
+					TextareaAutoResize(node);
+				}
+			}
+			for (const node of mutation.removedNodes) {
+				if (node.nodeType === Node.ELEMENT_NODE && node.matches("textarea")) {
+					DisconnectNoEnters(node);
+					DisconnectTextareaAutoResize(node);
+				}
+			}
+		}
+	}
+}
+
+// INFO: Various options and plugs for laoding and parsing forms.
+function FormLoad(form) {
+	if (!(form instanceof HTMLFormElement)) {
+		console.warn("FormLoad: Provided element is not a form.");
+		return;
+	}
+
+	const textareas = document.querySelectorAll("textarea");
+	for (const textarea of textareas) {
+		HookupTextareaAutoResize(textarea);
+		TextareaAutoResize(textarea);
+	}
+
+	const noEnterTextareas = document.querySelectorAll("textarea.no-enter");
+	for (const textarea of noEnterTextareas) {
+		HookupNoEnters(textarea);
+	}
+
+	const observer = new MutationObserver(MutateObserve);
+	observer.observe(form, {
+		childList: true,
+		subtree: true,
+	});
+}
+
 window.ShowBoostedErrors = ShowBoostedErrors;
 window.GenQRCode = GenQRCode;
 window.SelectableInput = SelectableInput;
 window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
+window.FormLoad = FormLoad;
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink };

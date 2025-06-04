@@ -16,6 +16,10 @@ type AlmanachResult struct {
 }
 -->
 
+<script type="module">
+	FormLoad(document.getElementById("changealmanachform"));
+</script>
+
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between pb-6">
 		<div class="flex flex-col justify-end-safe pt-36 flex-2/5">
@@ -99,17 +103,6 @@ type AlmanachResult struct {
 	</div>
 </div>
 
-<script type="module">
-	const noenters = document.querySelectorAll(".no-enter");
-	noenters.forEach((el) => {
-		el.addEventListener("keydown", (ev) => {
-			if (ev.key === "Enter") {
-				ev.preventDefault();
-			}
-		});
-	});
-</script>
-
 <div class="container-normal mx-auto px-8 mt-4">
 	{{ template "_usermessage" $model }}
 	<form class="w-full grid grid-cols-12 gap-4 dbform" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST">
@@ -121,15 +114,27 @@ type AlmanachResult struct {
 				<label for="preferred_title" class="inputlabel"> Kurztitel <i class="ri-text"></i> </label>
 				<reset-button class="text-sm" controls="preferred_title" wrapper-class="inputwrapper" modified-class-suffix="modified"></reset-button>
 			</div>
-			<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off">
+			<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">
 				{{- $model.result.Entry.PreferredTitle -}}
 			</textarea
 			>
 		</div>
 
-		<div class="col-span-4"></div>
-		<div class="col-span-8" id="titles"></div>
+		<div class="col-span-3 col-start-10">
+			<div class="inputwrapper">
+				<label for="type" class="inputlabel">Status <i class="ri-alarm-warning-line"></i></label>
+				<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
+					<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+					<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+					<option value="Review" {{ if eq $model.result.Entry.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+					<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+					<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+				</select>
+				<reset-button controls="type" wrapper-class="inputwrapper" modified-class-suffix="modified"></reset-button>
+			</div>
+		</div>
 
+		<div class="col-span-8" id="titles"></div>
 		<div class="col-span-4"></div>
 
 		<div-manager dm-target="titles" class="col-span-2 col-start-7">
@@ -146,7 +151,7 @@ type AlmanachResult struct {
 					</div>
 				</div>
 
-				<textarea name="title" id="title" class="inputinput" placeholder="" autocomplete="off" rows="2">
+				<textarea name="title" id="title" class="inputinput" placeholder="" autocomplete="off">
 				{{- $model.result.Entry.TitleStmt -}}
 				</textarea
 				>
@@ -163,7 +168,7 @@ type AlmanachResult struct {
 					</div>
 				</div>
 
-				<textarea name="subtitle" id="subtitle" class="inputinput" placeholder="" autocomplete="off" rows="2">
+				<textarea name="subtitle" id="subtitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.SubtitleStmt -}}
 				</textarea
 				>
@@ -180,7 +185,7 @@ type AlmanachResult struct {
 					</div>
 				</div>
 
-				<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="2">
+				<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.VariantTitle -}}
 				</textarea
 				>
@@ -197,7 +202,7 @@ type AlmanachResult struct {
 					</div>
 				</div>
 
-				<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="2">
+				<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.ParallelTitle -}}
 				</textarea
 				>
