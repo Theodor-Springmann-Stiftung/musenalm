@@ -32,24 +32,189 @@ export class MultiSelectSimple extends HTMLElement {
 		this.internals_ = this.attachInternals();
 		this._value = [];
 		this._options = [
-			{ id: "marie_curie", name: "Marie Curie", additional_data: "Physicist and Chemist" },
-			{ id: "leonardo_da_vinci", name: "Leonardo da Vinci", additional_data: "Polymath" },
-			{ id: "albert_einstein", name: "Albert Einstein", additional_data: "Theoretical Physicist" },
-			{ id: "ada_lovelace", name: "Ada Lovelace", additional_data: "Mathematician and Writer" },
-			{ id: "isaac_newton", name: "Isaac Newton", additional_data: "Mathematician and Physicist" },
-			{
-				id: "galileo_galilei",
-				name: "Galileo Galilei",
-				additional_data: "Astronomer and Physicist",
-			},
-			{ id: "charles_darwin", name: "Charles Darwin", additional_data: "Naturalist" },
-			{ id: "nikola_tesla", name: "Nikola Tesla", additional_data: "Inventor and Engineer" },
-			{ id: "jane_austen", name: "Jane Austen", additional_data: "Novelist" },
-			{
-				id: "william_shakespeare",
-				name: "William Shakespeare",
-				additional_data: "Playwright and Poet",
-			},
+			{ id: "abk", name: "Abchasisch" },
+			{ id: "aar", name: "Afar" },
+			{ id: "afr", name: "Afrikaans" },
+			{ id: "aka", name: "Akan" },
+			{ id: "alb", name: "Albanisch" },
+			{ id: "amh", name: "Amharisch" },
+			{ id: "ara", name: "Arabisch" },
+			{ id: "arg", name: "Aragonesisch" },
+			{ id: "arm", name: "Armenisch" },
+			{ id: "asm", name: "Assamesisch" },
+			{ id: "ava", name: "Awarisch" },
+			{ id: "ave", name: "Avestisch" },
+			{ id: "aym", name: "Aymara" },
+			{ id: "aze", name: "Aserbaidschanisch" },
+			{ id: "bam", name: "Bambara" },
+			{ id: "bak", name: "Baschkirisch" },
+			{ id: "baq", name: "Baskisch" },
+			{ id: "bel", name: "Belarussisch" },
+			{ id: "ben", name: "Bengalisch" },
+			{ id: "bis", name: "Bislama" },
+			{ id: "bos", name: "Bosnisch" },
+			{ id: "bre", name: "Bretonisch" },
+			{ id: "bul", name: "Bulgarisch" },
+			{ id: "bur", name: "Birmanisch" },
+			{ id: "cat", name: "Katalanisch" },
+			{ id: "cha", name: "Chamorro" },
+			{ id: "che", name: "Tschetschenisch" },
+			{ id: "nya", name: "Nyanja" },
+			{ id: "chi", name: "Chinesisch" },
+			{ id: "chu", name: "Kirchenslawisch" },
+			{ id: "chv", name: "Tschuwaschisch" },
+			{ id: "cor", name: "Kornisch" },
+			{ id: "cos", name: "Korsisch" },
+			{ id: "cre", name: "Cree" },
+			{ id: "hrv", name: "Kroatisch" },
+			{ id: "cze", name: "Tschechisch" },
+			{ id: "dan", name: "Dänisch" },
+			{ id: "div", name: "Dhivehi" },
+			{ id: "dut", name: "Niederländisch" },
+			{ id: "dzo", name: "Dzongkha" },
+			{ id: "eng", name: "Englisch" },
+			{ id: "epo", name: "Esperanto" },
+			{ id: "est", name: "Estnisch" },
+			{ id: "ewe", name: "Ewe" },
+			{ id: "fao", name: "Färöisch" },
+			{ id: "fij", name: "Fidschianisch" },
+			{ id: "fin", name: "Finnisch" },
+			{ id: "fre", name: "Französisch" },
+			{ id: "fry", name: "Westfriesisch" },
+			{ id: "ful", name: "Ful" },
+			{ id: "gla", name: "Schottisch-Gälisch" },
+			{ id: "glg", name: "Galicisch" },
+			{ id: "lug", name: "Ganda" },
+			{ id: "geo", name: "Georgisch" },
+			{ id: "ger", name: "Deutsch" },
+			{ id: "gre", name: "Griechisch" },
+			{ id: "kal", name: "Kalaallisut" },
+			{ id: "grn", name: "Guaraní" },
+			{ id: "guj", name: "Gujarati" },
+			{ id: "hat", name: "Haitianisch-Kreolisch" },
+			{ id: "hau", name: "Hausa" },
+			{ id: "heb", name: "Hebräisch" },
+			{ id: "her", name: "Herero" },
+			{ id: "hin", name: "Hindi" },
+			{ id: "hmo", name: "Hiri Motu" },
+			{ id: "hun", name: "Ungarisch" },
+			{ id: "ice", name: "Isländisch" },
+			{ id: "ido", name: "Ido" },
+			{ id: "ibo", name: "Igbo" },
+			{ id: "ind", name: "Indonesisch" },
+			{ id: "ina", name: "Interlingua" },
+			{ id: "ile", name: "Interlingue" },
+			{ id: "iku", name: "Inuktitut" },
+			{ id: "ipk", name: "Inupiaq" },
+			{ id: "gle", name: "Irisch" },
+			{ id: "ita", name: "Italienisch" },
+			{ id: "jpn", name: "Japanisch" },
+			{ id: "jav", name: "Javanisch" },
+			{ id: "kan", name: "Kannada" },
+			{ id: "kau", name: "Kanuri" },
+			{ id: "kas", name: "Kashmiri" },
+			{ id: "kaz", name: "Kasachisch" },
+			{ id: "khm", name: "Khmer" },
+			{ id: "kik", name: "Kikuyu" },
+			{ id: "kin", name: "Kinyarwanda" },
+			{ id: "kir", name: "Kirgisisch" },
+			{ id: "kom", name: "Komi" },
+			{ id: "kon", name: "Kongo" },
+			{ id: "kor", name: "Koreanisch" },
+			{ id: "kua", name: "Kwanyama" },
+			{ id: "kur", name: "Kurdisch" },
+			{ id: "lao", name: "Laotisch" },
+			{ id: "lat", name: "Latein" },
+			{ id: "lav", name: "Lettisch" },
+			{ id: "lim", name: "Limburgisch" },
+			{ id: "lin", name: "Lingala" },
+			{ id: "lit", name: "Litauisch" },
+			{ id: "lub", name: "Luba-Katanga" },
+			{ id: "ltz", name: "Luxemburgisch" },
+			{ id: "mac", name: "Mazedonisch" },
+			{ id: "mlg", name: "Malagasy" },
+			{ id: "may", name: "Malaiisch" },
+			{ id: "mal", name: "Malayalam" },
+			{ id: "mlt", name: "Maltesisch" },
+			{ id: "glv", name: "Manx" },
+			{ id: "mao", name: "Maori" },
+			{ id: "mar", name: "Marathi" },
+			{ id: "mah", name: "Marshallesisch" },
+			{ id: "mon", name: "Mongolisch" },
+			{ id: "nau", name: "Nauruisch" },
+			{ id: "nav", name: "Navajo" },
+			{ id: "nde", name: "Nord-Ndebele" },
+			{ id: "nbl", name: "Süd-Ndebele" },
+			{ id: "ndo", name: "Ndonga" },
+			{ id: "nep", name: "Nepali" },
+			{ id: "nor", name: "Norwegisch" },
+			{ id: "nob", name: "Norwegisch Bokmål" },
+			{ id: "nno", name: "Norwegisch Nynorsk" },
+			{ id: "oci", name: "Okzitanisch" },
+			{ id: "oji", name: "Ojibwa" },
+			{ id: "ori", name: "Oriya" },
+			{ id: "orm", name: "Oromo" },
+			{ id: "oss", name: "Ossetisch" },
+			{ id: "pli", name: "Pali" },
+			{ id: "pus", name: "Paschtu" },
+			{ id: "per", name: "Persisch" },
+			{ id: "pol", name: "Polnisch" },
+			{ id: "por", name: "Portugiesisch" },
+			{ id: "pan", name: "Panjabi" },
+			{ id: "que", name: "Quechua" },
+			{ id: "rum", name: "Rumänisch" },
+			{ id: "roh", name: "Rätoromanisch" },
+			{ id: "run", name: "Rundi" },
+			{ id: "rus", name: "Russisch" },
+			{ id: "sme", name: "Nordsamisch" },
+			{ id: "smo", name: "Samoanisch" },
+			{ id: "sag", name: "Sango" },
+			{ id: "san", name: "Sanskrit" },
+			{ id: "srd", name: "Sardisch" },
+			{ id: "srp", name: "Serbisch" },
+			{ id: "sna", name: "Shona" },
+			{ id: "snd", name: "Sindhi" },
+			{ id: "sin", name: "Singhalesisch" },
+			{ id: "slo", name: "Slowakisch" },
+			{ id: "slv", name: "Slowenisch" },
+			{ id: "som", name: "Somali" },
+			{ id: "sot", name: "Süd-Sotho" },
+			{ id: "spa", name: "Spanisch" },
+			{ id: "sun", name: "Sundanesisch" },
+			{ id: "swa", name: "Swahili" },
+			{ id: "ssw", name: "Swazi" },
+			{ id: "swe", name: "Schwedisch" },
+			{ id: "tgl", name: "Tagalog" },
+			{ id: "tah", name: "Tahitisch" },
+			{ id: "tgk", name: "Tadschikisch" },
+			{ id: "tam", name: "Tamil" },
+			{ id: "tat", name: "Tatarisch" },
+			{ id: "tel", name: "Telugu" },
+			{ id: "tha", name: "Thailändisch" },
+			{ id: "tib", name: "Tibetisch" },
+			{ id: "tir", name: "Tigrinya" },
+			{ id: "ton", name: "Tongaisch" },
+			{ id: "tso", name: "Tsonga" },
+			{ id: "tsn", name: "Tswana" },
+			{ id: "tur", name: "Türkisch" },
+			{ id: "tuk", name: "Turkmenisch" },
+			{ id: "twi", name: "Twi" },
+			{ id: "uig", name: "Uigurisch" },
+			{ id: "ukr", name: "Ukrainisch" },
+			{ id: "urd", name: "Urdu" },
+			{ id: "uzb", name: "Usbekisch" },
+			{ id: "ven", name: "Venda" },
+			{ id: "vie", name: "Vietnamesisch" },
+			{ id: "vol", name: "Volapük" },
+			{ id: "wln", name: "Wallonisch" },
+			{ id: "wel", name: "Walisisch" },
+			{ id: "wol", name: "Wolof" },
+			{ id: "xho", name: "Xhosa" },
+			{ id: "iii", name: "Sichuan Yi" },
+			{ id: "yid", name: "Jiddisch" },
+			{ id: "yor", name: "Yoruba" },
+			{ id: "zha", name: "Zhuang" },
+			{ id: "zul", name: "Zulu" },
 		];
 		this._filteredOptions = [];
 		this._highlightedIndex = -1;
@@ -113,24 +278,19 @@ export class MultiSelectSimple extends HTMLElement {
 		const boolValue = String(value).toLowerCase() !== "false" && value !== false;
 		if (this._showCreateButton === boolValue) return;
 		this._showCreateButton = boolValue;
-		if (this.createNewButton)
-			this.createNewButton.classList.toggle("hidden", !this._showCreateButton);
+		if (this.createNewButton) this.createNewButton.classList.toggle("hidden", !this._showCreateButton);
 		this.setAttribute("show-create-button", this._showCreateButton ? "true" : "false");
 	}
 
 	setOptions(newOptions) {
-		if (
-			Array.isArray(newOptions) &&
-			newOptions.every((o) => o && typeof o.id === "string" && typeof o.name === "string")
-		) {
+		if (Array.isArray(newOptions) && newOptions.every((o) => o && typeof o.id === "string" && typeof o.name === "string")) {
 			this._options = [...newOptions];
 			const validValues = this._value.filter((id) => this._getItemById(id));
 			if (validValues.length !== this._value.length) this.value = validValues;
 			else if (this.selectedItemsContainer) this._renderSelectedItems();
 			this._filteredOptions = [];
 			this._highlightedIndex = -1;
-			if (this.inputElement && this.inputElement.value)
-				this._handleInput({ target: this.inputElement });
+			if (this.inputElement && this.inputElement.value) this._handleInput({ target: this.inputElement });
 			else this._hideOptionsList();
 		} else console.error("setOptions expects an array of objects with id and name properties.");
 	}
@@ -141,14 +301,11 @@ export class MultiSelectSimple extends HTMLElement {
 	set value(newVal) {
 		const oldValString = JSON.stringify(this._value.sort());
 		if (Array.isArray(newVal)) {
-			this._value = [
-				...new Set(newVal.filter((id) => typeof id === "string" && this._getItemById(id))),
-			];
+			this._value = [...new Set(newVal.filter((id) => typeof id === "string" && this._getItemById(id)))];
 		} else if (typeof newVal === "string" && newVal.trim() !== "") {
 			const singleId = newVal.trim();
 			if (this._getItemById(singleId) && !this._value.includes(singleId)) this._value = [singleId];
-			else if (!this._getItemById(singleId))
-				this._value = this._value.filter((id) => id !== singleId);
+			else if (!this._getItemById(singleId)) this._value = this._value.filter((id) => id !== singleId);
 		} else this._value = [];
 		const newValString = JSON.stringify(this._value.sort());
 		if (oldValString !== newValString) {
@@ -220,13 +377,8 @@ export class MultiSelectSimple extends HTMLElement {
 			this.optionsListElement.removeEventListener("mousedown", this._handleOptionMouseDown);
 			this.optionsListElement.removeEventListener("click", this._handleOptionClick);
 		}
-		if (this.createNewButton)
-			this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick);
-		if (this.selectedItemsContainer)
-			this.selectedItemsContainer.removeEventListener(
-				"click",
-				this._handleSelectedItemsContainerClick,
-			);
+		if (this.createNewButton) this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick);
+		if (this.selectedItemsContainer) this.selectedItemsContainer.removeEventListener("click", this._handleSelectedItemsContainerClick);
 		clearTimeout(this._blurTimeout);
 	}
 
@@ -288,9 +440,7 @@ export class MultiSelectSimple extends HTMLElement {
 		if (this.inputElement) this.inputElement.disabled = disabled;
 		if (this.createNewButton) this.createNewButton.disabled = disabled;
 		this.toggleAttribute("disabled", disabled);
-		this.querySelectorAll(`.${MSS_SELECTED_ITEM_DELETE_BTN_CLASS}`).forEach(
-			(btn) => (btn.disabled = disabled),
-		);
+		this.querySelectorAll(`.${MSS_SELECTED_ITEM_DELETE_BTN_CLASS}`).forEach((btn) => (btn.disabled = disabled));
 		if (this.hiddenSelect) this.hiddenSelect.disabled = disabled;
 		if (disabled) this._hideOptionsList();
 	}
@@ -353,7 +503,7 @@ export class MultiSelectSimple extends HTMLElement {
 		if (!this.selectedItemsContainer) return;
 		this.selectedItemsContainer.innerHTML = "";
 		if (this._value.length === 0) {
-			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS}">No items selected</span>`;
+			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS}">Keine Sprachen ausgewählt...</span>`;
 		} else {
 			this._value.forEach((id) => {
 				const pillEl = this._createSelectedItemElement(id);
@@ -375,8 +525,7 @@ export class MultiSelectSimple extends HTMLElement {
 		li.id = optionElementId;
 		if (index === this._highlightedIndex) {
 			li.classList.add(MSS_HIGHLIGHTED_OPTION_CLASS);
-			if (this.inputElement)
-				this.inputElement.setAttribute("aria-activedescendant", optionElementId);
+			if (this.inputElement) this.inputElement.setAttribute("aria-activedescendant", optionElementId);
 		}
 		return li;
 	}
@@ -394,9 +543,7 @@ export class MultiSelectSimple extends HTMLElement {
 				const optionEl = this._createOptionElement(item, index);
 				this.optionsListElement.appendChild(optionEl);
 			});
-			const highlightedElement = this.optionsListElement.querySelector(
-				`.${MSS_HIGHLIGHTED_OPTION_CLASS}`,
-			);
+			const highlightedElement = this.optionsListElement.querySelector(`.${MSS_HIGHLIGHTED_OPTION_CLASS}`);
 			if (highlightedElement) {
 				highlightedElement.scrollIntoView({ block: "nearest" });
 				this.inputElement.setAttribute("aria-activedescendant", highlightedElement.id);
@@ -405,11 +552,7 @@ export class MultiSelectSimple extends HTMLElement {
 		this._updateRootElementStateClasses();
 	}
 	_handleSelectedItemsContainerClick(event) {
-		if (
-			event.target === this.selectedItemsContainer &&
-			this.inputElement &&
-			!this.inputElement.disabled
-		) {
+		if (event.target === this.selectedItemsContainer && this.inputElement && !this.inputElement.disabled) {
 			this.inputElement.focus();
 		}
 	}
@@ -434,8 +577,7 @@ export class MultiSelectSimple extends HTMLElement {
 			this._filteredOptions = this._options.filter((item) => {
 				if (this._value.includes(item.id)) return false;
 				const nameMatch = item.name.toLowerCase().includes(searchTermLower);
-				const additionalDataMatch =
-					item.additional_data && item.additional_data.toLowerCase().includes(searchTermLower);
+				const additionalDataMatch = item.additional_data && item.additional_data.toLowerCase().includes(searchTermLower);
 				return nameMatch || additionalDataMatch;
 			});
 			this._isOptionsListVisible = this._filteredOptions.length > 0;
@@ -453,11 +595,11 @@ export class MultiSelectSimple extends HTMLElement {
 		//      return;
 		// }
 		if (!this._isOptionsListVisible || this._filteredOptions.length === 0) {
+			if (event.key === "Enter" && this.inputElement.value.length > 0) {
+				event.preventDefault();
+			}
 			if (event.key === "Escape") this._hideOptionsList();
-			if (
-				(event.key === "ArrowDown" || event.key === "ArrowUp") &&
-				this.inputElement.value.length > 0
-			) {
+			if ((event.key === "ArrowDown" || event.key === "ArrowUp") && this.inputElement.value.length > 0) {
 				this._handleInput({ target: this.inputElement });
 			}
 			return;
@@ -470,12 +612,11 @@ export class MultiSelectSimple extends HTMLElement {
 				break;
 			case "ArrowUp":
 				event.preventDefault();
-				this._highlightedIndex =
-					(this._highlightedIndex - 1 + this._filteredOptions.length) %
-					this._filteredOptions.length;
+				this._highlightedIndex = (this._highlightedIndex - 1 + this._filteredOptions.length) % this._filteredOptions.length;
 				this._renderOptionsList();
 				break;
 			case "Enter":
+				event.stopPropagation();
 				event.preventDefault();
 				if (this._highlightedIndex > -1 && this._filteredOptions[this._highlightedIndex]) {
 					this._selectItem(this._filteredOptions[this._highlightedIndex].id);
@@ -524,8 +665,7 @@ export class MultiSelectSimple extends HTMLElement {
 	}
 	_handleDeleteSelectedItem(itemId) {
 		this.value = this._value.filter((id) => id !== itemId);
-		if (this.inputElement && this.inputElement.value)
-			this._handleInput({ target: this.inputElement });
+		if (this.inputElement && this.inputElement.value) this._handleInput({ target: this.inputElement });
 		if (this.inputElement && !this.hasAttribute("disabled")) this.inputElement.focus();
 	}
 }

@@ -180,12 +180,12 @@
 	}
 
 	.mss-selected-items-container {
-		@apply border border-gray-300 p-1.5 rounded;
+		@apply py-2 rounded;
 		/* Tailwind classes from component: flex flex-wrap gap-1 mb-1 min-h-[38px] */
 	}
 
 	.mss-no-items-text {
-		@apply italic text-xs text-gray-500 p-1 w-full; /* Adjusted font size slightly to match 'xs' */
+		@apply italic text-xs text-gray-500 w-full; /* Adjusted font size slightly to match 'xs' */
 	}
 
 	.mss-selected-item-pill {

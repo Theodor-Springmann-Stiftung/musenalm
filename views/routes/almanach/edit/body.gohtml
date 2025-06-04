@@ -130,12 +130,22 @@ type AlmanachResult struct {
 					<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
 					<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
 				</select>
-				<reset-button controls="type" wrapper-class="inputwrapper" modified-class-suffix="modified"></reset-button>
 			</div>
 		</div>
 
 		<div class="col-span-8" id="titles"></div>
-		<div class="col-span-4"></div>
+		<div class="col-span-4 col-start-10 row-span-2">
+			<div class="inputwrapper">
+				<label for="type" class="languages inputlabel" for="languages">Sprachen <i class="ri-earth-line"></i></label>
+				<multi-select-simple id="languages" show-create-button="false" placeholder="Sprachen suchen..."></multi-select-simple>
+				<script type="module">
+					// Initialize the multi-select with the languages
+					const smlang = document.getElementById("languages");
+					smlang.value = {{ $model.result.Entry.Language }};
+				</script>
+				<reset-button controls="type" wrapper-class="inputwrapper" modified-class-suffix="modified"></reset-button>
+			</div>
+		</div>
 
 		<div-manager dm-target="titles" class="col-span-2 col-start-7">
 			<button class="dm-menu-button text-xs text-right w-full cursor-pointer"><i class="ri-add-line"></i> Titel hinzufügen</button>
