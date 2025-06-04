@@ -293,9 +293,7 @@ export class FilterList extends HTMLElement {
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${
-											index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"
-										}"
+										class="${FILTER_LIST_ITEM} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${index % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
 										${this.#isActive(item) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(item)}
 										${this.getLinkText(item)}

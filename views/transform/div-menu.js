@@ -1,6 +1,5 @@
 // Define CSS class names as constants, above the component class
 const USER_PROVIDED_MENU_BUTTON_CLASS = "div-menu-button";
-const TS_MENU_COMPONENT = "ts-menu";
 const TS_POPUP = "ts-menu-popup";
 const TS_LIST = "ts-menu-list";
 const TS_MENU_LABEL = "menu-label";
@@ -8,18 +7,77 @@ const TS_PLACEHOLDER_MESSAGE = "ts-menu-placeholder-message";
 const TS_LIST_ITEM = "ts-menu-list-item";
 const TS_ITEM_ACTION = "ts-menu-item-action";
 const TS_ITEM_IS_SELECTED = "ts-item-is-selected";
-const TS_CONTENT_CLOSE_BUTTON = "ts-content-close-button";
 const TAILWIND_HIDDEN_CLASS = "hidden";
 const TS_MENU_BUTTON_STATE_DISABLED = "ts-menu-button--disabled";
 const TS_MENU_LABEL_IN_MENU_STATE = "ts-menu-label--in-menu";
 const TS_MENU_LABEL_DISPLAYED_STATE = "ts-menu-label--displayed";
 const TS_TARGET_PLACEHOLDER_CLASS = "ts-target-placeholder"; // For the target area placeholder
+const TARGET_ID_ATTRIBUTE = "target-id"; // Attribute to specify the target element ID
+
+const DM_STAY_ATTRIBUTE = "dm-stay"; // Attribute to indicate if a div should stay in the menu
+const DM_TITLE_ATTRIBUTE = "dm-title"; // Attribute to indicate if a div has a title
+const DM_MENU_BUTTON_CLASS = "dm-menu-button"; // Class for the menu button
+const DM_TARGET_ATTRIBUTE = "dm-target"; // Attribute to specify the target element ID for the redesigned menu
+
 //
 // Prereq: child divs must have prop data-value, and a label element
-// the label element must have class "menu-label"
 // The child divs will be moved to the target element when selected
 // The target element must be specified by the attribute target-id on the custom element
 // The menu button must have the class div-menu-button
+//
+
+export class DivMenuRedesigned extends HTMLElement {
+	constructor() {
+		super();
+		this.#reset();
+	}
+
+	#reset() {
+		this._cildren = [];
+		this._target = null;
+		this._button = null;
+		this._menu = null;
+	}
+
+	connectedCallback() {
+		this._cildren = Array.from(this.children)
+			.filter((node) => node.nodeType === Node.ELEMENT_NODE && !node.classList.contains(DM_MENU_BUTTON_CLASS))
+			.map((node) => {
+				return {
+					node: node,
+					stay: () => node.hasAttribute(DM_STAY_ATTRIBUTE) && node.getAttribute(DM_STAY_ATTRIBUTE) == "true",
+					hidden: () => node.classList.contains(TAILWIND_HIDDEN_CLASS),
+					name: () => {
+						const label = node.querySelector("label");
+						return label ? label.innerHTML : node.hasAttribute(DM_TITLE_ATTRIBUTE) ? node.getAttribute(DM_TITLE_ATTRIBUTE) : "";
+					},
+				};
+			});
+
+		this._target = document.getElementById(this.getAttribute(DM_TARGET_ATTRIBUTE));
+		if (!this._target) {
+			this._target = this;
+		}
+
+		this._button = this.querySelector(`.${DM_MENU_BUTTON_CLASS}`);
+		if (!this._button) {
+			console.error("DivManagerMenu needs a button element.");
+			return;
+		}
+
+		for (const child of this._cildren) {
+			parentNode.removeChild(child.node);
+		}
+		this._button.addEventListener("click", this._toggleMenu.bind(this));
+		this._button.classList.add("relative");
+	}
+
+	renderMenu() {
+		this._menu += `<ul class="${TS_P}">`;
+	}
+
+	renderNode() {}
+}
 
 export class DivMenu extends HTMLElement {
 	constructor() {
@@ -53,7 +111,7 @@ export class DivMenu extends HTMLElement {
 		const componentPopupHTML = `
                     <div class="${TS_POPUP}">
                         <ul class="${TS_LIST}">
-                            <li class="${TS_PLACEHOLDER_MESSAGE}">All items are currently shown.</li>
+                            <li class="${TS_PLACEHOLDER_MESSAGE}"></li>
                         </ul>
                     </div>
                 `;

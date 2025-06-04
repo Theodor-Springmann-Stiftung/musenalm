@@ -1648,7 +1648,7 @@ class ee extends HTMLElement {
     const i = `
                     <div class="${et}">
                         <ul class="${it}">
-                            <li class="${st}">All items are currently shown.</li>
+                            <li class="${st}"></li>
                         </ul>
                     </div>
                 `;
