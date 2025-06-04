@@ -1,6 +1,9 @@
+// Define CSS class names as constants, above the component class
 const USER_PROVIDED_MENU_BUTTON_CLASS = "div-menu-button";
+const TS_MENU_COMPONENT = "ts-menu";
 const TS_POPUP = "ts-menu-popup";
 const TS_LIST = "ts-menu-list";
+const TS_MENU_LABEL = "menu-label";
 const TS_PLACEHOLDER_MESSAGE = "ts-menu-placeholder-message";
 const TS_LIST_ITEM = "ts-menu-list-item";
 const TS_ITEM_ACTION = "ts-menu-item-action";
@@ -8,9 +11,9 @@ const TS_ITEM_IS_SELECTED = "ts-item-is-selected";
 const TS_CONTENT_CLOSE_BUTTON = "ts-content-close-button";
 const TAILWIND_HIDDEN_CLASS = "hidden";
 const TS_MENU_BUTTON_STATE_DISABLED = "ts-menu-button--disabled";
-// New constants for menu label states
 const TS_MENU_LABEL_IN_MENU_STATE = "ts-menu-label--in-menu";
 const TS_MENU_LABEL_DISPLAYED_STATE = "ts-menu-label--displayed";
+const TS_TARGET_PLACEHOLDER_CLASS = "ts-target-placeholder"; // For the target area placeholder
 //
 // Prereq: child divs must have prop data-value, and a label element
 // the label element must have class "menu-label"
@@ -76,21 +79,13 @@ export class DivMenu extends HTMLElement {
 		this._observer = new MutationObserver(this._handleMutations);
 
 		this._originalChildDivs.forEach((sourceDiv) => {
-			const menuLabelElement = sourceDiv.querySelector("label.menu-label");
+			const menuLabelElement = sourceDiv.querySelector("label." + TS_MENU_LABEL);
 			const itemValue = sourceDiv.dataset.value;
 
 			if (!menuLabelElement || !itemValue) {
 				console.warn('TabSelectorMenu: Source div missing <label class="menu-label"> or data-value:', sourceDiv);
 				return;
 			}
-
-			const closeButton = document.createElement("button");
-			closeButton.type = "button";
-			closeButton.className = TS_CONTENT_CLOSE_BUTTON;
-			closeButton.innerHTML = "&times;";
-			closeButton.dataset.value = itemValue;
-			closeButton.addEventListener("click", this._handleContentClose);
-			sourceDiv.prepend(closeButton);
 
 			const isInitiallySelected = !sourceDiv.classList.contains(TAILWIND_HIDDEN_CLASS);
 			this.appendChild(sourceDiv);
@@ -135,12 +130,6 @@ export class DivMenu extends HTMLElement {
 		if (this._observer) {
 			this._observer.disconnect();
 		}
-		this._menuItemsMap.forEach((itemData) => {
-			const closeButton = itemData.sourceDiv.querySelector(`.${TS_CONTENT_CLOSE_BUTTON}`);
-			if (closeButton) {
-				closeButton.removeEventListener("click", this._handleContentClose);
-			}
-		});
 		if (this._menuButton) {
 			this._menuButton.removeEventListener("click", this._toggleMenu);
 		}
@@ -202,7 +191,6 @@ export class DivMenu extends HTMLElement {
 		if (!hasSelectedItems) {
 			const placeholder = document.createElement("p");
 			placeholder.className = TS_TARGET_PLACEHOLDER_CLASS;
-			placeholder.innerHTML = "<em>Selected content will appear here.</em>";
 			this._targetElement.appendChild(placeholder);
 		}
 	}
@@ -255,10 +243,11 @@ export class DivMenu extends HTMLElement {
 	}
 
 	_toggleMenu(event) {
+		event.preventDefault();
+		event.stopPropagation();
 		if (this._menuButton && this._menuButton.classList.contains(TS_MENU_BUTTON_STATE_DISABLED)) {
 			return;
 		}
-		event.stopPropagation();
 		const isHidden = this._menuPopupElement.style.display === "none" || this._menuPopupElement.style.display === "";
 		if (isHidden) {
 			this._checkMenuPlaceholderAndButton();
