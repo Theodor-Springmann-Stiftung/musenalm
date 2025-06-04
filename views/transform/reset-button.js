@@ -65,7 +65,9 @@ export class ResetButton extends HTMLElement {
 			el.removeEventListener("change", this.handleInputChange);
 		});
 		this._controlledElements = [];
-		this.initialStates.clear();
+		// INFO: we don't clear the intitial states here, in case we
+		// want to reattach the same elements later.
+		// this.initialStates.clear();
 		this.lastOverallModifiedState = null;
 
 		const controlIds = (this.getAttribute("controls") || "")
@@ -107,6 +109,9 @@ export class ResetButton extends HTMLElement {
 	}
 
 	storeInitialState(element) {
+		if (this.initialStates.has(element.id)) {
+			return;
+		}
 		let state;
 		switch (element.type) {
 			case "checkbox":

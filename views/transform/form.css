@@ -1,4 +1,8 @@
 @layer components {
+	button {
+		@apply cursor-pointer disabled:cursor-default;
+	}
+
 	.dbform .inputwrapper {
 		@apply rounded-xs border-2 border-transparent pl-3 pr-1.5
 				py-1 pb-1.5 border-l-2 focus-within:border-l-slate-600
@@ -278,26 +282,24 @@
 		@apply disabled:hidden;
 	}
 
-	.ts-menu-popup {
-		@apply hidden absolute top-full left-0 bg-white border border-gray-300 rounded-xs shadow z-50 min-w-[200px] mt-1;
+	.dm-menu-button {
+		@apply text-gray-700 hover:text-gray-950 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500;
 	}
 
-	.ts-menu-list {
-		list-style: none;
-		padding: 0px 0;
-		margin: 0;
+	.dm-menu {
+		@apply top-full right-0 bg-white border border-gray-300 rounded-xs shadow z-50 mt-1 flex flex-col;
 	}
 
-	.ts-menu-list li {
-		@apply cursor-pointer ml-0 list-none px-2.5 py-1 hover:bg-gray-100 border-b;
+	.dm-menu .dm-menu-item {
+		@apply cursor-pointer ml-0 list-none px-2.5 py-1 hover:bg-gray-100 border-b w-full;
 	}
 
-	.ts-menu-list li:last-child {
+	.dm-menu .dm-menu-item:last-child {
 		@apply border-b-0;
 	}
 
-	.ts-menu-list li button {
-		@apply w-full cursor-pointer text-left text-gray-700;
+	.dm-menu .dm-menu-item {
+		@apply cursor-pointer text-left text-gray-700;
 	}
 
 	.form-submit-button {
