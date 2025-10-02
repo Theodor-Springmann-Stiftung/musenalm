@@ -1,10 +1,17 @@
-name: musenalm
 services:
-  all:
+  musenalm:
     build: .
-    ports:
-      - "8090:8090"
+    expose:
+      - "8090"
     volumes:
-      - ma_v2:/app/data
+      - musenalm:/app/data
+    networks:
+      - caddynet
+
 volumes:
-  ma_v2:
+  musenalm:
+    external: true
+
+networks:
+  caddynet:
+    external: true
