@@ -8,6 +8,7 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
+		app.Logger().Info("Migrating database to accomodate FTS5")
 		err := createFTS5(app, dbmodels.AGENTS_TABLE, dbmodels.AGENTS_FTS5_FIELDS)
 		if err != nil {
 			app.Logger().Error("Error creating FTS5 table for agents", "error", err)
