@@ -27,6 +27,7 @@ export class DivManager extends HTMLElement {
 		this._target = null;
 		this._button = null;
 		this._menu = null;
+		this._originalButtonText = null;
 	}
 
 	connectedCallback() {
@@ -41,6 +42,10 @@ export class DivManager extends HTMLElement {
 						const label = node.querySelector("label");
 						return label ? label.innerHTML : node.hasAttribute(DM_TITLE_ATTRIBUTE) ? node.getAttribute(DM_TITLE_ATTRIBUTE) : "";
 					},
+					nameText: () => {
+						const label = node.querySelector("label");
+						return label ? label.textContent.trim() : node.hasAttribute(DM_TITLE_ATTRIBUTE) ? node.getAttribute(DM_TITLE_ATTRIBUTE) : "";
+					},
 				};
 			});
 
@@ -53,6 +58,9 @@ export class DivManager extends HTMLElement {
 		if (!this._button) {
 			console.error("DivManagerMenu needs a button element.");
 			return;
+		}
+		if (!this._originalButtonText) {
+			this._originalButtonText = this._button.innerHTML;
 		}
 
 		for (const child of this._cildren) {
@@ -70,37 +78,68 @@ export class DivManager extends HTMLElement {
 			});
 		}
 
-		this.renderMenu();
 		this.renderIntoTarget();
+		this.refresh();
+
+		this._observer = new MutationObserver(() => {
+			this.refresh();
+		});
+		this._cildren.forEach((child) => {
+			this._observer.observe(child.node, { attributes: true, attributeFilter: ["class"] });
+		});
+	}
+
+	disconnectedCallback() {
+		if (this._observer) {
+			this._observer.disconnect();
+		}
+		document.removeEventListener("click", this.boundHandleClickOutside);
+	}
+
+	refresh() {
+		this.renderButton();
+		this.renderMenu();
+		this.updateTargetVisibility();
 	}
 
 	_toggleMenu(event) {
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (!this._menu) {
-			this._menu = this.querySelector(`.${DM_MENU_CLASS}`);
-		}
-
-		if (!this._menu) {
-			console.error("DivManagerMenu: Menu not found.");
+		const hiddenChildren = this._cildren.filter((c) => c.hidden());
+		if (hiddenChildren.length === 1) {
+			const index = this._cildren.indexOf(hiddenChildren[0]);
+			this.showDiv(event, index);
 			return;
 		}
 
+		if (hiddenChildren.length === 0) {
+			this.hideMenu();
+			return;
+		}
+
+		this.renderMenu();
+
 		if (this._menu.classList.contains(TAILWIND_HIDDEN_CLASS)) {
 			this._menu.classList.remove(TAILWIND_HIDDEN_CLASS);
-			document.addEventListener("click", this.handleClickOutside);
+			document.addEventListener("click", this.boundHandleClickOutside);
 		} else {
 			this._menu.classList.add(TAILWIND_HIDDEN_CLASS);
-			document.removeEventListener("click", this.handleClickOutside);
+			document.removeEventListener("click", this.boundHandleClickOutside);
 		}
 	}
 
 	handleClickOutside(event) {
 		if (!this._menu) return;
 		if (!this._menu.contains(event.target) && !this._button.contains(event.target)) {
-			this._menu.classList.add(TAILWIND_HIDDEN_CLASS);
+			this.hideMenu();
 		}
+	}
+
+	hideMenu() {
+		if (!this._menu) return;
+		this._menu.classList.add(TAILWIND_HIDDEN_CLASS);
+		document.removeEventListener("click", this.boundHandleClickOutside);
 	}
 
 	renderButton() {
@@ -108,18 +147,44 @@ export class DivManager extends HTMLElement {
 			return;
 		}
 
-		for (const child of this._cildren) {
-			if (child.hidden()) {
-				if (this._button.parentElement !== this) {
-					this._button.classList.remove(TAILWIND_HIDDEN_CLASS);
-					this.appendChild(this._button);
-				}
-				return;
-			}
+		// Store original button text if not already stored (do this first)
+		if (!this._originalButtonText) {
+			this._originalButtonText = this._button.innerHTML;
 		}
 
-		this._button.classList.add(TAILWIND_HIDDEN_CLASS);
-		this.removeChild(this._button);
+		// Check if there are any hidden children
+		const hiddenChildren = this._cildren.filter((c) => c.hidden());
+
+		if (hiddenChildren.length === 0) {
+			// No hidden children, hide and remove the button completely
+			this._button.classList.add(TAILWIND_HIDDEN_CLASS);
+			if (this._button.parentElement) {
+				this._button.parentElement.removeChild(this._button);
+			}
+			this._menu = null;
+			this.hideMenu();
+			return;
+		}
+
+		// There are hidden children, ensure button is in the DOM and visible
+		if (!this._button.parentElement) {
+			this.appendChild(this._button);
+		}
+		this._button.classList.remove(TAILWIND_HIDDEN_CLASS);
+
+		// Update button text based on number of hidden children
+		if (hiddenChildren.length === 1) {
+			// Only one option left - show its name
+			const icon = this._button.querySelector("i");
+			const iconHTML = icon ? icon.outerHTML : '<i class="ri-add-line"></i>';
+			this._button.innerHTML = `${iconHTML}\n${hiddenChildren[0].nameText()} hinzufügen`;
+			this._menu = null;
+			this.hideMenu();
+		} else {
+			// Multiple options - restore original text
+			this._button.innerHTML = this._originalButtonText;
+			this._menu = null;
+		}
 	}
 
 	hideDiv(event, node) {
@@ -139,9 +204,8 @@ export class DivManager extends HTMLElement {
 			return;
 		}
 
-		if (!child.hidden()) {
-			child.node.classList.add(TAILWIND_HIDDEN_CLASS);
-		}
+		// Always ensure the hidden class is added
+		child.node.classList.add(TAILWIND_HIDDEN_CLASS);
 
 		this._target.removeChild(child.node);
 		// INFO: the order of these matter, dont fuck it up
@@ -161,37 +225,42 @@ export class DivManager extends HTMLElement {
 		}
 
 		const child = this._cildren[index];
-		if (child.hidden()) {
-			child.node.classList.remove(TAILWIND_HIDDEN_CLASS);
-		}
+		// Always ensure the hidden class is removed
+		child.node.classList.remove(TAILWIND_HIDDEN_CLASS);
 
-		this._target.appendChild(child.node);
+		this.insertChildInOrder(child);
 		// INFO: the order of these matter, dont fuck it up
 		this.renderMenu();
 		this.renderButton();
+		this.updateTargetVisibility();
 	}
 
 	renderMenu() {
-		if (!this._menu) {
-			this._button.innerHTML += `<div class="${DM_MENU_CLASS} absolute hidden"></div>`;
+		const hiddenChildren = this._cildren.filter((c) => c.hidden());
+		if (hiddenChildren.length <= 1) {
+			this.hideMenu();
+			return;
+		}
+
+		if (!this._menu || !this._button.contains(this._menu)) {
+			this._button.insertAdjacentHTML("beforeend", `<div class="${DM_MENU_CLASS} absolute hidden"></div>`);
 			this._menu = this._button.querySelector(`.${DM_MENU_CLASS}`);
 		}
 
-		this._menu.innerHTML = `${this._cildren
+		this._menu.innerHTML = `${hiddenChildren
 			.map((c, index) => {
-				if (!c.hidden()) return "";
 				return `
-				<button type="button" class="${DM_ITEM_CLASS}" dm-itemno="${index}">
+				<button type="button" class="${DM_ITEM_CLASS}" dm-itemno="${this._cildren.indexOf(c)}">
 					${c.name()}
 				</button>`;
 			})
 			.join("")}`;
-		this._menu = this.querySelector(`.${DM_MENU_CLASS}`);
 		const buttons = this._menu.querySelectorAll(`.${DM_ITEM_CLASS}`);
 		buttons.forEach((button) => {
 			button.addEventListener("click", (event) => {
 				this.showDiv(event, parseInt(button.getAttribute("dm-itemno")));
-				this._toggleMenu(event);
+				this.hideMenu();
+				this.renderButton();
 			});
 		});
 	}
@@ -199,8 +268,34 @@ export class DivManager extends HTMLElement {
 	renderIntoTarget() {
 		this._cildren.forEach((child) => {
 			if (!child.hidden()) {
-				this._target.appendChild(child.node);
+				this.insertChildInOrder(child);
 			}
 		});
+		this.updateTargetVisibility();
+	}
+
+	insertChildInOrder(child) {
+		const currentIndex = this._cildren.indexOf(child);
+		const nextVisibleSibling = this._cildren
+			.slice(currentIndex + 1)
+			.map((c) => c.node)
+			.find((node) => this._target.contains(node));
+
+		if (nextVisibleSibling) {
+			this._target.insertBefore(child.node, nextVisibleSibling);
+		} else {
+			this._target.appendChild(child.node);
+		}
+	}
+
+	updateTargetVisibility() {
+		if (!this._target || this._target === this) {
+			return;
+		}
+
+		const hasVisibleChild = Array.from(this._target.children).some(
+			(node) => !node.classList.contains(TAILWIND_HIDDEN_CLASS),
+		);
+		this._target.classList.toggle(TAILWIND_HIDDEN_CLASS, !hasVisibleChild);
 	}
 }

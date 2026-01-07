@@ -64,6 +64,7 @@ type AlmanachResult struct {
 	Places         []*dbmodels.Place
 	Series         []*dbmodels.Series
 	Contents       []*dbmodels.Content
+	Items          []*dbmodels.Item
 	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
@@ -105,6 +106,11 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	}
 
 	contents, err := dbmodels.Contents_Entry(app, entry.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := dbmodels.Items_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +177,7 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		Places:         places,
 		Series:         series,
 		Contents:       contents,
+		Items:          items,
 		Agents:         agentsMap,
 		EntriesSeries:  srelationsMap,
 		EntriesAgents:  entriesagents,

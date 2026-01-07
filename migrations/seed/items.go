@@ -27,6 +27,7 @@ func ItemsFromBändeAndBIBLIO(
 	}
 
 	for i := 0; i < len(entries.Bände); i++ {
+		bandItems := []*dbmodels.Item{}
 		band := entries.Bände[i]
 		banddb, ok := entriesmap[band.ID]
 		if !ok {
@@ -81,6 +82,7 @@ func ItemsFromBändeAndBIBLIO(
 			}
 
 			records = append(records, exem)
+			bandItems = append(bandItems, exem)
 		}
 
 		for nr, m := range t {
@@ -102,11 +104,12 @@ func ItemsFromBändeAndBIBLIO(
 
 			if exem.Identifier() != "" {
 				records = append(records, exem)
+				bandItems = append(bandItems, exem)
 			}
 		}
 
-		if len(records) > 0 {
-			for _, exem := range records {
+		if len(bandItems) > 0 {
+			for _, exem := range bandItems {
 				exem.SetEntry(banddb.Id)
 				exem.SetOwner("Theodor Springmann Stiftung")
 

@@ -1,6 +1,7 @@
 package dbmodels
 
 import (
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -184,6 +185,17 @@ func Contents_Entry(app core.App, id string) ([]*Content, error) {
 		ENTRIES_TABLE,
 		id,
 	)
+}
+
+func Items_Entry(app core.App, id string) ([]*Item, error) {
+	var ret []*Item
+	err := app.RecordQuery(ITEMS_TABLE).
+		Where(dbx.NewExp(
+			ENTRIES_TABLE+" = {:id} OR (json_valid("+ENTRIES_TABLE+") = 1 AND EXISTS (SELECT 1 FROM json_each("+ENTRIES_TABLE+") WHERE value = {:id}))",
+			dbx.Params{"id": id},
+		)).
+		All(&ret)
+	return ret, err
 }
 
 func Contents_MusenalmID(app core.App, id string) (*Content, error) {

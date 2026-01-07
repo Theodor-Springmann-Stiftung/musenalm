@@ -5,6 +5,7 @@ type AlmanachResult struct {
 	Places         []*dbmodels.Place
 	Series         []*dbmodels.Series
 	Contents       []*dbmodels.Content
+	Items          []*dbmodels.Item
 	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
@@ -101,47 +102,25 @@ type AlmanachResult struct {
 
 <div class="container-normal mx-auto mt-4 !px-0">
 	{{ template "_usermessage" $model }}
-	<form class="w-full grid grid-cols-12 gap-4 dbform" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST">
+	<form class="w-full flex gap-4 dbform" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST">
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 		<input type="hidden" name="last_edited" value="{{ $model.result.Entry.Updated }}" />
 
-		<div class="inputwrapper col-span-8">
-			<div class="flex flex-row justify-between">
-				<label for="preferred_title" class="inputlabel"><i class="ri-text"></i> Kurztitel</label>
-			</div>
-			<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">
-				{{- $model.result.Entry.PreferredTitle -}}
-			</textarea
-			>
-		</div>
-
-		<div class="col-span-3 col-start-10">
+		<!-- Left Column -->
+		<div class="flex-1 flex flex-col gap-4">
+			<!-- Kurztitel -->
 			<div class="inputwrapper">
-				<label for="type" class="inputlabel">Status <i class="ri-alarm-warning-line"></i></label>
-				<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
-					<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-					<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-					<option value="Review" {{ if eq $model.result.Entry.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-					<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
-					<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
-				</select>
+				<div class="flex flex-row justify-between">
+					<label for="preferred_title" class="inputlabel"><i class="ri-text"></i> Kurztitel</label>
+				</div>
+				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">
+					{{- $model.result.Entry.PreferredTitle -}}
+				</textarea>
 			</div>
-		</div>
 
-		<div class="col-span-8" id="titles"></div>
-		<div class="col-span-4 col-start-10 row-span-2">
-			<div class="inputwrapper">
-				<label for="type" class="languages inputlabel" for="languages">Sprachen <i class="ri-earth-line"></i></label>
-				<multi-select-simple id="languages" show-create-button="false" placeholder="Sprachen suchen..."></multi-select-simple>
-				<script type="module">
-					// Initialize the multi-select with the languages
-					const smlang = document.getElementById("languages");
-					smlang.value = {{ $model.result.Entry.Language }};
-				</script>
-			</div>
-		</div>
-
-		<div-manager dm-target="titles" class="col-span-2 col-start-7">
+			<!-- Titles Section -->
+			<div id="titles"></div>
+			<div-manager dm-target="titles">
 			<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
 			Titeldaten hinzufügen</button>
 
@@ -223,5 +202,371 @@ type AlmanachResult struct {
 				</textarea>
 			</div>
 		</div-manager>
+
+			<!-- Publication Information: Year and Edition - Always visible -->
+			<div class="flex gap-4">
+				<div class="flex-1 inputwrapper">
+					<label for="year" class="inputlabel"><i class="ri-calendar-line"></i> Jahr</label>
+					<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ $model.result.Entry.Year }}" />
+				</div>
+
+				<div class="flex-1 inputwrapper">
+					<label for="edition" class="inputlabel"><i class="ri-file-copy-line"></i> Ausgabe</label>
+					<textarea name="edition" id="edition" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
+				</div>
+			</div>
+
+			<!-- Publication Information: Optional fields -->
+			<div id="publication"></div>
+			<div-manager dm-target="publication">
+			<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+			Publikationsdaten hinzufügen</button>
+
+			<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}">
+				<div class="flex flex-row justify-between">
+					<label for="responsibility_statement" class="inputlabel menu-label"><i class="ri-user-line"></i> Autorangabe</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+
+				<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+			</div>
+
+			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}">
+				<div class="flex flex-row justify-between">
+					<label for="publication_statement" class="inputlabel menu-label"><i class="ri-book-line"></i> Publikationsangabe</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+
+				<textarea name="publication_statement" id="publication_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
+			</div>
+
+			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}">
+				<div class="flex flex-row justify-between">
+					<label for="place_statement" class="inputlabel menu-label"><i class="ri-map-pin-line"></i> Ortsangabe</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+
+				<textarea name="place_statement" id="place_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
+			</div>
+		</div-manager>
+
+		<!-- Annotationen -->
+			<div id="annotation_section"></div>
+			<div-manager dm-target="annotation_section">
+				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+				Annotationen hinzufügen</button>
+
+			<div class="inputwrapper {{ if eq $model.result.Entry.Annotation "" }}hidden{{ end }}">
+				<div class="flex flex-row justify-between">
+					<label for="annotation" class="inputlabel menu-label"><i class="ri-sticky-note-line"></i> Annotationen</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Annotation -}}</textarea>
+			</div>
+		</div-manager>
+
+		</div>
+		<!-- End Left Column -->
+
+		<!-- Right Column -->
+		<div class="w-[28rem] shrink-0 flex flex-col gap-4">
+			<!-- Status -->
+			<div class="inputwrapper">
+				<label for="type" class="inputlabel"><i class="ri-alarm-warning-line"></i> Status</label>
+				<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
+					<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+					<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+					<option value="Review" {{ if eq $model.result.Entry.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+					<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+					<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+				</select>
+			</div>
+
+			<!-- Bearbeitungsvermerk -->
+			<div id="edit_comment_section"></div>
+			<div-manager dm-target="edit_comment_section">
+				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+				Bearbeitungsvermerk hinzufügen</button>
+
+				<div class="inputwrapper {{ if eq $model.result.Entry.Comment "" }}hidden{{ end }}">
+					<div class="flex flex-row justify-between">
+						<label for="edit_comment" class="inputlabel menu-label"><i class="ri-chat-1-line"></i> Bearbeitungsvermerk</label>
+						<div class="pr-2">
+							<button class="dm-close-button font-bold input-label">
+								<i class="ri-close-line"></i>
+							</button>
+						</div>
+					</div>
+
+					<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Comment -}}</textarea>
+				</div>
+			</div-manager>
+
+			<!-- Languages -->
+			<div class="inputwrapper">
+				<label for="languages" class="inputlabel"><i class="ri-earth-line"></i> Sprachen</label>
+				<multi-select-simple id="languages" show-create-button="false" placeholder="Sprachen suchen..."></multi-select-simple>
+				<script type="module">
+					const smlang = document.getElementById("languages");
+					smlang.value = {{ $model.result.Entry.Language }};
+				</script>
+			</div>
+
+			<!-- Nachweise - Always visible -->
+			<div class="inputwrapper">
+				<label for="refs" class="inputlabel"><i class="ri-links-line"></i> Nachweise</label>
+				<textarea name="refs" id="refs" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
+			</div>
+
+			<!-- Physical Description -->
+			<div id="physical"></div>
+			<div-manager dm-target="physical">
+				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+				Physische Beschreibung hinzufügen</button>
+
+				<div class="inputwrapper {{ if eq $model.result.Entry.Extent "" }}hidden{{ end }}">
+					<div class="flex flex-row justify-between">
+						<label for="extent" class="inputlabel menu-label"><i class="ri-file-text-line"></i> Struktur/Umfang</label>
+						<div class="pr-2">
+							<button class="dm-close-button font-bold input-label">
+								<i class="ri-close-line"></i>
+							</button>
+						</div>
+					</div>
+
+					<textarea name="extent" id="extent" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
+				</div>
+
+				<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
+					<div class="flex flex-row justify-between">
+						<label for="dimensions" class="inputlabel menu-label"><i class="ri-ruler-line"></i> Maße</label>
+						<div class="pr-2">
+							<button class="dm-close-button font-bold input-label">
+								<i class="ri-close-line"></i>
+							</button>
+						</div>
+					</div>
+
+					<textarea name="dimensions" id="dimensions" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
+				</div>
+			</div-manager>
+			<!-- Exemplare -->
+			<div class="mt-8">
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-archive-line"></i>
+					<span>Exemplare</span>
+				</div>
+				<hr class="border-stone-200 mt-2" />
+				<items-editor class="block mt-4">
+					<div class="items-list flex flex-col gap-3">
+						{{- range $i, $item := $model.result.Items -}}
+							<div class="items-row border border-stone-200 rounded-xs bg-stone-50 flex flex-col gap-3 shadow-sm" data-item-id="{{ $item.Id }}">
+								<input type="hidden" name="items_id[]" value="{{ $item.Id }}" />
+								<div class="items-summary flex flex-col gap-2">
+									<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
+										<div class="text-base font-bold" data-summary-container>
+											<span data-summary-field="owner" data-summary-hide-empty="true">{{ $item.Owner }}</span>
+										</div>
+										<div class="px-2 py-0.5 rounded-full bg-stone-200 text-sm font-bold" data-summary-container>
+											<span data-summary-field="identifier" data-summary-hide-empty="true">{{ $item.Identifier }}</span>
+										</div>
+									</div>
+									<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 px-3
+									py-1">
+										<div class="text-sm text-gray-700">
+											<div class="flex flex-col gap-1 text-base">
+												<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+													<span class="text-xs uppercase tracking-wide text-gray-500">Standort</span>
+													<span class="items-summary-value" data-summary-field="location" data-summary-hide-empty="true">{{ $item.Location }}</span>
+												</div>
+												<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+													<span class="text-xs uppercase tracking-wide text-gray-500">Vorhanden als</span>
+													<span class="items-summary-value" data-summary-field="media" data-summary-hide-empty="true">
+														{{- range $j, $m := $item.Media -}}{{- if $j -}}, {{- end -}}{{- $m -}}{{- end -}}
+													</span>
+												</div>
+												<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+													<span class="text-xs uppercase tracking-wide text-gray-500">URL</span>
+													<span class="items-summary-value" data-summary-field="uri" data-summary-hide-empty="true">
+														<a class="no-underline" data-summary-link href="{{ $item.Uri }}" target="_blank" rel="noopener">{{ $item.Uri }}</a>
+													</span>
+												</div>
+												<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+													<span class="text-xs uppercase tracking-wide text-gray-500">Annotationen</span>
+													<span class="items-summary-value" data-summary-field="annotation" data-summary-hide-empty="true">{{ $item.Annotation }}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="flex justify-end mt-2 px-3">
+										<div class="flex flex-row gap-3 text-lg">
+											<button type="button" class="items-edit-button text-gray-700 hover:text-gray-900" aria-label="Bearbeiten">
+												<i class="ri-edit-line"></i>
+											</button>
+											<button type="button" class="items-remove-button text-red-700 hover:text-red-900" aria-label="Entfernen">
+												<i class="ri-delete-bin-line"></i>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div class="items-edit-panel hidden">
+								<div class="flex flex-col gap-3 mt-3">
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="owner">Besitzer</label>
+										<input class="inputinput" data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="identifier">Signatur</label>
+										<input class="inputinput" data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="location">Standort</label>
+										<input class="inputinput" data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
+										<select class="inputselect" data-field="media" name="items_media[]" autocomplete="off">
+											<option value=""></option>
+											{{- range $t := $model.item_types -}}
+												<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
+											{{- end -}}
+										</select>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="annotation">Annotationen</label>
+										<textarea class="inputtextarea min-h-[8rem]" data-field="annotation" name="items_annotation[]" autocomplete="off">{{- $item.Annotation -}}</textarea>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="uri">URI</label>
+										<input class="inputinput" data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" />
+									</div>
+								</div>
+								<div class="flex justify-end gap-3 mt-3 px-3 py-2">
+									<button type="button" class="items-close-button resetbutton w-auto px-2 py-1 text-base">
+										<i class="ri-check-line mr-2"></i> Fertig
+									</button>
+									<button type="button" class="items-remove-button resetbutton w-auto px-2 py-1 text-base text-red-700 hover:text-red-900">
+										<i class="ri-delete-bin-line mr-2"></i> Entfernen
+									</button>
+								</div>
+							</div>
+							</div>
+						{{- end -}}
+					</div>
+					<div class="flex justify-end mt-2">
+						<button type="button" class="items-add-button text-gray-700 hover:text-gray-900">
+							<i class="ri-add-line"></i> Exemplar hinzufügen
+						</button>
+					</div>
+					<template class="items-template">
+						<div class="items-row border border-stone-200 rounded-xs bg-stone-50 p-4 flex flex-col gap-3 shadow-sm">
+							<input type="hidden" name="items_id[]" value="" />
+							<div class="items-summary hidden flex flex-col gap-2">
+								<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
+									<div class="text-base font-bold" data-summary-container>
+										<span data-summary-field="owner" data-summary-hide-empty="true">—</span>
+									</div>
+									<div class="px-2 py-0.5 rounded-full bg-stone-200 text-sm font-bold" data-summary-container>
+										<span data-summary-field="identifier" data-summary-hide-empty="true">—</span>
+									</div>
+								</div>
+								<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+									<div class="text-sm text-gray-700">
+										<div class="flex flex-col gap-1 text-base">
+											<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+												<span class="text-xs uppercase tracking-wide text-gray-500">Standort</span>
+												<span class="items-summary-value" data-summary-field="location" data-summary-hide-empty="true">—</span>
+											</div>
+											<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+												<span class="text-xs uppercase tracking-wide text-gray-500">Vorh. als</span>
+												<span class="items-summary-value" data-summary-field="media" data-summary-hide-empty="true">—</span>
+											</div>
+											<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+												<span class="text-xs uppercase tracking-wide text-gray-500">URL</span>
+												<span class="items-summary-value" data-summary-field="uri" data-summary-hide-empty="true">
+													<a class="no-underline" data-summary-link href="#" target="_blank" rel="noopener">—</a>
+												</span>
+											</div>
+											<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
+												<span class="text-xs uppercase tracking-wide text-gray-500">Annotationen</span>
+												<span class="items-summary-value" data-summary-field="annotation" data-summary-hide-empty="true">—</span>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="flex justify-end mt-2 px-3 py-1">
+									<div class="flex flex-row gap-3 text-lg">
+										<button type="button" class="items-edit-button text-gray-700 hover:text-gray-900" aria-label="Bearbeiten">
+											<i class="ri-edit-line"></i>
+										</button>
+										<button type="button" class="items-remove-button text-red-700 hover:text-red-900" aria-label="Entfernen">
+											<i class="ri-delete-bin-line"></i>
+										</button>
+									</div>
+								</div>
+							</div>
+							<div class="items-edit-panel">
+								<div class="flex flex-col gap-3 mt-3">
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="owner">Besitzer</label>
+										<input class="inputinput" data-field="owner" name="items_owner[]" autocomplete="off" value="" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="identifier">Signatur</label>
+										<input class="inputinput" data-field="identifier" name="items_identifier[]" autocomplete="off" value="" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="location">Standort</label>
+										<input class="inputinput" data-field="location" name="items_location[]" autocomplete="off" value="" />
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
+										<select class="inputselect" data-field="media" name="items_media[]" autocomplete="off">
+											<option value=""></option>
+											{{- range $t := $model.item_types -}}
+												<option value="{{- $t -}}">{{- $t -}}</option>
+											{{- end -}}
+										</select>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="annotation">Annotationen</label>
+										<textarea class="inputtextarea min-h-[8rem]" data-field="annotation" name="items_annotation[]" autocomplete="off"></textarea>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="uri">URI</label>
+										<input class="inputinput" data-field="uri" name="items_uri[]" autocomplete="off" value="" />
+									</div>
+								</div>
+								<div class="flex justify-end gap-3 mt-3 px-3 py-1">
+									<button type="button" class="items-close-button resetbutton w-auto px-2 py-1 text-base">
+										<i class="ri-check-line mr-2"></i> Fertig
+									</button>
+									<button type="button" class="items-remove-button resetbutton w-auto px-2 py-1 text-base text-red-700 hover:text-red-900">
+										<i class="ri-delete-bin-line mr-2"></i> Entfernen
+									</button>
+								</div>
+							</div>
+						</div>
+					</template>
+				</items-editor>
+			</div>
+		</div>
+		<!-- End Right Column -->
 	</form>
 </div>

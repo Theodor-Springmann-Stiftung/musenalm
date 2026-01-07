@@ -14,6 +14,7 @@ import { MultiSelectRole } from "./multi-select-role.js";
 import { MultiSelectSimple } from "./multi-select-simple.js";
 import { ResetButton } from "./reset-button.js";
 import { DivManager } from "./div-menu.js";
+import { ItemsEditor } from "./items-editor.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
@@ -28,6 +29,7 @@ const MULTI_SELECT_ROLE_ELEMENT = "multi-select-places";
 const MULTI_SELECT_SIMPLE_ELEMENT = "multi-select-simple";
 const RESET_BUTTON_ELEMENT = "reset-button";
 const DIV_MANAGER_ELEMENT = "div-manager";
+const ITEMS_EDITOR_ELEMENT = "items-editor";
 
 customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
@@ -42,6 +44,7 @@ customElements.define(MULTI_SELECT_ROLE_ELEMENT, MultiSelectRole);
 customElements.define(MULTI_SELECT_SIMPLE_ELEMENT, MultiSelectSimple);
 customElements.define(RESET_BUTTON_ELEMENT, ResetButton);
 customElements.define(DIV_MANAGER_ELEMENT, DivManager);
+customElements.define(ITEMS_EDITOR_ELEMENT, ItemsEditor);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;
@@ -277,4 +280,4 @@ window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 
-export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink };
+export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor };

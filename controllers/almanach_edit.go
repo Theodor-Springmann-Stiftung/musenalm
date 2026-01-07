@@ -51,6 +51,7 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 		data["result"] = result
 		data["filters"] = filters
 		data["csrf_token"] = req.Session().Token
+		data["item_types"] = dbmodels.ITEM_TYPE_VALUES
 
 		abbrs, err := pagemodels.GetAbks(app)
 		if err == nil {
