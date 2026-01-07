@@ -7,7 +7,6 @@ const DM_MENU_CLASS = "dm-menu";
 const DM_ITEM_CLASS = "dm-menu-item";
 const DM_CLOSE_BUTTON_CLASS = "dm-close-button";
 
-//
 // Prereq: child divs must eiteher have dm-title attr or a label element
 // The child divs will be moved to the target element when selected
 // The target element must be specified by the attribute dm-target on the custom element
