@@ -21,7 +21,6 @@ var deact_cookie = &http.Cookie{
 func Authenticated(app core.App) func(*core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		if strings.HasPrefix(e.Request.URL.Path, "/assets") ||
-			strings.HasPrefix(e.Request.URL.Path, "/api") ||
 			strings.HasPrefix(e.Request.URL.Path, "/_") {
 			return e.Next()
 		}

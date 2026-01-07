@@ -189,7 +189,7 @@
 	}
 
 	.mss-selected-item-pill {
-		@apply bg-gray-200 text-gray-800 py-0.5 px-2 rounded text-xs leading-5; /* Adjusted font size and padding */
+		@apply bg-gray-200 text-gray-800 py-0.5 px-2 rounded leading-5 shadow-xs hover:shadow select-none; /* Adjusted font size and padding */
 		/* Tailwind classes from component: flex items-center */
 	}
 
@@ -204,7 +204,7 @@
 	}
 
 	.mss-selected-item-delete-btn {
-		@apply bg-transparent border-none text-gray-600 opacity-70 cursor-pointer ml-1 text-base leading-none align-middle hover:opacity-100 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed;
+		@apply bg-transparent border-none text-gray-600 opacity-70 cursor-pointer ml-2 text-lg leading-none align-middle hover:opacity-100 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed;
 	}
 
 	.mss-input-controls-container {
@@ -220,7 +220,7 @@
 	}
 
 	.mss-text-input {
-		@apply py-1.5 px-2 text-sm;
+		@apply py-1.5 px-2;
 		/* Tailwind classes from component: w-full outline-none bg-transparent */
 	}
 	.mss-text-input::placeholder {
@@ -235,12 +235,12 @@
 	}
 
 	.mss-options-list {
-		@apply bg-white border border-gray-300 rounded shadow-md; /* Using shadow-md as a softer default */
+		@apply bg-white border border-gray-300 rounded shadow-md list-none m-0; /* Using shadow-md as a softer default */
 		/* Tailwind classes from component: absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden */
 	}
 
 	.mss-option-item {
-		@apply text-gray-700 py-1.5 px-2.5 text-sm cursor-pointer transition-colors duration-75 hover:bg-gray-100;
+		@apply text-gray-700 py-1.5 px-2.5 cursor-pointer transition-colors duration-75 hover:bg-gray-100 list-none m-0;
 	}
 
 	.mss-option-item-name {
@@ -248,7 +248,7 @@
 	}
 
 	.mss-option-item-detail {
-		@apply text-gray-500 text-xs ml-1.5;
+		@apply text-gray-500 ml-1.5;
 	}
 
 	.mss-option-item-highlighted {

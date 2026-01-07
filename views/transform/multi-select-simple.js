@@ -17,6 +17,11 @@ const MSS_OPTION_ITEM_DETAIL_CLASS = "mss-option-item-detail";
 const MSS_HIGHLIGHTED_OPTION_CLASS = "mss-option-item-highlighted";
 const MSS_HIDDEN_SELECT_CLASS = "mss-hidden-select";
 const MSS_NO_ITEMS_TEXT_CLASS = "mss-no-items-text";
+const MSS_LOADING_CLASS = "mss-loading";
+
+const MSS_REMOTE_DEFAULT_MIN_CHARS = 1;
+const MSS_REMOTE_DEFAULT_LIMIT = 10;
+const MSS_REMOTE_FETCH_DEBOUNCE_MS = 250;
 
 // State classes for MultiSelectSimple
 const MSS_STATE_NO_SELECTION = "mss-state-no-selection";
@@ -220,6 +225,13 @@ export class MultiSelectSimple extends HTMLElement {
 		this._highlightedIndex = -1;
 		this._isOptionsListVisible = false;
 
+		this._remoteEndpoint = null;
+		this._remoteResultKey = "items";
+		this._remoteMinChars = MSS_REMOTE_DEFAULT_MIN_CHARS;
+		this._remoteLimit = MSS_REMOTE_DEFAULT_LIMIT;
+		this._remoteFetchController = null;
+		this._remoteFetchTimeout = null;
+
 		this._placeholder = this.getAttribute("placeholder") || "Search items...";
 		this._showCreateButton = this.getAttribute("show-create-button") !== "false";
 
@@ -284,7 +296,12 @@ export class MultiSelectSimple extends HTMLElement {
 
 	setOptions(newOptions) {
 		if (Array.isArray(newOptions) && newOptions.every((o) => o && typeof o.id === "string" && typeof o.name === "string")) {
-			this._options = [...newOptions];
+			this._options = newOptions.map((option) => {
+				const normalized = { ...option };
+				normalized.name = this._normalizeText(normalized.name);
+				normalized.additional_data = this._normalizeText(normalized.additional_data);
+				return normalized;
+			});
 			const validValues = this._value.filter((id) => this._getItemById(id));
 			if (validValues.length !== this._value.length) this.value = validValues;
 			else if (this.selectedItemsContainer) this._renderSelectedItems();
@@ -336,6 +353,10 @@ export class MultiSelectSimple extends HTMLElement {
 
 		this.placeholder = this.getAttribute("placeholder") || "Search items...";
 		this.showCreateButton = this.getAttribute("show-create-button") !== "false";
+		this._remoteEndpoint = this.getAttribute("data-endpoint") || null;
+		this._remoteResultKey = this.getAttribute("data-result-key") || "items";
+		this._remoteMinChars = this._parsePositiveInt(this.getAttribute("data-minchars"), MSS_REMOTE_DEFAULT_MIN_CHARS);
+		this._remoteLimit = this._parsePositiveInt(this.getAttribute("data-limit"), MSS_REMOTE_DEFAULT_LIMIT);
 
 		if (this.name && this.hiddenSelect) this.hiddenSelect.name = this.name;
 
@@ -380,10 +401,15 @@ export class MultiSelectSimple extends HTMLElement {
 		if (this.createNewButton) this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick);
 		if (this.selectedItemsContainer) this.selectedItemsContainer.removeEventListener("click", this._handleSelectedItemsContainerClick);
 		clearTimeout(this._blurTimeout);
+		if (this._remoteFetchTimeout) {
+			clearTimeout(this._remoteFetchTimeout);
+			this._remoteFetchTimeout = null;
+		}
+		this._cancelRemoteFetch();
 	}
 
 	static get observedAttributes() {
-		return ["disabled", "name", "value", "placeholder", "show-create-button"];
+		return ["disabled", "name", "value", "placeholder", "show-create-button", "data-endpoint", "data-result-key", "data-minchars", "data-limit"];
 	}
 	attributeChangedCallback(name, oldValue, newValue) {
 		if (oldValue === newValue) return;
@@ -400,6 +426,10 @@ export class MultiSelectSimple extends HTMLElement {
 			}
 		} else if (name === "placeholder") this.placeholder = newValue;
 		else if (name === "show-create-button") this.showCreateButton = newValue;
+		else if (name === "data-endpoint") this._remoteEndpoint = newValue || null;
+		else if (name === "data-result-key") this._remoteResultKey = newValue || "items";
+		else if (name === "data-minchars") this._remoteMinChars = this._parsePositiveInt(newValue, MSS_REMOTE_DEFAULT_MIN_CHARS);
+		else if (name === "data-limit") this._remoteLimit = this._parsePositiveInt(newValue, MSS_REMOTE_DEFAULT_LIMIT);
 	}
 
 	formAssociatedCallback(form) {}
@@ -458,10 +488,10 @@ export class MultiSelectSimple extends HTMLElement {
                     </style>
                     <div class="${MSS_COMPONENT_WRAPPER_CLASS} relative">
                         <div class="${MSS_SELECTED_ITEMS_CONTAINER_CLASS} flex flex-wrap gap-1 mb-1 min-h-[38px]" aria-live="polite" tabindex="-1"></div>
-                        <div class="${MSS_INPUT_CONTROLS_CONTAINER_CLASS} flex items-center space-x-2">
+                        <div class="${MSS_INPUT_CONTROLS_CONTAINER_CLASS} flex items-center space-x-4">
                             <div class="${MSS_INPUT_WRAPPER_CLASS} relative rounded-md flex items-center flex-grow">
                                 <input type="text"
-                                       class="${MSS_TEXT_INPUT_CLASS} w-full outline-none bg-transparent text-sm"
+                                       class="${MSS_TEXT_INPUT_CLASS} w-full outline-none bg-transparent"
                                        placeholder="${this.placeholder}"
                                        aria-autocomplete="list"
                                        aria-expanded="${this._isOptionsListVisible}"
@@ -483,11 +513,13 @@ export class MultiSelectSimple extends HTMLElement {
 		const textEl = pillEl.querySelector('[data-ref="textEl"]');
 		const detailEl = pillEl.querySelector('[data-ref="detailEl"]'); // This now uses MSS_SELECTED_ITEM_PILL_DETAIL_CLASS
 		const deleteBtn = pillEl.querySelector('[data-ref="deleteBtn"]');
-		textEl.textContent = itemData.name;
-		if (itemData.additional_data) {
-			detailEl.textContent = `(${itemData.additional_data})`;
+		textEl.textContent = this._normalizeText(itemData.name);
+		const detailText = this._normalizeText(itemData.additional_data);
+		if (detailText) {
+			detailEl.textContent = `(${detailText})`;
 			detailEl.classList.remove("hidden"); // Toggle visibility via JS
 		} else {
+			detailEl.textContent = "";
 			detailEl.classList.add("hidden"); // Toggle visibility via JS
 		}
 		deleteBtn.setAttribute("aria-label", `Remove ${itemData.name}`);
@@ -517,8 +549,9 @@ export class MultiSelectSimple extends HTMLElement {
 		const li = fragment.firstElementChild;
 		const nameEl = li.querySelector('[data-ref="nameEl"]');
 		const detailEl = li.querySelector('[data-ref="detailEl"]');
-		nameEl.textContent = itemData.name;
-		detailEl.textContent = itemData.additional_data ? `(${itemData.additional_data})` : "";
+		nameEl.textContent = this._normalizeText(itemData.name);
+		const detailText = this._normalizeText(itemData.additional_data);
+		detailEl.textContent = detailText ? `(${detailText})` : "";
 		li.dataset.id = itemData.id;
 		li.setAttribute("aria-selected", String(index === this._highlightedIndex));
 		const optionElementId = `option-${this.id || "mss"}-${itemData.id}`;
@@ -569,6 +602,10 @@ export class MultiSelectSimple extends HTMLElement {
 	}
 	_handleInput(event) {
 		const searchTerm = event.target.value;
+		if (this._remoteEndpoint) {
+			this._handleRemoteInput(searchTerm);
+			return;
+		}
 		if (searchTerm.length === 0) {
 			this._filteredOptions = [];
 			this._isOptionsListVisible = false;
@@ -576,8 +613,10 @@ export class MultiSelectSimple extends HTMLElement {
 			const searchTermLower = searchTerm.toLowerCase();
 			this._filteredOptions = this._options.filter((item) => {
 				if (this._value.includes(item.id)) return false;
-				const nameMatch = item.name.toLowerCase().includes(searchTermLower);
-				const additionalDataMatch = item.additional_data && item.additional_data.toLowerCase().includes(searchTermLower);
+				const normalizedName = this._normalizeText(item.name);
+				const nameMatch = normalizedName.toLowerCase().includes(searchTermLower);
+				const detailValue = this._normalizeText(item.additional_data);
+				const additionalDataMatch = detailValue && detailValue.toLowerCase().includes(searchTermLower);
 				return nameMatch || additionalDataMatch;
 			});
 			this._isOptionsListVisible = this._filteredOptions.length > 0;
@@ -667,5 +706,162 @@ export class MultiSelectSimple extends HTMLElement {
 		this.value = this._value.filter((id) => id !== itemId);
 		if (this.inputElement && this.inputElement.value) this._handleInput({ target: this.inputElement });
 		if (this.inputElement && !this.hasAttribute("disabled")) this.inputElement.focus();
+	}
+
+	_parsePositiveInt(value, fallback) {
+		if (!value) return fallback;
+		const parsed = parseInt(value, 10);
+		if (Number.isNaN(parsed) || parsed <= 0) {
+			return fallback;
+		}
+		return parsed;
+	}
+
+	_handleRemoteInput(searchTerm) {
+		if (this._remoteFetchTimeout) {
+			clearTimeout(this._remoteFetchTimeout);
+		}
+
+		if (searchTerm.length < this._remoteMinChars) {
+			this._filteredOptions = [];
+			this._isOptionsListVisible = false;
+			this._renderOptionsList();
+			return;
+		}
+
+		this._remoteFetchTimeout = setTimeout(() => {
+			this._fetchRemoteOptions(searchTerm);
+		}, MSS_REMOTE_FETCH_DEBOUNCE_MS);
+	}
+
+	_cancelRemoteFetch() {
+		if (this._remoteFetchController) {
+			this._remoteFetchController.abort();
+			this._remoteFetchController = null;
+		}
+	}
+
+	async _fetchRemoteOptions(searchTerm) {
+		if (!this._remoteEndpoint) return;
+
+		this._cancelRemoteFetch();
+		this.classList.add(MSS_LOADING_CLASS);
+
+		const controller = new AbortController();
+		this._remoteFetchController = controller;
+
+		try {
+			const url = new URL(this._remoteEndpoint, window.location.origin);
+			url.searchParams.set("q", searchTerm);
+			if (this._remoteLimit) {
+				url.searchParams.set("limit", String(this._remoteLimit));
+			}
+
+			const response = await fetch(url.toString(), {
+				headers: { Accept: "application/json" },
+				signal: controller.signal,
+				credentials: "same-origin",
+			});
+
+			if (!response.ok) {
+				throw new Error(`Remote fetch failed with status ${response.status}`);
+			}
+
+			const payload = await response.json();
+			if (controller.signal.aborted) {
+				return;
+			}
+
+			const options = this._extractRemoteOptions(payload);
+			this._applyRemoteResults(options);
+		} catch (error) {
+			if (controller.signal.aborted) {
+				return;
+			}
+			console.error("MultiSelectSimple remote fetch error:", error);
+			this._filteredOptions = [];
+			this._isOptionsListVisible = false;
+			this._renderOptionsList();
+		} finally {
+			if (this._remoteFetchController === controller) {
+				this._remoteFetchController = null;
+			}
+			this.classList.remove(MSS_LOADING_CLASS);
+		}
+	}
+
+	_extractRemoteOptions(payload) {
+		if (!payload) return [];
+
+		let entries = [];
+		if (Array.isArray(payload)) {
+			entries = payload;
+		} else if (this._remoteResultKey && Array.isArray(payload[this._remoteResultKey])) {
+			entries = payload[this._remoteResultKey];
+		} else if (Array.isArray(payload.items)) {
+			entries = payload.items;
+		}
+
+		return entries
+			.map((entry) => {
+				if (!entry) return null;
+				const id = entry.id ?? entry.ID ?? entry.value ?? "";
+				const name = entry.name ?? entry.title ?? entry.label ?? "";
+				const detail = entry.detail ?? entry.additional_data ?? entry.annotation ?? "";
+				const normalizedName = this._normalizeText(name);
+				const detailText = this._normalizeText(detail);
+				if (!id || !normalizedName) return null;
+				return {
+					id: String(id),
+					name: normalizedName,
+					additional_data: detailText,
+				};
+			})
+			.filter(Boolean);
+	}
+
+	_applyRemoteResults(options) {
+		const selected = new Set(this._value);
+		const merged = new Map();
+
+		this._options.forEach((opt) => {
+			if (opt?.id) {
+				merged.set(opt.id, opt);
+			}
+		});
+
+		options.forEach((opt) => {
+			if (opt?.id) {
+				merged.set(opt.id, opt);
+			}
+		});
+
+		this._options = Array.from(merged.values());
+		this._filteredOptions = options.filter((opt) => opt && !selected.has(opt.id));
+		this._isOptionsListVisible = this._filteredOptions.length > 0;
+		this._highlightedIndex = this._isOptionsListVisible ? 0 : -1;
+		this._renderOptionsList();
+	}
+
+	_normalizeText(rawValue) {
+		if (rawValue === null || rawValue === undefined) {
+			return "";
+		}
+
+		let text = String(rawValue).trim();
+		if (!text) {
+			return "";
+		}
+
+		const first = text[0];
+		const last = text[text.length - 1];
+		if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+			text = text.slice(1, -1).trim();
+			if (!text) {
+				return "";
+			}
+		}
+
+		return text;
 	}
 }

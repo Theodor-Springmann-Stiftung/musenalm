@@ -111,263 +111,319 @@ type AlmanachResult struct {
 			<!-- Kurztitel -->
 			<div class="inputwrapper">
 				<div class="flex flex-row justify-between">
-					<label for="preferred_title" class="inputlabel"><i class="ri-text"></i> Kurztitel</label>
+					<label for="preferred_title" class="inputlabel">Kurztitel</label>
 				</div>
 				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">
 					{{- $model.result.Entry.PreferredTitle -}}
 				</textarea>
 			</div>
 
-			<!-- Titles Section -->
-			<div id="titles"></div>
-			<div-manager dm-target="titles">
-			<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
-			Titeldaten hinzufügen</button>
-
-			<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="title" class="inputlabel menu-label"> <i class="ri-text"></i> Titel</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
+			<div class="mt-6">
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-book-2-line"></i>
+					<span>Titeldaten &amp; Anmerkungen</span>
 				</div>
+				<hr class="border-stone-200 mt-2" />
+				<div class="flex flex-col gap-4 mt-4">
+					<!-- Titles Section -->
+					<div id="titles"></div>
+					<div-manager dm-target="titles">
+						<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+							Titeldaten hinzufügen</button>
 
-				<textarea name="title" id="title" class="inputinput" placeholder="" autocomplete="off">
+						<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="title" class="inputlabel menu-label">Titel</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="title" id="title" class="inputinput" placeholder="" autocomplete="off">
 				{{- $model.result.Entry.TitleStmt -}}
 				</textarea>
-			</div>
+						</div>
 
-			<div class="mt-2 inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="paralleltitle" class="inputlabel menu-label"><i class="ri-text"></i> Titel
-					(übersetzt)</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
+						<div class="mt-2 inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="paralleltitle" class="inputlabel menu-label">Titel
+									(übersetzt)</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
 
-				<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.ParallelTitle -}}
 				</textarea>
-			</div>
+						</div>
 
 
-			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="subtitle" class="inputlabel menu-label"><i class="ri-text"></i> Untertitel</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
 
-				<textarea name="subtitle" id="subtitle" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="subtitle" id="subtitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.SubtitleStmt -}}
 				</textarea>
-			</div>
+						</div>
 
-			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="varianttitle" class="inputlabel menu-label"><i class="ri-text"></i>
-					Titelvarianten</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
 
-				<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.VariantTitle -}}
 				</textarea>
-			</div>
+						</div>
 
-			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="incipit" class="inputlabel menu-label"><i class="ri-text"></i> Incipit</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="incipit" class="inputlabel menu-label">Incipit</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
 
-				<textarea name="incipit" id="incipit" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="incipit" id="incipit" class="inputinput" placeholder="" autocomplete="off">
 					{{- $model.result.Entry.IncipitStmt -}}
 				</textarea>
-			</div>
-		</div-manager>
+						</div>
+					</div-manager>
 
-			<!-- Publication Information: Year and Edition - Always visible -->
-			<div class="flex gap-4">
-				<div class="flex-1 inputwrapper">
-					<label for="year" class="inputlabel"><i class="ri-calendar-line"></i> Jahr</label>
-					<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ $model.result.Entry.Year }}" />
-				</div>
+					<!-- Publication Information: Year and Edition - Always visible -->
+					<div class="flex gap-4">
+						<div class="flex-1 inputwrapper">
+							<label for="year" class="inputlabel">Jahr</label>
+							<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ $model.result.Entry.Year }}" />
+						</div>
 
-				<div class="flex-1 inputwrapper">
-					<label for="edition" class="inputlabel"><i class="ri-file-copy-line"></i> Ausgabe</label>
-					<textarea name="edition" id="edition" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
-				</div>
-			</div>
+						<div class="flex-1 inputwrapper">
+							<label for="edition" class="inputlabel">Ausgabe</label>
+							<textarea name="edition" id="edition" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
+						</div>
+					</div>
 
-			<!-- Publication Information: Optional fields -->
-			<div id="publication"></div>
-			<div-manager dm-target="publication">
-			<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
-			Publikationsdaten hinzufügen</button>
+					<!-- Publication Information: Optional fields -->
+					<div id="publication"></div>
+					<div-manager dm-target="publication">
+						<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+							Publikationsdaten hinzufügen</button>
 
-			<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="responsibility_statement" class="inputlabel menu-label"><i class="ri-user-line"></i> Autorangabe</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
+						<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="responsibility_statement" class="inputlabel menu-label">Autorangabe</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+						</div>
+
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="publication_statement" id="publication_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
+						</div>
+
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="place_statement" class="inputlabel menu-label">Ortsangabe</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="place_statement" id="place_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
+						</div>
+					</div-manager>
+
+					<!-- Annotationen -->
+					<div class="inputwrapper">
+						<label for="annotation" class="inputlabel">Annotationen</label>
+						<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Annotation -}}</textarea>
 					</div>
 				</div>
-
-				<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
 			</div>
 
-			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="publication_statement" class="inputlabel menu-label"><i class="ri-book-line"></i> Publikationsangabe</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
+			<div class="mt-6">
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-links-line"></i>
+					<span>Normdaten &amp; Verknüpfungen</span>
+				</div>
+				<hr class="border-stone-200 mt-2" />
+				<div class="flex flex-col gap-4 mt-4">
+					<div class="inputwrapper">
+						<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
+						<multi-select-simple
+							id="places"
+							name="places[]"
+								placeholder="Orte suchen..."
+								show-create-button="false"
+								data-endpoint="/api/places/search"
+								data-result-key="places"
+								data-minchars="1"
+								data-limit="15">
+							</multi-select-simple>
 					</div>
 				</div>
-
-				<textarea name="publication_statement" id="publication_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
 			</div>
 
-			<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="place_statement" class="inputlabel menu-label"><i class="ri-map-pin-line"></i> Ortsangabe</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-
-				<textarea name="place_statement" id="place_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
-			</div>
-		</div-manager>
-
-		<!-- Annotationen -->
-			<div id="annotation_section"></div>
-			<div-manager dm-target="annotation_section">
-				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
-				Annotationen hinzufügen</button>
-
-			<div class="inputwrapper {{ if eq $model.result.Entry.Annotation "" }}hidden{{ end }}">
-				<div class="flex flex-row justify-between">
-					<label for="annotation" class="inputlabel menu-label"><i class="ri-sticky-note-line"></i> Annotationen</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Annotation -}}</textarea>
-			</div>
-		</div-manager>
+			<script type="module">
+				const placesSelect = document.getElementById("places");
+				if (placesSelect) {
+					const initialPlaces = [
+						{{- range $i, $place := $model.result.Places }}
+							{ id: "{{ $place.Id }}", name: {{ printf "%q" $place.Name }}, additional_data: {{ printf "%q" $place.Pseudonyms }} },
+						{{- end -}}
+					];
+					const initialPlaceIds = [
+						{{- range $i, $place := $model.result.Places -}}
+							{{- if $i }},{{ end }}"{{ $place.Id }}"
+						{{- end -}}
+					];
+					if (initialPlaces.length > 0) {
+						placesSelect.setOptions(initialPlaces);
+					}
+					placesSelect.value = initialPlaceIds;
+				}
+			</script>
 
 		</div>
 		<!-- End Left Column -->
 
 		<!-- Right Column -->
-		<div class="w-[28rem] shrink-0 flex flex-col gap-4">
-			<!-- Status -->
-			<div class="inputwrapper">
-				<label for="type" class="inputlabel"><i class="ri-alarm-warning-line"></i> Status</label>
-				<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
-					<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-					<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-					<option value="Review" {{ if eq $model.result.Entry.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-					<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
-					<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
-				</select>
-			</div>
-
-			<!-- Bearbeitungsvermerk -->
-			<div id="edit_comment_section"></div>
-			<div-manager dm-target="edit_comment_section">
-				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
-				Bearbeitungsvermerk hinzufügen</button>
-
-				<div class="inputwrapper {{ if eq $model.result.Entry.Comment "" }}hidden{{ end }}">
-					<div class="flex flex-row justify-between">
-						<label for="edit_comment" class="inputlabel menu-label"><i class="ri-chat-1-line"></i> Bearbeitungsvermerk</label>
-						<div class="pr-2">
-							<button class="dm-close-button font-bold input-label">
-								<i class="ri-close-line"></i>
-							</button>
-						</div>
+		<div class="w-[28rem] shrink-0 flex flex-col gap-6">
+			<div>
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-clipboard-line"></i>
+					<span>Bearbeitungsdaten</span>
+				</div>
+				<hr class="border-stone-200 mt-2" />
+				<div class="flex flex-col gap-4 mt-4">
+					<!-- Status -->
+					<div class="inputwrapper">
+						<label for="type" class="inputlabel">Status</label>
+						<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
+							<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+							<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+							<option value="Review" {{ if eq $model.result.Entry.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+							<option value="Seen" {{ if eq $model.result.Entry.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+							<option value="Edited" {{ if eq $model.result.Entry.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+						</select>
 					</div>
 
-					<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Comment -}}</textarea>
-				</div>
-			</div-manager>
+					<!-- Bearbeitungsvermerk -->
+					<div id="edit_comment_section"></div>
+					<div-manager dm-target="edit_comment_section">
+						<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+							Bearbeitungsvermerk hinzufügen</button>
 
-			<!-- Languages -->
-			<div class="inputwrapper">
-				<label for="languages" class="inputlabel"><i class="ri-earth-line"></i> Sprachen</label>
-				<multi-select-simple id="languages" show-create-button="false" placeholder="Sprachen suchen..."></multi-select-simple>
-				<script type="module">
-					const smlang = document.getElementById("languages");
-					smlang.value = {{ $model.result.Entry.Language }};
-				</script>
+						<div class="inputwrapper {{ if eq $model.result.Entry.Comment "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Comment -}}</textarea>
+						</div>
+					</div-manager>
+				</div>
 			</div>
 
-			<!-- Nachweise - Always visible -->
-			<div class="inputwrapper">
-				<label for="refs" class="inputlabel"><i class="ri-links-line"></i> Nachweise</label>
-				<textarea name="refs" id="refs" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
+			<div>
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-information-line"></i>
+					<span>Metadaten</span>
+				</div>
+				<hr class="border-stone-200 mt-2" />
+				<div class="flex flex-col gap-4 mt-4">
+					<!-- Languages -->
+					<div class="inputwrapper">
+						<label for="languages" class="inputlabel">Sprachen</label>
+						<multi-select-simple id="languages" show-create-button="false" placeholder="Sprachen suchen..."></multi-select-simple>
+						<script type="module">
+							const smlang = document.getElementById("languages");
+							smlang.value = {{ $model.result.Entry.Language }};
+						</script>
+					</div>
+
+					<!-- Nachweise - Always visible -->
+					<div class="inputwrapper">
+						<label for="refs" class="inputlabel">Nachweise</label>
+						<textarea name="refs" id="refs" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
+					</div>
+
+					<!-- Physical Description -->
+					<div id="physical"></div>
+					<div-manager dm-target="physical">
+						<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
+							Physische Beschreibung hinzufügen</button>
+
+						<div class="inputwrapper {{ if eq $model.result.Entry.Extent "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="extent" id="extent" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
+						</div>
+
+						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
+							<div class="flex flex-row justify-between">
+								<label for="dimensions" class="inputlabel menu-label">Maße</label>
+								<div class="pr-2">
+									<button class="dm-close-button font-bold input-label">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+
+							<textarea name="dimensions" id="dimensions" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
+						</div>
+					</div-manager>
+				</div>
 			</div>
-
-			<!-- Physical Description -->
-			<div id="physical"></div>
-			<div-manager dm-target="physical">
-				<button class="dm-menu-button text-right w-full cursor-pointer"><i class="ri-add-line"></i>
-				Physische Beschreibung hinzufügen</button>
-
-				<div class="inputwrapper {{ if eq $model.result.Entry.Extent "" }}hidden{{ end }}">
-					<div class="flex flex-row justify-between">
-						<label for="extent" class="inputlabel menu-label"><i class="ri-file-text-line"></i> Struktur/Umfang</label>
-						<div class="pr-2">
-							<button class="dm-close-button font-bold input-label">
-								<i class="ri-close-line"></i>
-							</button>
-						</div>
-					</div>
-
-					<textarea name="extent" id="extent" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
-				</div>
-
-				<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
-					<div class="flex flex-row justify-between">
-						<label for="dimensions" class="inputlabel menu-label"><i class="ri-ruler-line"></i> Maße</label>
-						<div class="pr-2">
-							<button class="dm-close-button font-bold input-label">
-								<i class="ri-close-line"></i>
-							</button>
-						</div>
-					</div>
-
-					<textarea name="dimensions" id="dimensions" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
-				</div>
-			</div-manager>
 			<!-- Exemplare -->
-			<div class="mt-8">
+			<div class="mt-6">
 				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
 					<i class="ri-archive-line"></i>
 					<span>Exemplare</span>
@@ -383,7 +439,7 @@ type AlmanachResult struct {
 										<div class="text-base font-bold" data-summary-container>
 											<span data-summary-field="owner" data-summary-hide-empty="true">{{ $item.Owner }}</span>
 										</div>
-										<div class="px-2 py-0.5 rounded-full bg-stone-200 text-sm font-bold" data-summary-container>
+										<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold rounded-sm" data-summary-container>
 											<span data-summary-field="identifier" data-summary-hide-empty="true">{{ $item.Identifier }}</span>
 										</div>
 									</div>
@@ -482,7 +538,7 @@ type AlmanachResult struct {
 									<div class="text-base font-bold" data-summary-container>
 										<span data-summary-field="owner" data-summary-hide-empty="true">—</span>
 									</div>
-									<div class="px-2 py-0.5 rounded-full bg-stone-200 text-sm font-bold" data-summary-container>
+									<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold" data-summary-container>
 										<span data-summary-field="identifier" data-summary-hide-empty="true">—</span>
 									</div>
 								</div>
