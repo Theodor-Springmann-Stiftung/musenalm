@@ -53,6 +53,7 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 		data["csrf_token"] = req.Session().Token
 		data["item_types"] = dbmodels.ITEM_TYPE_VALUES
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
+		data["series_relations"] = dbmodels.SERIES_RELATIONS
 
 		abbrs, err := pagemodels.GetAbks(app)
 		if err == nil {

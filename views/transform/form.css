@@ -41,6 +41,23 @@
 		@apply relative inline-block;
 	}
 
+	.relation-strike,
+	.entries-agent-strike {
+		position: relative;
+	}
+
+	.relation-strike.is-removed::after,
+	.entries-agent-strike.is-removed::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		border-top: 2px solid #dc2626;
+		pointer-events: none;
+	}
+
 	/* Multi-Select-Role example styles */
 	.msr-selected-items-container {
 		@apply rounded-md;
@@ -180,16 +197,16 @@
 	}
 
 	.mss-selected-items-container {
-		@apply py-2 rounded;
+		@apply py-1 rounded;
 		/* Tailwind classes from component: flex flex-wrap gap-1 mb-1 min-h-[38px] */
 	}
 
 	.mss-no-items-text {
-		@apply italic text-xs text-gray-500 w-full; /* Adjusted font size slightly to match 'xs' */
+		@apply italic text-sm text-gray-500 w-full;
 	}
 
 	.mss-selected-item-pill {
-		@apply bg-gray-200 text-gray-800 py-0.5 px-2 rounded leading-5 shadow-xs hover:shadow select-none; /* Adjusted font size and padding */
+		@apply bg-stone-50 text-stone-900 py-0.5 px-2 border rounded leading-5 shadow-xs hover:shadow select-none; /* Adjusted font size and padding */
 		/* Tailwind classes from component: flex items-center */
 	}
 
@@ -212,7 +229,7 @@
 	}
 
 	.mss-input-wrapper {
-		@apply border border-gray-300 rounded;
+		@apply border border-gray-300 rounded bg-stone-50;
 		/* Tailwind classes from component: relative flex items-center flex-grow */
 	}
 	.mss-input-wrapper-focused {
@@ -220,7 +237,7 @@
 	}
 
 	.mss-text-input {
-		@apply py-1.5 px-2;
+		@apply py-1 px-1.5;
 		/* Tailwind classes from component: w-full outline-none bg-transparent */
 	}
 	.mss-text-input::placeholder {
@@ -232,6 +249,10 @@
 	}
 	.mss-create-new-button.hidden {
 		@apply !hidden; /* Ensure it hides */
+	}
+
+	.mss-toggle-button {
+		@apply text-gray-700 hover:text-gray-900 font-semibold text-lg px-2 py-0.5 rounded-xs border border-transparent bg-transparent whitespace-nowrap leading-none;
 	}
 
 	.mss-options-list {

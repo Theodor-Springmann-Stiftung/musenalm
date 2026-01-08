@@ -16,6 +16,8 @@ import { ResetButton } from "./reset-button.js";
 import { DivManager } from "./div-menu.js";
 import { ItemsEditor } from "./items-editor.js";
 import { SingleSelectRemote } from "./single-select-remote.js";
+import { AlmanachEditPage } from "./almanach-edit.js";
+import { RelationsEditor } from "./relations-editor.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
@@ -32,6 +34,8 @@ const SINGLE_SELECT_REMOTE_ELEMENT = "single-select-remote";
 const RESET_BUTTON_ELEMENT = "reset-button";
 const DIV_MANAGER_ELEMENT = "div-manager";
 const ITEMS_EDITOR_ELEMENT = "items-editor";
+const ALMANACH_EDIT_PAGE_ELEMENT = "almanach-edit-page";
+const RELATIONS_EDITOR_ELEMENT = "relations-editor";
 
 customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
@@ -48,6 +52,8 @@ customElements.define(SINGLE_SELECT_REMOTE_ELEMENT, SingleSelectRemote);
 customElements.define(RESET_BUTTON_ELEMENT, ResetButton);
 customElements.define(DIV_MANAGER_ELEMENT, DivManager);
 customElements.define(ITEMS_EDITOR_ELEMENT, ItemsEditor);
+customElements.define(ALMANACH_EDIT_PAGE_ELEMENT, AlmanachEditPage);
+customElements.define(RELATIONS_EDITOR_ELEMENT, RelationsEditor);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;
@@ -283,4 +289,4 @@ window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 
-export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote };
+export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor };

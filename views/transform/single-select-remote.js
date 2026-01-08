@@ -22,6 +22,7 @@ export class SingleSelectRemote extends HTMLElement {
 		this._placeholder = "Search...";
 		this._options = [];
 		this._selected = null;
+		this._highlightedIndex = -1;
 		this._fetchTimeout = null;
 		this._fetchController = null;
 		this._listVisible = false;
@@ -93,6 +94,7 @@ export class SingleSelectRemote extends HTMLElement {
 	_handleInput(event) {
 		const value = event.target.value.trim();
 		this._selected = null;
+		this._highlightedIndex = -1;
 		this._syncHiddenInput();
 
 		if (value.length < this._minChars) {
@@ -114,6 +116,35 @@ export class SingleSelectRemote extends HTMLElement {
 	_handleKeyDown(event) {
 		if (event.key === "Escape") {
 			this._hideList();
+			return;
+		}
+		if (event.key === "ArrowDown") {
+			event.preventDefault();
+			this._moveHighlight(1);
+			return;
+		}
+		if (event.key === "ArrowUp") {
+			event.preventDefault();
+			this._moveHighlight(-1);
+			return;
+		}
+		if (event.key === "Home") {
+			event.preventDefault();
+			this._setHighlight(0);
+			return;
+		}
+		if (event.key === "End") {
+			event.preventDefault();
+			this._setHighlight(this._options.length - 1);
+			return;
+		}
+		if (event.key === "Enter") {
+			if (this._options.length === 0) {
+				return;
+			}
+			event.preventDefault();
+			const index = this._highlightedIndex >= 0 ? this._highlightedIndex : 0;
+			this._selectOption(this._options[index]);
 		}
 	}
 
@@ -164,6 +195,7 @@ export class SingleSelectRemote extends HTMLElement {
 			const data = await resp.json();
 			const items = Array.isArray(data?.[this._resultKey]) ? data[this._resultKey] : [];
 			this._options = items.filter((item) => item && item.id && item.name);
+			this._highlightedIndex = this._options.length > 0 ? 0 : -1;
 			this._renderOptions();
 			if (this._options.length > 0) {
 				this._showList();
@@ -186,10 +218,16 @@ export class SingleSelectRemote extends HTMLElement {
 		this._options.forEach((item) => {
 			const option = document.createElement("button");
 			option.type = "button";
+			option.setAttribute("data-index", String(this._options.indexOf(item)));
 			option.className = [
 				SSR_OPTION_CLASS,
 				"w-full text-left px-3 py-2 hover:bg-slate-100 transition-colors",
 			].join(" ");
+			const optionIndex = this._options.indexOf(item);
+			const isHighlighted = optionIndex === this._highlightedIndex;
+			option.classList.toggle("bg-slate-100", isHighlighted);
+			option.classList.toggle("text-gray-900", isHighlighted);
+			option.setAttribute("aria-selected", isHighlighted ? "true" : "false");
 
 			const nameEl = document.createElement("div");
 			nameEl.className = [SSR_OPTION_NAME_CLASS, "text-sm font-semibold text-gray-800"].join(" ");
@@ -216,6 +254,41 @@ export class SingleSelectRemote extends HTMLElement {
 
 			this._list.appendChild(option);
 		});
+	}
+
+	_setHighlight(index) {
+		if (this._options.length === 0) {
+			this._highlightedIndex = -1;
+			return;
+		}
+		const nextIndex = Math.max(0, Math.min(index, this._options.length - 1));
+		this._highlightedIndex = nextIndex;
+		this._renderOptions();
+		this._scrollHighlightedIntoView();
+		this._showList();
+	}
+
+	_moveHighlight(delta) {
+		if (this._options.length === 0) {
+			this._highlightedIndex = -1;
+			return;
+		}
+		const startIndex = this._highlightedIndex >= 0 ? this._highlightedIndex : 0;
+		const nextIndex = Math.max(0, Math.min(startIndex + delta, this._options.length - 1));
+		this._highlightedIndex = nextIndex;
+		this._renderOptions();
+		this._scrollHighlightedIntoView();
+		this._showList();
+	}
+
+	_scrollHighlightedIntoView() {
+		if (!this._list || this._highlightedIndex < 0) {
+			return;
+		}
+		const option = this._list.querySelector(`[data-index="${this._highlightedIndex}"]`);
+		if (option) {
+			option.scrollIntoView({ block: "nearest" });
+		}
 	}
 
 	_selectOption(item) {

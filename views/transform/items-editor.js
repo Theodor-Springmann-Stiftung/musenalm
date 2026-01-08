@@ -9,6 +9,7 @@ const CLOSE_BUTTON_CLASS = "items-close-button";
 const SUMMARY_CLASS = "items-summary";
 const EDIT_PANEL_CLASS = "items-edit-panel";
 const REMOVED_INPUT_NAME = "items_removed[]";
+const REMOVED_ROW_STATE = "data-items-removed";
 
 export class ItemsEditor extends HTMLElement {
 	constructor() {
@@ -76,15 +77,8 @@ export class ItemsEditor extends HTMLElement {
 		if (!row) {
 			return;
 		}
-
-		const idInput = row.querySelector('input[name="items_id[]"]');
-		const itemId = idInput ? idInput.value.trim() : "";
-		if (itemId) {
-			this._ensureRemovalInput(itemId);
-		}
-
-		row.remove();
-		this._refreshRowIds();
+		const isRemoved = row.getAttribute(REMOVED_ROW_STATE) === "true";
+		this._setRowRemoved(row, !isRemoved);
 	}
 
 	_wireRemoveButtons(root = this) {
@@ -96,6 +90,47 @@ export class ItemsEditor extends HTMLElement {
 			btn.addEventListener("click", (event) => {
 				event.preventDefault();
 				this.removeItem(btn);
+			});
+			btn.addEventListener("mouseenter", () => {
+				const row = btn.closest(`.${ROW_CLASS}`);
+				if (!row || row.getAttribute(REMOVED_ROW_STATE) !== "true") {
+					return;
+				}
+				const label = btn.querySelector("[data-delete-label]");
+				if (label) {
+					label.textContent = label.getAttribute("data-delete-hover") || "Rückgängig";
+					label.classList.add("text-orange-700");
+				}
+				const icon = btn.querySelector("i");
+				if (icon) {
+					icon.classList.remove("hidden");
+					icon.classList.add("ri-arrow-go-back-line");
+					icon.classList.remove("ri-delete-bin-line");
+				}
+			});
+			btn.addEventListener("mouseleave", () => {
+				const row = btn.closest(`.${ROW_CLASS}`);
+				const label = btn.querySelector("[data-delete-label]");
+				if (!label) {
+					return;
+				}
+				label.classList.remove("text-orange-700");
+				if (row && row.getAttribute(REMOVED_ROW_STATE) === "true") {
+					label.textContent = label.getAttribute("data-delete-active") || "Wird entfernt";
+				} else {
+					label.textContent = label.getAttribute("data-delete-default") || "Entfernen";
+				}
+				const icon = btn.querySelector("i");
+				if (icon) {
+					if (row && row.getAttribute(REMOVED_ROW_STATE) === "true") {
+						icon.classList.add("hidden");
+						icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+					} else {
+						icon.classList.remove("hidden");
+						icon.classList.add("ri-delete-bin-line");
+						icon.classList.remove("ri-arrow-go-back-line");
+					}
+				}
 			});
 		});
 	}
@@ -157,6 +192,48 @@ export class ItemsEditor extends HTMLElement {
 
 		this._resetToOriginal(row);
 		this._setRowMode(row, "summary");
+	}
+
+	_setRowRemoved(row, removed) {
+		row.setAttribute(REMOVED_ROW_STATE, removed ? "true" : "false");
+		row.classList.toggle("bg-red-50", removed);
+		row.querySelectorAll("[data-items-strike]").forEach((el) => {
+			el.classList.toggle("line-through", removed);
+			el.classList.toggle("decoration-2", removed);
+			el.classList.toggle("decoration-red-600", removed);
+			el.classList.toggle("text-gray-500", removed);
+		});
+
+		row.querySelectorAll("[data-delete-label]").forEach((label) => {
+			const nextLabel = removed
+				? label.getAttribute("data-delete-active") || "Wird entfernt"
+				: label.getAttribute("data-delete-default") || "Entfernen";
+			label.textContent = nextLabel;
+		});
+		row.querySelectorAll(`.${REMOVE_BUTTON_CLASS} i`).forEach((icon) => {
+			if (removed) {
+				icon.classList.add("hidden");
+				icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+			} else {
+				icon.classList.remove("hidden");
+				icon.classList.add("ri-delete-bin-line");
+				icon.classList.remove("ri-arrow-go-back-line");
+			}
+		});
+
+		const idInput = row.querySelector('input[name="items_id[]"]');
+		const itemId = idInput ? idInput.value.trim() : "";
+		if (itemId) {
+			if (removed) {
+				this._ensureRemovalInput(itemId);
+			} else {
+				this._removeRemovalInput(itemId);
+			}
+		}
+
+		row.querySelectorAll("[data-field]").forEach((field) => {
+			field.disabled = removed;
+		});
 	}
 
 	_setRowMode(row, mode) {
@@ -238,6 +315,7 @@ export class ItemsEditor extends HTMLElement {
 		this.querySelectorAll(`.${ROW_CLASS}`).forEach((row) => {
 			this._wireSummarySync(row);
 			this._syncSummary(row);
+			this._syncNewBadge(row);
 		});
 	}
 
@@ -284,6 +362,15 @@ export class ItemsEditor extends HTMLElement {
 					container.classList.add("hidden");
 				}
 			}
+		});
+		this._syncNewBadge(row);
+	}
+
+	_syncNewBadge(row) {
+		const idInput = row.querySelector('input[name="items_id[]"]');
+		const itemId = idInput ? idInput.value.trim() : "";
+		row.querySelectorAll("[data-new-badge]").forEach((badge) => {
+			badge.classList.toggle("hidden", itemId !== "");
 		});
 	}
 
@@ -335,5 +422,14 @@ export class ItemsEditor extends HTMLElement {
 		hidden.name = REMOVED_INPUT_NAME;
 		hidden.value = itemId;
 		this.appendChild(hidden);
+	}
+
+	_removeRemovalInput(itemId) {
+		const inputs = Array.from(this.querySelectorAll(`input[name="${REMOVED_INPUT_NAME}"]`));
+		for (const input of inputs) {
+			if (input.value === itemId) {
+				input.remove();
+			}
+		}
 	}
 }

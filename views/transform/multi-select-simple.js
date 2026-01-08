@@ -10,6 +10,8 @@ const MSS_INPUT_WRAPPER_CLASS = "mss-input-wrapper";
 const MSS_INPUT_WRAPPER_FOCUSED_CLASS = "mss-input-wrapper-focused";
 const MSS_TEXT_INPUT_CLASS = "mss-text-input";
 const MSS_CREATE_NEW_BUTTON_CLASS = "mss-create-new-button";
+const MSS_TOGGLE_BUTTON_CLASS = "mss-toggle-button";
+const MSS_INLINE_ROW_CLASS = "mss-inline-row";
 const MSS_OPTIONS_LIST_CLASS = "mss-options-list";
 const MSS_OPTION_ITEM_CLASS = "mss-option-item";
 const MSS_OPTION_ITEM_NAME_CLASS = "mss-option-item-name";
@@ -36,6 +38,11 @@ export class MultiSelectSimple extends HTMLElement {
 		super();
 		this.internals_ = this.attachInternals();
 		this._value = [];
+		this._initialValue = [];
+		this._initialOrder = [];
+		this._removedIds = new Set();
+		this._initialCaptured = false;
+		this._allowInitialCapture = true;
 		this._options = [
 			{ id: "abk", name: "Abchasisch" },
 			{ id: "aar", name: "Afar" },
@@ -234,6 +241,9 @@ export class MultiSelectSimple extends HTMLElement {
 
 		this._placeholder = this.getAttribute("placeholder") || "Search items...";
 		this._showCreateButton = this.getAttribute("show-create-button") !== "false";
+		this._toggleLabel = this.getAttribute("data-toggle-label") || "";
+		this._toggleInput = this._toggleLabel !== "";
+		this._inputCollapsed = this._toggleInput;
 
 		this._setupTemplates();
 		this._bindEventHandlers();
@@ -268,6 +278,7 @@ export class MultiSelectSimple extends HTMLElement {
 		this._handleOptionClick = this._handleOptionClick.bind(this);
 		this._handleCreateNewButtonClick = this._handleCreateNewButtonClick.bind(this);
 		this._handleSelectedItemsContainerClick = this._handleSelectedItemsContainerClick.bind(this);
+		this._handleToggleClick = this._handleToggleClick.bind(this);
 	}
 
 	_getItemById(id) {
@@ -325,6 +336,16 @@ export class MultiSelectSimple extends HTMLElement {
 			else if (!this._getItemById(singleId)) this._value = this._value.filter((id) => id !== singleId);
 		} else this._value = [];
 		const newValString = JSON.stringify(this._value.sort());
+		if (!this._initialCaptured && this._allowInitialCapture && this._value.length > 0) {
+			this._initialValue = [...this._value];
+			this._initialOrder = [...this._value];
+			this._initialCaptured = true;
+		}
+		this._value.forEach((id) => {
+			if (this._removedIds.has(id)) {
+				this._removedIds.delete(id);
+			}
+		});
 		if (oldValString !== newValString) {
 			this._updateFormValue();
 			if (this.selectedItemsContainer) this._renderSelectedItems();
@@ -347,12 +368,16 @@ export class MultiSelectSimple extends HTMLElement {
 		this.inputWrapper = this.querySelector(`.${MSS_INPUT_WRAPPER_CLASS}`);
 		this.inputElement = this.querySelector(`.${MSS_TEXT_INPUT_CLASS}`);
 		this.createNewButton = this.querySelector(`.${MSS_CREATE_NEW_BUTTON_CLASS}`);
+		this.toggleButton = this.querySelector(`.${MSS_TOGGLE_BUTTON_CLASS}`);
 		this.optionsListElement = this.querySelector(`.${MSS_OPTIONS_LIST_CLASS}`);
 		this.selectedItemsContainer = this.querySelector(`.${MSS_SELECTED_ITEMS_CONTAINER_CLASS}`);
 		this.hiddenSelect = this.querySelector(`.${MSS_HIDDEN_SELECT_CLASS}`);
 
 		this.placeholder = this.getAttribute("placeholder") || "Search items...";
 		this.showCreateButton = this.getAttribute("show-create-button") !== "false";
+		this._toggleLabel = this.getAttribute("data-toggle-label") || "";
+		this._toggleInput = this._toggleLabel !== "";
+		this._inputCollapsed = this._toggleInput;
 		this._remoteEndpoint = this.getAttribute("data-endpoint") || null;
 		this._remoteResultKey = this.getAttribute("data-result-key") || "items";
 		this._remoteMinChars = this._parsePositiveInt(this.getAttribute("data-minchars"), MSS_REMOTE_DEFAULT_MIN_CHARS);
@@ -368,6 +393,9 @@ export class MultiSelectSimple extends HTMLElement {
 		this.optionsListElement.addEventListener("click", this._handleOptionClick);
 		this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick);
 		this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick);
+		if (this.toggleButton) {
+			this.toggleButton.addEventListener("click", this._handleToggleClick);
+		}
 
 		this._updateRootElementStateClasses();
 		if (this.hasAttribute("value")) {
@@ -385,6 +413,15 @@ export class MultiSelectSimple extends HTMLElement {
 			this._synchronizeHiddenSelect();
 		}
 		if (this.hasAttribute("disabled")) this.disabledCallback(true);
+		if (this._toggleInput) {
+			this._hideInputControls();
+		}
+		this._allowInitialCapture = false;
+		if (!this._initialCaptured) {
+			this._initialValue = [...this._value];
+			this._initialOrder = [...this._value];
+			this._initialCaptured = true;
+		}
 	}
 
 	disconnectedCallback() {
@@ -400,6 +437,7 @@ export class MultiSelectSimple extends HTMLElement {
 		}
 		if (this.createNewButton) this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick);
 		if (this.selectedItemsContainer) this.selectedItemsContainer.removeEventListener("click", this._handleSelectedItemsContainerClick);
+		if (this.toggleButton) this.toggleButton.removeEventListener("click", this._handleToggleClick);
 		clearTimeout(this._blurTimeout);
 		if (this._remoteFetchTimeout) {
 			clearTimeout(this._remoteFetchTimeout);
@@ -409,7 +447,18 @@ export class MultiSelectSimple extends HTMLElement {
 	}
 
 	static get observedAttributes() {
-		return ["disabled", "name", "value", "placeholder", "show-create-button", "data-endpoint", "data-result-key", "data-minchars", "data-limit"];
+		return [
+			"disabled",
+			"name",
+			"value",
+			"placeholder",
+			"show-create-button",
+			"data-endpoint",
+			"data-result-key",
+			"data-minchars",
+			"data-limit",
+			"data-toggle-label",
+		];
 	}
 	attributeChangedCallback(name, oldValue, newValue) {
 		if (oldValue === newValue) return;
@@ -430,6 +479,10 @@ export class MultiSelectSimple extends HTMLElement {
 		else if (name === "data-result-key") this._remoteResultKey = newValue || "items";
 		else if (name === "data-minchars") this._remoteMinChars = this._parsePositiveInt(newValue, MSS_REMOTE_DEFAULT_MIN_CHARS);
 		else if (name === "data-limit") this._remoteLimit = this._parsePositiveInt(newValue, MSS_REMOTE_DEFAULT_LIMIT);
+		else if (name === "data-toggle-label") {
+			this._toggleLabel = newValue || "";
+			this._toggleInput = this._toggleLabel !== "";
+		}
 	}
 
 	formAssociatedCallback(form) {}
@@ -444,6 +497,9 @@ export class MultiSelectSimple extends HTMLElement {
 		this.showCreateButton = this.getAttribute("show-create-button") !== "false";
 		this._updateRootElementStateClasses();
 		this._renderSelectedItems();
+		if (this._toggleInput) {
+			this._hideInputControls();
+		}
 	}
 	formStateRestoreCallback(state, mode) {
 		this.value = Array.isArray(state) ? state : [];
@@ -482,23 +538,29 @@ export class MultiSelectSimple extends HTMLElement {
 	_render() {
 		const componentId = this.id || `mss-${crypto.randomUUID().slice(0, 8)}`;
 		if (!this.id) this.setAttribute("id", componentId);
+		const toggleLabel = this.getAttribute("data-toggle-label") || "";
+		const toggleInput = toggleLabel !== "";
+		const inputHiddenClass = toggleInput ? "hidden" : "";
 		this.innerHTML = `
                     <style>
                         .${MSS_HIDDEN_SELECT_CLASS} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
                     </style>
                     <div class="${MSS_COMPONENT_WRAPPER_CLASS} relative">
-                        <div class="${MSS_SELECTED_ITEMS_CONTAINER_CLASS} flex flex-wrap gap-1 mb-1 min-h-[38px]" aria-live="polite" tabindex="-1"></div>
-                        <div class="${MSS_INPUT_CONTROLS_CONTAINER_CLASS} flex items-center space-x-4">
-                            <div class="${MSS_INPUT_WRAPPER_CLASS} relative rounded-md flex items-center flex-grow">
-                                <input type="text"
-                                       class="${MSS_TEXT_INPUT_CLASS} w-full outline-none bg-transparent"
-                                       placeholder="${this.placeholder}"
-                                       aria-autocomplete="list"
-                                       aria-expanded="${this._isOptionsListVisible}"
-                                       aria-controls="options-list-${componentId}"
-                                       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="combobox" />
+                        <div class="${MSS_INLINE_ROW_CLASS} flex flex-wrap items-center gap-2">
+                            <div class="${MSS_SELECTED_ITEMS_CONTAINER_CLASS} flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1"></div>
+                            ${toggleInput ? `<button type="button" class="${MSS_TOGGLE_BUTTON_CLASS}">${toggleLabel}</button>` : ""}
+                            <div class="${MSS_INPUT_CONTROLS_CONTAINER_CLASS} flex items-center gap-2 ${inputHiddenClass}">
+                                <div class="${MSS_INPUT_WRAPPER_CLASS} relative rounded-md flex items-center flex-grow">
+                                    <input type="text"
+                                           class="${MSS_TEXT_INPUT_CLASS} w-full outline-none bg-transparent"
+                                           placeholder="${this.placeholder}"
+                                           aria-autocomplete="list"
+                                           aria-expanded="${this._isOptionsListVisible}"
+                                           aria-controls="options-list-${componentId}"
+                                           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="combobox" />
+                                </div>
+                                <button type="button" class="${MSS_CREATE_NEW_BUTTON_CLASS} ${!this.showCreateButton ? "hidden" : ""}" title="Create new item from input">+</button>
                             </div>
-                            <button type="button" class="${MSS_CREATE_NEW_BUTTON_CLASS} ${!this.showCreateButton ? "hidden" : ""}" title="Create new item from input">+</button>
                         </div>
                         <ul id="options-list-${componentId}" role="listbox" class="${MSS_OPTIONS_LIST_CLASS} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
                         <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${componentId}" class="${MSS_HIDDEN_SELECT_CLASS}" aria-hidden="true"></select>
@@ -522,9 +584,22 @@ export class MultiSelectSimple extends HTMLElement {
 			detailEl.textContent = "";
 			detailEl.classList.add("hidden"); // Toggle visibility via JS
 		}
-		deleteBtn.setAttribute("aria-label", `Remove ${itemData.name}`);
+		const isRemoved = this._removedIds.has(itemId);
+		const isNew = !this._initialValue.includes(itemId);
+		if (isNew) {
+			const newBadge = document.createElement("span");
+			newBadge.className = "ml-1 text-xs text-gray-600";
+			newBadge.textContent = "(Neu)";
+			textEl.appendChild(newBadge);
+		}
+		if (isRemoved) {
+			textEl.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500");
+			detailEl.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500");
+		}
+		deleteBtn.setAttribute("aria-label", isRemoved ? `Undo remove ${itemData.name}` : `Remove ${itemData.name}`);
 		deleteBtn.dataset.id = itemId;
 		deleteBtn.disabled = this.hasAttribute("disabled");
+		deleteBtn.innerHTML = isRemoved ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;";
 		deleteBtn.addEventListener("click", (e) => {
 			e.stopPropagation();
 			this._handleDeleteSelectedItem(itemId);
@@ -534,10 +609,13 @@ export class MultiSelectSimple extends HTMLElement {
 	_renderSelectedItems() {
 		if (!this.selectedItemsContainer) return;
 		this.selectedItemsContainer.innerHTML = "";
-		if (this._value.length === 0) {
-			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS}">Keine Sprachen ausgewählt...</span>`;
+		const removedInOrder = this._initialOrder.filter((id) => this._removedIds.has(id) && !this._value.includes(id));
+		const displayIds = [...this._value, ...removedInOrder];
+		if (displayIds.length === 0) {
+			const emptyText = this.getAttribute("data-empty-text") || "Keine Auswahl...";
+			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS}">${emptyText}</span>`;
 		} else {
-			this._value.forEach((id) => {
+			displayIds.forEach((id) => {
 				const pillEl = this._createSelectedItemElement(id);
 				if (pillEl) this.selectedItemsContainer.appendChild(pillEl);
 			});
@@ -664,6 +742,9 @@ export class MultiSelectSimple extends HTMLElement {
 			case "Escape":
 				event.preventDefault();
 				this._hideOptionsList();
+				if (this._toggleInput) {
+					this._hideInputControls();
+				}
 				break;
 			case "Tab":
 				this._hideOptionsList();
@@ -685,7 +766,12 @@ export class MultiSelectSimple extends HTMLElement {
 	_handleBlur() {
 		if (this.inputWrapper) this.inputWrapper.classList.remove(MSS_INPUT_WRAPPER_FOCUSED_CLASS);
 		this._blurTimeout = setTimeout(() => {
-			if (!this.contains(document.activeElement)) this._hideOptionsList();
+			if (!this.contains(document.activeElement)) {
+				this._hideOptionsList();
+				if (this._toggleInput && (!this.inputElement || this.inputElement.value.trim() === "")) {
+					this._hideInputControls();
+				}
+			}
 		}, 150);
 	}
 	_handleOptionMouseDown(event) {
@@ -700,12 +786,73 @@ export class MultiSelectSimple extends HTMLElement {
 		if (this.inputElement) this.inputElement.value = "";
 		this._filteredOptions = [];
 		this._hideOptionsList();
-		if (this.inputElement && !this.hasAttribute("disabled")) this.inputElement.focus();
+		if (this._toggleInput) {
+			this._hideInputControls();
+		} else if (this.inputElement && !this.hasAttribute("disabled")) {
+			this.inputElement.focus();
+		}
 	}
 	_handleDeleteSelectedItem(itemId) {
+		if (this._removedIds.has(itemId)) {
+			this._removedIds.delete(itemId);
+			if (!this._value.includes(itemId)) {
+				this.value = [...this._value, itemId];
+			} else {
+				this._renderSelectedItems();
+			}
+			return;
+		}
+		if (this._initialValue.includes(itemId)) {
+			this._removedIds.add(itemId);
+			this.value = this._value.filter((id) => id !== itemId);
+			return;
+		}
 		this.value = this._value.filter((id) => id !== itemId);
 		if (this.inputElement && this.inputElement.value) this._handleInput({ target: this.inputElement });
 		if (this.inputElement && !this.hasAttribute("disabled")) this.inputElement.focus();
+	}
+
+	_handleToggleClick(event) {
+		event.preventDefault();
+		this._showInputControls();
+	}
+
+	_showInputControls() {
+		if (!this.inputControlsContainer) {
+			return;
+		}
+		this.inputControlsContainer.classList.remove("hidden");
+		if (this.toggleButton) {
+			this.toggleButton.classList.add("hidden");
+		}
+		if (this._value.length === 0 && this.selectedItemsContainer) {
+			const emptyText = this.selectedItemsContainer.querySelector(`.${MSS_NO_ITEMS_TEXT_CLASS}`);
+			if (emptyText) {
+				emptyText.classList.add("hidden");
+			}
+		}
+		if (this.inputElement && !this.hasAttribute("disabled")) {
+			this.inputElement.focus();
+		}
+		this._inputCollapsed = false;
+	}
+
+	_hideInputControls() {
+		if (!this.inputControlsContainer) {
+			return;
+		}
+		this.inputControlsContainer.classList.add("hidden");
+		if (this.toggleButton) {
+			this.toggleButton.classList.remove("hidden");
+		}
+		if (this._value.length === 0 && this.selectedItemsContainer) {
+			const emptyText = this.selectedItemsContainer.querySelector(`.${MSS_NO_ITEMS_TEXT_CLASS}`);
+			if (emptyText) {
+				emptyText.classList.remove("hidden");
+			}
+		}
+		this._hideOptionsList();
+		this._inputCollapsed = true;
 	}
 
 	_parsePositiveInt(value, fallback) {
