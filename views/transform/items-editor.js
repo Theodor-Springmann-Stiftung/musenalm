@@ -2,6 +2,7 @@ const ROW_CLASS = "items-row";
 const LIST_CLASS = "items-list";
 const TEMPLATE_CLASS = "items-template";
 const ADD_BUTTON_CLASS = "items-add-button";
+const CANCEL_BUTTON_CLASS = "items-cancel-button";
 const REMOVE_BUTTON_CLASS = "items-remove-button";
 const EDIT_BUTTON_CLASS = "items-edit-button";
 const CLOSE_BUTTON_CLASS = "items-close-button";
@@ -30,6 +31,8 @@ export class ItemsEditor extends HTMLElement {
 		}
 
 		this._addButton.addEventListener("click", this._handleAdd);
+		this._captureAllOriginals();
+		this._wireCancelButtons();
 		this._wireRemoveButtons();
 		this._wireEditButtons();
 		this._refreshRowIds();
@@ -58,6 +61,8 @@ export class ItemsEditor extends HTMLElement {
 
 		this._list.appendChild(fragment);
 
+		this._captureOriginalValues(newRow);
+		this._wireCancelButtons(newRow);
 		this._wireRemoveButtons(newRow);
 		this._wireEditButtons(newRow);
 		this._assignRowFieldIds(newRow, this._rowIndex(newRow));
@@ -95,6 +100,22 @@ export class ItemsEditor extends HTMLElement {
 		});
 	}
 
+	_wireCancelButtons(root = this) {
+		root.querySelectorAll(`.${CANCEL_BUTTON_CLASS}`).forEach((btn) => {
+			if (btn.dataset.itemsBound === "true") {
+				return;
+			}
+			btn.dataset.itemsBound = "true";
+			btn.addEventListener("click", (event) => {
+				event.preventDefault();
+				const row = btn.closest(`.${ROW_CLASS}`);
+				if (row) {
+					this._cancelEdit(row);
+				}
+			});
+		});
+	}
+
 	_wireEditButtons(root = this) {
 		root.querySelectorAll(`.${EDIT_BUTTON_CLASS}`).forEach((btn) => {
 			if (btn.dataset.itemsBound === "true") {
@@ -125,6 +146,19 @@ export class ItemsEditor extends HTMLElement {
 		});
 	}
 
+	_cancelEdit(row) {
+		const idInput = row.querySelector('input[name="items_id[]"]');
+		const itemId = idInput ? idInput.value.trim() : "";
+		if (!itemId) {
+			row.remove();
+			this._refreshRowIds();
+			return;
+		}
+
+		this._resetToOriginal(row);
+		this._setRowMode(row, "summary");
+	}
+
 	_setRowMode(row, mode) {
 		const summary = row.querySelector(`.${SUMMARY_CLASS}`);
 		const editor = row.querySelector(`.${EDIT_PANEL_CLASS}`);
@@ -140,6 +174,31 @@ export class ItemsEditor extends HTMLElement {
 			editor.classList.add("hidden");
 			this._syncSummary(row);
 		}
+	}
+
+	_captureAllOriginals() {
+		this.querySelectorAll(`.${ROW_CLASS}`).forEach((row) => {
+			this._captureOriginalValues(row);
+		});
+	}
+
+	_captureOriginalValues(row) {
+		row.querySelectorAll("[data-field]").forEach((field) => {
+			if (field.dataset.originalValue !== undefined) {
+				return;
+			}
+			field.dataset.originalValue = field.value ?? "";
+		});
+	}
+
+	_resetToOriginal(row) {
+		row.querySelectorAll("[data-field]").forEach((field) => {
+			if (field.dataset.originalValue === undefined) {
+				return;
+			}
+			field.value = field.dataset.originalValue;
+		});
+		this._syncSummary(row);
 	}
 
 	_refreshRowIds() {
