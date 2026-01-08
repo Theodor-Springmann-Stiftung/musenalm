@@ -274,9 +274,14 @@ type AlmanachResult struct {
 			</div>
 
 			<div class="mt-3">
-				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
-					<i class="ri-links-line"></i>
-					<span>Normdaten &amp; Verknüpfungen</span>
+				<div class="flex items-center justify-between gap-4">
+					<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+						<i class="ri-links-line"></i>
+						<span>Normdaten &amp; Verknüpfungen</span>
+					</div>
+					<button type="button" id="agents-add-toggle" class="text-gray-700 hover:text-gray-900">
+						<i class="ri-add-line"></i> Akteur hinzufügen
+					</button>
 				</div>
 				<hr class="border-slate-400 mt-2 mb-3" />
 				<div class="flex flex-col gap-4 mt-4">
@@ -291,7 +296,7 @@ type AlmanachResult struct {
 								data-result-key="places"
 								data-minchars="1"
 								data-limit="15">
-							</multi-select-simple>
+						</multi-select-simple>
 					</div>
 				</div>
 			</div>
@@ -315,6 +320,238 @@ type AlmanachResult struct {
 					placesSelect.value = initialPlaceIds;
 				}
 			</script>
+
+			<div class="mt-3">
+				<div class="text-base font-semibold text-gray-700">
+					<span>Personen &amp; Körperschaften</span>
+				</div>
+				<div class="flex flex-col gap-2 mt-4">
+					{{- if $model.result.EntriesAgents -}}
+						{{- range $i, $r := $model.result.EntriesAgents -}}
+							{{- $a := index $model.result.Agents $r.Agent -}}
+							<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
+								<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+									<div class="flex flex-col min-w-0">
+										{{- if $a -}}
+											<a href="/person/{{ $a.Id }}" class="text-base font-bold text-gray-800 no-underline hover:text-slate-900 truncate">
+												{{- $a.Name -}}
+											</a>
+											{{- if $a.BiographicalData -}}
+												<div class="text-xs text-gray-600 truncate">{{- $a.BiographicalData -}}</div>
+											{{- end -}}
+										{{- else -}}
+											<div class="text-base font-bold text-gray-800">Unbekannte Person</div>
+										{{- end -}}
+									</div>
+									<div>
+										<select name="entries_agents_type[{{ $r.Id }}]" id="entries_agents_type_{{ $r.Id }}" autocomplete="off" class="inputselect font-bold w-full">
+											{{- range $t := $model.agent_relations -}}
+												<option value="{{- $t -}}" {{ if eq $r.Type $t }}selected{{ end }}>{{- $t -}}</option>
+											{{- end -}}
+										</select>
+									</div>
+									<div class="flex items-center gap-2">
+										<input
+											type="checkbox"
+											name="entries_agents_uncertain[{{ $r.Id }}]"
+											id="entries_agents_uncertain_{{ $r.Id }}"
+											{{ if $r.Uncertain }}checked{{ end }} />
+										<label for="entries_agents_uncertain_{{ $r.Id }}" class="text-sm text-gray-700">Unsicher</label>
+									</div>
+									<div class="flex justify-end">
+										<button
+											type="button"
+											class="text-sm text-red-700 hover:text-red-900"
+											data-delete-toggle="entries_agents_delete_{{ $r.Id }}">
+											<i class="ri-delete-bin-line mr-1"></i> Entfernen
+										</button>
+										<input type="checkbox" class="hidden" name="entries_agents_delete[{{ $r.Id }}]" id="entries_agents_delete_{{ $r.Id }}" />
+									</div>
+								</div>
+								<input type="hidden" name="entries_agents_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
+								<input type="hidden" name="entries_agents_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
+							</div>
+						{{- end -}}
+					{{- else -}}
+						<div class="text-sm text-gray-600">Keine Personen verknüpft.</div>
+					{{- end -}}
+				</div>
+				<div id="agents-add-row" class="mt-2"></div>
+				<div id="agents-add-panel" class="mt-2 hidden">
+					<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
+						<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+							<div class="min-w-0">
+								<label for="agents-add-select" class="sr-only">Akteur suchen</label>
+								<single-select-remote
+									id="agents-add-select"
+									name="entries_agents_new_id"
+									placeholder="Akteur suchen..."
+									data-endpoint="/api/agents/search"
+									data-result-key="agents"
+									data-minchars="1"
+									data-limit="15">
+								</single-select-remote>
+							</div>
+							<div>
+								<label for="entries_agents_new_type" class="sr-only">Beziehung</label>
+								<select name="entries_agents_new_type" id="entries_agents_new_type" autocomplete="off" class="inputselect font-bold w-full">
+									{{- range $t := $model.agent_relations -}}
+										<option value="{{- $t -}}">{{- $t -}}</option>
+									{{- end -}}
+								</select>
+							</div>
+							<div class="flex items-center gap-2">
+								<input type="checkbox" name="entries_agents_new_uncertain" id="entries_agents_new_uncertain" />
+								<label for="entries_agents_new_uncertain" class="text-sm text-gray-700">Unsicher</label>
+							</div>
+							<div class="flex justify-end">
+								<div class="flex items-center gap-3 text-lg">
+									<button type="button" class="text-gray-700 hover:text-gray-900" id="agents-add-apply" aria-label="Akteur hinzufügen">
+										<i class="ri-check-line"></i>
+									</button>
+									<button type="button" class="text-gray-700 hover:text-gray-900" id="agents-add-close" aria-label="Ausblenden">
+										<i class="ri-close-line"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+						<div id="agents-add-error" class="text-xs text-red-700 mt-2 hidden">Bitte Akteur auswählen.</div>
+					</div>
+				</div>
+				<script type="module">
+					const agentsAddToggle = document.getElementById("agents-add-toggle");
+					const agentsAddPanel = document.getElementById("agents-add-panel");
+					const agentsAddClose = document.getElementById("agents-add-close");
+					const agentsAddApply = document.getElementById("agents-add-apply");
+					const agentsAddError = document.getElementById("agents-add-error");
+					const agentsAddRow = document.getElementById("agents-add-row");
+					const agentsAddSelect = document.getElementById("agents-add-select");
+					const relationSelect = document.getElementById("entries_agents_new_type");
+					const uncertainCheckbox = document.getElementById("entries_agents_new_uncertain");
+					let pendingAgent = null;
+					if (agentsAddToggle && agentsAddPanel) {
+						agentsAddToggle.addEventListener("click", () => {
+							agentsAddPanel.classList.toggle("hidden");
+						});
+					}
+					if (agentsAddClose && agentsAddPanel) {
+						agentsAddClose.addEventListener("click", () => {
+							agentsAddPanel.classList.add("hidden");
+						});
+					}
+					const clearAddPanel = () => {
+						if (agentsAddSelect) {
+							const clearButton = agentsAddSelect.querySelector(".ssr-clear-button");
+							if (clearButton) {
+								clearButton.click();
+							}
+						}
+						if (relationSelect) {
+							relationSelect.selectedIndex = 0;
+						}
+						if (uncertainCheckbox) {
+							uncertainCheckbox.checked = false;
+						}
+					};
+					const removeNewRow = () => {
+						if (agentsAddRow) {
+							agentsAddRow.innerHTML = "";
+						}
+						pendingAgent = null;
+						clearAddPanel();
+					};
+					if (agentsAddApply && agentsAddPanel) {
+						agentsAddApply.addEventListener("click", () => {
+							const idInput = agentsAddPanel.querySelector("input[name='entries_agents_new_id']");
+							const hasSelection = idInput && idInput.value.trim().length > 0;
+							if (!hasSelection) {
+								if (agentsAddError) {
+									agentsAddError.classList.remove("hidden");
+								}
+								return;
+							}
+							if (agentsAddError) {
+								agentsAddError.classList.add("hidden");
+							}
+							if (!pendingAgent || !agentsAddRow) {
+								return;
+							}
+
+							const row = document.createElement("div");
+							row.className = "border border-stone-200 rounded-xs bg-stone-50 px-3 py-2";
+							row.innerHTML = `
+								<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+									<div class="flex flex-col min-w-0">
+										<div class="text-base font-bold text-gray-800 truncate">
+											<a href="/person/${pendingAgent.id}" class="no-underline hover:text-slate-900">
+												${pendingAgent.name || ""}
+											</a>
+											<em class="text-sm text-gray-600 ml-1">(Neu)</em>
+										</div>
+										${pendingAgent.bio ? `<div class="text-xs text-gray-600 truncate">${pendingAgent.bio}</div>` : ""}
+									</div>
+									<div>
+										<select name="entries_agents_new_type" class="inputselect font-bold w-full"></select>
+									</div>
+									<div class="flex items-center gap-2">
+										<input type="checkbox" name="entries_agents_new_uncertain" id="entries_agents_new_uncertain_row" />
+										<label for="entries_agents_new_uncertain_row" class="text-sm text-gray-700">Unsicher</label>
+									</div>
+									<div class="flex justify-end">
+										<button type="button" class="text-sm text-red-700 hover:text-red-900" data-new-delete>
+											<i class="ri-delete-bin-line mr-1"></i> Entfernen
+										</button>
+									</div>
+								</div>
+								<input type="hidden" name="entries_agents_new_id" value="${pendingAgent.id}" />
+							`;
+							const rowSelect = row.querySelector("select[name='entries_agents_new_type']");
+							if (rowSelect && relationSelect) {
+								rowSelect.innerHTML = relationSelect.innerHTML;
+								rowSelect.value = relationSelect.value;
+							}
+							const rowUncertain = row.querySelector("input[name='entries_agents_new_uncertain']");
+							if (rowUncertain && uncertainCheckbox) {
+								rowUncertain.checked = uncertainCheckbox.checked;
+							}
+							const deleteButton = row.querySelector("[data-new-delete]");
+							if (deleteButton) {
+								deleteButton.addEventListener("click", () => {
+									removeNewRow();
+									if (agentsAddPanel) {
+										agentsAddPanel.classList.remove("hidden");
+									}
+								});
+							}
+
+							agentsAddRow.innerHTML = "";
+							agentsAddRow.appendChild(row);
+							agentsAddPanel.classList.add("hidden");
+							clearAddPanel();
+						});
+					}
+					if (agentsAddSelect) {
+						agentsAddSelect.addEventListener("ssrchange", (event) => {
+							pendingAgent = event.detail?.item || null;
+							if (pendingAgent && agentsAddError) {
+								agentsAddError.classList.add("hidden");
+							}
+						});
+					}
+
+					document.querySelectorAll("[data-delete-toggle]").forEach((button) => {
+						button.addEventListener("click", () => {
+							const targetId = button.getAttribute("data-delete-toggle");
+							const checkbox = document.getElementById(targetId);
+							if (!checkbox) {
+								return;
+							}
+							checkbox.checked = !checkbox.checked;
+							button.classList.toggle("opacity-60", checkbox.checked);
+						});
+					});
+				</script>
+			</div>
 
 		</div>
 		<!-- End Left Column -->
