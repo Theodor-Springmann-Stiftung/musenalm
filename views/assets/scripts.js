@@ -242,7 +242,7 @@ m = new WeakMap(), g = new WeakSet(), B = function(t) {
   let e = this.getHREF(t);
   return e === "" ? !1 : this._queryparam && (new URLSearchParams(window.location.search).get(this._queryparam) || "") === e ? !0 : !!window.location.href.endsWith(e);
 };
-class At extends HTMLElement {
+class Tt extends HTMLElement {
   constructor() {
     super(), this.handleScroll = this.handleScroll.bind(this), this.scrollToTop = this.scrollToTop.bind(this);
   }
@@ -278,7 +278,7 @@ class At extends HTMLElement {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
-class Tt extends HTMLElement {
+class At extends HTMLElement {
   static get observedAttributes() {
     return ["position", "timeout"];
   }
@@ -722,11 +722,11 @@ class Ct extends HTMLElement {
     }
   }
 }
-var A;
+var T;
 class wt extends HTMLElement {
   constructor() {
     super();
-    _(this, A, 176);
+    _(this, T, 176);
     this._images = [];
   }
   connectedCallback() {
@@ -742,12 +742,12 @@ class wt extends HTMLElement {
   calculateShownImages() {
     const t = this.getBoundingClientRect();
     console.log(t);
-    const e = Math.floor(t.width / (C(this, A) + 10));
+    const e = Math.floor(t.width / (C(this, T) + 10));
     for (let s = 0; s < this._images.length; s++)
       s < e - 1 ? this._images[s].classList.remove("hidden") : this._images[s].classList.add("hidden");
   }
 }
-A = new WeakMap();
+T = new WeakMap();
 const xt = "msr-component-wrapper", D = "msr-selected-items-container", P = "msr-placeholder-no-selection-text", Mt = "msr-selected-item-pill", kt = "msr-selected-item-text", Ot = "msr-item-name", Rt = "msr-item-additional-data", Bt = "msr-selected-item-role", H = "msr-selected-item-delete-btn", $t = "msr-controls-area", q = "msr-pre-add-button", U = "msr-input-area-wrapper", L = "msr-input-area-default-border", w = "msr-input-area-staged", F = "msr-staging-area-container", Nt = "msr-staged-item-pill", Dt = "msr-staged-item-text", x = "msr-staged-role-select", z = "msr-staged-cancel-btn", K = "msr-text-input", V = "msr-add-button", G = "msr-options-list", W = "msr-option-item", Pt = "msr-option-item-name", Ht = "msr-option-item-detail", j = "msr-option-item-highlighted", M = "msr-hidden-select", qt = "msr-state-no-selection", Ut = "msr-state-has-selection", Ft = "msr-state-list-open", zt = "msr-state-item-staged";
 class dt extends HTMLElement {
   constructor() {
@@ -1882,17 +1882,21 @@ class ne extends HTMLElement {
     this.button.setAttribute("aria-label", i);
   }
 }
-const d = "hidden", at = "dm-stay", v = "dm-title", rt = "dm-menu-button", ae = "dm-target", lt = "dm-menu", ot = "dm-menu-item", re = "dm-close-button";
-var T, ut;
-class le extends HTMLElement {
+const d = "hidden", at = "dm-stay", v = "dm-title", rt = "dm-menu-button", ae = "dm-target", re = "data-dm-target", lt = "dm-menu", ot = "dm-menu-item", le = "dm-close-button";
+var A, ut;
+class oe extends HTMLElement {
   constructor() {
     super();
-    _(this, T);
-    E(this, T, ut).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+    _(this, A);
+    E(this, A, ut).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
   connectedCallback() {
-    if (this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(rt)).map((t) => ({
+    if (this._target = document.getElementById(this.getAttribute(ae)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(rt)).map((t) => ({
       node: t,
+      target: () => {
+        const e = t.getAttribute(re);
+        return e ? document.getElementById(e) || this._target : this._target;
+      },
       stay: () => t.hasAttribute(at) && t.getAttribute(at) == "true",
       hidden: () => t.classList.contains(d),
       name: () => {
@@ -1903,7 +1907,7 @@ class le extends HTMLElement {
         const e = t.querySelector("label");
         return e ? e.textContent.trim() : t.hasAttribute(v) ? t.getAttribute(v) : "";
       }
-    })), this._target = document.getElementById(this.getAttribute(ae)), this._target || (this._target = this), this._button = this.querySelector(`.${rt}`), !this._button) {
+    })), this._button = this.querySelector(`.${rt}`), !this._button) {
       console.error("DivManagerMenu needs a button element.");
       return;
     }
@@ -1912,7 +1916,7 @@ class le extends HTMLElement {
       this.removeChild(t.node);
     this._button.addEventListener("click", this._toggleMenu.bind(this)), this._button.classList.add("relative");
     for (const t of this._cildren)
-      t.node.querySelectorAll(`.${re}`).forEach((s) => {
+      t.node.querySelectorAll(`.${le}`).forEach((s) => {
         s.addEventListener("click", (n) => {
           this.hideDiv(n, t.node);
         });
@@ -1970,12 +1974,14 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
       console.error("DivManagerMenu: Invalid node provided.");
       return;
     }
-    const s = this._cildren.find((n) => n.node === e);
+    const s = this._cildren.find((r) => r.node === e);
     if (!s) {
       console.error("DivManagerMenu: Child not found.");
       return;
     }
-    s.node.classList.add(d), this._target.removeChild(s.node), this.renderButton(), this.renderMenu();
+    s.node.classList.add(d);
+    const n = s.target();
+    n && n.contains(s.node) && n.removeChild(s.node), this.renderButton(), this.renderMenu(), this.updateTargetVisibility();
   }
   showDiv(t, e) {
     if (t && (t.preventDefault(), t.stopPropagation()), e < 0 || e >= this._cildren.length) {
@@ -2006,28 +2012,30 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
     }), this.updateTargetVisibility();
   }
   insertChildInOrder(t) {
-    const e = this._cildren.indexOf(t), s = this._cildren.slice(e + 1).map((n) => n.node).find((n) => this._target.contains(n));
-    s ? this._target.insertBefore(t.node, s) : this._target.appendChild(t.node);
+    const e = t.target(), s = this._cildren.indexOf(t), n = this._cildren.slice(s + 1).filter((r) => r.target() === e).map((r) => r.node).find((r) => e && e.contains(r));
+    e && (n ? e.insertBefore(t.node, n) : e.appendChild(t.node));
   }
   updateTargetVisibility() {
-    if (!this._target || this._target === this)
-      return;
-    const t = Array.from(this._target.children).some(
-      (e) => !e.classList.contains(d)
-    );
-    this._target.classList.toggle(d, !t);
+    new Set(
+      this._cildren.map((e) => e.target()).filter((e) => e && e !== this)
+    ).forEach((e) => {
+      const s = Array.from(e.children).some(
+        (n) => !n.classList.contains(d)
+      );
+      e.classList.toggle(d, !s);
+    });
   }
 }
-T = new WeakSet(), ut = function() {
+A = new WeakSet(), ut = function() {
   this._cildren = [], this._rendered = [], this._target = null, this._button = null, this._menu = null, this._originalButtonText = null;
 };
-const u = "items-row", oe = "items-list", he = "items-template", de = "items-add-button", ce = "items-remove-button", ue = "items-edit-button", me = "items-close-button", pe = "items-summary", _e = "items-edit-panel", ht = "items_removed[]";
-class fe extends HTMLElement {
+const u = "items-row", he = "items-list", de = "items-template", ce = "items-add-button", ue = "items-remove-button", me = "items-edit-button", pe = "items-close-button", _e = "items-summary", fe = "items-edit-panel", ht = "items_removed[]";
+class ge extends HTMLElement {
   constructor() {
     super(), this._list = null, this._template = null, this._addButton = null, this._idPrefix = `items-editor-${crypto.randomUUID().slice(0, 8)}`, this._handleAdd = this._onAddClick.bind(this);
   }
   connectedCallback() {
-    if (this._list = this.querySelector(`.${oe}`), this._template = this.querySelector(`template.${he}`), this._addButton = this.querySelector(`.${de}`), !this._list || !this._template || !this._addButton) {
+    if (this._list = this.querySelector(`.${he}`), this._template = this.querySelector(`template.${de}`), this._addButton = this.querySelector(`.${ce}`), !this._list || !this._template || !this._addButton) {
       console.error("ItemsEditor: Missing list, template, or add button.");
       return;
     }
@@ -2055,20 +2063,20 @@ class fe extends HTMLElement {
     s && this._ensureRemovalInput(s), t.remove(), this._refreshRowIds();
   }
   _wireRemoveButtons(i = this) {
-    i.querySelectorAll(`.${ce}`).forEach((t) => {
+    i.querySelectorAll(`.${ue}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault(), this.removeItem(t);
       }));
     });
   }
   _wireEditButtons(i = this) {
-    i.querySelectorAll(`.${ue}`).forEach((t) => {
+    i.querySelectorAll(`.${me}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault();
         const s = t.closest(`.${u}`);
         s && this._setRowMode(s, "edit");
       }));
-    }), i.querySelectorAll(`.${me}`).forEach((t) => {
+    }), i.querySelectorAll(`.${pe}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault();
         const s = t.closest(`.${u}`);
@@ -2077,7 +2085,7 @@ class fe extends HTMLElement {
     });
   }
   _setRowMode(i, t) {
-    const e = i.querySelector(`.${pe}`), s = i.querySelector(`.${_e}`);
+    const e = i.querySelector(`.${_e}`), s = i.querySelector(`.${fe}`);
     !e || !s || (t === "edit" ? (e.classList.add("hidden"), s.classList.remove("hidden")) : (e.classList.remove("hidden"), s.classList.add("hidden"), this._syncSummary(i)));
   }
   _refreshRowIds() {
@@ -2144,26 +2152,26 @@ class fe extends HTMLElement {
     e.type = "hidden", e.name = ht, e.value = i, this.appendChild(e);
   }
 }
-const ge = "filter-list", be = "scroll-button", Ee = "tool-tip", Se = "abbrev-tooltips", Le = "int-link", ve = "popup-image", Ae = "tab-list", Te = "filter-pill", Ie = "image-reel", ye = "multi-select-places", Ce = "multi-select-simple", mt = "reset-button", we = "div-manager", xe = "items-editor";
-customElements.define(Le, Ct);
-customElements.define(Se, f);
-customElements.define(ge, vt);
-customElements.define(be, At);
+const be = "filter-list", Ee = "scroll-button", Se = "tool-tip", Le = "abbrev-tooltips", ve = "int-link", Te = "popup-image", Ae = "tab-list", Ie = "filter-pill", ye = "image-reel", Ce = "multi-select-places", we = "multi-select-simple", mt = "reset-button", xe = "div-manager", Me = "items-editor";
+customElements.define(ve, Ct);
+customElements.define(Le, f);
+customElements.define(be, vt);
 customElements.define(Ee, Tt);
-customElements.define(ve, It);
+customElements.define(Se, At);
+customElements.define(Te, It);
 customElements.define(Ae, yt);
-customElements.define(Te, Et);
-customElements.define(Ie, wt);
-customElements.define(ye, dt);
-customElements.define(Ce, ct);
+customElements.define(Ie, Et);
+customElements.define(ye, wt);
+customElements.define(Ce, dt);
+customElements.define(we, ct);
 customElements.define(mt, ne);
-customElements.define(we, le);
-customElements.define(xe, fe);
-function Me() {
+customElements.define(xe, oe);
+customElements.define(Me, ge);
+function ke() {
   const a = window.location.pathname, i = window.location.search, t = a + i;
   return encodeURIComponent(t);
 }
-function ke(a = 5e3, i = 100) {
+function Oe(a = 5e3, i = 100) {
   return new Promise((t, e) => {
     let s = 0;
     const n = setInterval(() => {
@@ -2171,8 +2179,8 @@ function ke(a = 5e3, i = 100) {
     }, i);
   });
 }
-async function Oe(a) {
-  const i = await ke(), t = document.getElementById("qr");
+async function Re(a) {
+  const i = await Oe(), t = document.getElementById("qr");
   t && (t.innerHTML = "", t.classList.add("hidden"), new i(t, {
     text: a,
     width: 1280,
@@ -2184,7 +2192,7 @@ async function Oe(a) {
     t.classList.remove("hidden");
   }, 20));
 }
-function Re(a) {
+function Be(a) {
   a && (a.addEventListener("focus", (i) => {
     i.preventDefault(), a.select();
   }), a.addEventListener("mousedown", (i) => {
@@ -2197,7 +2205,7 @@ function Re(a) {
     a.select();
   }));
 }
-function Be() {
+function $e() {
   document.body.addEventListener("htmx:responseError", function(a) {
     const i = a.detail.requestConfig;
     if (i.boosted) {
@@ -2207,7 +2215,7 @@ function Be() {
     }
   });
 }
-function $e(a, i) {
+function Ne(a, i) {
   if (!(a instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -2245,7 +2253,7 @@ function _t(a) {
     I(a);
   });
 }
-function Ne(a) {
+function De(a) {
   if (!(a instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -2254,22 +2262,22 @@ function Ne(a) {
     I(a);
   });
 }
-function De(a) {
+function Pe(a) {
   !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.addEventListener("keydown", pt);
 }
-function Pe(a) {
+function He(a) {
   !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.removeEventListener("keydown", pt);
 }
-function He(a, i) {
+function qe(a, i) {
   for (const t of a)
     if (t.type === "childList") {
       for (const e of t.addedNodes)
         e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (_t(e), I(e));
       for (const e of t.removedNodes)
-        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Pe(e), Ne(e));
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (He(e), De(e));
     }
 }
-function qe(a) {
+function Ue(a) {
   if (!(a instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
@@ -2279,29 +2287,29 @@ function qe(a) {
     _t(s), I(s);
   const t = document.querySelectorAll("textarea.no-enter");
   for (const s of t)
-    De(s);
-  new MutationObserver(He).observe(a, {
+    Pe(s);
+  new MutationObserver(qe).observe(a, {
     childList: !0,
     subtree: !0
   });
 }
-window.ShowBoostedErrors = Be;
-window.GenQRCode = Oe;
-window.SelectableInput = Re;
-window.PathPlusQuery = Me;
-window.HookupRBChange = $e;
-window.FormLoad = qe;
+window.ShowBoostedErrors = $e;
+window.GenQRCode = Re;
+window.SelectableInput = Be;
+window.PathPlusQuery = ke;
+window.HookupRBChange = Ne;
+window.FormLoad = Ue;
 export {
   f as AbbreviationTooltips,
   vt as FilterList,
   Et as FilterPill,
   wt as ImageReel,
   Ct as IntLink,
-  fe as ItemsEditor,
+  ge as ItemsEditor,
   dt as MultiSelectRole,
   ct as MultiSelectSimple,
   It as PopupImage,
-  At as ScrollButton,
+  Tt as ScrollButton,
   yt as TabList,
-  Tt as ToolTip
+  At as ToolTip
 };

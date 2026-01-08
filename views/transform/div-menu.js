@@ -3,6 +3,7 @@ const DM_STAY_ATTRIBUTE = "dm-stay";
 const DM_TITLE_ATTRIBUTE = "dm-title";
 const DM_MENU_BUTTON_CLASS = "dm-menu-button";
 const DM_TARGET_ATTRIBUTE = "dm-target";
+const DM_CHILD_TARGET_ATTRIBUTE = "data-dm-target";
 const DM_MENU_CLASS = "dm-menu";
 const DM_ITEM_CLASS = "dm-menu-item";
 const DM_CLOSE_BUTTON_CLASS = "dm-close-button";
@@ -31,11 +32,23 @@ export class DivManager extends HTMLElement {
 	}
 
 	connectedCallback() {
+		this._target = document.getElementById(this.getAttribute(DM_TARGET_ATTRIBUTE));
+		if (!this._target) {
+			this._target = this;
+		}
+
 		this._cildren = Array.from(this.children)
 			.filter((node) => node.nodeType === Node.ELEMENT_NODE && !node.classList.contains(DM_MENU_BUTTON_CLASS))
 			.map((node) => {
 				return {
 					node: node,
+					target: () => {
+						const targetId = node.getAttribute(DM_CHILD_TARGET_ATTRIBUTE);
+						if (!targetId) {
+							return this._target;
+						}
+						return document.getElementById(targetId) || this._target;
+					},
 					stay: () => node.hasAttribute(DM_STAY_ATTRIBUTE) && node.getAttribute(DM_STAY_ATTRIBUTE) == "true",
 					hidden: () => node.classList.contains(TAILWIND_HIDDEN_CLASS),
 					name: () => {
@@ -48,11 +61,6 @@ export class DivManager extends HTMLElement {
 					},
 				};
 			});
-
-		this._target = document.getElementById(this.getAttribute(DM_TARGET_ATTRIBUTE));
-		if (!this._target) {
-			this._target = this;
-		}
 
 		this._button = this.querySelector(`.${DM_MENU_BUTTON_CLASS}`);
 		if (!this._button) {
@@ -207,10 +215,14 @@ export class DivManager extends HTMLElement {
 		// Always ensure the hidden class is added
 		child.node.classList.add(TAILWIND_HIDDEN_CLASS);
 
-		this._target.removeChild(child.node);
+		const target = child.target();
+		if (target && target.contains(child.node)) {
+			target.removeChild(child.node);
+		}
 		// INFO: the order of these matter, dont fuck it up
 		this.renderButton();
 		this.renderMenu();
+		this.updateTargetVisibility();
 	}
 
 	showDiv(event, index) {
@@ -275,27 +287,35 @@ export class DivManager extends HTMLElement {
 	}
 
 	insertChildInOrder(child) {
+		const target = child.target();
 		const currentIndex = this._cildren.indexOf(child);
 		const nextVisibleSibling = this._cildren
 			.slice(currentIndex + 1)
+			.filter((c) => c.target() === target)
 			.map((c) => c.node)
-			.find((node) => this._target.contains(node));
+			.find((node) => target && target.contains(node));
+
+		if (!target) {
+			return;
+		}
 
 		if (nextVisibleSibling) {
-			this._target.insertBefore(child.node, nextVisibleSibling);
+			target.insertBefore(child.node, nextVisibleSibling);
 		} else {
-			this._target.appendChild(child.node);
+			target.appendChild(child.node);
 		}
 	}
 
 	updateTargetVisibility() {
-		if (!this._target || this._target === this) {
-			return;
-		}
-
-		const hasVisibleChild = Array.from(this._target.children).some(
-			(node) => !node.classList.contains(TAILWIND_HIDDEN_CLASS),
+		const targets = new Set(
+			this._cildren.map((child) => child.target()).filter((target) => target && target !== this),
 		);
-		this._target.classList.toggle(TAILWIND_HIDDEN_CLASS, !hasVisibleChild);
+
+		targets.forEach((target) => {
+			const hasVisibleChild = Array.from(target.children).some(
+				(node) => !node.classList.contains(TAILWIND_HIDDEN_CLASS),
+			);
+			target.classList.toggle(TAILWIND_HIDDEN_CLASS, !hasVisibleChild);
+		});
 	}
 }
