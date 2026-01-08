@@ -142,7 +142,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="title" id="title" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
 				{{- $model.result.Entry.TitleStmt -}}
 				</textarea>
 						</div>
@@ -173,7 +173,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="subtitle" id="subtitle" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
 					{{- $model.result.Entry.SubtitleStmt -}}
 				</textarea>
 						</div>
@@ -203,7 +203,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="incipit" id="incipit" class="inputinput" placeholder="" autocomplete="off">
+							<textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
 					{{- $model.result.Entry.IncipitStmt -}}
 				</textarea>
 						</div>
@@ -218,7 +218,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="publication">
@@ -231,7 +231,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="publication_statement" id="publication_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
+							<textarea name="publication_statement" id="publication_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}" data-dm-target="publication">
@@ -244,7 +244,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="place_statement" id="place_statement" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
+							<textarea name="place_statement" id="place_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
 						</div>
 					</div-manager>
 				</div>
@@ -262,7 +262,7 @@ type AlmanachResult struct {
 
 						<div class="flex-1 inputwrapper">
 							<label for="edition" class="inputlabel">Ausgabe</label>
-							<textarea name="edition" id="edition" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
+							<textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
 						</div>
 					</div>
 
@@ -638,7 +638,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="extent" id="extent" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
+							<textarea name="extent" id="extent" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
@@ -651,7 +651,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="dimensions" id="dimensions" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
+							<textarea name="dimensions" id="dimensions" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
 						</div>
 					</div-manager>
 				</div>
@@ -673,7 +673,7 @@ type AlmanachResult struct {
 					<!-- Nachweise - Always visible -->
 					<div class="inputwrapper">
 						<label for="refs" class="inputlabel">Nachweise</label>
-						<textarea name="refs" id="refs" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
+						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
 					</div>
 
 					<!-- Physical Description -->

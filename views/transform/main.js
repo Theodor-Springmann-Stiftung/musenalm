@@ -282,6 +282,19 @@ function FormLoad(form) {
 	});
 }
 
+document.addEventListener("keydown", (event) => {
+	if (event.key !== "Enter") {
+		return;
+	}
+	const target = event.target;
+	if (!(target instanceof HTMLElement)) {
+		return;
+	}
+	if (target.matches("textarea.no-enter")) {
+		event.preventDefault();
+	}
+});
+
 window.ShowBoostedErrors = ShowBoostedErrors;
 window.GenQRCode = GenQRCode;
 window.SelectableInput = SelectableInput;
