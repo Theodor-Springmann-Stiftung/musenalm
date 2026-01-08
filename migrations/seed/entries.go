@@ -52,7 +52,7 @@ func RecordsFromBände(
 		record.SetReferences(NormalizeString(band.Nachweis))
 		record.SetAnnotation(NormalizeString(band.Anmerkungen))
 		record.SetResponsibilityStmt(NormalizeString(band.Verantwortlichkeitsangabe))
-		record.SetPublicationStmt(NormalizeString(band.Ortsangabe))
+		record.SetPlaceStmt(NormalizeString(band.Ortsangabe))
 		record.SetExtent(NormalizeString(band.Struktur))
 		record.SetCarrierType([]string{"Band"})
 		record.SetContentType([]string{"unbewegtes Bild", "Text"})
