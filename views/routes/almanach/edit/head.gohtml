@@ -1,3 +1,8 @@
+{{ $model := . }}
 <title>
-
+{{ if $model.result }}
+	Bearbeiten: {{ $model.result.Entry.PreferredTitle }} - Musenalm
+{{ else }}
+	Neuer Almanach - Musenalm
+{{ end }}
 </title>

@@ -325,15 +325,12 @@ type AlmanachResult struct {
 		<!-- Right Column -->
 		<div class="w-[28rem] shrink-0 flex flex-col gap-3">
 			<div>
-				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
-					<i class="ri-clipboard-line"></i>
-					<span>Bearbeitungsdaten</span>
-				</div>
-				<hr class="border-stone-200 mt-2" />
-				<div class="flex flex-col gap-4 mt-4">
+				<div class="flex flex-col gap-4">
 					<!-- Status -->
 					<div class="inputwrapper">
+						<div class="flex flex-row justify-between">
 						<label for="type" class="inputlabel">Status</label>
+						</div>
 						<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
 							<option value="Unknown" {{ if eq $model.result.Entry.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
 							<option value="ToDo" {{ if eq $model.result.Entry.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
@@ -430,6 +427,7 @@ type AlmanachResult struct {
 				</div>
 				<hr class="border-stone-200 mt-2" />
 				<items-editor class="block mt-4">
+
 					<div class="items-list flex flex-col gap-3">
 						{{- range $i, $item := $model.result.Items -}}
 							<div class="items-row border border-stone-200 rounded-xs bg-stone-50 flex flex-col gap-3 shadow-sm" data-item-id="{{ $item.Id }}">
@@ -482,6 +480,7 @@ type AlmanachResult struct {
 									</div>
 								</div>
 								<div class="items-edit-panel hidden">
+								<!-- This gets used when editing an item -->
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
@@ -530,19 +529,22 @@ type AlmanachResult struct {
 							<i class="ri-add-line"></i> Exemplar hinzufügen
 						</button>
 					</div>
+
+
 					<template class="items-template">
-						<div class="items-row border border-stone-200 rounded-xs bg-stone-50 p-4 flex flex-col gap-3 shadow-sm">
+					<!-- This gets used when adding an item -->
+						<div class="items-row border border-stone-200 rounded-xs bg-stone-50 flex flex-col gap-3 shadow-sm">
 							<input type="hidden" name="items_id[]" value="" />
 							<div class="items-summary hidden flex flex-col gap-2">
 								<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
 									<div class="text-base font-bold" data-summary-container>
 										<span data-summary-field="owner" data-summary-hide-empty="true">—</span>
 									</div>
-									<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold" data-summary-container>
+									<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold rounded-sm" data-summary-container>
 										<span data-summary-field="identifier" data-summary-hide-empty="true">—</span>
 									</div>
 								</div>
-								<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+								<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 px-3 py-1">
 									<div class="text-sm text-gray-700">
 										<div class="flex flex-col gap-1 text-base">
 											<div class="grid grid-cols-[6rem_1fr] gap-x-4 items-baseline" data-summary-container>
@@ -566,7 +568,7 @@ type AlmanachResult struct {
 										</div>
 									</div>
 								</div>
-								<div class="flex justify-end mt-2 px-3 py-1">
+								<div class="flex justify-end mt-2 px-3">
 									<div class="flex flex-row gap-3 text-lg">
 										<button type="button" class="items-edit-button text-gray-700 hover:text-gray-900" aria-label="Bearbeiten">
 											<i class="ri-edit-line"></i>
@@ -614,12 +616,14 @@ type AlmanachResult struct {
 										<i class="ri-check-line mr-2"></i> Fertig
 									</button>
 									<button type="button" class="items-remove-button resetbutton w-auto px-2 py-1 text-base text-red-700 hover:text-red-900">
-										<i class="ri-delete-bin-line mr-2"></i> Entfernen
+										<i class="ri-delete-bin-line mr-2"></i> Abbrechen
 									</button>
 								</div>
 							</div>
 						</div>
 					</template>
+
+
 				</items-editor>
 			</div>
 		</div>
