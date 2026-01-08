@@ -1,12 +1,25 @@
+const PREFERRED_SERIES_RELATION = "Bevorzugter Reihentitel";
+
 export class AlmanachEditPage extends HTMLElement {
 	constructor() {
 		super();
 		this._pendingAgent = null;
+		this._form = null;
+		this._saveButton = null;
+		this._statusEl = null;
+		this._saveEndpoint = "";
+		this._isSaving = false;
+		this._handleSaveClick = this._handleSaveClick.bind(this);
 	}
 
 	connectedCallback() {
 		this._initForm();
 		this._initPlaces();
+		this._initSaveHandling();
+	}
+
+	disconnectedCallback() {
+		this._teardownSaveHandling();
 	}
 
 	_initForm() {
@@ -31,20 +44,383 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 	}
 
-	_initPlaces() {
-		const placesSelect = this.querySelector("#places");
-		if (!placesSelect) {
+		_initPlaces() {
+			const placesSelect = this.querySelector("#places");
+			if (!placesSelect) {
+				return;
+			}
+			const applyInitial = () => {
+				const initialPlaces = this._parseJSONAttr(placesSelect, "data-initial-options") || [];
+				const initialPlaceIds = this._parseJSONAttr(placesSelect, "data-initial-values") || [];
+				if (initialPlaces.length > 0 && typeof placesSelect.setOptions === "function") {
+					placesSelect.setOptions(initialPlaces);
+				}
+				if (initialPlaceIds.length > 0) {
+					placesSelect.value = initialPlaceIds;
+					if (typeof placesSelect.captureInitialSelection === "function") {
+						placesSelect.captureInitialSelection();
+					}
+				}
+			};
+
+			if (typeof placesSelect.setOptions === "function") {
+				applyInitial();
+				return;
+			}
+
+			if (typeof window.customElements?.whenDefined === "function") {
+				window.customElements.whenDefined("multi-select-simple").then(() => {
+					requestAnimationFrame(() => applyInitial());
+				});
+			}
+		}
+
+	_initSaveHandling() {
+		this._teardownSaveHandling();
+		this._form = this.querySelector("#changealmanachform");
+		this._saveButton = this.querySelector("[data-role='almanach-save']");
+		this._statusEl = this.querySelector("#almanach-save-feedback");
+		if (!this._form || !this._saveButton) {
 			return;
 		}
-		const initialPlaces = this._parseJSONAttr(placesSelect, "data-initial-options") || [];
-		const initialPlaceIds = this._parseJSONAttr(placesSelect, "data-initial-values") || [];
+		this._saveEndpoint = this._form.getAttribute("data-save-endpoint") || this._deriveSaveEndpoint();
+		this._saveButton.addEventListener("click", this._handleSaveClick);
+	}
 
-		if (initialPlaces.length > 0 && typeof placesSelect.setOptions === "function") {
-			placesSelect.setOptions(initialPlaces);
+	_teardownSaveHandling() {
+		if (this._saveButton) {
+			this._saveButton.removeEventListener("click", this._handleSaveClick);
 		}
-		if (initialPlaceIds.length > 0) {
-			placesSelect.value = initialPlaceIds;
+		this._saveButton = null;
+		this._statusEl = null;
+	}
+
+	_deriveSaveEndpoint() {
+		if (!window?.location?.pathname) {
+			return "/almanach/save";
 		}
+		const path = window.location.pathname.endsWith("/")
+			? window.location.pathname.slice(0, -1)
+			: window.location.pathname;
+		return `${path}/save`;
+	}
+
+	async _handleSaveClick(event) {
+		event.preventDefault();
+		if (this._isSaving) {
+			return;
+		}
+		this._clearStatus();
+		let payload;
+		try {
+			payload = this._buildPayload();
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : String(error), "error");
+			return;
+		}
+		this._setSavingState(true);
+		try {
+			const response = await fetch(this._saveEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+
+			let data = null;
+			try {
+				data = await response.clone().json();
+			} catch {
+				data = null;
+			}
+
+			if (!response.ok) {
+				const message = data?.error || `Speichern fehlgeschlagen (${response.status}).`;
+				throw new Error(message);
+			}
+
+			await this._reloadForm(data?.message || "Änderungen gespeichert.");
+			this._clearStatus();
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : "Speichern fehlgeschlagen.", "error");
+		} finally {
+			this._setSavingState(false);
+		}
+	}
+
+	_buildPayload() {
+		if (!this._form) {
+			throw new Error("Formular konnte nicht gefunden werden.");
+		}
+		const formData = new FormData(this._form);
+		const entry = {
+			preferred_title: this._readValue(formData, "preferred_title"),
+			title: this._readValue(formData, "title"),
+			parallel_title: this._readValue(formData, "paralleltitle"),
+			subtitle: this._readValue(formData, "subtitle"),
+			variant_title: this._readValue(formData, "varianttitle"),
+			incipit: this._readValue(formData, "incipit"),
+			responsibility_statement: this._readValue(formData, "responsibility_statement"),
+			publication_statement: this._readValue(formData, "publication_statement"),
+			place_statement: this._readValue(formData, "place_statement"),
+			edition: this._readValue(formData, "edition"),
+			annotation: this._readValue(formData, "annotation"),
+			edit_comment: this._readValue(formData, "edit_comment"),
+			extent: this._readValue(formData, "extent"),
+			dimensions: this._readValue(formData, "dimensions"),
+			references: this._readValue(formData, "refs"),
+			status: this._readValue(formData, "type"),
+		};
+
+		if (!entry.preferred_title) {
+			throw new Error("Kurztitel ist erforderlich.");
+		}
+
+		const yearValue = this._readValue(formData, "year");
+		if (yearValue === "") {
+			throw new Error("Jahr muss angegeben werden (0 ist erlaubt).");
+		}
+		const parsedYear = Number.parseInt(yearValue, 10);
+		if (Number.isNaN(parsedYear)) {
+			throw new Error("Jahr ist ungültig.");
+		}
+		entry.year = parsedYear;
+
+		const languages = formData.getAll("languages[]").map((value) => value.trim()).filter(Boolean);
+		const places = formData.getAll("places[]").map((value) => value.trim()).filter(Boolean);
+		const { items, removedIds } = this._collectItems(formData);
+		const {
+			relations: seriesRelations,
+			deleted: deletedSeriesRelationIds,
+		} = this._collectRelations(formData, {
+			prefix: "entries_series",
+			targetField: "series",
+		});
+		const newSeriesRelations = this._collectNewRelations("entries_series");
+		const hasPreferredSeries = [...seriesRelations, ...newSeriesRelations].some(
+			(relation) => relation.type === PREFERRED_SERIES_RELATION,
+		);
+		if (!hasPreferredSeries) {
+			throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
+		}
+
+		const {
+			relations: agentRelations,
+			deleted: deletedAgentRelationIds,
+		} = this._collectRelations(formData, {
+			prefix: "entries_agents",
+			targetField: "agent",
+		});
+		const newAgentRelations = this._collectNewRelations("entries_agents");
+
+		return {
+			csrf_token: this._readValue(formData, "csrf_token"),
+			last_edited: this._readValue(formData, "last_edited"),
+			entry,
+			languages,
+			places,
+			items,
+			deleted_item_ids: removedIds,
+			series_relations: seriesRelations,
+			new_series_relations: newSeriesRelations,
+			deleted_series_relation_ids: deletedSeriesRelationIds,
+			agent_relations: agentRelations,
+			new_agent_relations: newAgentRelations,
+			deleted_agent_relation_ids: deletedAgentRelationIds,
+		};
+	}
+
+	_collectItems(formData) {
+		const ids = formData.getAll("items_id[]").map((value) => value.trim());
+		const owners = formData.getAll("items_owner[]");
+		const identifiers = formData.getAll("items_identifier[]");
+		const locations = formData.getAll("items_location[]");
+		const media = formData.getAll("items_media[]");
+		const annotations = formData.getAll("items_annotation[]");
+		const uris = formData.getAll("items_uri[]");
+		const removed = new Set(
+			formData
+				.getAll("items_removed[]")
+				.map((value) => value.trim())
+				.filter(Boolean),
+		);
+		const items = [];
+		for (let index = 0; index < ids.length; index += 1) {
+			const id = ids[index] || "";
+			if (id && removed.has(id)) {
+				continue;
+			}
+			const owner = (owners[index] || "").trim();
+			const identifier = (identifiers[index] || "").trim();
+			const location = (locations[index] || "").trim();
+			const annotation = (annotations[index] || "").trim();
+			const uri = (uris[index] || "").trim();
+			const mediaValue = (media[index] || "").trim();
+			const hasValues = id || owner || identifier || location || annotation || uri || mediaValue;
+			if (!hasValues) {
+				continue;
+			}
+			items.push({
+				id,
+				owner,
+				identifier,
+				location,
+				annotation,
+				uri,
+				media: mediaValue ? [mediaValue] : [],
+			});
+		}
+		return {
+			items,
+			removedIds: Array.from(removed),
+		};
+	}
+
+	_collectRelations(formData, { prefix, targetField }) {
+		const relations = [];
+		const deleted = [];
+		for (const [key, value] of formData.entries()) {
+			if (!key.startsWith(`${prefix}_type[`)) {
+				continue;
+			}
+			const relationKey = key.slice(key.indexOf("[") + 1, -1);
+			const targetKey = `${prefix}_${targetField}[${relationKey}]`;
+			const relationIdKey = `${prefix}_id[${relationKey}]`;
+			const deleteKey = `${prefix}_delete[${relationKey}]`;
+			const uncertainKey = `${prefix}_uncertain[${relationKey}]`;
+			const targetId = (formData.get(targetKey) || "").trim();
+			if (!targetId) {
+				continue;
+			}
+			const relationId = (formData.get(relationIdKey) || relationKey).trim();
+			if (formData.has(deleteKey)) {
+				if (relationId) {
+					deleted.push(relationId);
+				}
+				continue;
+			}
+			relations.push({
+				id: relationId,
+				target_id: targetId,
+				type: (value || "").trim(),
+				uncertain: formData.has(uncertainKey),
+			});
+		}
+		return { relations, deleted };
+	}
+
+	_collectNewRelations(prefix) {
+		const editor = this.querySelector(`relations-editor[data-prefix='${prefix}']`);
+		if (!editor) {
+			return [];
+		}
+		const newRows = editor.querySelectorAll("[data-role='relation-add-row'] [data-rel-row]");
+		const relations = [];
+		newRows.forEach((row) => {
+			const idInput = row.querySelector(`input[name='${prefix}_new_id']`);
+			const typeInput = row.querySelector(`select[name='${prefix}_new_type']`);
+			const uncertainInput = row.querySelector(`input[name='${prefix}_new_uncertain']`);
+			if (!idInput) {
+				return;
+			}
+			const targetId = idInput.value.trim();
+			if (!targetId) {
+				return;
+			}
+			relations.push({
+				target_id: targetId,
+				type: (typeInput?.value || "").trim(),
+				uncertain: Boolean(uncertainInput?.checked),
+			});
+		});
+		return relations;
+	}
+
+	_readValue(formData, field) {
+		const value = formData.get(field);
+		return value ? String(value).trim() : "";
+	}
+
+	_setSavingState(isSaving) {
+		this._isSaving = isSaving;
+		if (!this._saveButton) {
+			return;
+		}
+		this._saveButton.disabled = isSaving;
+		const label = this._saveButton.querySelector("span");
+		if (label) {
+			label.textContent = isSaving ? "Speichern..." : "Speichern";
+		}
+	}
+
+	_clearStatus() {
+		if (!this._statusEl) {
+			return;
+		}
+		this._statusEl.textContent = "";
+		this._statusEl.classList.remove("text-red-700", "text-green-700");
+	}
+
+	_showStatus(message, type) {
+		if (!this._statusEl) {
+			return;
+		}
+		this._clearStatus();
+		this._statusEl.textContent = message;
+		if (type === "success") {
+			this._statusEl.classList.add("text-green-700");
+		} else if (type === "error") {
+			this._statusEl.classList.add("text-red-700");
+		}
+	}
+
+	async _reloadForm(successMessage) {
+		this._teardownSaveHandling();
+		const targetUrl = new URL(window.location.href);
+		if (successMessage) {
+			targetUrl.searchParams.set("saved_message", successMessage);
+		} else {
+			targetUrl.searchParams.delete("saved_message");
+		}
+
+		const response = await fetch(targetUrl.toString(), {
+			headers: {
+				"X-Requested-With": "fetch",
+			},
+		});
+		if (!response.ok) {
+			throw new Error("Formular konnte nicht aktualisiert werden.");
+		}
+
+		const html = await response.text();
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(html, "text/html");
+
+		const newForm = doc.querySelector("#changealmanachform");
+		const currentForm = this.querySelector("#changealmanachform");
+		if (!newForm || !currentForm) {
+			throw new Error("Formular konnte nicht geladen werden.");
+		}
+		currentForm.replaceWith(newForm);
+		this._form = newForm;
+
+		const newMessage = doc.querySelector("#user-message");
+		const currentMessage = this.querySelector("#user-message");
+		if (newMessage && currentMessage) {
+			currentMessage.replaceWith(newMessage);
+		}
+
+		const newHeader = doc.querySelector("#almanach-header-data");
+		const currentHeader = this.querySelector("#almanach-header-data");
+		if (newHeader && currentHeader) {
+			currentHeader.replaceWith(newHeader);
+		}
+
+		this._initForm();
+		this._initPlaces();
+		this._initSaveHandling();
 	}
 
 }

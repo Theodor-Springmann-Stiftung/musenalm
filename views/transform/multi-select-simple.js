@@ -506,6 +506,14 @@ export class MultiSelectSimple extends HTMLElement {
 		this._updateRootElementStateClasses();
 	}
 
+	captureInitialSelection() {
+		this._initialValue = [...this._value];
+		this._initialOrder = [...this._value];
+		this._removedIds.clear();
+		this._initialCaptured = true;
+		this._renderSelectedItems();
+	}
+
 	_synchronizeHiddenSelect() {
 		if (!this.hiddenSelect) return;
 		this.hiddenSelect.innerHTML = "";

@@ -80,17 +80,16 @@ type AlmanachResult struct {
 				<div class="">
 					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
 					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit">
-							{{ GermanDate $model.result.Entry.Updated }},
-							{{ GermanTime
-								$model.result.Entry.Updated
-							}}h
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit" id="almanach-updated-stamp">
+							<span id="almanach-updated-date">{{ GermanDate $model.result.Entry.Updated }}</span>,
+							<span id="almanach-updated-time">{{ GermanTime $model.result.Entry.Updated }}</span>h
 						</div>
-						{{- if $model.result.User -}}
-							<div class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit">
-								<i class="ri-user-line mr-1"></i> {{- $model.result.User.Name -}}
-							</div>
-						{{- end -}}
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
+							id="almanach-updated-user">
+							<i class="ri-user-line mr-1"></i>
+							<span id="almanach-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -100,10 +99,17 @@ type AlmanachResult struct {
 
 <div class="container-normal mx-auto mt-4 !px-0">
 	{{ template "_usermessage" $model }}
-	<form class="w-full flex gap-8 dbform" id="changealmanachform" x-target="changealmanachform user-message almanach-header-data" hx-boost="false" method="POST">
+		<form
+			class="w-full dbform"
+			id="changealmanachform"
+			x-target="changealmanachform user-message almanach-header-data"
+			hx-boost="false"
+			method="POST"
+			data-save-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/save">
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 		<input type="hidden" name="last_edited" value="{{ $model.result.Entry.Updated }}" />
 
+		<div class="flex gap-8">
 		<!-- Left Column -->
 		<div class="flex-1 flex flex-col gap-4">
 			<!-- Kurztitel -->
@@ -553,6 +559,7 @@ type AlmanachResult struct {
 						<multi-select-simple
 							id="places"
 							name="places[]"
+							value='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'
 								placeholder="Orte suchen..."
 								data-toggle-label='<i class="ri-add-circle-line"></i>'
 								data-empty-text="Keine Orte ausgewählt..."
@@ -561,8 +568,8 @@ type AlmanachResult struct {
 								data-result-key="places"
 								data-minchars="1"
 								data-limit="15"
-								data-initial-options='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{"id":"{{ $place.Id }}","name":{{ printf "%q" $place.Name }},"additional_data":{{ printf "%q" $place.Pseudonyms }}}}{{- end -}}]'
-								data-initial-values='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'>
+								data-initial-options='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q,\"additional_data\":%q}" $place.Id $place.Name $place.Pseudonyms }}{{- end -}}]'
+								data-initial-values='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
 						</multi-select-simple>
 					</div>
 				</div>
@@ -655,6 +662,7 @@ type AlmanachResult struct {
 						<label for="languages" class="inputlabel">Sprachen</label>
 						<multi-select-simple
 							id="languages"
+							name="languages[]"
 							show-create-button="false"
 							placeholder="Sprachen suchen..."
 							data-toggle-label='<i class="ri-add-circle-line"></i>'
@@ -887,6 +895,14 @@ type AlmanachResult struct {
 			</div>
 		</div>
 		<!-- End Right Column -->
+		</div>
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p id="almanach-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
+			<button type="button" class="submitbutton flex items-center gap-2 self-end" data-role="almanach-save">
+				<i class="ri-save-line"></i>
+				<span>Speichern</span>
+			</button>
+		</div>
 	</form>
 </div>
 </almanach-edit-page>
