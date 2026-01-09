@@ -13,6 +13,7 @@ const (
 	T_INDEX_TEXTE  = "texte"
 
 	P_REIHEN_NAME      = "reihen"
+	P_ORTE_NAME        = "orte"
 	P_DANK_NAME        = "danksagungen"
 	P_KONTAKT_NAME     = "kontakt"
 	P_LIT_NAME         = "literatur"
@@ -51,4 +52,6 @@ const (
 	P_REIHE_NEW_NAME     = "reihe_new"
 	P_PERSON_EDIT_NAME   = "person_edit"
 	P_PERSON_NEW_NAME    = "person_new"
+	P_ORT_EDIT_NAME      = "ort_edit"
+	P_ORT_NEW_NAME       = "ort_new"
 )

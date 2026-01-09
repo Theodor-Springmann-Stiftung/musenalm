@@ -1,0 +1,248 @@
+{{ $model := . }}
+{{ $place := $model.result.Place }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+				{{- if $model.is_new -}}
+					Neuer Ort
+				{{- else -}}
+					{{- $place.Name -}}
+				{{- end -}}
+				{{- if $model.is_new -}}
+					<span class="ml-2 text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs align-middle">Neu</span>
+				{{- end -}}
+			</h1>
+			{{- if not $model.is_new -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a href="/orte/" class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Orte
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/ort/{{ $place.Id }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+		{{- if not $model.is_new -}}
+		<div class="flex flex-row" id="place-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $place.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-6">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if $model.result.Prev -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Prev.Name }}</div>
+								<a
+									href="/ort/{{ $model.result.Prev.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+						{{- if $model.result.Next -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Next.Name }}</div>
+								<a
+									href="/ort/{{ $model.result.Next.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit" id="place-updated-stamp">
+							<span id="place-updated-date">{{ GermanDate $place.Updated }}</span>,
+							<span id="place-updated-time">{{ GermanTime $place.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
+							id="place-updated-user">
+							<i class="ri-user-line mr-1"></i>
+							<span id="place-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{- end -}}
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+	<form
+		class="w-full dbform"
+		id="changeplaceform"
+		method="POST"
+		action="{{ if $model.is_new }}/orte/new/{{ else }}/ort/{{ $place.Id }}/edit{{ end }}"
+		{{- if not $model.is_new -}}
+			data-delete-endpoint="/ort/{{ $place.Id }}/edit/delete"
+		{{- end -}}>
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $place.Updated }}{{ end }}" />
+
+		<div class="flex gap-8">
+			<div class="flex-1 flex flex-col gap-4">
+				<div class="inputwrapper">
+					<label for="name" class="inputlabel">Name</label>
+					<textarea name="name" id="name" class="inputinput no-enter" autocomplete="off" rows="1">{{- $place.Name -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
+					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="annotation" class="inputlabel">Annotation</label>
+					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $place.Annotation -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="uri" class="inputlabel">URI</label>
+					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
+				</div>
+				<div class="inputwrapper">
+					<label class="inputlabel">Typ</label>
+					<div class="px-3 py-2 flex flex-col gap-2">
+						<label class="flex items-center gap-2 text-sm text-gray-700">
+							<input type="checkbox" name="fictional" {{ if $place.Fictional }}checked{{ end }} />
+							Fiktiv
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+				<div class="inputwrapper">
+					<label for="status" class="inputlabel">Status</label>
+					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
+						<option value="Unknown" {{ if eq $place.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+						<option value="ToDo" {{ if eq $place.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+						<option value="Review" {{ if eq $place.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+						<option value="Seen" {{ if eq $place.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+						<option value="Edited" {{ if eq $place.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+					</select>
+				</div>
+				<div class="inputwrapper">
+					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $place.Comment -}}</textarea>
+				</div>
+				<div class="mt-2">
+					<tab-list
+						data-default-index="{{ if gt (len $model.result.Entries) 0 }}0{{ end }}"
+						data-disabled-indices="{{ if eq (len $model.result.Entries) 0 }}0{{ end }}">
+						<div class="flex items-center gap-3 text-sm font-bold text-gray-700">
+							<div class="tab-list-head flex items-center gap-2">
+								<i class="ri-book-2-line"></i>
+								<span>Verknüpfte Bände</span>
+								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Entries }}</span>
+							</div>
+						</div>
+						<hr class="border-slate-400 mt-2 mb-3" />
+						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+							{{- if $model.result.Entries -}}
+								<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 ml-0 list-none">
+									{{- range $entry := $model.result.Entries -}}
+										<li class="flex items-baseline justify-between gap-3 ml-0 pl-0">
+											<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">
+												{{- $entry.PreferredTitle -}}
+											</a>
+											<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
+										</li>
+									{{- end -}}
+								</ul>
+							{{- else -}}
+								<div class="italic text-gray-500">Keine Bände verknüpft.</div>
+							{{- end -}}
+						</div>
+					</tab-list>
+				</div>
+			</div>
+		</div>
+
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p id="place-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
+			<div class="flex items-center gap-3 self-end flex-wrap">
+				<a href="/orte/" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-close-line"></i>
+					<span>Abbrechen</span>
+				</a>
+				{{- if not $model.is_new -}}
+					<a href="/ort/{{ $place.Id }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-loop-left-line"></i>
+						<span>Reset</span>
+					</a>
+					<button
+						type="button"
+						class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+						data-role="edit-delete">
+						<i class="ri-delete-bin-line"></i>
+						<span>Ort löschen</span>
+					</button>
+				{{- end -}}
+				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+{{- if not $model.is_new -}}
+	<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+		<div class="p-5 w-[26rem]">
+			<div class="text-base font-bold text-gray-900">Ort löschen?</div>
+			<div class="text-sm font-bold text-gray-900 mt-1">{{ $place.Name }}</div>
+			<p class="text-sm text-gray-700 mt-2">
+				Der Ort wird gelöscht und aus allen verknüpften Bänden entfernt.
+			</p>
+			<div class="mt-3">
+				<div class="text-sm font-semibold text-gray-700">Betroffene Bände</div>
+				<div class="mt-2 max-h-40 overflow-auto pr-1">
+					{{- if $model.result.Entries -}}
+						<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
+							{{- range $entry := $model.result.Entries -}}
+								<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
+									<span>{{ $entry.PreferredTitle }}</span>
+									<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
+								</li>
+							{{- end -}}
+						</ul>
+					{{- else -}}
+						<div class="italic text-gray-500">Keine Bände betroffen.</div>
+					{{- end -}}
+				</div>
+			</div>
+			<div class="flex items-center justify-end gap-3 mt-4">
+				<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
+				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="edit-delete-confirm">
+					Löschen
+				</button>
+			</div>
+		</div>
+	</dialog>
+{{- end -}}
+</edit-page>

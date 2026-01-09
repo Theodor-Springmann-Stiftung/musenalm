@@ -1221,7 +1221,7 @@ class Re extends HTMLElement {
   }
 }
 y(Re, "formAssociated", !0);
-const ct = "mss-component-wrapper", ue = "mss-selected-items-container", ut = "mss-selected-item-pill", mt = "mss-selected-item-text", _t = "mss-selected-item-pill-detail", me = "mss-selected-item-delete-btn", _e = "mss-input-controls-container", pe = "mss-input-wrapper", fe = "mss-input-wrapper-focused", ge = "mss-text-input", be = "mss-create-new-button", Ee = "mss-toggle-button", pt = "mss-inline-row", Se = "mss-options-list", ft = "mss-option-item", gt = "mss-option-item-name", bt = "mss-option-item-detail", ve = "mss-option-item-highlighted", z = "mss-hidden-select", K = "mss-no-items-text", Le = "mss-loading", W = 1, G = 10, Et = 250, St = "mss-state-no-selection", vt = "mss-state-has-selection", Lt = "mss-state-list-open";
+const ct = "mss-component-wrapper", ue = "mss-selected-items-container", ut = "mss-selected-item-pill", mt = "mss-selected-item-text", _t = "mss-selected-item-pill-detail", me = "mss-selected-item-delete-btn", pt = "mss-selected-item-edit-link", _e = "mss-input-controls-container", pe = "mss-input-wrapper", fe = "mss-input-wrapper-focused", ge = "mss-text-input", be = "mss-create-new-button", Ee = "mss-toggle-button", ft = "mss-inline-row", Se = "mss-options-list", gt = "mss-option-item", bt = "mss-option-item-name", Et = "mss-option-item-detail", ve = "mss-option-item-highlighted", z = "mss-hidden-select", K = "mss-no-items-text", Le = "mss-loading", W = 1, G = 10, St = 250, vt = "mss-state-no-selection", Lt = "mss-state-has-selection", yt = "mss-state-list-open";
 class Oe extends HTMLElement {
   constructor() {
     super();
@@ -1410,18 +1410,21 @@ class Oe extends HTMLElement {
       { id: "yor", name: "Yoruba" },
       { id: "zha", name: "Zhuang" },
       { id: "zul", name: "Zulu" }
-    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._remoteEndpoint = null, this._remoteResultKey = "items", this._remoteMinChars = W, this._remoteLimit = G, this._remoteFetchController = null, this._remoteFetchTimeout = null, this._placeholder = this.getAttribute("placeholder") || "Search items...", this._showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._setupTemplates(), this._bindEventHandlers();
+    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._remoteEndpoint = null, this._remoteResultKey = "items", this._remoteMinChars = W, this._remoteLimit = G, this._remoteFetchController = null, this._remoteFetchTimeout = null, this._placeholder = this.getAttribute("placeholder") || "Search items...", this._showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._editBase = this.getAttribute("data-edit-base") || "", this._editSuffix = this.getAttribute("data-edit-suffix") || "/edit", this._setupTemplates(), this._bindEventHandlers();
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${ft}">
-                        <span data-ref="nameEl" class="${gt}"></span>
-                        <span data-ref="detailEl" class="${bt}"></span>
+                    <li role="option" class="${gt}">
+                        <span data-ref="nameEl" class="${bt}"></span>
+                        <span data-ref="detailEl" class="${Et}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
                     <span class="${ut} flex items-center">
                         <span data-ref="textEl" class="${mt}"></span>
                         <span data-ref="detailEl" class="${_t} hidden"></span>
+                        <a data-ref="editLink" class="${pt} hidden" aria-label="Bearbeiten">
+                            <i class="ri-edit-line"></i>
+                        </a>
                         <button type="button" data-ref="deleteBtn" class="${me}">&times;</button>
                     </span>
                 `;
@@ -1547,7 +1550,7 @@ class Oe extends HTMLElement {
     this.inputElement && (this.inputElement.disabled = e), this.createNewButton && (this.createNewButton.disabled = e), this.toggleAttribute("disabled", e), this.querySelectorAll(`.${me}`).forEach((i) => i.disabled = e), this.hiddenSelect && (this.hiddenSelect.disabled = e), e && this._hideOptionsList();
   }
   _updateRootElementStateClasses() {
-    this.classList.toggle(St, this._value.length === 0), this.classList.toggle(vt, this._value.length > 0), this.classList.toggle(Lt, this._isOptionsListVisible);
+    this.classList.toggle(vt, this._value.length === 0), this.classList.toggle(Lt, this._value.length > 0), this.classList.toggle(yt, this._isOptionsListVisible);
   }
   _render() {
     const e = this.id || `mss-${crypto.randomUUID().slice(0, 8)}`;
@@ -1558,7 +1561,7 @@ class Oe extends HTMLElement {
                         .${z} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
                     </style>
                     <div class="${ct} relative">
-                        <div class="${pt} flex flex-wrap items-center gap-2">
+                        <div class="${ft} flex flex-wrap items-center gap-2">
                             <div class="${ue} flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1"></div>
                             ${s ? `<button type="button" class="${Ee}">${i}</button>` : ""}
                             <div class="${_e} flex items-center gap-2 ${n}">
@@ -1582,16 +1585,16 @@ class Oe extends HTMLElement {
   _createSelectedItemElement(e) {
     const i = this._getItemById(e);
     if (!i) return null;
-    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="textEl"]'), r = n.querySelector('[data-ref="detailEl"]'), o = n.querySelector('[data-ref="deleteBtn"]');
+    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="textEl"]'), r = n.querySelector('[data-ref="detailEl"]'), o = n.querySelector('[data-ref="editLink"]'), d = n.querySelector('[data-ref="deleteBtn"]');
     a.textContent = this._normalizeText(i.name);
-    const d = this._normalizeText(i.additional_data);
-    d ? (r.textContent = `(${d})`, r.classList.remove("hidden")) : (r.textContent = "", r.classList.add("hidden"));
-    const c = this._removedIds.has(e);
+    const c = this._normalizeText(i.additional_data);
+    c ? (r.textContent = `(${c})`, r.classList.remove("hidden")) : (r.textContent = "", r.classList.add("hidden"));
+    const h = this._removedIds.has(e);
     if (!this._initialValue.includes(e)) {
       const u = document.createElement("span");
       u.className = "ml-1 text-xs text-gray-600", u.textContent = "(Neu)", a.appendChild(u);
     }
-    return c && (n.classList.add("bg-red-100"), n.style.position = "relative"), o.setAttribute("aria-label", c ? `Undo remove ${i.name}` : `Remove ${i.name}`), o.dataset.id = e, o.disabled = this.hasAttribute("disabled"), o.innerHTML = c ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;", o.addEventListener("click", (u) => {
+    return h && (n.classList.add("bg-red-100"), n.style.position = "relative"), o && (this._editBase && !h ? (o.href = `${this._editBase}${e}${this._editSuffix}`, o.target = "_blank", o.rel = "noreferrer", o.classList.remove("hidden")) : (o.classList.add("hidden"), o.removeAttribute("href"), o.removeAttribute("target"), o.removeAttribute("rel"))), d.setAttribute("aria-label", h ? `Undo remove ${i.name}` : `Remove ${i.name}`), d.dataset.id = e, d.disabled = this.hasAttribute("disabled"), d.innerHTML = h ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;", d.addEventListener("click", (u) => {
       u.stopPropagation(), this._handleDeleteSelectedItem(e);
     }), n;
   }
@@ -1754,7 +1757,7 @@ class Oe extends HTMLElement {
     }
     this._remoteFetchTimeout = setTimeout(() => {
       this._fetchRemoteOptions(e);
-    }, Et);
+    }, St);
   }
   _cancelRemoteFetch() {
     this._remoteFetchController && (this._remoteFetchController.abort(), this._remoteFetchController = null);
@@ -1819,8 +1822,8 @@ class Oe extends HTMLElement {
   }
 }
 y(Oe, "formAssociated", !0);
-const yt = "rbi-button", At = "rbi-icon";
-class It extends HTMLElement {
+const At = "rbi-button", It = "rbi-icon";
+class Ct extends HTMLElement {
   constructor() {
     super(), this.initialStates = /* @__PURE__ */ new Map(), this._controlledElements = [], this.button = null, this.lastOverallModifiedState = null, this.handleInputChange = this.handleInputChange.bind(this), this.handleReset = this.handleReset.bind(this);
   }
@@ -1829,10 +1832,10 @@ class It extends HTMLElement {
   }
   connectedCallback() {
     const t = `
-              <button type="button" class="${yt} cursor-pointer disabled:cursor-default" aria-label="Reset field">
+              <button type="button" class="${At} cursor-pointer disabled:cursor-default" aria-label="Reset field">
 								<tool-tip position="right">
 									<div class="data-tip">Feld zurücksetzen</div>
-									<span class="${At} ri-arrow-go-back-fill"></span>
+									<span class="${It} ri-arrow-go-back-fill"></span>
 								</tool-tip>
               </button>
             `;
@@ -1976,19 +1979,19 @@ class It extends HTMLElement {
     this.button.setAttribute("aria-label", t);
   }
 }
-const p = "hidden", ye = "dm-stay", M = "dm-title", Ae = "dm-menu-button", Ct = "dm-target", Tt = "data-dm-target", Ie = "dm-menu", Ce = "dm-menu-item", wt = "dm-close-button";
+const p = "hidden", ye = "dm-stay", M = "dm-title", Ae = "dm-menu-button", Tt = "dm-target", wt = "data-dm-target", Ie = "dm-menu", Ce = "dm-menu-item", xt = "dm-close-button";
 var D, Be;
-class xt extends HTMLElement {
+class kt extends HTMLElement {
   constructor() {
     super();
     A(this, D);
     R(this, D, Be).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
   connectedCallback() {
-    if (this._target = document.getElementById(this.getAttribute(Ct)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((e) => e.nodeType === Node.ELEMENT_NODE && !e.classList.contains(Ae)).map((e) => ({
+    if (this._target = document.getElementById(this.getAttribute(Tt)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((e) => e.nodeType === Node.ELEMENT_NODE && !e.classList.contains(Ae)).map((e) => ({
       node: e,
       target: () => {
-        const i = e.getAttribute(Tt);
+        const i = e.getAttribute(wt);
         return i ? document.getElementById(i) || this._target : this._target;
       },
       stay: () => e.hasAttribute(ye) && e.getAttribute(ye) == "true",
@@ -2010,7 +2013,7 @@ class xt extends HTMLElement {
       this.removeChild(e.node);
     this._button.addEventListener("click", this._toggleMenu.bind(this)), this._button.classList.add("relative");
     for (const e of this._cildren)
-      e.node.querySelectorAll(`.${wt}`).forEach((s) => {
+      e.node.querySelectorAll(`.${xt}`).forEach((s) => {
         s.addEventListener("click", (n) => {
           this.hideDiv(n, e.node);
         });
@@ -2132,13 +2135,13 @@ ${e[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
 D = new WeakSet(), Be = function() {
   this._cildren = [], this._rendered = [], this._target = null, this._button = null, this._menu = null, this._originalButtonText = null;
 };
-const f = "items-row", kt = "items-list", Rt = "items-template", Ot = "items-add-button", Bt = "items-cancel-button", $ = "items-remove-button", Mt = "items-edit-button", $t = "items-close-button", Nt = "items-summary", Dt = "items-edit-panel", j = "items_removed[]", I = "data-items-removed";
-class Pt extends HTMLElement {
+const f = "items-row", Rt = "items-list", Ot = "items-template", Bt = "items-add-button", Mt = "items-cancel-button", $ = "items-remove-button", $t = "items-edit-button", Nt = "items-close-button", Dt = "items-summary", Pt = "items-edit-panel", j = "items_removed[]", I = "data-items-removed";
+class qt extends HTMLElement {
   constructor() {
     super(), this._list = null, this._template = null, this._addButton = null, this._idPrefix = `items-editor-${crypto.randomUUID().slice(0, 8)}`, this._handleAdd = this._onAddClick.bind(this);
   }
   connectedCallback() {
-    if (this._list = this.querySelector(`.${kt}`), this._template = this.querySelector(`template.${Rt}`), this._addButton = this.querySelector(`.${Ot}`), !this._list || !this._template || !this._addButton) {
+    if (this._list = this.querySelector(`.${Rt}`), this._template = this.querySelector(`template.${Ot}`), this._addButton = this.querySelector(`.${Bt}`), !this._list || !this._template || !this._addButton) {
       console.error("ItemsEditor: Missing list, template, or add button.");
       return;
     }
@@ -2188,7 +2191,7 @@ class Pt extends HTMLElement {
     });
   }
   _wireCancelButtons(t = this) {
-    t.querySelectorAll(`.${Bt}`).forEach((e) => {
+    t.querySelectorAll(`.${Mt}`).forEach((e) => {
       e.dataset.itemsBound !== "true" && (e.dataset.itemsBound = "true", e.addEventListener("click", (i) => {
         i.preventDefault();
         const s = e.closest(`.${f}`);
@@ -2197,13 +2200,13 @@ class Pt extends HTMLElement {
     });
   }
   _wireEditButtons(t = this) {
-    t.querySelectorAll(`.${Mt}`).forEach((e) => {
+    t.querySelectorAll(`.${$t}`).forEach((e) => {
       e.dataset.itemsBound !== "true" && (e.dataset.itemsBound = "true", e.addEventListener("click", (i) => {
         i.preventDefault();
         const s = e.closest(`.${f}`);
         s && this._setRowMode(s, "edit");
       }));
-    }), t.querySelectorAll(`.${$t}`).forEach((e) => {
+    }), t.querySelectorAll(`.${Nt}`).forEach((e) => {
       e.dataset.itemsBound !== "true" && (e.dataset.itemsBound = "true", e.addEventListener("click", (i) => {
         i.preventDefault();
         const s = e.closest(`.${f}`);
@@ -2236,7 +2239,7 @@ class Pt extends HTMLElement {
     });
   }
   _setRowMode(t, e) {
-    const i = t.querySelector(`.${Nt}`), s = t.querySelector(`.${Dt}`);
+    const i = t.querySelector(`.${Dt}`), s = t.querySelector(`.${Pt}`);
     !i || !s || (e === "edit" ? (i.classList.add("hidden"), s.classList.remove("hidden")) : (i.classList.remove("hidden"), s.classList.add("hidden"), this._syncSummary(t)));
   }
   _captureAllOriginals() {
@@ -2329,8 +2332,8 @@ class Pt extends HTMLElement {
       i.value === t && i.remove();
   }
 }
-const qt = "ssr-wrapper", Te = "ssr-input", we = "ssr-list", Ht = "ssr-option", Ft = "ssr-option-name", Vt = "ssr-option-detail", Ut = "ssr-option-bio", xe = "ssr-hidden-input", ke = "ssr-clear-button", J = 1, Q = 10, zt = 250;
-class Kt extends HTMLElement {
+const Ht = "ssr-wrapper", Te = "ssr-input", we = "ssr-list", Ft = "ssr-option", Vt = "ssr-option-name", Ut = "ssr-option-detail", zt = "ssr-option-bio", xe = "ssr-hidden-input", ke = "ssr-clear-button", J = 1, Q = 10, Kt = 250;
+class Wt extends HTMLElement {
   constructor() {
     super(), this._endpoint = "", this._resultKey = "items", this._minChars = J, this._limit = Q, this._placeholder = "Search...", this._options = [], this._selected = null, this._highlightedIndex = -1, this._fetchTimeout = null, this._fetchController = null, this._listVisible = !1, this._boundHandleInput = this._handleInput.bind(this), this._boundHandleFocus = this._handleFocus.bind(this), this._boundHandleKeyDown = this._handleKeyDown.bind(this), this._boundHandleClear = this._handleClear.bind(this), this._boundHandleClickOutside = this._handleClickOutside.bind(this);
   }
@@ -2395,7 +2398,7 @@ class Kt extends HTMLElement {
   _debouncedFetch(t) {
     this._fetchTimeout && clearTimeout(this._fetchTimeout), this._fetchTimeout = setTimeout(() => {
       this._fetchOptions(t);
-    }, zt);
+    }, Kt);
   }
   async _fetchOptions(t) {
     if (!this._endpoint)
@@ -2423,19 +2426,19 @@ class Kt extends HTMLElement {
     this._list && (this._list.innerHTML = "", this._options.forEach((t) => {
       const e = document.createElement("button");
       e.type = "button", e.setAttribute("data-index", String(this._options.indexOf(t))), e.className = [
-        Ht,
+        Ft,
         "w-full text-left px-3 py-2 hover:bg-slate-100 transition-colors"
       ].join(" ");
       const s = this._options.indexOf(t) === this._highlightedIndex;
       e.classList.toggle("bg-slate-100", s), e.classList.toggle("text-gray-900", s), e.setAttribute("aria-selected", s ? "true" : "false");
       const n = document.createElement("div");
-      if (n.className = [Ft, "text-sm font-semibold text-gray-800"].join(" "), n.textContent = t.name, e.appendChild(n), t.detail) {
+      if (n.className = [Vt, "text-sm font-semibold text-gray-800"].join(" "), n.textContent = t.name, e.appendChild(n), t.detail) {
         const a = document.createElement("div");
-        a.className = [Vt, "text-xs text-gray-600"].join(" "), a.textContent = t.detail, e.appendChild(a);
+        a.className = [Ut, "text-xs text-gray-600"].join(" "), a.textContent = t.detail, e.appendChild(a);
       }
       if (t.bio) {
         const a = document.createElement("div");
-        a.className = [Ut, "text-xs text-gray-500"].join(" "), a.textContent = t.bio, e.appendChild(a);
+        a.className = [zt, "text-xs text-gray-500"].join(" "), a.textContent = t.bio, e.appendChild(a);
       }
       e.addEventListener("click", () => {
         this._selectOption(t);
@@ -2484,7 +2487,7 @@ class Kt extends HTMLElement {
   _render() {
     const t = this.getAttribute("name") || "";
     this.innerHTML = `
-			<div class="${qt} relative">
+			<div class="${Ht} relative">
 				<div class="flex items-center gap-2">
 					<input
 						type="text"
@@ -2505,8 +2508,8 @@ class Kt extends HTMLElement {
 		`;
   }
 }
-const Wt = "Bevorzugter Reihentitel";
-class Gt extends HTMLElement {
+const Gt = "Bevorzugter Reihentitel";
+class jt extends HTMLElement {
   constructor() {
     super(), this._pendingAgent = null, this._form = null, this._saveButton = null, this._resetButton = null, this._deleteButton = null, this._deleteDialog = null, this._deleteConfirmButton = null, this._deleteCancelButton = null, this._statusEl = null, this._saveEndpoint = "", this._deleteEndpoint = "", this._isSaving = !1, this._handleSaveClick = this._handleSaveClick.bind(this), this._handleResetClick = this._handleResetClick.bind(this), this._handleDeleteClick = this._handleDeleteClick.bind(this), this._handleDeleteConfirmClick = this._handleDeleteConfirmClick.bind(this), this._handleDeleteCancelClick = this._handleDeleteCancelClick.bind(this);
   }
@@ -2690,15 +2693,15 @@ class Gt extends HTMLElement {
     } = this._collectRelations(t, {
       prefix: "entries_series",
       targetField: "series"
-    }), h = this._collectNewRelations("entries_series"), u = [...d, ...h].filter(
-      (g) => g.type === Wt
+    }), h = this._collectNewRelations("entries_series"), m = [...d, ...h].filter(
+      (g) => g.type === Gt
     ).length;
-    if (u === 0)
+    if (m === 0)
       throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
-    if (u > 1)
+    if (m > 1)
       throw new Error("Es darf nur ein bevorzugter Reihentitel gesetzt sein.");
     const {
-      relations: m,
+      relations: u,
       deleted: _
     } = this._collectRelations(t, {
       prefix: "entries_agents",
@@ -2717,7 +2720,7 @@ class Gt extends HTMLElement {
       series_relations: d,
       new_series_relations: h,
       deleted_series_relation_ids: c,
-      agent_relations: m,
+      agent_relations: u,
       new_agent_relations: S,
       deleted_agent_relation_ids: _
     };
@@ -2727,13 +2730,13 @@ class Gt extends HTMLElement {
       t.getAll("items_removed[]").map((h) => h.trim()).filter(Boolean)
     ), c = [];
     for (let h = 0; h < e.length; h += 1) {
-      const u = e[h] || "";
-      if (u && d.has(u))
+      const m = e[h] || "";
+      if (m && d.has(m))
         continue;
-      const m = (i[h] || "").trim(), _ = (s[h] || "").trim(), S = (n[h] || "").trim(), P = (r[h] || "").trim(), L = (o[h] || "").trim(), x = (a[h] || "").trim();
-      (u || m || _ || S || P || L || x) && c.push({
-        id: u,
-        owner: m,
+      const u = (i[h] || "").trim(), _ = (s[h] || "").trim(), S = (n[h] || "").trim(), P = (r[h] || "").trim(), L = (o[h] || "").trim(), x = (a[h] || "").trim();
+      (m || u || _ || S || P || L || x) && c.push({
+        id: m,
+        owner: u,
         identifier: _,
         location: S,
         annotation: P,
@@ -2751,19 +2754,19 @@ class Gt extends HTMLElement {
     for (const [a, r] of t.entries()) {
       if (!a.startsWith(`${e}_id[`))
         continue;
-      const o = a.slice(a.indexOf("[") + 1, -1), d = `${e}_${i}[${o}]`, c = `${e}_type[${o}]`, h = `${e}_delete[${o}]`, u = `${e}_uncertain[${o}]`, m = (r || "").trim(), _ = (t.get(d) || "").trim();
-      if (!_ || !m)
+      const o = a.slice(a.indexOf("[") + 1, -1), d = `${e}_${i}[${o}]`, c = `${e}_type[${o}]`, h = `${e}_delete[${o}]`, m = `${e}_uncertain[${o}]`, u = (r || "").trim(), _ = (t.get(d) || "").trim();
+      if (!_ || !u)
         continue;
       if (t.has(h)) {
-        n.push(m);
+        n.push(u);
         continue;
       }
       const S = (t.get(c) || "").trim();
       s.push({
-        id: m,
+        id: u,
         target_id: _,
         type: S,
-        uncertain: t.has(u)
+        uncertain: t.has(m)
       });
     }
     return { relations: s, deleted: n };
@@ -2819,16 +2822,16 @@ class Gt extends HTMLElement {
     o.replaceWith(r), this._form = r;
     const d = a.querySelector("#user-message"), c = this.querySelector("#user-message");
     d && c && c.replaceWith(d);
-    const h = a.querySelector("#almanach-header-data"), u = this.querySelector("#almanach-header-data");
-    h && u && u.replaceWith(h), this._initForm(), this._initPlaces(), this._initSaveHandling(), typeof window.TextareaAutoResize == "function" && setTimeout(() => {
-      this.querySelectorAll("textarea").forEach((m) => {
-        window.TextareaAutoResize(m);
+    const h = a.querySelector("#almanach-header-data"), m = this.querySelector("#almanach-header-data");
+    h && m && m.replaceWith(h), this._initForm(), this._initPlaces(), this._initSaveHandling(), typeof window.TextareaAutoResize == "function" && setTimeout(() => {
+      this.querySelectorAll("textarea").forEach((u) => {
+        window.TextareaAutoResize(u);
       });
     }, 100);
   }
 }
-const jt = "[data-role='relation-add-toggle']", Jt = "[data-role='relation-add-panel']", Qt = "[data-role='relation-add-close']", Xt = "[data-role='relation-add-apply']", Yt = "[data-role='relation-add-error']", Zt = "[data-role='relation-add-row']", ei = "[data-role='relation-add-select']", ti = "[data-role='relation-type-select']", ii = "[data-role='relation-uncertain']", si = "template[data-role='relation-new-template']", ni = "[data-role='relation-new-delete']", C = "[data-rel-row]";
-class ai extends HTMLElement {
+const Jt = "[data-role='relation-add-toggle']", Qt = "[data-role='relation-add-panel']", Xt = "[data-role='relation-add-close']", Yt = "[data-role='relation-add-apply']", Zt = "[data-role='relation-add-error']", ei = "[data-role='relation-add-row']", ti = "[data-role='relation-add-select']", ii = "[data-role='relation-type-select']", si = "[data-role='relation-uncertain']", ni = "template[data-role='relation-new-template']", ai = "[data-role='relation-new-delete']", C = "[data-rel-row]";
+class li extends HTMLElement {
   constructor() {
     super(), this._pendingItem = null, this._pendingApply = !1;
   }
@@ -2852,11 +2855,11 @@ class ai extends HTMLElement {
     this._addPanel && !this._addPanel.classList.contains("hidden") || e || i ? this._emptyText.classList.add("hidden") : this._emptyText.classList.remove("hidden");
   }
   _setupAddPanel() {
-    if (this._addToggle = this.querySelector(jt), this._addToggleId) {
+    if (this._addToggle = this.querySelector(Jt), this._addToggleId) {
       const t = document.getElementById(this._addToggleId);
       t && (this._addToggle = t);
     }
-    this._addPanel = this.querySelector(Jt), this._addClose = this.querySelector(Qt), this._addApply = this.querySelector(Xt), this._addError = this.querySelector(Yt), this._addRow = this.querySelector(Zt), this._addSelect = this.querySelector(ei), this._typeSelect = this.querySelector(ti), this._uncertain = this.querySelector(ii), this._template = this.querySelector(si), this._addInput = this._addSelect ? this._addSelect.querySelector(".ssr-input") : null, !(!this._addPanel || !this._addRow || !this._addSelect || !this._typeSelect || !this._uncertain || !this._template) && (this._addSelect && this._prefix === "entries_series" && this._addSelect.addEventListener("ssrbeforefetch", () => {
+    this._addPanel = this.querySelector(Qt), this._addClose = this.querySelector(Xt), this._addApply = this.querySelector(Yt), this._addError = this.querySelector(Zt), this._addRow = this.querySelector(ei), this._addSelect = this.querySelector(ti), this._typeSelect = this.querySelector(ii), this._uncertain = this.querySelector(si), this._template = this.querySelector(ni), this._addInput = this._addSelect ? this._addSelect.querySelector(".ssr-input") : null, !(!this._addPanel || !this._addRow || !this._addSelect || !this._typeSelect || !this._uncertain || !this._template) && (this._addSelect && this._prefix === "entries_series" && this._addSelect.addEventListener("ssrbeforefetch", () => {
       this._addSelect._excludeIds = Array.from(this._getExistingIds());
     }), this._addToggle && this._addToggle.addEventListener("click", () => {
       this._addPanel.classList.toggle("hidden"), this._updateEmptyTextVisibility();
@@ -2907,15 +2910,15 @@ class ai extends HTMLElement {
     const c = t.querySelector("[data-rel-input='uncertain']");
     if (c && this._uncertain) {
       c.checked = this._uncertain.checked, c.name = `${this._prefix}_new_uncertain`;
-      const m = `${this._prefix}_new_uncertain_row`;
-      c.id = m;
+      const u = `${this._prefix}_new_uncertain_row`;
+      c.id = u;
       const _ = t.querySelector("[data-rel-uncertain-label]");
-      _ && _.setAttribute("for", m);
+      _ && _.setAttribute("for", u);
     }
     const h = t.querySelector("[data-rel-input='id']");
     h && (h.name = `${this._prefix}_new_id`, h.value = this._pendingItem.id);
-    const u = t.querySelector(ni);
-    u && u.addEventListener("click", () => {
+    const m = t.querySelector(ai);
+    m && m.addEventListener("click", () => {
       this._addRow.innerHTML = "", this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden"), this._updateEmptyTextVisibility();
     }), this._addRow.innerHTML = "", this._addRow.appendChild(t), this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden"), this._updateEmptyTextVisibility(), this._updatePreferredOptions();
   }
@@ -2983,20 +2986,20 @@ class ai extends HTMLElement {
     e.forEach(({ select: s, row: n, isAddPanel: a }) => {
       if (!s)
         return;
-      const r = Array.from(s.options).find((m) => m.value.trim() === t);
+      const r = Array.from(s.options).find((u) => u.value.trim() === t);
       if (!r)
         return;
       const o = n ? n.querySelector(`input[name^="${this._prefix}_delete["]`) : null, d = !!(o && o.checked), c = (s.value || "").trim(), h = !i || c === t && !d;
       if (a && i && c === t) {
-        const m = Array.from(s.options).find((_) => _.value.trim() !== t);
-        m && (s.value = m.value);
+        const u = Array.from(s.options).find((_) => _.value.trim() !== t);
+        u && (s.value = u.value);
       }
-      const u = !h || a && i;
-      r.hidden = u, r.disabled = u, r.style.display = u ? "none" : "";
+      const m = !h || a && i;
+      r.hidden = m, r.disabled = m, r.style.display = m ? "none" : "";
     });
   }
 }
-class li extends HTMLElement {
+class ri extends HTMLElement {
   connectedCallback() {
     setTimeout(() => {
       const t = this.querySelector("form");
@@ -3034,35 +3037,35 @@ class li extends HTMLElement {
       });
       if (!h.ok)
         return;
-      const u = await h.json().catch(() => null), m = (u == null ? void 0 : u.redirect) || "/";
-      window.location.assign(m);
+      const m = await h.json().catch(() => null), u = (m == null ? void 0 : m.redirect) || "/";
+      window.location.assign(u);
     });
   }
 }
-const ri = "filter-list", oi = "scroll-button", di = "tool-tip", hi = "abbrev-tooltips", ci = "int-link", ui = "popup-image", mi = "tab-list", _i = "filter-pill", pi = "image-reel", fi = "multi-select-places", gi = "multi-select-simple", bi = "single-select-remote", Me = "reset-button", Ei = "div-manager", Si = "items-editor", vi = "almanach-edit-page", Li = "relations-editor", yi = "edit-page";
-customElements.define(ci, je);
-customElements.define(hi, T);
-customElements.define(ri, Ue);
-customElements.define(oi, ze);
-customElements.define(di, Ke);
-customElements.define(ui, We);
-customElements.define(mi, Ge);
-customElements.define(_i, He);
-customElements.define(pi, Je);
-customElements.define(fi, Re);
-customElements.define(gi, Oe);
-customElements.define(bi, Kt);
-customElements.define(Me, It);
-customElements.define(Ei, xt);
-customElements.define(Si, Pt);
-customElements.define(vi, Gt);
-customElements.define(Li, ai);
+const oi = "filter-list", di = "scroll-button", hi = "tool-tip", ci = "abbrev-tooltips", ui = "int-link", mi = "popup-image", _i = "tab-list", pi = "filter-pill", fi = "image-reel", gi = "multi-select-places", bi = "multi-select-simple", Ei = "single-select-remote", Me = "reset-button", Si = "div-manager", vi = "items-editor", Li = "almanach-edit-page", yi = "relations-editor", Ai = "edit-page";
+customElements.define(ui, je);
+customElements.define(ci, T);
+customElements.define(oi, Ue);
+customElements.define(di, ze);
+customElements.define(hi, Ke);
+customElements.define(mi, We);
+customElements.define(_i, Ge);
+customElements.define(pi, He);
+customElements.define(fi, Je);
+customElements.define(gi, Re);
+customElements.define(bi, Oe);
+customElements.define(Ei, Wt);
+customElements.define(Me, Ct);
+customElements.define(Si, kt);
+customElements.define(vi, qt);
+customElements.define(Li, jt);
 customElements.define(yi, li);
-function Ai() {
+customElements.define(Ai, ri);
+function Ii() {
   const l = window.location.pathname, t = window.location.search, e = l + t;
   return encodeURIComponent(e);
 }
-function Ii(l = 5e3, t = 100) {
+function Ci(l = 5e3, t = 100) {
   return new Promise((e, i) => {
     let s = 0;
     const n = setInterval(() => {
@@ -3070,8 +3073,8 @@ function Ii(l = 5e3, t = 100) {
     }, t);
   });
 }
-async function Ci(l) {
-  const t = await Ii(), e = document.getElementById("qr");
+async function Ti(l) {
+  const t = await Ci(), e = document.getElementById("qr");
   e && (e.innerHTML = "", e.classList.add("hidden"), new t(e, {
     text: l,
     width: 1280,
@@ -3083,7 +3086,7 @@ async function Ci(l) {
     e.classList.remove("hidden");
   }, 20));
 }
-function Ti(l) {
+function wi(l) {
   l && (l.addEventListener("focus", (t) => {
     t.preventDefault(), l.select();
   }), l.addEventListener("mousedown", (t) => {
@@ -3096,7 +3099,7 @@ function Ti(l) {
     l.select();
   }));
 }
-function wi() {
+function xi() {
   document.body.addEventListener("htmx:responseError", function(l) {
     const t = l.detail.requestConfig;
     if (t.boosted) {
@@ -3106,7 +3109,7 @@ function wi() {
     }
   });
 }
-function xi(l, t) {
+function ki(l, t) {
   if (!(l instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -3151,7 +3154,7 @@ function E(l) {
 function Ne(l) {
   l.key === "Enter" && l.preventDefault();
 }
-function ki(l) {
+function Ri(l) {
   if (!(l instanceof HTMLTextAreaElement)) {
     console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -3160,7 +3163,7 @@ function ki(l) {
     E(l);
   });
 }
-function Ri(l) {
+function Oi(l) {
   if (!(l instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -3169,23 +3172,23 @@ function Ri(l) {
     E(l);
   });
 }
-function Oi(l) {
+function Bi(l) {
   !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.addEventListener("keydown", Ne);
 }
-function Bi(l) {
+function Mi(l) {
   !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.removeEventListener("keydown", Ne);
 }
-function Mi(l, t) {
+function $i(l, t) {
   const e = !$e();
   for (const i of l)
     if (i.type === "childList") {
       for (const s of i.addedNodes)
-        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && e && (ki(s), E(s));
+        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && e && (Ri(s), E(s));
       for (const s of i.removedNodes)
-        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && (Bi(s), e && Ri(s));
+        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && (Mi(s), e && Oi(s));
     }
 }
-function $i(l) {
+function Ni(l) {
   if (console.log("=== FormLoad CALLED ==="), !(l instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
@@ -3203,8 +3206,8 @@ function $i(l) {
   }, 200);
   const e = document.querySelectorAll("textarea.no-enter");
   for (const n of e)
-    Oi(n);
-  new MutationObserver(Mi).observe(l, {
+    Bi(n);
+  new MutationObserver($i).observe(l, {
     childList: !0,
     subtree: !0
   }), new MutationObserver((n) => {
@@ -3229,28 +3232,28 @@ document.addEventListener("keydown", (l) => {
   const t = l.target;
   t instanceof HTMLElement && t.matches("textarea.no-enter") && l.preventDefault();
 });
-window.ShowBoostedErrors = wi;
-window.GenQRCode = Ci;
-window.SelectableInput = Ti;
-window.PathPlusQuery = Ai;
-window.HookupRBChange = xi;
-window.FormLoad = $i;
+window.ShowBoostedErrors = xi;
+window.GenQRCode = Ti;
+window.SelectableInput = wi;
+window.PathPlusQuery = Ii;
+window.HookupRBChange = ki;
+window.FormLoad = Ni;
 window.TextareaAutoResize = E;
 export {
   T as AbbreviationTooltips,
-  Gt as AlmanachEditPage,
-  li as EditPage,
+  jt as AlmanachEditPage,
+  ri as EditPage,
   Ue as FilterList,
   He as FilterPill,
   Je as ImageReel,
   je as IntLink,
-  Pt as ItemsEditor,
+  qt as ItemsEditor,
   Re as MultiSelectRole,
   Oe as MultiSelectSimple,
   We as PopupImage,
-  ai as RelationsEditor,
+  li as RelationsEditor,
   ze as ScrollButton,
-  Kt as SingleSelectRemote,
+  Wt as SingleSelectRemote,
   Ge as TabList,
   Ke as ToolTip
 };

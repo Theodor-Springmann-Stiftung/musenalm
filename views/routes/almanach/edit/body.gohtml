@@ -289,10 +289,10 @@ type AlmanachResult struct {
 					</div>
 					<div class="flex items-center gap-3">
 						<button type="button" id="series-add-toggle" class="text-gray-700 hover:text-gray-900">
-							<i class="ri-add-line"></i> Reihe hinzufügen
+							<i class="ri-add-line"></i> Reihe verlinken
 						</button>
 						<button type="button" id="agents-add-toggle" class="text-gray-700 hover:text-gray-900">
-							<i class="ri-add-line"></i> Person hinzufügen
+							<i class="ri-add-line"></i> Person verlinken
 						</button>
 					</div>
 				</div>
@@ -300,7 +300,12 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_series" data-link-base="/reihe/" data-new-label="(Neu)" data-add-toggle-id="series-add-toggle" data-preferred-label="Bevorzugter Reihentitel">
 						<div class="inputwrapper">
-							<label class="inputlabel" for="series-section">Reihen</label>
+							<div class="flex items-center justify-between">
+								<label class="inputlabel" for="series-section">Reihen</label>
+								<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
+									<i class="ri-add-line"></i> Neue Reihe anlegen
+								</a>
+							</div>
 							<div id="series-section" class="rel-section-container">
 							{{- if $model.result.Series -}}
 								{{- range $i, $s := $model.result.Series -}}
@@ -309,7 +314,7 @@ type AlmanachResult struct {
 										<div data-rel-row class="entries-series-row rel-row">
 											<div class="rel-grid">
 												<div data-rel-strike class="relation-strike rel-name-col">
-													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="rel-link">
+													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="rel-link" target="_blank" rel="noreferrer">
 														<span data-rel-name>{{- $s.Title -}}</span>
 													</a>
 													{{- if $s.Pseudonyms -}}
@@ -429,7 +434,12 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_agents" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="agents-add-toggle">
 						<div class="inputwrapper">
-							<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
+							<div class="flex items-center justify-between">
+								<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
+								<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
+									<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
+								</a>
+							</div>
 							<div id="agents-section" class="rel-section-container">
 							{{- if $model.result.EntriesAgents -}}
 								{{- range $i, $r := $model.result.EntriesAgents -}}
@@ -438,7 +448,7 @@ type AlmanachResult struct {
 										<div class="rel-grid">
 											<div data-rel-strike class="relation-strike rel-name-col">
 												{{- if $a -}}
-													<a data-rel-link href="/person/{{ $a.Id }}" class="rel-link">
+													<a data-rel-link href="/person/{{ $a.Id }}" class="rel-link" target="_blank" rel="noreferrer">
 														<span data-rel-name>{{- $a.Name -}}</span>
 													</a>
 													{{- if $a.BiographicalData -}}
@@ -559,13 +569,20 @@ type AlmanachResult struct {
 				</div>
 
 				<div class="flex flex-col gap-4 mt-4">
-					<div class="inputwrapper">
+				<div class="inputwrapper">
+					<div class="flex items-center justify-between">
 						<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
-						<multi-select-simple
-							id="places"
-							name="places[]"
-							value='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'
-								placeholder="Orte suchen..."
+						<a href="/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
+							<i class="ri-add-line"></i> Neuen Ort anlegen
+						</a>
+					</div>
+					<multi-select-simple
+						id="places"
+						name="places[]"
+						data-edit-base="/ort/"
+						data-edit-suffix="/edit"
+						value='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'
+							placeholder="Orte suchen..."
 								data-toggle-label='<i class="ri-add-circle-line"></i>'
 								data-empty-text="Keine Orte ausgewählt..."
 								show-create-button="false"

@@ -52,3 +52,18 @@ func nextAgentMusenalmID(app core.App) (int, error) {
 	}
 	return agent.MusenalmID() + 1, nil
 }
+
+func nextPlaceMusenalmID(app core.App) (int, error) {
+	var place dbmodels.Place
+	err := app.RecordQuery(dbmodels.PLACES_TABLE).
+		OrderBy(dbmodels.MUSENALMID_FIELD + " DESC").
+		Limit(1).
+		One(&place)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 1, nil
+		}
+		return 0, err
+	}
+	return place.MusenalmID() + 1, nil
+}

@@ -1,0 +1,10 @@
+{{ $model := . }}
+<title>
+{{- if $model.is_new -}}
+	Neuer Ort - Musenalm
+{{- else if $model.result -}}
+	Bearbeiten: {{ $model.result.Place.Name }} - Musenalm
+{{- else -}}
+	Ort bearbeiten - Musenalm
+{{- end -}}
+</title>

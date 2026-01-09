@@ -1,6 +1,9 @@
 package dbmodels
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
+)
 
 var _ core.RecordProxy = (*Place)(nil)
 
@@ -88,4 +91,8 @@ func (p *Place) Editor() string {
 
 func (p *Place) SetEditor(editor string) {
 	p.Set(EDITOR_FIELD, editor)
+}
+
+func (p *Place) Updated() types.DateTime {
+	return p.GetDateTime(UPDATED_FIELD)
 }

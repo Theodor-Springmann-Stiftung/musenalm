@@ -379,6 +379,10 @@
 		@apply bg-transparent border-none text-gray-600 opacity-70 cursor-pointer ml-2 text-lg leading-none align-middle hover:opacity-100 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed;
 	}
 
+	.mss-selected-item-edit-link {
+		@apply text-gray-500 hover:text-slate-900 ml-2 text-base inline-flex items-center;
+	}
+
 	.mss-input-controls-container {
 		/* Tailwind classes from component: flex items-center space-x-2 */
 	}

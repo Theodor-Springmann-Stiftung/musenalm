@@ -5,6 +5,7 @@ const MSS_SELECTED_ITEM_PILL_CLASS = "mss-selected-item-pill";
 const MSS_SELECTED_ITEM_TEXT_CLASS = "mss-selected-item-text";
 const MSS_SELECTED_ITEM_PILL_DETAIL_CLASS = "mss-selected-item-pill-detail"; // New class for pill detail
 const MSS_SELECTED_ITEM_DELETE_BTN_CLASS = "mss-selected-item-delete-btn";
+const MSS_SELECTED_ITEM_EDIT_LINK_CLASS = "mss-selected-item-edit-link";
 const MSS_INPUT_CONTROLS_CONTAINER_CLASS = "mss-input-controls-container";
 const MSS_INPUT_WRAPPER_CLASS = "mss-input-wrapper";
 const MSS_INPUT_WRAPPER_FOCUSED_CLASS = "mss-input-wrapper-focused";
@@ -244,6 +245,8 @@ export class MultiSelectSimple extends HTMLElement {
 		this._toggleLabel = this.getAttribute("data-toggle-label") || "";
 		this._toggleInput = this._toggleLabel !== "";
 		this._inputCollapsed = this._toggleInput;
+		this._editBase = this.getAttribute("data-edit-base") || "";
+		this._editSuffix = this.getAttribute("data-edit-suffix") || "/edit";
 
 		this._setupTemplates();
 		this._bindEventHandlers();
@@ -264,6 +267,9 @@ export class MultiSelectSimple extends HTMLElement {
                     <span class="${MSS_SELECTED_ITEM_PILL_CLASS} flex items-center">
                         <span data-ref="textEl" class="${MSS_SELECTED_ITEM_TEXT_CLASS}"></span>
                         <span data-ref="detailEl" class="${MSS_SELECTED_ITEM_PILL_DETAIL_CLASS} hidden"></span>
+                        <a data-ref="editLink" class="${MSS_SELECTED_ITEM_EDIT_LINK_CLASS} hidden" aria-label="Bearbeiten">
+                            <i class="ri-edit-line"></i>
+                        </a>
                         <button type="button" data-ref="deleteBtn" class="${MSS_SELECTED_ITEM_DELETE_BTN_CLASS}">&times;</button>
                     </span>
                 `;
@@ -582,6 +588,7 @@ export class MultiSelectSimple extends HTMLElement {
 		const pillEl = fragment.firstElementChild;
 		const textEl = pillEl.querySelector('[data-ref="textEl"]');
 		const detailEl = pillEl.querySelector('[data-ref="detailEl"]'); // This now uses MSS_SELECTED_ITEM_PILL_DETAIL_CLASS
+		const editLink = pillEl.querySelector('[data-ref="editLink"]');
 		const deleteBtn = pillEl.querySelector('[data-ref="deleteBtn"]');
 		textEl.textContent = this._normalizeText(itemData.name);
 		const detailText = this._normalizeText(itemData.additional_data);
@@ -603,6 +610,19 @@ export class MultiSelectSimple extends HTMLElement {
 		if (isRemoved) {
 			pillEl.classList.add("bg-red-100");
 			pillEl.style.position = "relative";
+		}
+		if (editLink) {
+			if (this._editBase && !isRemoved) {
+				editLink.href = `${this._editBase}${itemId}${this._editSuffix}`;
+				editLink.target = "_blank";
+				editLink.rel = "noreferrer";
+				editLink.classList.remove("hidden");
+			} else {
+				editLink.classList.add("hidden");
+				editLink.removeAttribute("href");
+				editLink.removeAttribute("target");
+				editLink.removeAttribute("rel");
+			}
 		}
 		deleteBtn.setAttribute("aria-label", isRemoved ? `Undo remove ${itemData.name}` : `Remove ${itemData.name}`);
 		deleteBtn.dataset.id = itemId;
