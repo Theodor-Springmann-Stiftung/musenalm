@@ -311,6 +311,21 @@ func (payload *almanachEditPayload) Validate() error {
 		return fmt.Errorf("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.")
 	}
 
+	// Check for duplicate series relations
+	seriesTargetIDs := make(map[string]bool)
+	for _, relation := range payload.SeriesRelations {
+		if seriesTargetIDs[relation.TargetID] {
+			return fmt.Errorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
+		}
+		seriesTargetIDs[relation.TargetID] = true
+	}
+	for _, relation := range payload.NewSeriesRelations {
+		if seriesTargetIDs[relation.TargetID] {
+			return fmt.Errorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
+		}
+		seriesTargetIDs[relation.TargetID] = true
+	}
+
 	return nil
 }
 

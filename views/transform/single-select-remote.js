@@ -181,6 +181,10 @@ export class SingleSelectRemote extends HTMLElement {
 		if (this._fetchController) {
 			this._fetchController.abort();
 		}
+
+		// Dispatch event before fetch to allow filtering
+		this.dispatchEvent(new CustomEvent("ssrbeforefetch", { bubbles: true }));
+
 		this._fetchController = new AbortController();
 		const url = new URL(this._endpoint, window.location.origin);
 		url.searchParams.set("q", query);
@@ -194,7 +198,15 @@ export class SingleSelectRemote extends HTMLElement {
 			}
 			const data = await resp.json();
 			const items = Array.isArray(data?.[this._resultKey]) ? data[this._resultKey] : [];
-			this._options = items.filter((item) => item && item.id && item.name);
+			let filteredItems = items.filter((item) => item && item.id && item.name);
+
+			// Filter out excluded IDs if provided
+			if (this._excludeIds && Array.isArray(this._excludeIds)) {
+				const excludeSet = new Set(this._excludeIds);
+				filteredItems = filteredItems.filter((item) => !excludeSet.has(item.id));
+			}
+
+			this._options = filteredItems;
 			this._highlightedIndex = this._options.length > 0 ? 0 : -1;
 			this._renderOptions();
 			if (this._options.length > 0) {

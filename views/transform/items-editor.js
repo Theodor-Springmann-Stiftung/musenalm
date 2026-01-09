@@ -196,16 +196,42 @@ export class ItemsEditor extends HTMLElement {
 		row.setAttribute(REMOVED_ROW_STATE, removed ? "true" : "false");
 		row.classList.toggle("bg-red-50", removed);
 
+		const editButton = row.querySelector(".items-edit-button");
+		if (editButton) {
+			if (removed) {
+				editButton.classList.add("hidden");
+			} else {
+				editButton.classList.remove("hidden");
+			}
+		}
+
 		row.querySelectorAll("[data-delete-label]").forEach((label) => {
-			const nextLabel = removed
-				? label.getAttribute("data-delete-active") || "Wird entfernt"
-				: label.getAttribute("data-delete-default") || "Entfernen";
+			const button = label.closest(`.${REMOVE_BUTTON_CLASS}`);
+			const isHovered = button && button.matches(":hover");
+
+			let nextLabel;
+			if (removed && isHovered) {
+				nextLabel = label.getAttribute("data-delete-hover") || "Rückgängig";
+			} else if (removed) {
+				nextLabel = label.getAttribute("data-delete-active") || "Wird entfernt";
+			} else {
+				nextLabel = label.getAttribute("data-delete-default") || "Entfernen";
+			}
 			label.textContent = nextLabel;
 		});
 		row.querySelectorAll(`.${REMOVE_BUTTON_CLASS} i`).forEach((icon) => {
+			const button = icon.closest(`.${REMOVE_BUTTON_CLASS}`);
+			const isHovered = button && button.matches(":hover");
+
 			if (removed) {
-				icon.classList.add("hidden");
-				icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+				if (isHovered) {
+					icon.classList.remove("hidden");
+					icon.classList.add("ri-arrow-go-back-line");
+					icon.classList.remove("ri-delete-bin-line");
+				} else {
+					icon.classList.add("hidden");
+					icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+				}
 			} else {
 				icon.classList.remove("hidden");
 				icon.classList.add("ri-delete-bin-line");

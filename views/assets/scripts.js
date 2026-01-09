@@ -1,11 +1,11 @@
-var $t = Object.defineProperty;
-var j = (a) => {
-  throw TypeError(a);
+var Pt = Object.defineProperty;
+var Q = (r) => {
+  throw TypeError(r);
 };
-var Nt = (a, i, t) => i in a ? $t(a, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : a[i] = t;
-var E = (a, i, t) => Nt(a, typeof i != "symbol" ? i + "" : i, t), B = (a, i, t) => i.has(a) || j("Cannot " + t);
-var $ = (a, i, t) => (B(a, i, "read from private field"), t ? t.call(a) : i.get(a)), S = (a, i, t) => i.has(a) ? j("Cannot add the same private member more than once") : i instanceof WeakSet ? i.add(a) : i.set(a, t), I = (a, i, t, e) => (B(a, i, "write to private field"), e ? e.call(a, t) : i.set(a, t), t), T = (a, i, t) => (B(a, i, "access private method"), t);
-class Pt extends HTMLElement {
+var qt = (r, i, t) => i in r ? Pt(r, i, { enumerable: !0, configurable: !0, writable: !0, value: t }) : r[i] = t;
+var v = (r, i, t) => qt(r, typeof i != "symbol" ? i + "" : i, t), P = (r, i, t) => i.has(r) || Q("Cannot " + t);
+var q = (r, i, t) => (P(r, i, "read from private field"), t ? t.call(r) : i.get(r)), L = (r, i, t) => i.has(r) ? Q("Cannot add the same private member more than once") : i instanceof WeakSet ? i.add(r) : i.set(r, t), C = (r, i, t, e) => (P(r, i, "write to private field"), e ? e.call(r, t) : i.set(r, t), t), w = (r, i, t) => (P(r, i, "access private method"), t);
+class Dt extends HTMLElement {
   constructor() {
     super(), this._value = "", this.render();
   }
@@ -74,13 +74,13 @@ class Pt extends HTMLElement {
 		`;
   }
 }
-const C = "filter-list-list", qt = "filter-list-item", Dt = "filter-list-input", J = "filter-list-searchable";
-var b, y, W;
-class Ht extends HTMLElement {
+const x = "filter-list-list", Ht = "filter-list-item", Ft = "filter-list-input", X = "filter-list-searchable";
+var b, I, J;
+class Vt extends HTMLElement {
   constructor() {
     super();
-    S(this, y);
-    S(this, b, !1);
+    L(this, I);
+    L(this, b, !1);
     this._items = [], this._url = "", this._filterstart = !1, this._placeholder = "Liste filtern...", this._queryparam = "", this._startparams = null, this.render();
   }
   static get observedAttributes() {
@@ -93,7 +93,7 @@ class Ht extends HTMLElement {
     return this._items;
   }
   connectedCallback() {
-    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && I(this, b, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
+    this._url = this.getAttribute("data-url") || "./", this._filterstart = this.getAttribute("data-filterstart") === "true", this._placeholder = this.getAttribute("data-placeholder") || "Liste filtern...", this._queryparam = this.getAttribute("data-queryparam") || "", this._queryparam, this._filterstart && C(this, b, !0), this.addEventListener("input", this.onInput.bind(this)), this.addEventListener("keydown", this.onEnter.bind(this)), this.addEventListener("focusin", this.onGainFocus.bind(this)), this.addEventListener("focusout", this.onLoseFocus.bind(this));
   }
   attributeChangedCallback(t, e, s) {
     t === "data-url" && e !== s && (this._url = s, this.render()), t === "data-filterstart" && e !== s && (this._filterstart = s === "true", this.render()), t === "data-placeholder" && e !== s && (this._placeholder = s, this.render()), t === "data-queryparam" && e !== s && (this._queryparam = s, this.render());
@@ -102,14 +102,14 @@ class Ht extends HTMLElement {
     t.target && t.target.tagName.toLowerCase() === "input" && (this._filter = t.target.value, this.renderList());
   }
   onGainFocus(t) {
-    t.target && t.target.tagName.toLowerCase() === "input" && (I(this, b, !1), this.renderList());
+    t.target && t.target.tagName.toLowerCase() === "input" && (C(this, b, !1), this.renderList());
   }
   onLoseFocus(t) {
     let e = this.querySelector("input");
     if (t.target && t.target === e) {
       if (relatedElement = t.relatedTarget, relatedElement && this.contains(relatedElement))
         return;
-      e.value = "", this._filter = "", this._filterstart && I(this, b, !0), this.renderList();
+      e.value = "", this._filter = "", this._filterstart && C(this, b, !0), this.renderList();
     }
   }
   onEnter(t) {
@@ -122,10 +122,10 @@ class Ht extends HTMLElement {
   mark() {
     if (typeof Mark != "function")
       return;
-    let t = this.querySelector("#" + C);
+    let t = this.querySelector("#" + x);
     if (!t)
       return;
-    let e = new Mark(t.querySelectorAll("." + J));
+    let e = new Mark(t.querySelectorAll("." + X));
     this._filter && e.mark(this._filter, {
       separateWordSearch: !0
     });
@@ -165,7 +165,7 @@ class Ht extends HTMLElement {
   }
   getLinkText(t) {
     let e = this.getSearchText(t);
-    return e === "" ? "" : `<span class="${J}">${e}</span>`;
+    return e === "" ? "" : `<span class="${X}">${e}</span>`;
   }
   getURL(t) {
     if (this._queryparam) {
@@ -175,7 +175,7 @@ class Ht extends HTMLElement {
     return this._url + this.getHREFEncoded(t);
   }
   renderList() {
-    let t = this.querySelector("#" + C);
+    let t = this.querySelector("#" + x);
     t && (t.outerHTML = this.List()), this.mark();
   }
   render() {
@@ -187,7 +187,7 @@ class Ht extends HTMLElement {
         `, htmx && htmx.process(this);
   }
   ActiveDot(t) {
-    return T(this, y, W).call(this, t), "";
+    return w(this, I, J).call(this, t), "";
   }
   NoItems(t) {
     return t.length === 0 ? '<div class="px-2 py-0.5 italic text-gray-500">Keine Einträge gefunden</div>' : "";
@@ -200,7 +200,7 @@ class Ht extends HTMLElement {
 						<input
 								type="text"
 								placeholder="${this._placeholder}"
-								class="${Dt} w-full placeholder:italic px-2 py-0.5" />
+								class="${Ft} w-full placeholder:italic px-2 py-0.5" />
 						</div>
 				</div>
 				`;
@@ -215,7 +215,7 @@ class Ht extends HTMLElement {
         t = this._items.filter((s) => e.every((n) => this.getSearchText(s).toLowerCase().includes(n.toLowerCase())));
       }
     return `
-							<div id="${C}" class="${C} pt-1 max-h-60 overflow-auto bg-stone-50 ${$(this, b) ? "hidden" : ""}">
+							<div id="${x}" class="${x} pt-1 max-h-60 overflow-auto bg-stone-50 ${q(this, b) ? "hidden" : ""}">
 								${t.map(
       (e, s) => `
 									<a
@@ -224,8 +224,8 @@ class Ht extends HTMLElement {
 										hx-swap="outerHTML show:none"
 										hx-select="main"
 										hx-target="main"
-										class="${qt} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
-										${T(this, y, W).call(this, e) ? 'aria-current="page"' : ""}>
+										class="${Ht} block px-2.5 py-0.5 hover:bg-slate-200 no-underline ${s % 2 === 0 ? "bg-stone-100" : "bg-stone-50"}"
+										${w(this, I, J).call(this, e) ? 'aria-current="page"' : ""}>
 										${this.ActiveDot(e)}
 										${this.getLinkText(e)}
 									</a>
@@ -236,13 +236,13 @@ class Ht extends HTMLElement {
 				`;
   }
 }
-b = new WeakMap(), y = new WeakSet(), W = function(t) {
+b = new WeakMap(), I = new WeakSet(), J = function(t) {
   if (!t)
     return !1;
   let e = this.getHREF(t);
   return e === "" ? !1 : this._queryparam && (new URLSearchParams(window.location.search).get(this._queryparam) || "") === e ? !0 : !!window.location.href.endsWith(e);
 };
-class Ft extends HTMLElement {
+class Ut extends HTMLElement {
   constructor() {
     super(), this.handleScroll = this.handleScroll.bind(this), this.scrollToTop = this.scrollToTop.bind(this);
   }
@@ -278,7 +278,7 @@ class Ft extends HTMLElement {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
-class Vt extends HTMLElement {
+class Kt extends HTMLElement {
   static get observedAttributes() {
     return ["position", "timeout"];
   }
@@ -379,7 +379,7 @@ class Vt extends HTMLElement {
     }
   }
 }
-class Ut extends HTMLElement {
+class zt extends HTMLElement {
   constructor() {
     super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
   }
@@ -487,7 +487,7 @@ class Ut extends HTMLElement {
     this.overlay.parentNode.removeChild(this.overlay), this.overlay = null;
   }
 }
-class Kt extends HTMLElement {
+class Wt extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
@@ -526,11 +526,11 @@ class Kt extends HTMLElement {
     this._showall = !0, this.shown = -1, this.disable(), this._contents.forEach((i, t) => {
       i.classList.remove("hidden");
       let e = this._headings[t], s = e.querySelectorAll(".show-opened");
-      for (let l of s)
-        l.classList.add("hidden");
+      for (let a of s)
+        a.classList.add("hidden");
       let n = e.querySelectorAll(".show-closed");
-      for (let l of n)
-        l.classList.add("hidden");
+      for (let a of n)
+        a.classList.add("hidden");
     });
   }
   default() {
@@ -575,7 +575,7 @@ class Kt extends HTMLElement {
     return null;
   }
 }
-class L extends HTMLElement {
+class A extends HTMLElement {
   static get observedAttributes() {
     return ["data-text", "data-abbrevmap"];
   }
@@ -638,7 +638,7 @@ class L extends HTMLElement {
     };
   }
   constructor() {
-    super(), this._abbrevMap = L.defaultAbbrevMap;
+    super(), this._abbrevMap = A.defaultAbbrevMap;
   }
   connectedCallback() {
     this.render();
@@ -648,13 +648,13 @@ class L extends HTMLElement {
   }
   _parseAndSetAbbrevMap(i) {
     if (!i) {
-      this._abbrevMap = L.defaultAbbrevMap;
+      this._abbrevMap = A.defaultAbbrevMap;
       return;
     }
     try {
       this._abbrevMap = JSON.parse(i);
     } catch {
-      this._abbrevMap = L.defaultAbbrevMap;
+      this._abbrevMap = A.defaultAbbrevMap;
     }
   }
   setAbbrevMap(i) {
@@ -678,17 +678,17 @@ class L extends HTMLElement {
       }
       const n = this.findLongestAbbrevAt(i, s, t);
       if (n) {
-        const { match: l, meaning: r } = n;
+        const { match: a, meaning: l } = n;
         e += `
             <tool-tip position="top" class="!inline" timeout="300">
               <div class="data-tip p-2 text-sm text-white bg-gray-700 rounded shadow">
-                ${r}
+                ${l}
               </div>
               <span class="cursor-help text-blue-900 hover:text-slate-800">
-                ${l}
+                ${a}
               </span>
             </tool-tip>
-          `, s += l.length;
+          `, s += a.length;
       } else
         e += i[s], s++;
     }
@@ -696,15 +696,15 @@ class L extends HTMLElement {
   }
   findLongestAbbrevAt(i, t, e) {
     let s = null, n = 0;
-    for (const l of Object.keys(e))
-      i.startsWith(l, t) && l.length > n && (s = l, n = l.length);
+    for (const a of Object.keys(e))
+      i.startsWith(a, t) && a.length > n && (s = a, n = a.length);
     return s ? { match: s, meaning: e[s] } : null;
   }
   isSpaceOrPunct(i) {
     return /\s|[.,;:!?]/.test(i);
   }
 }
-class zt extends HTMLElement {
+class Gt extends HTMLElement {
   constructor() {
     super();
   }
@@ -722,11 +722,11 @@ class zt extends HTMLElement {
     }
   }
 }
-var k;
-class Wt extends HTMLElement {
+var M;
+class jt extends HTMLElement {
   constructor() {
     super();
-    S(this, k, 176);
+    L(this, M, 176);
     this._images = [];
   }
   connectedCallback() {
@@ -742,17 +742,17 @@ class Wt extends HTMLElement {
   calculateShownImages() {
     const t = this.getBoundingClientRect();
     console.log(t);
-    const e = Math.floor(t.width / ($(this, k) + 10));
+    const e = Math.floor(t.width / (q(this, M) + 10));
     for (let s = 0; s < this._images.length; s++)
       s < e - 1 ? this._images[s].classList.remove("hidden") : this._images[s].classList.add("hidden");
   }
 }
-k = new WeakMap();
-const Gt = "msr-component-wrapper", Q = "msr-selected-items-container", X = "msr-placeholder-no-selection-text", jt = "msr-selected-item-pill", Jt = "msr-selected-item-text", Qt = "msr-item-name", Xt = "msr-item-additional-data", Yt = "msr-selected-item-role", Y = "msr-selected-item-delete-btn", Zt = "msr-controls-area", Z = "msr-pre-add-button", tt = "msr-input-area-wrapper", w = "msr-input-area-default-border", N = "msr-input-area-staged", et = "msr-staging-area-container", te = "msr-staged-item-pill", ee = "msr-staged-item-text", P = "msr-staged-role-select", it = "msr-staged-cancel-btn", st = "msr-text-input", nt = "msr-add-button", at = "msr-options-list", lt = "msr-option-item", ie = "msr-option-item-name", se = "msr-option-item-detail", rt = "msr-option-item-highlighted", q = "msr-hidden-select", ne = "msr-state-no-selection", ae = "msr-state-has-selection", le = "msr-state-list-open", re = "msr-state-item-staged";
-class xt extends HTMLElement {
+M = new WeakMap();
+const Jt = "msr-component-wrapper", Y = "msr-selected-items-container", Z = "msr-placeholder-no-selection-text", Qt = "msr-selected-item-pill", Xt = "msr-selected-item-text", Yt = "msr-item-name", Zt = "msr-item-additional-data", te = "msr-selected-item-role", tt = "msr-selected-item-delete-btn", ee = "msr-controls-area", et = "msr-pre-add-button", it = "msr-input-area-wrapper", k = "msr-input-area-default-border", D = "msr-input-area-staged", st = "msr-staging-area-container", ie = "msr-staged-item-pill", se = "msr-staged-item-text", H = "msr-staged-role-select", nt = "msr-staged-cancel-btn", at = "msr-text-input", rt = "msr-add-button", lt = "msr-options-list", ot = "msr-option-item", ne = "msr-option-item-name", ae = "msr-option-item-detail", dt = "msr-option-item-highlighted", F = "msr-hidden-select", re = "msr-state-no-selection", le = "msr-state-has-selection", oe = "msr-state-list-open", de = "msr-state-item-staged";
+class kt extends HTMLElement {
   constructor() {
     super();
-    E(this, "_blurTimeout", null);
+    v(this, "_blurTimeout", null);
     this.internals_ = this.attachInternals(), this._value = [], this._stagedItem = null, this._showAddButton = !0, this._placeholderNoSelection = "Keine Elemente ausgewählt", this._placeholderSearch = "Elemente suchen...", this._placeholderRoleSelect = "Rolle auswählen...", this._options = [], this._roles = [
       "Leitung",
       "Unterstützung",
@@ -828,23 +828,23 @@ class xt extends HTMLElement {
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${lt} group">
-                        <span data-ref="nameEl" class="${ie}"></span>
-                        <span data-ref="detailEl" class="${se}"></span>
+                    <li role="option" class="${ot} group">
+                        <span data-ref="nameEl" class="${ne}"></span>
+                        <span data-ref="detailEl" class="${ae}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
-                    <span class="${jt} group">
-                        <span data-ref="textEl" class="${Jt}"></span>
-                        <button type="button" data-ref="deleteBtn" class="${Y} ml-2">&times;</button>
+                    <span class="${Qt} group">
+                        <span data-ref="textEl" class="${Xt}"></span>
+                        <button type="button" data-ref="deleteBtn" class="${tt} ml-2">&times;</button>
                     </span>
                 `, this.stagedPlacePillTemplate = document.createElement("template"), this.stagedPlacePillTemplate.innerHTML = `
-                    <span class="${te} flex items-center">
-                        <span data-ref="nameEl" class="${ee}"></span>
+                    <span class="${ie} flex items-center">
+                        <span data-ref="nameEl" class="${se}"></span>
                     </span>
                 `, this.stagedCancelBtnTemplate = document.createElement("template"), this.stagedCancelBtnTemplate.innerHTML = `
-                    <button type="button" class="${it} flex items-center justify-center">&times;</button>
+                    <button type="button" class="${nt} flex items-center justify-center">&times;</button>
                 `, this.stagedRoleSelectTemplate = document.createElement("template"), this.stagedRoleSelectTemplate.innerHTML = `
-                    <select class="${P}">
+                    <select class="${H}">
                     </select>
                 `;
   }
@@ -879,20 +879,20 @@ class xt extends HTMLElement {
   }
   set value(t) {
     if (Array.isArray(t)) {
-      const e = t.map((l) => {
-        if (typeof l == "string") {
-          const r = l.split(",");
-          if (r.length === 2) {
-            const o = r[0].trim(), d = r[1].trim();
+      const e = t.map((a) => {
+        if (typeof a == "string") {
+          const l = a.split(",");
+          if (l.length === 2) {
+            const o = l[0].trim(), d = l[1].trim();
             if (this._getItemById(o) && this._roles.includes(d))
               return { itemId: o, role: d, instanceId: crypto.randomUUID() };
           }
         }
         return null;
-      }).filter((l) => l !== null), s = [], n = /* @__PURE__ */ new Set();
-      for (const l of e) {
-        const r = `${l.itemId},${l.role}`;
-        n.has(r) || (s.push(l), n.add(r));
+      }).filter((a) => a !== null), s = [], n = /* @__PURE__ */ new Set();
+      for (const a of e) {
+        const l = `${a.itemId},${a.role}`;
+        n.has(l) || (s.push(a), n.add(l));
       }
       this._value = s;
     } else
@@ -906,7 +906,7 @@ class xt extends HTMLElement {
     this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
   }
   connectedCallback() {
-    if (this.placeholderNoSelection = this.getAttribute("placeholder-no-selection") || this._placeholderNoSelection, this.placeholderSearch = this.getAttribute("placeholder-search") || this._placeholderSearch, this.placeholderRoleSelect = this.getAttribute("placeholder-role-select") || this._placeholderRoleSelect, this._render(), this.inputAreaWrapper = this.querySelector(`.${tt}`), this.inputElement = this.querySelector(`.${st}`), this.stagedItemPillContainer = this.querySelector(`.${et}`), this.optionsListElement = this.querySelector(`.${at}`), this.selectedItemsContainer = this.querySelector(`.${Q}`), this.addButtonElement = this.querySelector(`.${nt}`), this.preAddButtonElement = this.querySelector(`.${Z}`), this.hiddenSelect = this.querySelector(`.${q}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.hasAttribute("show-add-button") ? this.showAddButton = this.getAttribute("show-add-button") : this.setAttribute("show-add-button", String(this._showAddButton)), this.inputElement && (this.inputElement.placeholder = this.placeholderSearch), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+    if (this.placeholderNoSelection = this.getAttribute("placeholder-no-selection") || this._placeholderNoSelection, this.placeholderSearch = this.getAttribute("placeholder-search") || this._placeholderSearch, this.placeholderRoleSelect = this.getAttribute("placeholder-role-select") || this._placeholderRoleSelect, this._render(), this.inputAreaWrapper = this.querySelector(`.${it}`), this.inputElement = this.querySelector(`.${at}`), this.stagedItemPillContainer = this.querySelector(`.${st}`), this.optionsListElement = this.querySelector(`.${lt}`), this.selectedItemsContainer = this.querySelector(`.${Y}`), this.addButtonElement = this.querySelector(`.${rt}`), this.preAddButtonElement = this.querySelector(`.${et}`), this.hiddenSelect = this.querySelector(`.${F}`), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.hasAttribute("show-add-button") ? this.showAddButton = this.getAttribute("show-add-button") : this.setAttribute("show-add-button", String(this._showAddButton)), this.inputElement && (this.inputElement.placeholder = this.placeholderSearch), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleInputKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.addButtonElement.addEventListener("click", this._handleAddButtonClick), this.addEventListener("keydown", this._handleKeyDown), this._renderStagedPillOrInput(), this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
       const t = this.getAttribute("value");
       try {
         const e = JSON.parse(t);
@@ -934,10 +934,10 @@ class xt extends HTMLElement {
     this.disabledCallback(t);
   }
   disabledCallback(t) {
-    this.inputElement && (this.inputElement.disabled = t), this.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${Y}`).forEach(
+    this.inputElement && (this.inputElement.disabled = t), this.classList.toggle("pointer-events-none", t), this.querySelectorAll(`.${tt}`).forEach(
       (s) => s.disabled = t
     );
-    const e = this.querySelector(`.${P}`);
+    const e = this.querySelector(`.${H}`);
     e && (e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t), this._updateAddButtonState(), this._updatePreAddButtonVisibility();
   }
   formResetCallback() {
@@ -957,39 +957,39 @@ class xt extends HTMLElement {
     this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
   }
   _updateRootElementStateClasses() {
-    this.classList.toggle(ne, this._value.length === 0), this.classList.toggle(ae, this._value.length > 0), this.classList.toggle(le, this._isOptionsListVisible), this.classList.toggle(re, !!this._stagedItem);
+    this.classList.toggle(re, this._value.length === 0), this.classList.toggle(le, this._value.length > 0), this.classList.toggle(oe, this._isOptionsListVisible), this.classList.toggle(de, !!this._stagedItem);
   }
   _render() {
     const t = this.id || `msr-${crypto.randomUUID().slice(0, 8)}`;
     this.id || this.setAttribute("id", t), this.innerHTML = `
                     <style>
-                        .${q} {
+                        .${F} {
                             display: none !important; visibility: hidden !important; position: absolute !important;
                             width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important;
                         }
                     </style>
-                    <div class="${Gt} relative">
-                        <div class="${Q} flex flex-wrap gap-1 mb-2 min-h-[2.625rem] rounded-md" aria-live="polite">
-                           ${this._value.length === 0 ? `<span class="${X}">${this.placeholderNoSelection}</span>` : ""}
+                    <div class="${Jt} relative">
+                        <div class="${Y} flex flex-wrap gap-1 mb-2 min-h-[2.625rem] rounded-md" aria-live="polite">
+                           ${this._value.length === 0 ? `<span class="${Z}">${this.placeholderNoSelection}</span>` : ""}
                         </div>
-                        <div class="${Zt} flex items-center">
-                            <div class="${tt} ${w} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
-                                <span class="${et} flex items-center gap-2"></span>
+                        <div class="${ee} flex items-center">
+                            <div class="${it} ${k} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
+                                <span class="${st} flex items-center gap-2"></span>
                                 <input type="text"
-                                       class="${st} flex-1 min-w-[100px] outline-none"
+                                       class="${at} flex-1 min-w-[100px] outline-none"
                                        placeholder="${this.placeholderSearch}"
                                        aria-haspopup="listbox"
                                        aria-expanded="false">
                             </div>
                             <button type="button"
-                                    class="${Z} hidden flex items-center justify-center ml-2"
+                                    class="${et} hidden flex items-center justify-center ml-2"
                                     aria-label="Element schnell hinzufügen">
                                 +
                             </button>
-                            <button type="button" class="${nt} hidden ml-2">Hinzufügen</button>
+                            <button type="button" class="${rt} hidden ml-2">Hinzufügen</button>
                         </div>
-                        <ul role="listbox" id="${t}-options-list" class="${at} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
-                        <select multiple name="${this.getAttribute("name") || "items_with_roles_default"}" id="hidden-select-${t}" class="${q}" aria-hidden="true"></select>
+                        <ul role="listbox" id="${t}-options-list" class="${lt} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "items_with_roles_default"}" id="hidden-select-${t}" class="${F}" aria-hidden="true"></select>
                     </div>
                 `;
   }
@@ -999,10 +999,10 @@ class xt extends HTMLElement {
   }
   _createStagedRoleSelectElement(t, e) {
     const n = this.stagedRoleSelectTemplate.content.cloneNode(!0).firstElementChild;
-    let l = `<option value="" disabled ${e ? "" : "selected"}>${this.placeholderRoleSelect}</option>`;
-    return t.length === 0 && !this._roles.includes(e) ? (l += "<option disabled>Keine Rollen verfügbar</option>", n.disabled = !0) : (t.forEach((r) => {
-      l += `<option value="${r}" ${r === e ? "selected" : ""}>${r}</option>`;
-    }), n.disabled = t.length === 0 && e === ""), n.innerHTML = l, n.addEventListener("change", this._handleStagedRoleChange), n;
+    let a = `<option value="" disabled ${e ? "" : "selected"}>${this.placeholderRoleSelect}</option>`;
+    return t.length === 0 && !this._roles.includes(e) ? (a += "<option disabled>Keine Rollen verfügbar</option>", n.disabled = !0) : (t.forEach((l) => {
+      a += `<option value="${l}" ${l === e ? "selected" : ""}>${l}</option>`;
+    }), n.disabled = t.length === 0 && e === ""), n.innerHTML = a, n.addEventListener("change", this._handleStagedRoleChange), n;
   }
   _createStagedCancelButtonElement(t) {
     const s = this.stagedCancelBtnTemplate.content.cloneNode(!0).firstElementChild;
@@ -1011,7 +1011,7 @@ class xt extends HTMLElement {
   _renderStagedPillOrInput() {
     if (!(!this.stagedItemPillContainer || !this.inputElement || !this.inputAreaWrapper)) {
       if (this.stagedItemPillContainer.innerHTML = "", this._stagedItem && this._stagedItem.item) {
-        this.inputAreaWrapper.classList.remove(w), this.inputAreaWrapper.classList.add(N);
+        this.inputAreaWrapper.classList.remove(k), this.inputAreaWrapper.classList.add(D);
         const t = this._createStagedItemPillElement(this._stagedItem.item);
         this.stagedItemPillContainer.appendChild(t);
         const e = this._getAvailableRolesForItem(this._stagedItem.item.id), s = this._createStagedRoleSelectElement(
@@ -1022,7 +1022,7 @@ class xt extends HTMLElement {
         const n = this._createStagedCancelButtonElement(this._stagedItem.item.name);
         this.stagedItemPillContainer.appendChild(n), this.inputElement.classList.add("hidden"), this.inputElement.value = "", this.inputElement.removeAttribute("aria-activedescendant"), this.inputElement.setAttribute("aria-expanded", "false");
       } else
-        this.inputAreaWrapper.classList.add(w), this.inputAreaWrapper.classList.remove(N), this.inputElement.classList.remove("hidden");
+        this.inputAreaWrapper.classList.add(k), this.inputAreaWrapper.classList.remove(D), this.inputElement.classList.remove("hidden");
       this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses();
     }
   }
@@ -1040,16 +1040,16 @@ class xt extends HTMLElement {
   _createSelectedItemElement(t) {
     const e = this._getItemById(t.itemId);
     if (!e) return null;
-    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="textEl"]');
-    let r = `<span class="${Qt}">${e.name}</span>`, o = e.additional_data ? ` <span class="${Xt}">(${e.additional_data})</span>` : "", d = ` <span class="${Yt}">${t.role}</span>`;
-    l.innerHTML = `${r}${o}${d}`;
+    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="textEl"]');
+    let l = `<span class="${Yt}">${e.name}</span>`, o = e.additional_data ? ` <span class="${Zt}">(${e.additional_data})</span>` : "", d = ` <span class="${te}">${t.role}</span>`;
+    a.innerHTML = `${l}${o}${d}`;
     const c = n.querySelector('[data-ref="deleteBtn"]');
     return c.setAttribute("aria-label", `Entferne ${e.name} als ${t.role}`), c.dataset.instanceId = t.instanceId, c.disabled = this.hasAttribute("disabled"), c.addEventListener("click", (h) => {
       h.stopPropagation(), this._handleDeleteSelectedItem(t.instanceId);
     }), n;
   }
   _renderSelectedItems() {
-    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${X}">${this.placeholderNoSelection}</span>` : this._value.forEach((t) => {
+    this.selectedItemsContainer && (this.selectedItemsContainer.innerHTML = "", this._value.length === 0 ? this.selectedItemsContainer.innerHTML = `<span class="${Z}">${this.placeholderNoSelection}</span>` : this._value.forEach((t) => {
       const e = this._createSelectedItemElement(t);
       e && this.selectedItemsContainer.appendChild(e);
     }), this._updateRootElementStateClasses());
@@ -1062,7 +1062,7 @@ class xt extends HTMLElement {
   }
   _createOptionElement(t, e) {
     const n = this.optionTemplate.content.cloneNode(!0).firstElementChild;
-    return n.querySelector('[data-ref="nameEl"]').textContent = t.name, n.querySelector('[data-ref="detailEl"]').textContent = t.additional_data ? `(${t.additional_data})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex)), n.id = `${this.id || "msr"}-option-${t.id}`, e === this._highlightedIndex && n.classList.add(rt), n;
+    return n.querySelector('[data-ref="nameEl"]').textContent = t.name, n.querySelector('[data-ref="detailEl"]').textContent = t.additional_data ? `(${t.additional_data})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex)), n.id = `${this.id || "msr"}-option-${t.id}`, e === this._highlightedIndex && n.classList.add(dt), n;
   }
   _renderOptionsList() {
     if (!(!this.optionsListElement || !this.inputElement)) {
@@ -1074,7 +1074,7 @@ class xt extends HTMLElement {
           this.optionsListElement.appendChild(n);
         });
         const t = this.optionsListElement.querySelector(
-          `.${rt}`
+          `.${dt}`
         );
         t ? (t.scrollIntoView({ block: "nearest" }), this.inputElement.setAttribute("aria-activedescendant", t.id)) : this.inputElement.removeAttribute("aria-activedescendant");
       }
@@ -1086,7 +1086,7 @@ class xt extends HTMLElement {
       return;
     this._stagedItem = { item: t, currentRole: "" }, this.inputElement && (this.inputElement.value = "", this.inputElement.setAttribute("aria-expanded", "false"), this.inputElement.removeAttribute("aria-activedescendant")), this._renderStagedPillOrInput(), this._hideOptionsList();
     const s = this.stagedItemPillContainer.querySelector(
-      `.${P}`
+      `.${H}`
     );
     s && !s.disabled ? s.focus() : this.addButtonElement && !this.addButtonElement.disabled && this.addButtonElement.focus();
   }
@@ -1123,7 +1123,7 @@ class xt extends HTMLElement {
     if (!this.hasAttribute("disabled")) {
       if (t.key === "Enter" && this._stagedItem && this._stagedItem.item) {
         const s = document.activeElement, n = (e = this.stagedItemPillContainer) == null ? void 0 : e.querySelector(
-          `.${it}`
+          `.${nt}`
         );
         if (s === n) {
           t.preventDefault(), this._handleCancelStagedItem(t);
@@ -1161,7 +1161,7 @@ class xt extends HTMLElement {
   }
   _handleFocus() {
     if (!(this.hasAttribute("disabled") || this.inputElement && this.inputElement.disabled || this._stagedItem)) {
-      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(w), this.inputAreaWrapper.classList.remove(N)), this.inputElement && this.inputElement.value.length > 0) {
+      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(k), this.inputAreaWrapper.classList.remove(D)), this.inputElement && this.inputElement.value.length > 0) {
         const t = this.inputElement.value.toLowerCase();
         this._filteredOptions = this._options.filter((e) => this._getAvailableRolesForItem(e.id).length === 0 ? !1 : e.name.toLowerCase().includes(t) || e.additional_data && e.additional_data.toLowerCase().includes(t)), this._filteredOptions.length > 0 ? (this._isOptionsListVisible = !0, this._highlightedIndex = 0, this._renderOptionsList()) : this._hideOptionsList();
       } else
@@ -1180,9 +1180,9 @@ class xt extends HTMLElement {
   }
   _handleOptionClick(t) {
     if (this.hasAttribute("disabled")) return;
-    const e = t.target.closest(`li[data-id].${lt}`);
+    const e = t.target.closest(`li[data-id].${ot}`);
     if (e) {
-      const s = e.dataset.id, n = this._filteredOptions.find((l) => l.id === s);
+      const s = e.dataset.id, n = this._filteredOptions.find((a) => a.id === s);
       n && this._stageItem(n);
     }
   }
@@ -1190,12 +1190,12 @@ class xt extends HTMLElement {
     this.hasAttribute("disabled") || (this._value = this._value.filter((e) => e.instanceId !== t), this._updateFormValue(), this._renderSelectedItems(), this._stagedItem && this._stagedItem.item && this._renderStagedPillOrInput(), this.inputElement && this.inputElement.focus(), this._updatePreAddButtonVisibility());
   }
 }
-E(xt, "formAssociated", !0);
-const oe = "mss-component-wrapper", ot = "mss-selected-items-container", de = "mss-selected-item-pill", he = "mss-selected-item-text", ce = "mss-selected-item-pill-detail", dt = "mss-selected-item-delete-btn", ht = "mss-input-controls-container", ct = "mss-input-wrapper", ut = "mss-input-wrapper-focused", mt = "mss-text-input", _t = "mss-create-new-button", pt = "mss-toggle-button", ue = "mss-inline-row", ft = "mss-options-list", me = "mss-option-item", _e = "mss-option-item-name", pe = "mss-option-item-detail", gt = "mss-option-item-highlighted", D = "mss-hidden-select", H = "mss-no-items-text", bt = "mss-loading", F = 1, V = 10, fe = 250, ge = "mss-state-no-selection", be = "mss-state-has-selection", Ee = "mss-state-list-open";
-class kt extends HTMLElement {
+v(kt, "formAssociated", !0);
+const he = "mss-component-wrapper", ht = "mss-selected-items-container", ce = "mss-selected-item-pill", ue = "mss-selected-item-text", me = "mss-selected-item-pill-detail", ct = "mss-selected-item-delete-btn", ut = "mss-input-controls-container", mt = "mss-input-wrapper", _t = "mss-input-wrapper-focused", pt = "mss-text-input", ft = "mss-create-new-button", gt = "mss-toggle-button", _e = "mss-inline-row", bt = "mss-options-list", pe = "mss-option-item", fe = "mss-option-item-name", ge = "mss-option-item-detail", Et = "mss-option-item-highlighted", V = "mss-hidden-select", U = "mss-no-items-text", St = "mss-loading", K = 1, z = 10, be = 250, Ee = "mss-state-no-selection", Se = "mss-state-has-selection", ve = "mss-state-list-open";
+class Rt extends HTMLElement {
   constructor() {
     super();
-    E(this, "_blurTimeout", null);
+    v(this, "_blurTimeout", null);
     this.internals_ = this.attachInternals(), this._value = [], this._initialValue = [], this._initialOrder = [], this._removedIds = /* @__PURE__ */ new Set(), this._initialCaptured = !1, this._allowInitialCapture = !0, this._options = [
       { id: "abk", name: "Abchasisch" },
       { id: "aar", name: "Afar" },
@@ -1380,19 +1380,19 @@ class kt extends HTMLElement {
       { id: "yor", name: "Yoruba" },
       { id: "zha", name: "Zhuang" },
       { id: "zul", name: "Zulu" }
-    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._remoteEndpoint = null, this._remoteResultKey = "items", this._remoteMinChars = F, this._remoteLimit = V, this._remoteFetchController = null, this._remoteFetchTimeout = null, this._placeholder = this.getAttribute("placeholder") || "Search items...", this._showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._setupTemplates(), this._bindEventHandlers();
+    ], this._filteredOptions = [], this._highlightedIndex = -1, this._isOptionsListVisible = !1, this._remoteEndpoint = null, this._remoteResultKey = "items", this._remoteMinChars = K, this._remoteLimit = z, this._remoteFetchController = null, this._remoteFetchTimeout = null, this._placeholder = this.getAttribute("placeholder") || "Search items...", this._showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._setupTemplates(), this._bindEventHandlers();
   }
   _setupTemplates() {
     this.optionTemplate = document.createElement("template"), this.optionTemplate.innerHTML = `
-                    <li role="option" class="${me}">
-                        <span data-ref="nameEl" class="${_e}"></span>
-                        <span data-ref="detailEl" class="${pe}"></span>
+                    <li role="option" class="${pe}">
+                        <span data-ref="nameEl" class="${fe}"></span>
+                        <span data-ref="detailEl" class="${ge}"></span>
                     </li>
                 `, this.selectedItemTemplate = document.createElement("template"), this.selectedItemTemplate.innerHTML = `
-                    <span class="${de} flex items-center">
-                        <span data-ref="textEl" class="${he}"></span>
-                        <span data-ref="detailEl" class="${ce} hidden"></span>
-                        <button type="button" data-ref="deleteBtn" class="${dt}">&times;</button>
+                    <span class="${ce} flex items-center">
+                        <span data-ref="textEl" class="${ue}"></span>
+                        <span data-ref="detailEl" class="${me} hidden"></span>
+                        <button type="button" data-ref="deleteBtn" class="${ct}">&times;</button>
                     </span>
                 `;
   }
@@ -1434,7 +1434,7 @@ class kt extends HTMLElement {
       this._value = [...new Set(t.filter((n) => typeof n == "string" && this._getItemById(n)))];
     else if (typeof t == "string" && t.trim() !== "") {
       const n = t.trim();
-      this._getItemById(n) && !this._value.includes(n) ? this._value = [n] : this._getItemById(n) || (this._value = this._value.filter((l) => l !== n));
+      this._getItemById(n) && !this._value.includes(n) ? this._value = [n] : this._getItemById(n) || (this._value = this._value.filter((a) => a !== n));
     } else this._value = [];
     const s = JSON.stringify(this._value.sort());
     !this._initialCaptured && this._allowInitialCapture && this._value.length > 0 && (this._initialValue = [...this._value], this._initialOrder = [...this._value], this._initialCaptured = !0), this._value.forEach((n) => {
@@ -1448,7 +1448,7 @@ class kt extends HTMLElement {
     this.setAttribute("name", t), this.hiddenSelect && (this.hiddenSelect.name = t);
   }
   connectedCallback() {
-    if (this._render(), this.inputControlsContainer = this.querySelector(`.${ht}`), this.inputWrapper = this.querySelector(`.${ct}`), this.inputElement = this.querySelector(`.${mt}`), this.createNewButton = this.querySelector(`.${_t}`), this.toggleButton = this.querySelector(`.${pt}`), this.optionsListElement = this.querySelector(`.${ft}`), this.selectedItemsContainer = this.querySelector(`.${ot}`), this.hiddenSelect = this.querySelector(`.${D}`), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._remoteEndpoint = this.getAttribute("data-endpoint") || null, this._remoteResultKey = this.getAttribute("data-result-key") || "items", this._remoteMinChars = this._parsePositiveInt(this.getAttribute("data-minchars"), F), this._remoteLimit = this._parsePositiveInt(this.getAttribute("data-limit"), V), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick), this.toggleButton && this.toggleButton.addEventListener("click", this._handleToggleClick), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
+    if (this._render(), this.inputControlsContainer = this.querySelector(`.${ut}`), this.inputWrapper = this.querySelector(`.${mt}`), this.inputElement = this.querySelector(`.${pt}`), this.createNewButton = this.querySelector(`.${ft}`), this.toggleButton = this.querySelector(`.${gt}`), this.optionsListElement = this.querySelector(`.${bt}`), this.selectedItemsContainer = this.querySelector(`.${ht}`), this.hiddenSelect = this.querySelector(`.${V}`), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this._toggleLabel = this.getAttribute("data-toggle-label") || "", this._toggleInput = this._toggleLabel !== "", this._inputCollapsed = this._toggleInput, this._remoteEndpoint = this.getAttribute("data-endpoint") || null, this._remoteResultKey = this.getAttribute("data-result-key") || "items", this._remoteMinChars = this._parsePositiveInt(this.getAttribute("data-minchars"), K), this._remoteLimit = this._parsePositiveInt(this.getAttribute("data-limit"), z), this.name && this.hiddenSelect && (this.hiddenSelect.name = this.name), this.inputElement.addEventListener("input", this._handleInput), this.inputElement.addEventListener("keydown", this._handleKeyDown), this.inputElement.addEventListener("focus", this._handleFocus), this.inputElement.addEventListener("blur", this._handleBlur), this.optionsListElement.addEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.addEventListener("click", this._handleOptionClick), this.createNewButton.addEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer.addEventListener("click", this._handleSelectedItemsContainerClick), this.toggleButton && this.toggleButton.addEventListener("click", this._handleToggleClick), this._updateRootElementStateClasses(), this.hasAttribute("value")) {
       const t = this.getAttribute("value");
       try {
         this.value = JSON.parse(t);
@@ -1484,9 +1484,9 @@ class kt extends HTMLElement {
         try {
           this.value = JSON.parse(s);
         } catch {
-          this.value = s.split(",").map((l) => l.trim()).filter(Boolean);
+          this.value = s.split(",").map((a) => a.trim()).filter(Boolean);
         }
-      else t === "placeholder" ? this.placeholder = s : t === "show-create-button" ? this.showCreateButton = s : t === "data-endpoint" ? this._remoteEndpoint = s || null : t === "data-result-key" ? this._remoteResultKey = s || "items" : t === "data-minchars" ? this._remoteMinChars = this._parsePositiveInt(s, F) : t === "data-limit" ? this._remoteLimit = this._parsePositiveInt(s, V) : t === "data-toggle-label" && (this._toggleLabel = s || "", this._toggleInput = this._toggleLabel !== "");
+      else t === "placeholder" ? this.placeholder = s : t === "show-create-button" ? this.showCreateButton = s : t === "data-endpoint" ? this._remoteEndpoint = s || null : t === "data-result-key" ? this._remoteResultKey = s || "items" : t === "data-minchars" ? this._remoteMinChars = this._parsePositiveInt(s, K) : t === "data-limit" ? this._remoteLimit = this._parsePositiveInt(s, z) : t === "data-toggle-label" && (this._toggleLabel = s || "", this._toggleInput = this._toggleLabel !== "");
   }
   formAssociatedCallback(t) {
   }
@@ -1514,10 +1514,10 @@ class kt extends HTMLElement {
     this.internals_.setFormValue(null), this._synchronizeHiddenSelect();
   }
   disabledCallback(t) {
-    this.inputElement && (this.inputElement.disabled = t), this.createNewButton && (this.createNewButton.disabled = t), this.toggleAttribute("disabled", t), this.querySelectorAll(`.${dt}`).forEach((e) => e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t), t && this._hideOptionsList();
+    this.inputElement && (this.inputElement.disabled = t), this.createNewButton && (this.createNewButton.disabled = t), this.toggleAttribute("disabled", t), this.querySelectorAll(`.${ct}`).forEach((e) => e.disabled = t), this.hiddenSelect && (this.hiddenSelect.disabled = t), t && this._hideOptionsList();
   }
   _updateRootElementStateClasses() {
-    this.classList.toggle(ge, this._value.length === 0), this.classList.toggle(be, this._value.length > 0), this.classList.toggle(Ee, this._isOptionsListVisible);
+    this.classList.toggle(Ee, this._value.length === 0), this.classList.toggle(Se, this._value.length > 0), this.classList.toggle(ve, this._isOptionsListVisible);
   }
   _render() {
     const t = this.id || `mss-${crypto.randomUUID().slice(0, 8)}`;
@@ -1525,41 +1525,41 @@ class kt extends HTMLElement {
     const e = this.getAttribute("data-toggle-label") || "", s = e !== "", n = s ? "hidden" : "";
     this.innerHTML = `
                     <style>
-                        .${D} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
+                        .${V} { display: block !important; visibility: hidden !important; position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important; pointer-events: none !important; margin: -1px !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
                     </style>
-                    <div class="${oe} relative">
-                        <div class="${ue} flex flex-wrap items-center gap-2">
-                            <div class="${ot} flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1"></div>
-                            ${s ? `<button type="button" class="${pt}">${e}</button>` : ""}
-                            <div class="${ht} flex items-center gap-2 ${n}">
-                                <div class="${ct} relative rounded-md flex items-center flex-grow">
+                    <div class="${he} relative">
+                        <div class="${_e} flex flex-wrap items-center gap-2">
+                            <div class="${ht} flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1"></div>
+                            ${s ? `<button type="button" class="${gt}">${e}</button>` : ""}
+                            <div class="${ut} flex items-center gap-2 ${n}">
+                                <div class="${mt} relative rounded-md flex items-center flex-grow">
                                     <input type="text"
-                                           class="${mt} w-full outline-none bg-transparent"
+                                           class="${pt} w-full outline-none bg-transparent"
                                            placeholder="${this.placeholder}"
                                            aria-autocomplete="list"
                                            aria-expanded="${this._isOptionsListVisible}"
                                            aria-controls="options-list-${t}"
                                            autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="combobox" />
                                 </div>
-                                <button type="button" class="${_t} ${this.showCreateButton ? "" : "hidden"}" title="Create new item from input">+</button>
+                                <button type="button" class="${ft} ${this.showCreateButton ? "" : "hidden"}" title="Create new item from input">+</button>
                             </div>
                         </div>
-                        <ul id="options-list-${t}" role="listbox" class="${ft} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
-                        <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${t}" class="${D}" aria-hidden="true"></select>
+                        <ul id="options-list-${t}" role="listbox" class="${bt} absolute z-20 w-full max-h-60 overflow-y-auto mt-1 hidden"></ul>
+                        <select multiple name="${this.getAttribute("name") || "mss_default_name"}" id="hidden-select-${t}" class="${V}" aria-hidden="true"></select>
                     </div>
                 `;
   }
   _createSelectedItemElement(t) {
     const e = this._getItemById(t);
     if (!e) return null;
-    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="textEl"]'), r = n.querySelector('[data-ref="detailEl"]'), o = n.querySelector('[data-ref="deleteBtn"]');
-    l.textContent = this._normalizeText(e.name);
+    const n = this.selectedItemTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="textEl"]'), l = n.querySelector('[data-ref="detailEl"]'), o = n.querySelector('[data-ref="deleteBtn"]');
+    a.textContent = this._normalizeText(e.name);
     const d = this._normalizeText(e.additional_data);
-    d ? (r.textContent = `(${d})`, r.classList.remove("hidden")) : (r.textContent = "", r.classList.add("hidden"));
+    d ? (l.textContent = `(${d})`, l.classList.remove("hidden")) : (l.textContent = "", l.classList.add("hidden"));
     const c = this._removedIds.has(t);
     if (!this._initialValue.includes(t)) {
       const u = document.createElement("span");
-      u.className = "ml-1 text-xs text-gray-600", u.textContent = "(Neu)", l.appendChild(u);
+      u.className = "ml-1 text-xs text-gray-600", u.textContent = "(Neu)", a.appendChild(u);
     }
     return c && (n.classList.add("bg-red-100"), n.style.position = "relative"), o.setAttribute("aria-label", c ? `Undo remove ${e.name}` : `Remove ${e.name}`), o.dataset.id = t, o.disabled = this.hasAttribute("disabled"), o.innerHTML = c ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;", o.addEventListener("click", (u) => {
       u.stopPropagation(), this._handleDeleteSelectedItem(t);
@@ -1571,7 +1571,7 @@ class kt extends HTMLElement {
     const t = this._initialOrder.filter((s) => this._removedIds.has(s) && !this._value.includes(s)), e = [...this._value, ...t];
     if (e.length === 0) {
       const s = this.getAttribute("data-empty-text") || "Keine Auswahl...";
-      this.selectedItemsContainer.innerHTML = `<span class="${H}">${s}</span>`;
+      this.selectedItemsContainer.innerHTML = `<span class="${U}">${s}</span>`;
     } else
       e.forEach((s) => {
         const n = this._createSelectedItemElement(s);
@@ -1580,12 +1580,12 @@ class kt extends HTMLElement {
     this._updateRootElementStateClasses();
   }
   _createOptionElement(t, e) {
-    const n = this.optionTemplate.content.cloneNode(!0).firstElementChild, l = n.querySelector('[data-ref="nameEl"]'), r = n.querySelector('[data-ref="detailEl"]');
-    l.textContent = this._normalizeText(t.name);
+    const n = this.optionTemplate.content.cloneNode(!0).firstElementChild, a = n.querySelector('[data-ref="nameEl"]'), l = n.querySelector('[data-ref="detailEl"]');
+    a.textContent = this._normalizeText(t.name);
     const o = this._normalizeText(t.additional_data);
-    r.textContent = o ? `(${o})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex));
+    l.textContent = o ? `(${o})` : "", n.dataset.id = t.id, n.setAttribute("aria-selected", String(e === this._highlightedIndex));
     const d = `option-${this.id || "mss"}-${t.id}`;
-    return n.id = d, e === this._highlightedIndex && (n.classList.add(gt), this.inputElement && this.inputElement.setAttribute("aria-activedescendant", d)), n;
+    return n.id = d, e === this._highlightedIndex && (n.classList.add(Et), this.inputElement && this.inputElement.setAttribute("aria-activedescendant", d)), n;
   }
   _renderOptionsList() {
     if (!(!this.optionsListElement || !this.inputElement)) {
@@ -1596,7 +1596,7 @@ class kt extends HTMLElement {
           const n = this._createOptionElement(e, s);
           this.optionsListElement.appendChild(n);
         });
-        const t = this.optionsListElement.querySelector(`.${gt}`);
+        const t = this.optionsListElement.querySelector(`.${Et}`);
         t && (t.scrollIntoView({ block: "nearest" }), this.inputElement.setAttribute("aria-activedescendant", t.id));
       }
       this._updateRootElementStateClasses();
@@ -1628,8 +1628,8 @@ class kt extends HTMLElement {
       const s = e.toLowerCase();
       this._filteredOptions = this._options.filter((n) => {
         if (this._value.includes(n.id)) return !1;
-        const r = this._normalizeText(n.name).toLowerCase().includes(s), o = this._normalizeText(n.additional_data), d = o && o.toLowerCase().includes(s);
-        return r || d;
+        const l = this._normalizeText(n.name).toLowerCase().includes(s), o = this._normalizeText(n.additional_data), d = o && o.toLowerCase().includes(s);
+        return l || d;
       }), this._isOptionsListVisible = this._filteredOptions.length > 0;
     }
     this._highlightedIndex = this._filteredOptions.length > 0 ? 0 : -1, this._renderOptionsList();
@@ -1663,10 +1663,10 @@ class kt extends HTMLElement {
     this._isOptionsListVisible = !1, this._highlightedIndex = -1, this.optionsListElement && this._renderOptionsList();
   }
   _handleFocus() {
-    this.inputElement.disabled || (this.inputWrapper && this.inputWrapper.classList.add(ut), this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement }), this._updateRootElementStateClasses());
+    this.inputElement.disabled || (this.inputWrapper && this.inputWrapper.classList.add(_t), this.inputElement.value.length > 0 && this._handleInput({ target: this.inputElement }), this._updateRootElementStateClasses());
   }
   _handleBlur() {
-    this.inputWrapper && this.inputWrapper.classList.remove(ut), this._blurTimeout = setTimeout(() => {
+    this.inputWrapper && this.inputWrapper.classList.remove(_t), this._blurTimeout = setTimeout(() => {
       this.contains(document.activeElement) || (this._hideOptionsList(), this._toggleInput && (!this.inputElement || this.inputElement.value.trim() === "") && this._hideInputControls());
     }, 150);
   }
@@ -1697,7 +1697,7 @@ class kt extends HTMLElement {
   _showInputControls() {
     if (this.inputControlsContainer) {
       if (this.inputControlsContainer.classList.remove("hidden"), this.toggleButton && this.toggleButton.classList.add("hidden"), this._value.length === 0 && this.selectedItemsContainer) {
-        const t = this.selectedItemsContainer.querySelector(`.${H}`);
+        const t = this.selectedItemsContainer.querySelector(`.${U}`);
         t && t.classList.add("hidden");
       }
       this.inputElement && !this.hasAttribute("disabled") && this.inputElement.focus(), this._inputCollapsed = !1;
@@ -1706,7 +1706,7 @@ class kt extends HTMLElement {
   _hideInputControls() {
     if (this.inputControlsContainer) {
       if (this.inputControlsContainer.classList.add("hidden"), this.toggleButton && this.toggleButton.classList.remove("hidden"), this._value.length === 0 && this.selectedItemsContainer) {
-        const t = this.selectedItemsContainer.querySelector(`.${H}`);
+        const t = this.selectedItemsContainer.querySelector(`.${U}`);
         t && t.classList.remove("hidden");
       }
       this._hideOptionsList(), this._inputCollapsed = !0;
@@ -1724,14 +1724,14 @@ class kt extends HTMLElement {
     }
     this._remoteFetchTimeout = setTimeout(() => {
       this._fetchRemoteOptions(t);
-    }, fe);
+    }, be);
   }
   _cancelRemoteFetch() {
     this._remoteFetchController && (this._remoteFetchController.abort(), this._remoteFetchController = null);
   }
   async _fetchRemoteOptions(t) {
     if (!this._remoteEndpoint) return;
-    this._cancelRemoteFetch(), this.classList.add(bt);
+    this._cancelRemoteFetch(), this.classList.add(St);
     const e = new AbortController();
     this._remoteFetchController = e;
     try {
@@ -1744,17 +1744,17 @@ class kt extends HTMLElement {
       });
       if (!n.ok)
         throw new Error(`Remote fetch failed with status ${n.status}`);
-      const l = await n.json();
+      const a = await n.json();
       if (e.signal.aborted)
         return;
-      const r = this._extractRemoteOptions(l);
-      this._applyRemoteResults(r);
+      const l = this._extractRemoteOptions(a);
+      this._applyRemoteResults(l);
     } catch (s) {
       if (e.signal.aborted)
         return;
       console.error("MultiSelectSimple remote fetch error:", s), this._filteredOptions = [], this._isOptionsListVisible = !1, this._renderOptionsList();
     } finally {
-      this._remoteFetchController === e && (this._remoteFetchController = null), this.classList.remove(bt);
+      this._remoteFetchController === e && (this._remoteFetchController = null), this.classList.remove(St);
     }
   }
   _extractRemoteOptions(t) {
@@ -1762,7 +1762,7 @@ class kt extends HTMLElement {
     let e = [];
     return Array.isArray(t) ? e = t : this._remoteResultKey && Array.isArray(t[this._remoteResultKey]) ? e = t[this._remoteResultKey] : Array.isArray(t.items) && (e = t.items), e.map((s) => {
       if (!s) return null;
-      const n = s.id ?? s.ID ?? s.value ?? "", l = s.name ?? s.title ?? s.label ?? "", r = s.detail ?? s.additional_data ?? s.annotation ?? "", o = this._normalizeText(l), d = this._normalizeText(r);
+      const n = s.id ?? s.ID ?? s.value ?? "", a = s.name ?? s.title ?? s.label ?? "", l = s.detail ?? s.additional_data ?? s.annotation ?? "", o = this._normalizeText(a), d = this._normalizeText(l);
       return !n || !o ? null : {
         id: String(n),
         name: o,
@@ -1788,9 +1788,9 @@ class kt extends HTMLElement {
     return (s === '"' && n === '"' || s === "'" && n === "'") && (e = e.slice(1, -1).trim(), !e) ? "" : e;
   }
 }
-E(kt, "formAssociated", !0);
-const Se = "rbi-button", ve = "rbi-icon";
-class Le extends HTMLElement {
+v(Rt, "formAssociated", !0);
+const Le = "rbi-button", ye = "rbi-icon";
+class Ae extends HTMLElement {
   constructor() {
     super(), this.initialStates = /* @__PURE__ */ new Map(), this._controlledElements = [], this.button = null, this.lastOverallModifiedState = null, this.handleInputChange = this.handleInputChange.bind(this), this.handleReset = this.handleReset.bind(this);
   }
@@ -1799,10 +1799,10 @@ class Le extends HTMLElement {
   }
   connectedCallback() {
     const i = `
-              <button type="button" class="${Se} cursor-pointer disabled:cursor-default" aria-label="Reset field">
+              <button type="button" class="${Le} cursor-pointer disabled:cursor-default" aria-label="Reset field">
 								<tool-tip position="right">
 									<div class="data-tip">Feld zurücksetzen</div>
-									<span class="${ve} ri-arrow-go-back-fill"></span>
+									<span class="${ye} ri-arrow-go-back-fill"></span>
 								</tool-tip>
               </button>
             `;
@@ -1946,32 +1946,32 @@ class Le extends HTMLElement {
     this.button.setAttribute("aria-label", i);
   }
 }
-const _ = "hidden", Et = "dm-stay", x = "dm-title", St = "dm-menu-button", ye = "dm-target", Ae = "data-dm-target", vt = "dm-menu", Lt = "dm-menu-item", Ie = "dm-close-button";
-var O, Ot;
-class Te extends HTMLElement {
+const _ = "hidden", vt = "dm-stay", R = "dm-title", Lt = "dm-menu-button", Ie = "dm-target", Te = "data-dm-target", yt = "dm-menu", At = "dm-menu-item", Ce = "dm-close-button";
+var B, Ot;
+class we extends HTMLElement {
   constructor() {
     super();
-    S(this, O);
-    T(this, O, Ot).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+    L(this, B);
+    w(this, B, Ot).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
   connectedCallback() {
-    if (this._target = document.getElementById(this.getAttribute(ye)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(St)).map((t) => ({
+    if (this._target = document.getElementById(this.getAttribute(Ie)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((t) => t.nodeType === Node.ELEMENT_NODE && !t.classList.contains(Lt)).map((t) => ({
       node: t,
       target: () => {
-        const e = t.getAttribute(Ae);
+        const e = t.getAttribute(Te);
         return e ? document.getElementById(e) || this._target : this._target;
       },
-      stay: () => t.hasAttribute(Et) && t.getAttribute(Et) == "true",
+      stay: () => t.hasAttribute(vt) && t.getAttribute(vt) == "true",
       hidden: () => t.classList.contains(_),
       name: () => {
         const e = t.querySelector("label");
-        return e ? e.innerHTML : t.hasAttribute(x) ? t.getAttribute(x) : "";
+        return e ? e.innerHTML : t.hasAttribute(R) ? t.getAttribute(R) : "";
       },
       nameText: () => {
         const e = t.querySelector("label");
-        return e ? e.textContent.trim() : t.hasAttribute(x) ? t.getAttribute(x) : "";
+        return e ? e.textContent.trim() : t.hasAttribute(R) ? t.getAttribute(R) : "";
       }
-    })), this._button = this.querySelector(`.${St}`), !this._button) {
+    })), this._button = this.querySelector(`.${Lt}`), !this._button) {
       console.error("DivManagerMenu needs a button element.");
       return;
     }
@@ -1980,7 +1980,7 @@ class Te extends HTMLElement {
       this.removeChild(t.node);
     this._button.addEventListener("click", this._toggleMenu.bind(this)), this._button.classList.add("relative");
     for (const t of this._cildren)
-      t.node.querySelectorAll(`.${Ie}`).forEach((s) => {
+      t.node.querySelectorAll(`.${Ce}`).forEach((s) => {
         s.addEventListener("click", (n) => {
           this.hideDiv(n, t.node);
         });
@@ -2038,7 +2038,7 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
       console.error("DivManagerMenu: Invalid node provided.");
       return;
     }
-    const s = this._cildren.find((l) => l.node === e);
+    const s = this._cildren.find((a) => a.node === e);
     if (!s) {
       console.error("DivManagerMenu: Child not found.");
       return;
@@ -2061,10 +2061,10 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
       this.hideMenu();
       return;
     }
-    (!this._menu || !this._button.contains(this._menu)) && (this._button.insertAdjacentHTML("beforeend", `<div class="${vt} absolute hidden"></div>`), this._menu = this._button.querySelector(`.${vt}`)), this._menu.innerHTML = `${t.map((s, n) => `
-				<button type="button" class="${Lt}" dm-itemno="${this._cildren.indexOf(s)}">
+    (!this._menu || !this._button.contains(this._menu)) && (this._button.insertAdjacentHTML("beforeend", `<div class="${yt} absolute hidden"></div>`), this._menu = this._button.querySelector(`.${yt}`)), this._menu.innerHTML = `${t.map((s, n) => `
+				<button type="button" class="${At}" dm-itemno="${this._cildren.indexOf(s)}">
 					${s.name()}
-				</button>`).join("")}`, this._menu.querySelectorAll(`.${Lt}`).forEach((s) => {
+				</button>`).join("")}`, this._menu.querySelectorAll(`.${At}`).forEach((s) => {
       s.addEventListener("click", (n) => {
         this.showDiv(n, parseInt(s.getAttribute("dm-itemno"))), this.hideMenu(), this.renderButton();
       });
@@ -2076,7 +2076,7 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
     }), this.updateTargetVisibility();
   }
   insertChildInOrder(t) {
-    const e = t.target(), s = this._cildren.indexOf(t), n = this._cildren.slice(s + 1).filter((l) => l.target() === e).map((l) => l.node).find((l) => e && e.contains(l));
+    const e = t.target(), s = this._cildren.indexOf(t), n = this._cildren.slice(s + 1).filter((a) => a.target() === e).map((a) => a.node).find((a) => e && e.contains(a));
     e && (n ? e.insertBefore(t.node, n) : e.appendChild(t.node));
   }
   updateTargetVisibility() {
@@ -2090,16 +2090,16 @@ ${t[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
     });
   }
 }
-O = new WeakSet(), Ot = function() {
+B = new WeakSet(), Ot = function() {
   this._cildren = [], this._rendered = [], this._target = null, this._button = null, this._menu = null, this._originalButtonText = null;
 };
-const p = "items-row", Ce = "items-list", we = "items-template", xe = "items-add-button", ke = "items-cancel-button", yt = "items-remove-button", Oe = "items-edit-button", Re = "items-close-button", Me = "items-summary", Be = "items-edit-panel", U = "items_removed[]", v = "data-items-removed";
-class $e extends HTMLElement {
+const p = "items-row", xe = "items-list", ke = "items-template", Re = "items-add-button", Oe = "items-cancel-button", O = "items-remove-button", Me = "items-edit-button", Be = "items-close-button", $e = "items-summary", Ne = "items-edit-panel", W = "items_removed[]", y = "data-items-removed";
+class Pe extends HTMLElement {
   constructor() {
     super(), this._list = null, this._template = null, this._addButton = null, this._idPrefix = `items-editor-${crypto.randomUUID().slice(0, 8)}`, this._handleAdd = this._onAddClick.bind(this);
   }
   connectedCallback() {
-    if (this._list = this.querySelector(`.${Ce}`), this._template = this.querySelector(`template.${we}`), this._addButton = this.querySelector(`.${xe}`), !this._list || !this._template || !this._addButton) {
+    if (this._list = this.querySelector(`.${xe}`), this._template = this.querySelector(`template.${ke}`), this._addButton = this.querySelector(`.${Re}`), !this._list || !this._template || !this._addButton) {
       console.error("ItemsEditor: Missing list, template, or add button.");
       return;
     }
@@ -2123,16 +2123,16 @@ class $e extends HTMLElement {
     const t = i.closest(`.${p}`);
     if (!t)
       return;
-    const e = t.getAttribute(v) === "true";
+    const e = t.getAttribute(y) === "true";
     this._setRowRemoved(t, !e);
   }
   _wireRemoveButtons(i = this) {
-    i.querySelectorAll(`.${yt}`).forEach((t) => {
+    i.querySelectorAll(`.${O}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault(), this.removeItem(t);
       }), t.addEventListener("mouseenter", () => {
         const e = t.closest(`.${p}`);
-        if (!e || e.getAttribute(v) !== "true")
+        if (!e || e.getAttribute(y) !== "true")
           return;
         const s = t.querySelector("[data-delete-label]");
         s && (s.textContent = s.getAttribute("data-delete-hover") || "Rückgängig");
@@ -2142,14 +2142,14 @@ class $e extends HTMLElement {
         const e = t.closest(`.${p}`), s = t.querySelector("[data-delete-label]");
         if (!s)
           return;
-        e && e.getAttribute(v) === "true" ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
+        e && e.getAttribute(y) === "true" ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
         const n = t.querySelector("i");
-        n && (e && e.getAttribute(v) === "true" ? (n.classList.add("hidden"), n.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (n.classList.remove("hidden"), n.classList.add("ri-delete-bin-line"), n.classList.remove("ri-arrow-go-back-line")));
+        n && (e && e.getAttribute(y) === "true" ? (n.classList.add("hidden"), n.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (n.classList.remove("hidden"), n.classList.add("ri-delete-bin-line"), n.classList.remove("ri-arrow-go-back-line")));
       }));
     });
   }
   _wireCancelButtons(i = this) {
-    i.querySelectorAll(`.${ke}`).forEach((t) => {
+    i.querySelectorAll(`.${Oe}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault();
         const s = t.closest(`.${p}`);
@@ -2158,13 +2158,13 @@ class $e extends HTMLElement {
     });
   }
   _wireEditButtons(i = this) {
-    i.querySelectorAll(`.${Oe}`).forEach((t) => {
+    i.querySelectorAll(`.${Me}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault();
         const s = t.closest(`.${p}`);
         s && this._setRowMode(s, "edit");
       }));
-    }), i.querySelectorAll(`.${Re}`).forEach((t) => {
+    }), i.querySelectorAll(`.${Be}`).forEach((t) => {
       t.dataset.itemsBound !== "true" && (t.dataset.itemsBound = "true", t.addEventListener("click", (e) => {
         e.preventDefault();
         const s = t.closest(`.${p}`);
@@ -2181,19 +2181,23 @@ class $e extends HTMLElement {
     this._resetToOriginal(i), this._setRowMode(i, "summary");
   }
   _setRowRemoved(i, t) {
-    i.setAttribute(v, t ? "true" : "false"), i.classList.toggle("bg-red-50", t), i.querySelectorAll("[data-delete-label]").forEach((n) => {
-      const l = t ? n.getAttribute("data-delete-active") || "Wird entfernt" : n.getAttribute("data-delete-default") || "Entfernen";
-      n.textContent = l;
-    }), i.querySelectorAll(`.${yt} i`).forEach((n) => {
-      t ? (n.classList.add("hidden"), n.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (n.classList.remove("hidden"), n.classList.add("ri-delete-bin-line"), n.classList.remove("ri-arrow-go-back-line"));
+    i.setAttribute(y, t ? "true" : "false"), i.classList.toggle("bg-red-50", t);
+    const e = i.querySelector(".items-edit-button");
+    e && (t ? e.classList.add("hidden") : e.classList.remove("hidden")), i.querySelectorAll("[data-delete-label]").forEach((a) => {
+      const l = a.closest(`.${O}`), o = l && l.matches(":hover");
+      let d;
+      t && o ? d = a.getAttribute("data-delete-hover") || "Rückgängig" : t ? d = a.getAttribute("data-delete-active") || "Wird entfernt" : d = a.getAttribute("data-delete-default") || "Entfernen", a.textContent = d;
+    }), i.querySelectorAll(`.${O} i`).forEach((a) => {
+      const l = a.closest(`.${O}`), o = l && l.matches(":hover");
+      t ? o ? (a.classList.remove("hidden"), a.classList.add("ri-arrow-go-back-line"), a.classList.remove("ri-delete-bin-line")) : (a.classList.add("hidden"), a.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (a.classList.remove("hidden"), a.classList.add("ri-delete-bin-line"), a.classList.remove("ri-arrow-go-back-line"));
     });
-    const e = i.querySelector('input[name="items_id[]"]'), s = e ? e.value.trim() : "";
-    s && (t ? this._ensureRemovalInput(s) : this._removeRemovalInput(s)), i.querySelectorAll("[data-field]").forEach((n) => {
-      n.disabled = t;
+    const s = i.querySelector('input[name="items_id[]"]'), n = s ? s.value.trim() : "";
+    n && (t ? this._ensureRemovalInput(n) : this._removeRemovalInput(n)), i.querySelectorAll("[data-field]").forEach((a) => {
+      a.disabled = t;
     });
   }
   _setRowMode(i, t) {
-    const e = i.querySelector(`.${Me}`), s = i.querySelector(`.${Be}`);
+    const e = i.querySelector(`.${$e}`), s = i.querySelector(`.${Ne}`);
     !e || !s || (t === "edit" ? (e.classList.add("hidden"), s.classList.remove("hidden")) : (e.classList.remove("hidden"), s.classList.add("hidden"), this._syncSummary(i)));
   }
   _captureAllOriginals() {
@@ -2227,8 +2231,8 @@ class $e extends HTMLElement {
       const n = i.querySelector(`[data-field="${s}"]`);
       if (!n)
         return;
-      const l = `${this._idPrefix}-${t}-${s}`;
-      n.id = l, e.setAttribute("for", l);
+      const a = `${this._idPrefix}-${t}-${s}`;
+      n.id = a, e.setAttribute("for", a);
     });
   }
   _syncAllSummaries() {
@@ -2249,8 +2253,8 @@ class $e extends HTMLElement {
       const s = i.querySelector(`[data-field="${e}"]`);
       if (!s)
         return;
-      const n = this._readFieldValue(s), l = t.getAttribute("data-summary-hide-empty") === "true" ? t.closest("[data-summary-container]") : null;
-      n ? (this._setSummaryContent(t, n), t.classList.remove("text-gray-400"), l && l.classList.remove("hidden")) : (this._setSummaryContent(t, "—"), t.classList.add("text-gray-400"), l && l.classList.add("hidden"));
+      const n = this._readFieldValue(s), a = t.getAttribute("data-summary-hide-empty") === "true" ? t.closest("[data-summary-container]") : null;
+      n ? (this._setSummaryContent(t, n), t.classList.remove("text-gray-400"), a && a.classList.remove("hidden")) : (this._setSummaryContent(t, "—"), t.classList.add("text-gray-400"), a && a.classList.add("hidden"));
     }), this._syncNewBadge(i);
   }
   _syncNewBadge(i) {
@@ -2273,35 +2277,35 @@ class $e extends HTMLElement {
     return i instanceof HTMLInputElement || i instanceof HTMLTextAreaElement ? i.value.trim() : "";
   }
   _ensureRemovalInput(i) {
-    if (Array.from(this.querySelectorAll(`input[name="${U}"]`)).some(
+    if (Array.from(this.querySelectorAll(`input[name="${W}"]`)).some(
       (s) => s.value === i
     ))
       return;
     const e = document.createElement("input");
-    e.type = "hidden", e.name = U, e.value = i, this.appendChild(e);
+    e.type = "hidden", e.name = W, e.value = i, this.appendChild(e);
   }
   _removeRemovalInput(i) {
-    const t = Array.from(this.querySelectorAll(`input[name="${U}"]`));
+    const t = Array.from(this.querySelectorAll(`input[name="${W}"]`));
     for (const e of t)
       e.value === i && e.remove();
   }
 }
-const Ne = "ssr-wrapper", At = "ssr-input", It = "ssr-list", Pe = "ssr-option", qe = "ssr-option-name", De = "ssr-option-detail", He = "ssr-option-bio", Tt = "ssr-hidden-input", Ct = "ssr-clear-button", K = 1, z = 10, Fe = 250;
-class Ve extends HTMLElement {
+const qe = "ssr-wrapper", It = "ssr-input", Tt = "ssr-list", De = "ssr-option", He = "ssr-option-name", Fe = "ssr-option-detail", Ve = "ssr-option-bio", Ct = "ssr-hidden-input", wt = "ssr-clear-button", G = 1, j = 10, Ue = 250;
+class Ke extends HTMLElement {
   constructor() {
-    super(), this._endpoint = "", this._resultKey = "items", this._minChars = K, this._limit = z, this._placeholder = "Search...", this._options = [], this._selected = null, this._highlightedIndex = -1, this._fetchTimeout = null, this._fetchController = null, this._listVisible = !1, this._boundHandleInput = this._handleInput.bind(this), this._boundHandleFocus = this._handleFocus.bind(this), this._boundHandleKeyDown = this._handleKeyDown.bind(this), this._boundHandleClear = this._handleClear.bind(this), this._boundHandleClickOutside = this._handleClickOutside.bind(this);
+    super(), this._endpoint = "", this._resultKey = "items", this._minChars = G, this._limit = j, this._placeholder = "Search...", this._options = [], this._selected = null, this._highlightedIndex = -1, this._fetchTimeout = null, this._fetchController = null, this._listVisible = !1, this._boundHandleInput = this._handleInput.bind(this), this._boundHandleFocus = this._handleFocus.bind(this), this._boundHandleKeyDown = this._handleKeyDown.bind(this), this._boundHandleClear = this._handleClear.bind(this), this._boundHandleClickOutside = this._handleClickOutside.bind(this);
   }
   static get observedAttributes() {
     return ["data-endpoint", "data-result-key", "data-minchars", "data-limit", "placeholder", "name"];
   }
   connectedCallback() {
-    this._render(), this._input = this.querySelector(`.${At}`), this._list = this.querySelector(`.${It}`), this._hiddenInput = this.querySelector(`.${Tt}`), this._clearButton = this.querySelector(`.${Ct}`), this._endpoint = this.getAttribute("data-endpoint") || "", this._resultKey = this.getAttribute("data-result-key") || "items", this._minChars = this._parsePositiveInt(this.getAttribute("data-minchars"), K), this._limit = this._parsePositiveInt(this.getAttribute("data-limit"), z), this._placeholder = this.getAttribute("placeholder") || "Search...", this._input && (this._input.placeholder = this._placeholder, this._input.addEventListener("input", this._boundHandleInput), this._input.addEventListener("focus", this._boundHandleFocus), this._input.addEventListener("keydown", this._boundHandleKeyDown)), this._clearButton && this._clearButton.addEventListener("click", this._boundHandleClear), document.addEventListener("click", this._boundHandleClickOutside);
+    this._render(), this._input = this.querySelector(`.${It}`), this._list = this.querySelector(`.${Tt}`), this._hiddenInput = this.querySelector(`.${Ct}`), this._clearButton = this.querySelector(`.${wt}`), this._endpoint = this.getAttribute("data-endpoint") || "", this._resultKey = this.getAttribute("data-result-key") || "items", this._minChars = this._parsePositiveInt(this.getAttribute("data-minchars"), G), this._limit = this._parsePositiveInt(this.getAttribute("data-limit"), j), this._placeholder = this.getAttribute("placeholder") || "Search...", this._input && (this._input.placeholder = this._placeholder, this._input.addEventListener("input", this._boundHandleInput), this._input.addEventListener("focus", this._boundHandleFocus), this._input.addEventListener("keydown", this._boundHandleKeyDown)), this._clearButton && this._clearButton.addEventListener("click", this._boundHandleClear), document.addEventListener("click", this._boundHandleClickOutside);
   }
   disconnectedCallback() {
     document.removeEventListener("click", this._boundHandleClickOutside), this._input && (this._input.removeEventListener("input", this._boundHandleInput), this._input.removeEventListener("focus", this._boundHandleFocus), this._input.removeEventListener("keydown", this._boundHandleKeyDown)), this._clearButton && this._clearButton.removeEventListener("click", this._boundHandleClear);
   }
   attributeChangedCallback(i, t, e) {
-    t !== e && (i === "data-endpoint" && (this._endpoint = e || ""), i === "data-result-key" && (this._resultKey = e || "items"), i === "data-minchars" && (this._minChars = this._parsePositiveInt(e, K)), i === "data-limit" && (this._limit = this._parsePositiveInt(e, z)), i === "placeholder" && (this._placeholder = e || "Search...", this._input && (this._input.placeholder = this._placeholder)), i === "name" && this._hiddenInput && (this._hiddenInput.name = e || ""));
+    t !== e && (i === "data-endpoint" && (this._endpoint = e || ""), i === "data-result-key" && (this._resultKey = e || "items"), i === "data-minchars" && (this._minChars = this._parsePositiveInt(e, G)), i === "data-limit" && (this._limit = this._parsePositiveInt(e, j)), i === "placeholder" && (this._placeholder = e || "Search...", this._input && (this._input.placeholder = this._placeholder)), i === "name" && this._hiddenInput && (this._hiddenInput.name = e || ""));
   }
   _handleInput(i) {
     const t = i.target.value.trim();
@@ -2352,20 +2356,25 @@ class Ve extends HTMLElement {
   _debouncedFetch(i) {
     this._fetchTimeout && clearTimeout(this._fetchTimeout), this._fetchTimeout = setTimeout(() => {
       this._fetchOptions(i);
-    }, Fe);
+    }, Ue);
   }
   async _fetchOptions(i) {
     if (!this._endpoint)
       return;
-    this._fetchController && this._fetchController.abort(), this._fetchController = new AbortController();
+    this._fetchController && this._fetchController.abort(), this.dispatchEvent(new CustomEvent("ssrbeforefetch", { bubbles: !0 })), this._fetchController = new AbortController();
     const t = new URL(this._endpoint, window.location.origin);
     t.searchParams.set("q", i), this._limit > 0 && t.searchParams.set("limit", String(this._limit));
     try {
       const e = await fetch(t.toString(), { signal: this._fetchController.signal });
       if (!e.ok)
         return;
-      const s = await e.json(), n = Array.isArray(s == null ? void 0 : s[this._resultKey]) ? s[this._resultKey] : [];
-      this._options = n.filter((l) => l && l.id && l.name), this._highlightedIndex = this._options.length > 0 ? 0 : -1, this._renderOptions(), this._options.length > 0 ? this._showList() : this._hideList();
+      const s = await e.json();
+      let a = (Array.isArray(s == null ? void 0 : s[this._resultKey]) ? s[this._resultKey] : []).filter((l) => l && l.id && l.name);
+      if (this._excludeIds && Array.isArray(this._excludeIds)) {
+        const l = new Set(this._excludeIds);
+        a = a.filter((o) => !l.has(o.id));
+      }
+      this._options = a, this._highlightedIndex = this._options.length > 0 ? 0 : -1, this._renderOptions(), this._options.length > 0 ? this._showList() : this._hideList();
     } catch (e) {
       if ((e == null ? void 0 : e.name) === "AbortError")
         return;
@@ -2375,19 +2384,19 @@ class Ve extends HTMLElement {
     this._list && (this._list.innerHTML = "", this._options.forEach((i) => {
       const t = document.createElement("button");
       t.type = "button", t.setAttribute("data-index", String(this._options.indexOf(i))), t.className = [
-        Pe,
+        De,
         "w-full text-left px-3 py-2 hover:bg-slate-100 transition-colors"
       ].join(" ");
       const s = this._options.indexOf(i) === this._highlightedIndex;
       t.classList.toggle("bg-slate-100", s), t.classList.toggle("text-gray-900", s), t.setAttribute("aria-selected", s ? "true" : "false");
       const n = document.createElement("div");
-      if (n.className = [qe, "text-sm font-semibold text-gray-800"].join(" "), n.textContent = i.name, t.appendChild(n), i.detail) {
-        const l = document.createElement("div");
-        l.className = [De, "text-xs text-gray-600"].join(" "), l.textContent = i.detail, t.appendChild(l);
+      if (n.className = [He, "text-sm font-semibold text-gray-800"].join(" "), n.textContent = i.name, t.appendChild(n), i.detail) {
+        const a = document.createElement("div");
+        a.className = [Fe, "text-xs text-gray-600"].join(" "), a.textContent = i.detail, t.appendChild(a);
       }
       if (i.bio) {
-        const l = document.createElement("div");
-        l.className = [He, "text-xs text-gray-500"].join(" "), l.textContent = i.bio, t.appendChild(l);
+        const a = document.createElement("div");
+        a.className = [Ve, "text-xs text-gray-500"].join(" "), a.textContent = i.bio, t.appendChild(a);
       }
       t.addEventListener("click", () => {
         this._selectOption(i);
@@ -2436,29 +2445,29 @@ class Ve extends HTMLElement {
   _render() {
     const i = this.getAttribute("name") || "";
     this.innerHTML = `
-			<div class="${Ne} relative">
+			<div class="${qe} relative">
 				<div class="flex items-center gap-2">
 					<input
 						type="text"
-						class="${At} inputinput w-full"
+						class="${It} inputinput w-full"
 						autocomplete="off"
 						autocorrect="off"
 						autocapitalize="none"
 						spellcheck="false"
 						placeholder="${this._placeholder}"
 					/>
-					<button type="button" class="${Ct} text-sm text-gray-600 hover:text-gray-900">
+					<button type="button" class="${wt} text-sm text-gray-600 hover:text-gray-900">
 						<i class="ri-close-line"></i>
 					</button>
 				</div>
-				<input type="hidden" class="${Tt}" name="${i}" value="" />
-				<div class="${It} absolute left-0 right-0 mt-1 border border-stone-200 rounded-xs bg-white shadow-sm z-10 hidden max-h-64 overflow-auto"></div>
+				<input type="hidden" class="${Ct}" name="${i}" value="" />
+				<div class="${Tt} absolute left-0 right-0 mt-1 border border-stone-200 rounded-xs bg-white shadow-sm z-10 hidden max-h-64 overflow-auto"></div>
 			</div>
 		`;
   }
 }
-const Ue = "Bevorzugter Reihentitel";
-class Ke extends HTMLElement {
+const ze = "Bevorzugter Reihentitel";
+class We extends HTMLElement {
   constructor() {
     super(), this._pendingAgent = null, this._form = null, this._saveButton = null, this._statusEl = null, this._saveEndpoint = "", this._isSaving = !1, this._handleSaveClick = this._handleSaveClick.bind(this);
   }
@@ -2579,7 +2588,7 @@ class Ke extends HTMLElement {
     if (Number.isNaN(s))
       throw new Error("Jahr ist ungültig.");
     t.year = s;
-    const n = i.getAll("languages[]").map((g) => g.trim()).filter(Boolean), l = i.getAll("places[]").map((g) => g.trim()).filter(Boolean), { items: r, removedIds: o } = this._collectItems(i), {
+    const n = i.getAll("languages[]").map((g) => g.trim()).filter(Boolean), a = i.getAll("places[]").map((g) => g.trim()).filter(Boolean), { items: l, removedIds: o } = this._collectItems(i), {
       relations: d,
       deleted: c
     } = this._collectRelations(i, {
@@ -2587,49 +2596,51 @@ class Ke extends HTMLElement {
       targetField: "series"
     }), h = this._collectNewRelations("entries_series");
     if (![...d, ...h].some(
-      (g) => g.type === Ue
+      (g) => g.type === ze
     ))
       throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
     const {
-      relations: f,
-      deleted: m
+      relations: m,
+      deleted: f
     } = this._collectRelations(i, {
       prefix: "entries_agents",
       targetField: "agent"
-    }), A = this._collectNewRelations("entries_agents");
+    }), E = this._collectNewRelations("entries_agents"), S = [...d, ...h].map((g) => g.target_id);
+    if (S.filter((g, Nt) => S.indexOf(g) !== Nt).length > 0)
+      throw new Error("Doppelte Reihenverknüpfungen sind nicht erlaubt.");
     return {
       csrf_token: this._readValue(i, "csrf_token"),
       last_edited: this._readValue(i, "last_edited"),
       entry: t,
       languages: n,
-      places: l,
-      items: r,
+      places: a,
+      items: l,
       deleted_item_ids: o,
       series_relations: d,
       new_series_relations: h,
       deleted_series_relation_ids: c,
-      agent_relations: f,
-      new_agent_relations: A,
-      deleted_agent_relation_ids: m
+      agent_relations: m,
+      new_agent_relations: E,
+      deleted_agent_relation_ids: f
     };
   }
   _collectItems(i) {
-    const t = i.getAll("items_id[]").map((h) => h.trim()), e = i.getAll("items_owner[]"), s = i.getAll("items_identifier[]"), n = i.getAll("items_location[]"), l = i.getAll("items_media[]"), r = i.getAll("items_annotation[]"), o = i.getAll("items_uri[]"), d = new Set(
+    const t = i.getAll("items_id[]").map((h) => h.trim()), e = i.getAll("items_owner[]"), s = i.getAll("items_identifier[]"), n = i.getAll("items_location[]"), a = i.getAll("items_media[]"), l = i.getAll("items_annotation[]"), o = i.getAll("items_uri[]"), d = new Set(
       i.getAll("items_removed[]").map((h) => h.trim()).filter(Boolean)
     ), c = [];
     for (let h = 0; h < t.length; h += 1) {
       const u = t[h] || "";
       if (u && d.has(u))
         continue;
-      const f = (e[h] || "").trim(), m = (s[h] || "").trim(), A = (n[h] || "").trim(), g = (r[h] || "").trim(), G = (o[h] || "").trim(), M = (l[h] || "").trim();
-      (u || f || m || A || g || G || M) && c.push({
+      const m = (e[h] || "").trim(), f = (s[h] || "").trim(), E = (n[h] || "").trim(), N = (l[h] || "").trim(), S = (o[h] || "").trim(), T = (a[h] || "").trim();
+      (u || m || f || E || N || S || T) && c.push({
         id: u,
-        owner: f,
-        identifier: m,
-        location: A,
-        annotation: g,
-        uri: G,
-        media: M ? [M] : []
+        owner: m,
+        identifier: f,
+        location: E,
+        annotation: N,
+        uri: S,
+        media: T ? [T] : []
       });
     }
     return {
@@ -2639,21 +2650,21 @@ class Ke extends HTMLElement {
   }
   _collectRelations(i, { prefix: t, targetField: e }) {
     const s = [], n = [];
-    for (const [l, r] of i.entries()) {
-      if (!l.startsWith(`${t}_type[`))
+    for (const [a, l] of i.entries()) {
+      if (!a.startsWith(`${t}_id[`))
         continue;
-      const o = l.slice(l.indexOf("[") + 1, -1), d = `${t}_${e}[${o}]`, c = `${t}_id[${o}]`, h = `${t}_delete[${o}]`, u = `${t}_uncertain[${o}]`, f = (i.get(d) || "").trim();
-      if (!f)
+      const o = a.slice(a.indexOf("[") + 1, -1), d = `${t}_${e}[${o}]`, c = `${t}_type[${o}]`, h = `${t}_delete[${o}]`, u = `${t}_uncertain[${o}]`, m = (l || "").trim(), f = (i.get(d) || "").trim();
+      if (!f || !m)
         continue;
-      const m = (i.get(c) || o).trim();
       if (i.has(h)) {
-        m && n.push(m);
+        n.push(m);
         continue;
       }
+      const E = (i.get(c) || "").trim();
       s.push({
         id: m,
         target_id: f,
-        type: (r || "").trim(),
+        type: E,
         uncertain: i.has(u)
       });
     }
@@ -2665,13 +2676,13 @@ class Ke extends HTMLElement {
       return [];
     const e = t.querySelectorAll("[data-role='relation-add-row'] [data-rel-row]"), s = [];
     return e.forEach((n) => {
-      const l = n.querySelector(`input[name='${i}_new_id']`), r = n.querySelector(`select[name='${i}_new_type']`), o = n.querySelector(`input[name='${i}_new_uncertain']`);
-      if (!l)
+      const a = n.querySelector(`input[name='${i}_new_id']`), l = n.querySelector(`select[name='${i}_new_type']`), o = n.querySelector(`input[name='${i}_new_uncertain']`);
+      if (!a)
         return;
-      const d = l.value.trim();
+      const d = a.value.trim();
       d && s.push({
         target_id: d,
-        type: ((r == null ? void 0 : r.value) || "").trim(),
+        type: ((l == null ? void 0 : l.value) || "").trim(),
         uncertain: !!(o != null && o.checked)
       });
     }), s;
@@ -2704,43 +2715,67 @@ class Ke extends HTMLElement {
     });
     if (!e.ok)
       throw new Error("Formular konnte nicht aktualisiert werden.");
-    const s = await e.text(), l = new DOMParser().parseFromString(s, "text/html"), r = l.querySelector("#changealmanachform"), o = this.querySelector("#changealmanachform");
-    if (!r || !o)
+    const s = await e.text(), a = new DOMParser().parseFromString(s, "text/html"), l = a.querySelector("#changealmanachform"), o = this.querySelector("#changealmanachform");
+    if (!l || !o)
       throw new Error("Formular konnte nicht geladen werden.");
-    o.replaceWith(r), this._form = r;
-    const d = l.querySelector("#user-message"), c = this.querySelector("#user-message");
+    o.replaceWith(l), this._form = l;
+    const d = a.querySelector("#user-message"), c = this.querySelector("#user-message");
     d && c && c.replaceWith(d);
-    const h = l.querySelector("#almanach-header-data"), u = this.querySelector("#almanach-header-data");
+    const h = a.querySelector("#almanach-header-data"), u = this.querySelector("#almanach-header-data");
     h && u && u.replaceWith(h), this._initForm(), this._initPlaces(), this._initSaveHandling();
   }
 }
-const ze = "[data-role='relation-add-toggle']", We = "[data-role='relation-add-panel']", Ge = "[data-role='relation-add-close']", je = "[data-role='relation-add-apply']", Je = "[data-role='relation-add-error']", Qe = "[data-role='relation-add-row']", Xe = "[data-role='relation-add-select']", Ye = "[data-role='relation-type-select']", Ze = "[data-role='relation-uncertain']", ti = "template[data-role='relation-new-template']", ei = "[data-role='relation-new-delete']", wt = "[data-rel-row]";
-class ii extends HTMLElement {
+const Ge = "[data-role='relation-add-toggle']", je = "[data-role='relation-add-panel']", Je = "[data-role='relation-add-close']", Qe = "[data-role='relation-add-apply']", Xe = "[data-role='relation-add-error']", Ye = "[data-role='relation-add-row']", Ze = "[data-role='relation-add-select']", ti = "[data-role='relation-type-select']", ei = "[data-role='relation-uncertain']", ii = "template[data-role='relation-new-template']", si = "[data-role='relation-new-delete']", xt = "[data-rel-row]";
+class ni extends HTMLElement {
   constructor() {
     super(), this._pendingItem = null, this._pendingApply = !1;
   }
   connectedCallback() {
-    this._prefix = this.getAttribute("data-prefix") || "", this._linkBase = this.getAttribute("data-link-base") || "", this._newLabel = this.getAttribute("data-new-label") || "(Neu)", this._addToggleId = this.getAttribute("data-add-toggle-id") || "", this._setupAddPanel(), this._setupDeleteToggles();
+    this._prefix = this.getAttribute("data-prefix") || "", this._linkBase = this.getAttribute("data-link-base") || "", this._newLabel = this.getAttribute("data-new-label") || "(Neu)", this._addToggleId = this.getAttribute("data-add-toggle-id") || "", this._emptyText = this.querySelector(".rel-empty-text"), this._setupAddPanel(), this._setupDeleteToggles();
+  }
+  _getExistingIds() {
+    const i = /* @__PURE__ */ new Set(), t = this._prefix === "entries_series" ? "series" : "agent";
+    return this.querySelectorAll(`input[name^="${this._prefix}_${t}["]`).forEach((e) => {
+      const s = e.value.trim();
+      s && i.add(s);
+    }), this._addRow && this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).forEach((e) => {
+      const s = e.value.trim();
+      s && i.add(s);
+    }), i;
+  }
+  _updateEmptyTextVisibility() {
+    if (!this._emptyText)
+      return;
+    const i = this._prefix === "entries_series" ? "series" : "agent", t = this.querySelectorAll(`input[name^="${this._prefix}_${i}["]`).length > 0, e = this._addRow && this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).length > 0;
+    this._addPanel && !this._addPanel.classList.contains("hidden") || t || e ? this._emptyText.classList.add("hidden") : this._emptyText.classList.remove("hidden");
   }
   _setupAddPanel() {
-    if (this._addToggle = this.querySelector(ze), this._addToggleId) {
+    if (this._addToggle = this.querySelector(Ge), this._addToggleId) {
       const i = document.getElementById(this._addToggleId);
       i && (this._addToggle = i);
     }
-    this._addPanel = this.querySelector(We), this._addClose = this.querySelector(Ge), this._addApply = this.querySelector(je), this._addError = this.querySelector(Je), this._addRow = this.querySelector(Qe), this._addSelect = this.querySelector(Xe), this._typeSelect = this.querySelector(Ye), this._uncertain = this.querySelector(Ze), this._template = this.querySelector(ti), this._addInput = this._addSelect ? this._addSelect.querySelector(".ssr-input") : null, !(!this._addPanel || !this._addRow || !this._addSelect || !this._typeSelect || !this._uncertain || !this._template) && (this._addToggle && this._addToggle.addEventListener("click", () => {
-      this._addPanel.classList.toggle("hidden");
+    this._addPanel = this.querySelector(je), this._addClose = this.querySelector(Je), this._addApply = this.querySelector(Qe), this._addError = this.querySelector(Xe), this._addRow = this.querySelector(Ye), this._addSelect = this.querySelector(Ze), this._typeSelect = this.querySelector(ti), this._uncertain = this.querySelector(ei), this._template = this.querySelector(ii), this._addInput = this._addSelect ? this._addSelect.querySelector(".ssr-input") : null, !(!this._addPanel || !this._addRow || !this._addSelect || !this._typeSelect || !this._uncertain || !this._template) && (this._addSelect && this._prefix === "entries_series" && this._addSelect.addEventListener("ssrbeforefetch", () => {
+      this._addSelect._excludeIds = Array.from(this._getExistingIds());
+    }), this._addToggle && this._addToggle.addEventListener("click", () => {
+      this._addPanel.classList.toggle("hidden"), this._updateEmptyTextVisibility();
     }), this._addClose && this._addClose.addEventListener("click", () => {
-      this._addPanel.classList.add("hidden");
+      this._addPanel.classList.add("hidden"), this._updateEmptyTextVisibility();
     }), this._addInput && this._addInput.addEventListener("keydown", (i) => {
       i.key === "Enter" && (this._pendingApply = !0);
     }), this._addApply && this._addApply.addEventListener("click", () => {
       this._pendingApply = !1;
       const i = this._addPanel.querySelector(`input[name='${this._prefix}_new_id']`);
       if (!(i && i.value.trim().length > 0)) {
-        this._addError && this._addError.classList.remove("hidden");
+        this._addError && (this._addError.textContent = this._addError.getAttribute("data-error-empty") || "Bitte Reihe auswählen.", this._addError.classList.remove("hidden"));
         return;
       }
-      this._addError && this._addError.classList.add("hidden"), this._pendingItem && this._insertNewRow();
+      if (this._pendingItem) {
+        if (this._prefix === "entries_series" && this._getExistingIds().has(this._pendingItem.id)) {
+          this._addError && (this._addError.textContent = this._addError.getAttribute("data-error-duplicate") || "Diese Verknüpfung existiert bereits.", this._addError.classList.remove("hidden"));
+          return;
+        }
+        this._addError && this._addError.classList.add("hidden"), this._insertNewRow();
+      }
     }), this._addSelect.addEventListener("ssrchange", (i) => {
       var t;
       this._pendingItem = ((t = i.detail) == null ? void 0 : t.item) || null, this._pendingItem && this._addError && this._addError.classList.add("hidden"), this._pendingApply && this._pendingItem && this._addApply && (this._pendingApply = !1, this._addApply.click());
@@ -2755,14 +2790,14 @@ class ii extends HTMLElement {
   }
   _insertNewRow() {
     const i = this._template.content.cloneNode(!0);
-    if (!(i.querySelector(wt) || i.firstElementChild))
+    if (!(i.querySelector(xt) || i.firstElementChild))
       return;
     const e = i.querySelector("[data-rel-link]");
     e && e.setAttribute("href", `${this._linkBase}${this._pendingItem.id}`);
     const s = i.querySelector("[data-rel-name]");
     s && (s.textContent = this._pendingItem.name || "");
-    const n = i.querySelector("[data-rel-detail]"), l = i.querySelector("[data-rel-detail-container]"), r = this._pendingItem.detail || this._pendingItem.bio || "";
-    n && r ? n.textContent = r : l && l.remove();
+    const n = i.querySelector("[data-rel-detail]"), a = i.querySelector("[data-rel-detail-container]"), l = this._pendingItem.detail || this._pendingItem.bio || "";
+    n && l ? n.textContent = l : a && a.remove();
     const o = i.querySelector("[data-rel-new]");
     o && (o.textContent = this._newLabel);
     const d = i.querySelector("[data-rel-input='type']");
@@ -2770,17 +2805,17 @@ class ii extends HTMLElement {
     const c = i.querySelector("[data-rel-input='uncertain']");
     if (c && this._uncertain) {
       c.checked = this._uncertain.checked, c.name = `${this._prefix}_new_uncertain`;
-      const f = `${this._prefix}_new_uncertain_row`;
-      c.id = f;
-      const m = i.querySelector("[data-rel-uncertain-label]");
-      m && m.setAttribute("for", f);
+      const m = `${this._prefix}_new_uncertain_row`;
+      c.id = m;
+      const f = i.querySelector("[data-rel-uncertain-label]");
+      f && f.setAttribute("for", m);
     }
     const h = i.querySelector("[data-rel-input='id']");
     h && (h.name = `${this._prefix}_new_id`, h.value = this._pendingItem.id);
-    const u = i.querySelector(ei);
+    const u = i.querySelector(si);
     u && u.addEventListener("click", () => {
-      this._addRow.innerHTML = "", this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden");
-    }), this._addRow.innerHTML = "", this._addRow.appendChild(i), this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden");
+      this._addRow.innerHTML = "", this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden"), this._updateEmptyTextVisibility();
+    }), this._addRow.innerHTML = "", this._addRow.appendChild(i), this._pendingItem = null, this._clearAddPanel(), this._addPanel && this._addPanel.classList.add("hidden"), this._updateEmptyTextVisibility();
   }
   _setupDeleteToggles() {
     this.querySelectorAll("[data-delete-toggle]").forEach((i) => {
@@ -2789,12 +2824,17 @@ class ii extends HTMLElement {
         if (!e)
           return;
         e.checked = !e.checked;
-        const s = i.closest(wt);
-        s && s.classList.toggle("bg-red-50", e.checked);
-        const n = i.querySelector("[data-delete-label]");
-        n && (n.textContent = e.checked ? n.getAttribute("data-delete-active") || "Wird entfernt" : n.getAttribute("data-delete-default") || "Entfernen");
+        const s = i.closest(xt);
+        s && (s.classList.toggle("bg-red-50", e.checked), s.querySelectorAll("select, input[type='checkbox']").forEach((o) => {
+          o !== e && (o.disabled = e.checked);
+        }));
+        const n = i.matches(":hover"), a = i.querySelector("[data-delete-label]");
+        if (a) {
+          let o;
+          e.checked && n ? o = a.getAttribute("data-delete-hover") || "Rückgängig" : e.checked ? o = a.getAttribute("data-delete-active") || "Wird entfernt" : o = a.getAttribute("data-delete-default") || "Entfernen", a.textContent = o;
+        }
         const l = i.querySelector("i");
-        l && (e.checked ? (l.classList.add("hidden"), l.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (l.classList.remove("hidden"), l.classList.add("ri-delete-bin-line"), l.classList.remove("ri-arrow-go-back-line")));
+        l && (e.checked ? n ? (l.classList.remove("hidden"), l.classList.add("ri-arrow-go-back-line"), l.classList.remove("ri-delete-bin-line")) : (l.classList.add("hidden"), l.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (l.classList.remove("hidden"), l.classList.add("ri-delete-bin-line"), l.classList.remove("ri-arrow-go-back-line")));
       }), i.addEventListener("mouseenter", () => {
         const t = i.getAttribute("data-delete-toggle"), e = this.querySelector(`#${CSS.escape(t)}`);
         if (!e || !e.checked)
@@ -2814,40 +2854,40 @@ class ii extends HTMLElement {
     });
   }
 }
-const si = "filter-list", ni = "scroll-button", ai = "tool-tip", li = "abbrev-tooltips", ri = "int-link", oi = "popup-image", di = "tab-list", hi = "filter-pill", ci = "image-reel", ui = "multi-select-places", mi = "multi-select-simple", _i = "single-select-remote", Rt = "reset-button", pi = "div-manager", fi = "items-editor", gi = "almanach-edit-page", bi = "relations-editor";
-customElements.define(ri, zt);
-customElements.define(li, L);
-customElements.define(si, Ht);
-customElements.define(ni, Ft);
+const ai = "filter-list", ri = "scroll-button", li = "tool-tip", oi = "abbrev-tooltips", di = "int-link", hi = "popup-image", ci = "tab-list", ui = "filter-pill", mi = "image-reel", _i = "multi-select-places", pi = "multi-select-simple", fi = "single-select-remote", Mt = "reset-button", gi = "div-manager", bi = "items-editor", Ei = "almanach-edit-page", Si = "relations-editor";
+customElements.define(di, Gt);
+customElements.define(oi, A);
 customElements.define(ai, Vt);
-customElements.define(oi, Ut);
-customElements.define(di, Kt);
-customElements.define(hi, Pt);
+customElements.define(ri, Ut);
+customElements.define(li, Kt);
+customElements.define(hi, zt);
 customElements.define(ci, Wt);
-customElements.define(ui, xt);
-customElements.define(mi, kt);
-customElements.define(_i, Ve);
-customElements.define(Rt, Le);
-customElements.define(pi, Te);
-customElements.define(fi, $e);
-customElements.define(gi, Ke);
-customElements.define(bi, ii);
-function Ei() {
-  const a = window.location.pathname, i = window.location.search, t = a + i;
+customElements.define(ui, Dt);
+customElements.define(mi, jt);
+customElements.define(_i, kt);
+customElements.define(pi, Rt);
+customElements.define(fi, Ke);
+customElements.define(Mt, Ae);
+customElements.define(gi, we);
+customElements.define(bi, Pe);
+customElements.define(Ei, We);
+customElements.define(Si, ni);
+function vi() {
+  const r = window.location.pathname, i = window.location.search, t = r + i;
   return encodeURIComponent(t);
 }
-function Si(a = 5e3, i = 100) {
+function Li(r = 5e3, i = 100) {
   return new Promise((t, e) => {
     let s = 0;
     const n = setInterval(() => {
-      typeof window.QRCode == "function" ? (clearInterval(n), t(window.QRCode)) : (s += i, s >= a && (clearInterval(n), console.error("Timed out waiting for QRCode to become available."), e(new Error("QRCode not available after " + a + "ms. Check if qrcode.min.js is loaded correctly and sets window.QRCode."))));
+      typeof window.QRCode == "function" ? (clearInterval(n), t(window.QRCode)) : (s += i, s >= r && (clearInterval(n), console.error("Timed out waiting for QRCode to become available."), e(new Error("QRCode not available after " + r + "ms. Check if qrcode.min.js is loaded correctly and sets window.QRCode."))));
     }, i);
   });
 }
-async function vi(a) {
-  const i = await Si(), t = document.getElementById("qr");
+async function yi(r) {
+  const i = await Li(), t = document.getElementById("qr");
   t && (t.innerHTML = "", t.classList.add("hidden"), new i(t, {
-    text: a,
+    text: r,
     width: 1280,
     height: 1280,
     colorDark: "#000000",
@@ -2857,31 +2897,31 @@ async function vi(a) {
     t.classList.remove("hidden");
   }, 20));
 }
-function Li(a) {
-  a && (a.addEventListener("focus", (i) => {
-    i.preventDefault(), a.select();
-  }), a.addEventListener("mousedown", (i) => {
-    i.preventDefault(), a.select();
-  }), a.addEventListener("mouseup", (i) => {
-    i.preventDefault(), a.select();
-  })), a && (a.addEventListener("focus", () => {
-    a.select();
-  }), a.addEventListener("click", () => {
-    a.select();
+function Ai(r) {
+  r && (r.addEventListener("focus", (i) => {
+    i.preventDefault(), r.select();
+  }), r.addEventListener("mousedown", (i) => {
+    i.preventDefault(), r.select();
+  }), r.addEventListener("mouseup", (i) => {
+    i.preventDefault(), r.select();
+  })), r && (r.addEventListener("focus", () => {
+    r.select();
+  }), r.addEventListener("click", () => {
+    r.select();
   }));
 }
-function yi() {
-  document.body.addEventListener("htmx:responseError", function(a) {
-    const i = a.detail.requestConfig;
+function Ii() {
+  document.body.addEventListener("htmx:responseError", function(r) {
+    const i = r.detail.requestConfig;
     if (i.boosted) {
-      document.body.innerHTML = a.detail.xhr.responseText;
-      const t = a.detail.xhr.responseURL || i.url;
+      document.body.innerHTML = r.detail.xhr.responseText;
+      const t = r.detail.xhr.responseURL || i.url;
       window.history.pushState(null, "", t);
     }
   });
 }
-function Ai(a, i) {
-  if (!(a instanceof HTMLElement)) {
+function Ti(r, i) {
+  if (!(r instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
   }
@@ -2889,8 +2929,8 @@ function Ai(a, i) {
     console.warn("Action must be a function.");
     return;
   }
-  const t = a.querySelectorAll(Rt);
-  a.addEventListener("rbichange", (e) => {
+  const t = r.querySelectorAll(Mt);
+  r.addEventListener("rbichange", (e) => {
     for (const s of t)
       if (s.isCurrentlyModified()) {
         i(e.details, !0);
@@ -2899,91 +2939,91 @@ function Ai(a, i) {
     i(e.details, !1);
   });
 }
-function R(a) {
-  if (!(a instanceof HTMLTextAreaElement)) {
+function $(r) {
+  if (!(r instanceof HTMLTextAreaElement)) {
     console.warn("TextareaAutoResize: Provided element is not a textarea.");
     return;
   }
-  a.style.height = "auto", a.style.height = `${a.scrollHeight}px`;
+  r.style.height = "auto", r.style.height = `${r.scrollHeight}px`;
 }
-function Mt(a) {
-  a.key === "Enter" && a.preventDefault();
+function Bt(r) {
+  r.key === "Enter" && r.preventDefault();
 }
-function Bt(a) {
-  if (!(a instanceof HTMLTextAreaElement)) {
+function $t(r) {
+  if (!(r instanceof HTMLTextAreaElement)) {
     console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
     return;
   }
-  a.addEventListener("input", () => {
-    R(a);
+  r.addEventListener("input", () => {
+    $(r);
   });
 }
-function Ii(a) {
-  if (!(a instanceof HTMLTextAreaElement)) {
+function Ci(r) {
+  if (!(r instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
   }
-  a.removeEventListener("input", () => {
-    R(a);
+  r.removeEventListener("input", () => {
+    $(r);
   });
 }
-function Ti(a) {
-  !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.addEventListener("keydown", Mt);
+function wi(r) {
+  !(r instanceof HTMLTextAreaElement) && r.classList.contains("no-enter") || r.addEventListener("keydown", Bt);
 }
-function Ci(a) {
-  !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.removeEventListener("keydown", Mt);
+function xi(r) {
+  !(r instanceof HTMLTextAreaElement) && r.classList.contains("no-enter") || r.removeEventListener("keydown", Bt);
 }
-function wi(a, i) {
-  for (const t of a)
+function ki(r, i) {
+  for (const t of r)
     if (t.type === "childList") {
       for (const e of t.addedNodes)
-        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Bt(e), R(e));
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && ($t(e), $(e));
       for (const e of t.removedNodes)
-        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Ci(e), Ii(e));
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (xi(e), Ci(e));
     }
 }
-function xi(a) {
-  if (!(a instanceof HTMLFormElement)) {
+function Ri(r) {
+  if (!(r instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
   }
   const i = document.querySelectorAll("textarea");
   for (const s of i)
-    Bt(s), R(s);
+    $t(s), $(s);
   const t = document.querySelectorAll("textarea.no-enter");
   for (const s of t)
-    Ti(s);
-  new MutationObserver(wi).observe(a, {
+    wi(s);
+  new MutationObserver(ki).observe(r, {
     childList: !0,
     subtree: !0
   });
 }
-document.addEventListener("keydown", (a) => {
-  if (a.key !== "Enter")
+document.addEventListener("keydown", (r) => {
+  if (r.key !== "Enter")
     return;
-  const i = a.target;
-  i instanceof HTMLElement && i.matches("textarea.no-enter") && a.preventDefault();
+  const i = r.target;
+  i instanceof HTMLElement && i.matches("textarea.no-enter") && r.preventDefault();
 });
-window.ShowBoostedErrors = yi;
-window.GenQRCode = vi;
-window.SelectableInput = Li;
-window.PathPlusQuery = Ei;
-window.HookupRBChange = Ai;
-window.FormLoad = xi;
+window.ShowBoostedErrors = Ii;
+window.GenQRCode = yi;
+window.SelectableInput = Ai;
+window.PathPlusQuery = vi;
+window.HookupRBChange = Ti;
+window.FormLoad = Ri;
 export {
-  L as AbbreviationTooltips,
-  Ke as AlmanachEditPage,
-  Ht as FilterList,
-  Pt as FilterPill,
-  Wt as ImageReel,
-  zt as IntLink,
-  $e as ItemsEditor,
-  xt as MultiSelectRole,
-  kt as MultiSelectSimple,
-  Ut as PopupImage,
-  ii as RelationsEditor,
-  Ft as ScrollButton,
-  Ve as SingleSelectRemote,
-  Kt as TabList,
-  Vt as ToolTip
+  A as AbbreviationTooltips,
+  We as AlmanachEditPage,
+  Vt as FilterList,
+  Dt as FilterPill,
+  jt as ImageReel,
+  Gt as IntLink,
+  Pe as ItemsEditor,
+  kt as MultiSelectRole,
+  Rt as MultiSelectSimple,
+  zt as PopupImage,
+  ni as RelationsEditor,
+  Ut as ScrollButton,
+  Ke as SingleSelectRemote,
+  Wt as TabList,
+  Kt as ToolTip
 };

@@ -215,6 +215,14 @@ export class AlmanachEditPage extends HTMLElement {
 		});
 		const newAgentRelations = this._collectNewRelations("entries_agents");
 
+		// Validate no duplicate series relations
+		const allSeriesRelations = [...seriesRelations, ...newSeriesRelations];
+		const seriesTargetIds = allSeriesRelations.map((r) => r.target_id);
+		const duplicateSeries = seriesTargetIds.filter((id, index) => seriesTargetIds.indexOf(id) !== index);
+		if (duplicateSeries.length > 0) {
+			throw new Error("Doppelte Reihenverknüpfungen sind nicht erlaubt.");
+		}
+
 		return {
 			csrf_token: this._readValue(formData, "csrf_token"),
 			last_edited: this._readValue(formData, "last_edited"),
@@ -281,30 +289,37 @@ export class AlmanachEditPage extends HTMLElement {
 	_collectRelations(formData, { prefix, targetField }) {
 		const relations = [];
 		const deleted = [];
+
+		// Iterate over ID fields instead of type fields (IDs are always submitted even when disabled)
 		for (const [key, value] of formData.entries()) {
-			if (!key.startsWith(`${prefix}_type[`)) {
+			if (!key.startsWith(`${prefix}_id[`)) {
 				continue;
 			}
 			const relationKey = key.slice(key.indexOf("[") + 1, -1);
 			const targetKey = `${prefix}_${targetField}[${relationKey}]`;
-			const relationIdKey = `${prefix}_id[${relationKey}]`;
+			const typeKey = `${prefix}_type[${relationKey}]`;
 			const deleteKey = `${prefix}_delete[${relationKey}]`;
 			const uncertainKey = `${prefix}_uncertain[${relationKey}]`;
+
+			const relationId = (value || "").trim();
 			const targetId = (formData.get(targetKey) || "").trim();
-			if (!targetId) {
+
+			if (!targetId || !relationId) {
 				continue;
 			}
-			const relationId = (formData.get(relationIdKey) || relationKey).trim();
+
+			// Check if marked for deletion
 			if (formData.has(deleteKey)) {
-				if (relationId) {
-					deleted.push(relationId);
-				}
+				deleted.push(relationId);
 				continue;
 			}
+
+			// Not deleted, add to relations
+			const type = (formData.get(typeKey) || "").trim();
 			relations.push({
 				id: relationId,
 				target_id: targetId,
-				type: (value || "").trim(),
+				type: type,
 				uncertain: formData.has(uncertainKey),
 			});
 		}

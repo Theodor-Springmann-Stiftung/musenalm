@@ -24,8 +24,59 @@ export class RelationsEditor extends HTMLElement {
 		this._linkBase = this.getAttribute("data-link-base") || "";
 		this._newLabel = this.getAttribute("data-new-label") || "(Neu)";
 		this._addToggleId = this.getAttribute("data-add-toggle-id") || "";
+		this._emptyText = this.querySelector(".rel-empty-text");
 		this._setupAddPanel();
 		this._setupDeleteToggles();
+	}
+
+	_getExistingIds() {
+		const ids = new Set();
+		// For series: entries_series_series[...]
+		// For agents: entries_agents_agent[...]
+		const targetField = this._prefix === "entries_series" ? "series" : "agent";
+
+		// Get existing relation target IDs (from server-rendered rows)
+		this.querySelectorAll(`input[name^="${this._prefix}_${targetField}["]`).forEach((input) => {
+			const value = input.value.trim();
+			if (value) {
+				ids.add(value);
+			}
+		});
+
+		// Get new relation target IDs (from dynamically added rows, but not from the add panel)
+		if (this._addRow) {
+			this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).forEach((input) => {
+				const value = input.value.trim();
+				if (value) {
+					ids.add(value);
+				}
+			});
+		}
+
+		return ids;
+	}
+
+	_updateEmptyTextVisibility() {
+		if (!this._emptyText) {
+			return;
+		}
+
+		// Check if there are any existing relations (server-rendered rows)
+		const targetField = this._prefix === "entries_series" ? "series" : "agent";
+		const hasExisting = this.querySelectorAll(`input[name^="${this._prefix}_${targetField}["]`).length > 0;
+
+		// Check if there are any new relations in the add row
+		const hasNew = this._addRow && this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).length > 0;
+
+		// Check if add panel is visible
+		const isPanelVisible = this._addPanel && !this._addPanel.classList.contains("hidden");
+
+		// Hide empty text if: panel is visible OR there are any relations (existing or new)
+		if (isPanelVisible || hasExisting || hasNew) {
+			this._emptyText.classList.add("hidden");
+		} else {
+			this._emptyText.classList.remove("hidden");
+		}
 	}
 
 	_setupAddPanel() {
@@ -51,15 +102,24 @@ export class RelationsEditor extends HTMLElement {
 			return;
 		}
 
+		// Set up filtering for single-select-remote (only for series, not agents)
+		if (this._addSelect && this._prefix === "entries_series") {
+			this._addSelect.addEventListener("ssrbeforefetch", () => {
+				this._addSelect._excludeIds = Array.from(this._getExistingIds());
+			});
+		}
+
 		if (this._addToggle) {
 			this._addToggle.addEventListener("click", () => {
 				this._addPanel.classList.toggle("hidden");
+				this._updateEmptyTextVisibility();
 			});
 		}
 
 		if (this._addClose) {
 			this._addClose.addEventListener("click", () => {
 				this._addPanel.classList.add("hidden");
+				this._updateEmptyTextVisibility();
 			});
 		}
 
@@ -78,15 +138,27 @@ export class RelationsEditor extends HTMLElement {
 				const hasSelection = idInput && idInput.value.trim().length > 0;
 				if (!hasSelection) {
 					if (this._addError) {
+						this._addError.textContent = this._addError.getAttribute("data-error-empty") || "Bitte Reihe auswählen.";
 						this._addError.classList.remove("hidden");
 					}
 					return;
 				}
-				if (this._addError) {
-					this._addError.classList.add("hidden");
-				}
 				if (!this._pendingItem) {
 					return;
+				}
+				// Check for duplicates (only for series, not agents)
+				if (this._prefix === "entries_series") {
+					const existingIds = this._getExistingIds();
+					if (existingIds.has(this._pendingItem.id)) {
+						if (this._addError) {
+							this._addError.textContent = this._addError.getAttribute("data-error-duplicate") || "Diese Verknüpfung existiert bereits.";
+							this._addError.classList.remove("hidden");
+						}
+						return;
+					}
+				}
+				if (this._addError) {
+					this._addError.classList.add("hidden");
 				}
 				this._insertNewRow();
 			});
@@ -187,6 +259,7 @@ export class RelationsEditor extends HTMLElement {
 				if (this._addPanel) {
 					this._addPanel.classList.add("hidden");
 				}
+				this._updateEmptyTextVisibility();
 			});
 		}
 
@@ -197,6 +270,7 @@ export class RelationsEditor extends HTMLElement {
 		if (this._addPanel) {
 			this._addPanel.classList.add("hidden");
 		}
+		this._updateEmptyTextVisibility();
 	}
 
 	_setupDeleteToggles() {
@@ -212,20 +286,42 @@ export class RelationsEditor extends HTMLElement {
 				const row = button.closest(ROLE_REL_ROW);
 				if (row) {
 					row.classList.toggle("bg-red-50", checkbox.checked);
+
+					// Disable/enable form controls (but not the delete checkbox itself)
+					row.querySelectorAll("select, input[type='checkbox']").forEach((control) => {
+						// Skip the delete checkbox itself
+						if (control === checkbox) {
+							return;
+						}
+						control.disabled = checkbox.checked;
+					});
 				}
 
+				const isHovered = button.matches(":hover");
 				const label = button.querySelector("[data-delete-label]");
 				if (label) {
-					label.textContent = checkbox.checked
-						? label.getAttribute("data-delete-active") || "Wird entfernt"
-						: label.getAttribute("data-delete-default") || "Entfernen";
+					let nextLabel;
+					if (checkbox.checked && isHovered) {
+						nextLabel = label.getAttribute("data-delete-hover") || "Rückgängig";
+					} else if (checkbox.checked) {
+						nextLabel = label.getAttribute("data-delete-active") || "Wird entfernt";
+					} else {
+						nextLabel = label.getAttribute("data-delete-default") || "Entfernen";
+					}
+					label.textContent = nextLabel;
 				}
 
 				const icon = button.querySelector("i");
 				if (icon) {
 					if (checkbox.checked) {
-						icon.classList.add("hidden");
-						icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+						if (isHovered) {
+							icon.classList.remove("hidden");
+							icon.classList.add("ri-arrow-go-back-line");
+							icon.classList.remove("ri-delete-bin-line");
+						} else {
+							icon.classList.add("hidden");
+							icon.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line");
+						}
 					} else {
 						icon.classList.remove("hidden");
 						icon.classList.add("ri-delete-bin-line");

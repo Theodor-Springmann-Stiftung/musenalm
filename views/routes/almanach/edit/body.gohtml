@@ -288,7 +288,7 @@ type AlmanachResult struct {
 							<i class="ri-add-line"></i> Reihe hinzufügen
 						</button>
 						<button type="button" id="agents-add-toggle" class="text-gray-700 hover:text-gray-900">
-							<i class="ri-add-line"></i> Akteur hinzufügen
+							<i class="ri-add-line"></i> Person hinzufügen
 						</button>
 					</div>
 				</div>
@@ -297,19 +297,19 @@ type AlmanachResult struct {
 					<relations-editor data-prefix="entries_series" data-link-base="/reihe/" data-new-label="(Neu)" data-add-toggle-id="series-add-toggle">
 						<div class="inputwrapper">
 							<label class="inputlabel" for="series-section">Reihen</label>
-							<div id="series-section" class="flex flex-col gap-2 mt-2">
+							<div id="series-section" class="rel-section-container">
 							{{- if $model.result.Series -}}
 								{{- range $i, $s := $model.result.Series -}}
 									{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 									{{- if $rel -}}
-										<div data-rel-row class="entries-series-row border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-											<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
-												<div data-rel-strike class="relation-strike flex flex-col min-w-0">
-													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="text-base text-gray-800 no-underline hover:text-slate-900 truncate">
+										<div data-rel-row class="entries-series-row rel-row">
+											<div class="rel-grid">
+												<div data-rel-strike class="relation-strike rel-name-col">
+													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="rel-link">
 														<span data-rel-name>{{- $s.Title -}}</span>
 													</a>
 													{{- if $s.Pseudonyms -}}
-														<div data-rel-detail-container class="text-xs text-gray-600 truncate"><span data-rel-detail>{{- $s.Pseudonyms -}}</span></div>
+														<div data-rel-detail-container class="rel-detail"><span data-rel-detail>{{- $s.Pseudonyms -}}</span></div>
 													{{- end -}}
 												</div>
 												<div data-rel-strike class="relation-strike">
@@ -319,15 +319,15 @@ type AlmanachResult struct {
 														{{- end -}}
 													</select>
 												</div>
-												<div data-rel-strike class="relation-strike flex items-center gap-2">
+												<div data-rel-strike class="relation-strike rel-uncertain-container">
 													<input
 														type="checkbox"
 														name="entries_series_uncertain[{{ $rel.Id }}]"
 														id="entries_series_uncertain_{{ $rel.Id }}"
 														{{ if $rel.Uncertain }}checked{{ end }} />
-													<label for="entries_series_uncertain_{{ $rel.Id }}" class="text-sm text-gray-700">Unsicher</label>
+													<label for="entries_series_uncertain_{{ $rel.Id }}" class="rel-uncertain-label">Unsicher</label>
 												</div>
-												<div class="flex justify-end">
+												<div class="rel-button-container">
 													<button
 														type="button"
 														class="text-sm"
@@ -344,13 +344,13 @@ type AlmanachResult struct {
 									{{- end -}}
 								{{- end -}}
 							{{- else -}}
-								<div class="text-sm text-gray-600">Keine Reihen verknüpft.</div>
+								<div class="rel-empty-text">Keine Reihen verknüpft.</div>
 							{{- end -}}
 							</div>
-							<div data-role="relation-add-row" class="mt-2"></div>
-							<div data-role="relation-add-panel" class="mt-2 hidden">
-							<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-								<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
+							<div data-role="relation-add-row" class="mt-2 px-2"></div>
+							<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
+							<div class="rel-row">
+								<div class="rel-grid">
 									<div class="min-w-0">
 										<label for="series-add-select" class="sr-only">Reihe suchen</label>
 										<single-select-remote
@@ -372,11 +372,11 @@ type AlmanachResult struct {
 											{{- end -}}
 										</select>
 									</div>
-									<div class="flex items-center gap-2">
+									<div class="rel-uncertain-container">
 										<input data-role="relation-uncertain" type="checkbox" name="entries_series_new_uncertain" id="entries_series_new_uncertain" />
-										<label for="entries_series_new_uncertain" class="text-sm text-gray-700">Unsicher</label>
+										<label for="entries_series_new_uncertain" class="rel-uncertain-label">Unsicher</label>
 									</div>
-									<div class="flex justify-end">
+									<div class="rel-button-container">
 										<div class="flex items-center gap-3 text-lg">
 											<button type="button" data-role="relation-add-apply" class="text-gray-700 hover:text-gray-900" id="series-add-apply" aria-label="Reihe hinzufügen">
 												<i class="ri-check-line"></i>
@@ -387,29 +387,29 @@ type AlmanachResult struct {
 										</div>
 									</div>
 								</div>
-								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden">Bitte Reihe auswählen.</div>
+								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden" data-error-empty="Bitte Reihe auswählen." data-error-duplicate="Diese Reihe ist bereits verknüpft.">Bitte Reihe auswählen.</div>
 							</div>
 							</div>
 							<template data-role="relation-new-template">
-								<div data-rel-row class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-									<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
-										<div data-rel-strike class="relation-strike flex flex-col min-w-0">
+								<div data-rel-row class="rel-row">
+									<div class="rel-grid">
+										<div data-rel-strike class="relation-strike rel-name-col">
 											<div class="text-base text-gray-800 truncate">
 												<a data-rel-link class="no-underline hover:text-slate-900">
 													<span data-rel-name></span>
 												</a>
-												<em data-rel-new class="text-sm text-gray-600 ml-1"></em>
+												<em data-rel-new class="rel-new-badge"></em>
 											</div>
-											<div data-rel-detail-container class="text-xs text-gray-600 truncate"><span data-rel-detail></span></div>
+											<div data-rel-detail-container class="rel-detail"><span data-rel-detail></span></div>
 										</div>
 										<div data-rel-strike class="relation-strike">
 											<select data-rel-input="type" class="inputselect font-bold w-full"></select>
 										</div>
-										<div data-rel-strike class="relation-strike flex items-center gap-2">
+										<div data-rel-strike class="relation-strike rel-uncertain-container">
 											<input data-rel-input="uncertain" type="checkbox" />
-											<label data-rel-uncertain-label class="text-sm text-gray-700">Unsicher</label>
+											<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
 										</div>
-										<div class="flex justify-end">
+										<div class="rel-button-container">
 											<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
 												<i class="ri-delete-bin-line mr-1"></i> Entfernen
 											</button>
@@ -426,19 +426,19 @@ type AlmanachResult struct {
 					<relations-editor data-prefix="entries_agents" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="agents-add-toggle">
 						<div class="inputwrapper">
 							<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
-							<div id="agents-section" class="flex flex-col gap-2 mt-2">
+							<div id="agents-section" class="rel-section-container">
 							{{- if $model.result.EntriesAgents -}}
 								{{- range $i, $r := $model.result.EntriesAgents -}}
 									{{- $a := index $model.result.Agents $r.Agent -}}
-									<div data-rel-row class="entries-agent-row border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-										<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
-											<div data-rel-strike class="relation-strike flex flex-col min-w-0">
+									<div data-rel-row class="entries-agent-row rel-row">
+										<div class="rel-grid">
+											<div data-rel-strike class="relation-strike rel-name-col">
 												{{- if $a -}}
-													<a data-rel-link href="/person/{{ $a.Id }}" class="text-base text-gray-800 no-underline hover:text-slate-900 truncate">
+													<a data-rel-link href="/person/{{ $a.Id }}" class="rel-link">
 														<span data-rel-name>{{- $a.Name -}}</span>
 													</a>
 													{{- if $a.BiographicalData -}}
-														<div data-rel-detail-container class="text-xs text-gray-600 truncate"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
+														<div data-rel-detail-container class="rel-detail"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
 													{{- end -}}
 												{{- else -}}
 													<div class="text-base text-gray-800">Unbekannte Person</div>
@@ -451,15 +451,15 @@ type AlmanachResult struct {
 													{{- end -}}
 												</select>
 											</div>
-											<div data-rel-strike class="relation-strike flex items-center gap-2">
+											<div data-rel-strike class="relation-strike rel-uncertain-container">
 												<input
 													type="checkbox"
 													name="entries_agents_uncertain[{{ $r.Id }}]"
 													id="entries_agents_uncertain_{{ $r.Id }}"
 													{{ if $r.Uncertain }}checked{{ end }} />
-												<label for="entries_agents_uncertain_{{ $r.Id }}" class="text-sm text-gray-700">Unsicher</label>
+												<label for="entries_agents_uncertain_{{ $r.Id }}" class="rel-uncertain-label">Unsicher</label>
 											</div>
-											<div class="flex justify-end">
+											<div class="rel-button-container">
 												<button
 													type="button"
 													class="text-sm"
@@ -475,13 +475,13 @@ type AlmanachResult struct {
 									</div>
 								{{- end -}}
 							{{- else -}}
-								<div class="text-sm text-gray-600">Keine Personen verknüpft.</div>
+								<div class="rel-empty-text">Keine Personen verknüpft.</div>
 							{{- end -}}
 							</div>
-							<div data-role="relation-add-row" class="mt-2"></div>
-							<div data-role="relation-add-panel" class="mt-2 hidden">
-							<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-								<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
+							<div data-role="relation-add-row" class="mt-2 px-2"></div>
+							<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
+							<div class="rel-row">
+								<div class="rel-grid">
 									<div class="min-w-0">
 										<label for="agents-add-select" class="sr-only">Akteur suchen</label>
 										<single-select-remote
@@ -503,13 +503,14 @@ type AlmanachResult struct {
 											{{- end -}}
 										</select>
 									</div>
-									<div class="flex items-center gap-2">
+									<div class="rel-uncertain-container">
 										<input data-role="relation-uncertain" type="checkbox" name="entries_agents_new_uncertain" id="entries_agents_new_uncertain" />
-										<label for="entries_agents_new_uncertain" class="text-sm text-gray-700">Unsicher</label>
+										<label for="entries_agents_new_uncertain" class="rel-uncertain-label">Unsicher</label>
 									</div>
-									<div class="flex justify-end">
+									<div class="rel-button-container">
 										<div class="flex items-center gap-3 text-lg">
-											<button type="button" data-role="relation-add-apply" class="text-gray-700 hover:text-gray-900" id="agents-add-apply" aria-label="Akteur hinzufügen">
+											<button type="button" data-role="relation-add-apply" class="text-gray-700
+											hover:text-gray-900" id="agents-add-apply" aria-label="Person hinzufügen">
 												<i class="ri-check-line"></i>
 											</button>
 											<button type="button" data-role="relation-add-close" class="text-gray-700 hover:text-gray-900" id="agents-add-close" aria-label="Ausblenden">
@@ -518,29 +519,29 @@ type AlmanachResult struct {
 										</div>
 									</div>
 								</div>
-								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden">Bitte Akteur auswählen.</div>
+								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden" data-error-empty="Bitte Akteur auswählen.">Bitte Akteur auswählen.</div>
 							</div>
 							</div>
 							<template data-role="relation-new-template">
-								<div data-rel-row class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-									<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
-										<div data-rel-strike class="relation-strike flex flex-col min-w-0">
+								<div data-rel-row class="rel-row">
+									<div class="rel-grid">
+										<div data-rel-strike class="relation-strike rel-name-col">
 											<div class="text-base text-gray-800 truncate">
 												<a data-rel-link class="no-underline hover:text-slate-900">
 													<span data-rel-name></span>
 												</a>
-												<em data-rel-new class="text-sm text-gray-600 ml-1"></em>
+												<em data-rel-new class="rel-new-badge"></em>
 											</div>
-											<div data-rel-detail-container class="text-xs text-gray-600 truncate"><span data-rel-detail></span></div>
+											<div data-rel-detail-container class="rel-detail"><span data-rel-detail></span></div>
 										</div>
 										<div data-rel-strike class="relation-strike">
 											<select data-rel-input="type" class="inputselect font-bold w-full"></select>
 										</div>
-										<div data-rel-strike class="relation-strike flex items-center gap-2">
+										<div data-rel-strike class="relation-strike rel-uncertain-container">
 											<input data-rel-input="uncertain" type="checkbox" />
-											<label data-rel-uncertain-label class="text-sm text-gray-700">Unsicher</label>
+											<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
 										</div>
-										<div class="flex justify-end">
+										<div class="rel-button-container">
 											<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
 												<i class="ri-delete-bin-line mr-1"></i> Entfernen
 											</button>
