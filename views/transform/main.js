@@ -19,8 +19,10 @@ import { SingleSelectRemote } from "./single-select-remote.js";
 import { AlmanachEditPage } from "./almanach-edit.js";
 import { RelationsEditor } from "./relations-editor.js";
 import { EditPage } from "./edit-page.js";
+import { FabMenu } from "./fab-menu.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
+const FAB_MENU_ELEMENT = "fab-menu";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
 const TOOLTIP_ELEMENT = "tool-tip";
 const ABBREV_TOOLTIPS_ELEMENT = "abbrev-tooltips";
@@ -57,6 +59,7 @@ customElements.define(ITEMS_EDITOR_ELEMENT, ItemsEditor);
 customElements.define(ALMANACH_EDIT_PAGE_ELEMENT, AlmanachEditPage);
 customElements.define(RELATIONS_EDITOR_ELEMENT, RelationsEditor);
 customElements.define(EDIT_PAGE_ELEMENT, EditPage);
+customElements.define(FAB_MENU_ELEMENT, FabMenu);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;
@@ -426,4 +429,5 @@ export {
 	AlmanachEditPage,
 	RelationsEditor,
 	EditPage,
+	FabMenu,
 };

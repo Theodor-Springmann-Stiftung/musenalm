@@ -2,6 +2,7 @@
 {{ $rels := index . 1 }}
 {{ $entries := index . 2 }}
 {{ $shownos := index . 3 }}
+{{ $request := index . 4 }}
 
 {{- if $rels -}}
 	<div class="reiherelations flex flex-col text-base font-sans w-full pt-1 -ml-3">
@@ -58,7 +59,13 @@
 					<div class="whitespace-nowrap align-top">
 						Alm
 						{{ $bd.MusenalmID }}
+						{{- if (IsAdminOrEditor $request.user) -}}
+						<a href="/almanach/{{ $bd.MusenalmID }}/edit" class="no-underline rounded bg-stone-100 px-1.5">
+						<i class="ri-edit-line"></i>
+						</a>
+						{{- end -}}
 					</div>
+
 				</div>
 			{{- end -}}
 

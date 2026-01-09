@@ -4,6 +4,7 @@
 {{ $showidseries := index . 3 }}
 {{ $marka := index . 4 }}
 {{ $markr := index . 5 }}
+{{ $request := index . 6 }}
 
 {{ $bds := index $relations $r.Id }}
 
@@ -27,10 +28,16 @@
 				</div>
 			{{ end }}
 		{{ end }}
-		<div class="font-sans py-0.5 text-sm">
+		<div class="font-sans py-0.5 text-sm flex flex-row gap-2">
 			<a href="/reihe/{{ $r.MusenalmID }}" class="no-underline rounded bg-stone-100 px-1.5">
 				<i class="ri-links-line"></i> Link
 			</a>
+			{{- if (IsAdminOrEditor $request.user) -}}
+			<a href="/reihe/{{ $r.MusenalmID }}/edit" class="no-underline rounded bg-stone-100 px-1.5">
+				<i class="ri-edit-line"></i>
+				Edit
+			</a>
+			{{- end -}}
 		</div>
 	</div>
 	<div class="grow lg:px-0 ml-3 lg:ml-8">
@@ -43,6 +50,6 @@
 				<span class="{{ if $marka }}reihen-text{{ end }}">{{ Safe $r.Annotation }}</span>
 			{{ end }}
 		</div>
-		{{ template "_reiherelations" (Arr $r $bds $entries false) }}
+		{{ template "_reiherelations" (Arr $r $bds $entries false $request) }}
 	</div>
 </div>
