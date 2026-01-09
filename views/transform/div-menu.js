@@ -245,6 +245,19 @@ export class DivManager extends HTMLElement {
 		this.renderMenu();
 		this.renderButton();
 		this.updateTargetVisibility();
+
+		// Resize any textareas in the newly shown element
+		if (typeof window.TextareaAutoResize === "function") {
+			const textareas = child.node.querySelectorAll("textarea");
+			if (textareas.length > 0) {
+				// Small delay to ensure element is visible before measuring
+				setTimeout(() => {
+					textareas.forEach((textarea) => {
+						window.TextareaAutoResize(textarea);
+					});
+				}, 10);
+			}
+		}
 	}
 
 	renderMenu() {

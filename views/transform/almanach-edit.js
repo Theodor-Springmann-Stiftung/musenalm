@@ -13,9 +13,12 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	connectedCallback() {
-		this._initForm();
-		this._initPlaces();
-		this._initSaveHandling();
+		// Small delay to ensure main.js has loaded
+		setTimeout(() => {
+			this._initForm();
+			this._initPlaces();
+			this._initSaveHandling();
+		}, 0);
 	}
 
 	disconnectedCallback() {
@@ -23,9 +26,13 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	_initForm() {
+		console.log("AlmanachEditPage: _initForm called");
 		const form = this.querySelector("#changealmanachform");
+		console.log("Form found:", !!form, "FormLoad exists:", typeof window.FormLoad === "function");
 		if (form && typeof window.FormLoad === "function") {
 			window.FormLoad(form);
+		} else {
+			console.error("Cannot initialize form - form or FormLoad missing");
 		}
 	}
 
@@ -436,6 +443,15 @@ export class AlmanachEditPage extends HTMLElement {
 		this._initForm();
 		this._initPlaces();
 		this._initSaveHandling();
+
+		// Resize all textareas after reload
+		if (typeof window.TextareaAutoResize === "function") {
+			setTimeout(() => {
+				this.querySelectorAll("textarea").forEach((textarea) => {
+					window.TextareaAutoResize(textarea);
+				});
+			}, 100);
+		}
 	}
 
 }

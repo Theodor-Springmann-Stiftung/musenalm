@@ -177,15 +177,63 @@ function HookupRBChange(target, action) {
 	});
 }
 
-// @param {HTMLTextAreaElement} textarea - The textarea element.
+// Check if browser supports field-sizing: content (Chrome 123+, Edge 123+)
+// Firefox, Safari don't support it yet as of 2024
+let browserSupportsFieldSizing = null;
+function supportsFieldSizing() {
+	if (browserSupportsFieldSizing !== null) {
+		return browserSupportsFieldSizing;
+	}
+	// Check if CSS.supports is available and test for field-sizing
+	if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+		browserSupportsFieldSizing = CSS.supports("field-sizing", "content");
+	} else {
+		browserSupportsFieldSizing = false;
+	}
+	console.log("Browser supports field-sizing:", browserSupportsFieldSizing);
+	return browserSupportsFieldSizing;
+}
+
+// Simple textarea auto-resize function
 function TextareaAutoResize(textarea) {
+	console.log("TextareaAutoResize called for:", textarea.name || textarea.id);
+
 	if (!(textarea instanceof HTMLTextAreaElement)) {
-		console.warn("TextareaAutoResize: Provided element is not a textarea.");
+		console.log("Not a textarea element");
 		return;
 	}
 
-	textarea.style.height = "auto";
-	textarea.style.height = `${textarea.scrollHeight}px`;
+	// Skip if not visible
+	if (textarea.offsetParent === null) {
+		console.log("Textarea not visible");
+		return;
+	}
+
+	// Remove rows attribute
+	textarea.removeAttribute("rows");
+
+	// Set overflow auto to allow scrolling if needed
+	textarea.style.overflow = "auto";
+
+	// Special case: annotation textarea has 2 rows minimum
+	const isAnnotation = textarea.name === "annotation";
+	const minHeight = isAnnotation ? 76 : 38; // 2 rows vs 1 row
+
+	// For empty textareas, set minimum height
+	if (textarea.value.trim() === "") {
+		textarea.style.height = minHeight + "px";
+		console.log("Empty textarea, setting height to:", minHeight + "px");
+		return;
+	}
+
+	// Reset to 1px to get accurate scrollHeight
+	textarea.style.height = "1px";
+
+	// Set to content height (scrollHeight is the actual content height)
+	const contentHeight = textarea.scrollHeight;
+	const newHeight = Math.max(contentHeight, minHeight) + "px";
+	console.log("Setting height to:", newHeight);
+	textarea.style.height = newHeight;
 }
 
 function NoEnters(event) {
@@ -200,7 +248,12 @@ function HookupTextareaAutoResize(textarea) {
 		return;
 	}
 
-	// Reset height on input
+	// If browser supports field-sizing, CSS handles it
+	if (supportsFieldSizing()) {
+		return;
+	}
+
+	// Fallback: attach event listener for manual resizing
 	textarea.addEventListener("input", () => {
 		TextareaAutoResize(textarea);
 	});
@@ -239,18 +292,24 @@ function DisconnectNoEnters(textarea) {
 }
 
 function MutateObserve(mutations, observer) {
+	const needsJSResize = !supportsFieldSizing();
+
 	for (const mutation of mutations) {
 		if (mutation.type === "childList") {
 			for (const node of mutation.addedNodes) {
 				if (node.nodeType === Node.ELEMENT_NODE && node.matches("textarea")) {
-					HookupTextareaAutoResize(node);
-					TextareaAutoResize(node);
+					if (needsJSResize) {
+						HookupTextareaAutoResize(node);
+						TextareaAutoResize(node);
+					}
 				}
 			}
 			for (const node of mutation.removedNodes) {
 				if (node.nodeType === Node.ELEMENT_NODE && node.matches("textarea")) {
 					DisconnectNoEnters(node);
-					DisconnectTextareaAutoResize(node);
+					if (needsJSResize) {
+						DisconnectTextareaAutoResize(node);
+					}
 				}
 			}
 		}
@@ -259,16 +318,32 @@ function MutateObserve(mutations, observer) {
 
 // INFO: Various options and plugs for laoding and parsing forms.
 function FormLoad(form) {
+	console.log("=== FormLoad CALLED ===");
+
 	if (!(form instanceof HTMLFormElement)) {
 		console.warn("FormLoad: Provided element is not a form.");
 		return;
 	}
 
 	const textareas = document.querySelectorAll("textarea");
+	console.log("Found", textareas.length, "textareas");
+
+	// Attach resize handler to all textareas
 	for (const textarea of textareas) {
-		HookupTextareaAutoResize(textarea);
-		TextareaAutoResize(textarea);
+		console.log("Attaching input listener to:", textarea.name || textarea.id);
+		textarea.addEventListener('input', function() {
+			console.log("Input event on textarea:", this.name || this.id);
+			TextareaAutoResize(this);
+		});
 	}
+
+	// Initial resize after short delay (increased to ensure content is loaded)
+	setTimeout(() => {
+		console.log("Running initial textarea resize on", textareas.length, "textareas");
+		for (const textarea of textareas) {
+			TextareaAutoResize(textarea);
+		}
+	}, 200);
 
 	const noEnterTextareas = document.querySelectorAll("textarea.no-enter");
 	for (const textarea of noEnterTextareas) {
@@ -278,6 +353,34 @@ function FormLoad(form) {
 	const observer = new MutationObserver(MutateObserve);
 	observer.observe(form, {
 		childList: true,
+		subtree: true,
+	});
+
+	// Watch for class changes (hidden/visible) and resize textareas when they become visible
+	const visibilityObserver = new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			if (mutation.type === "attributes" && mutation.attributeName === "class") {
+				const target = mutation.target;
+				// Check if this element or its children contain textareas
+				if (target instanceof HTMLElement) {
+					const textareasInTarget = target.matches("textarea")
+						? [target]
+						: Array.from(target.querySelectorAll("textarea"));
+
+					for (const textarea of textareasInTarget) {
+						// Only resize if now visible
+						if (textarea.offsetParent !== null) {
+							TextareaAutoResize(textarea);
+						}
+					}
+				}
+			}
+		}
+	});
+
+	visibilityObserver.observe(form, {
+		attributes: true,
+		attributeFilter: ["class"],
 		subtree: true,
 	});
 }
@@ -301,5 +404,6 @@ window.SelectableInput = SelectableInput;
 window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
+window.TextareaAutoResize = TextareaAutoResize;
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor };

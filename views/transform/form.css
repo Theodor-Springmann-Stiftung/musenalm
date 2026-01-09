@@ -21,6 +21,17 @@
 		@apply block w-full focus:border-none focus:outline-none resize-y px-3 py-1;
 	}
 
+	.dbform .inputwrapper textarea {
+		/* Modern browsers: use CSS auto-sizing */
+		field-sizing: content;
+		/* Styling for all browsers */
+		display: block;
+		resize: none;
+		max-height: 20rem;
+		box-sizing: border-box;
+		/* overflow will be managed by JS for browsers without field-sizing support */
+	}
+
 	.inputlabeltext {
 		@apply text-gray-700 font-bold;
 	}

@@ -117,9 +117,7 @@ type AlmanachResult struct {
 				<div class="flex flex-row justify-between">
 					<label for="preferred_title" class="inputlabel">Kurztitel</label>
 				</div>
-				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">
-					{{- $model.result.Entry.PreferredTitle -}}
-				</textarea>
+				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">{{- $model.result.Entry.PreferredTitle -}}</textarea>
 			</div>
 
 			<div class="mt-3">
@@ -142,9 +140,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
-				{{- $model.result.Entry.TitleStmt -}}
-				</textarea>
+							<textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea>
 						</div>
 
 						<div class="mt-2 inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}" data-dm-target="titles">
@@ -158,9 +154,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off">
-					{{- $model.result.Entry.ParallelTitle -}}
-				</textarea>
+							<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ParallelTitle -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
@@ -173,9 +167,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
-					{{- $model.result.Entry.SubtitleStmt -}}
-				</textarea>
+							<textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.SubtitleStmt -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
@@ -188,9 +180,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off">
-					{{- $model.result.Entry.VariantTitle -}}
-				</textarea>
+							<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.VariantTitle -}}</textarea>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
@@ -203,9 +193,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">
-					{{- $model.result.Entry.IncipitStmt -}}
-				</textarea>
+							<textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}" data-dm-target="publication">
@@ -272,7 +260,7 @@ type AlmanachResult struct {
 					<!-- Annotationen -->
 					<div class="inputwrapper">
 						<label for="annotation" class="inputlabel">Annotationen</label>
-						<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Annotation -}}</textarea>
+						<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Annotation -}}</textarea>
 					</div>
 				</div>
 			</div>
@@ -613,7 +601,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off">{{- $model.result.Entry.Comment -}}</textarea>
+							<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Comment -}}</textarea>
 						</div>
 					</div-manager>
 				</div>
