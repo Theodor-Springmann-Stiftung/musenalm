@@ -6,10 +6,20 @@ export class AlmanachEditPage extends HTMLElement {
 		this._pendingAgent = null;
 		this._form = null;
 		this._saveButton = null;
+		this._resetButton = null;
+		this._deleteButton = null;
+		this._deleteDialog = null;
+		this._deleteConfirmButton = null;
+		this._deleteCancelButton = null;
 		this._statusEl = null;
 		this._saveEndpoint = "";
+		this._deleteEndpoint = "";
 		this._isSaving = false;
 		this._handleSaveClick = this._handleSaveClick.bind(this);
+		this._handleResetClick = this._handleResetClick.bind(this);
+		this._handleDeleteClick = this._handleDeleteClick.bind(this);
+		this._handleDeleteConfirmClick = this._handleDeleteConfirmClick.bind(this);
+		this._handleDeleteCancelClick = this._handleDeleteCancelClick.bind(this);
 	}
 
 	connectedCallback() {
@@ -86,19 +96,60 @@ export class AlmanachEditPage extends HTMLElement {
 		this._teardownSaveHandling();
 		this._form = this.querySelector("#changealmanachform");
 		this._saveButton = this.querySelector("[data-role='almanach-save']");
+		this._resetButton = this.querySelector("[data-role='almanach-reset']");
+		this._deleteButton = this.querySelector("[data-role='almanach-delete']");
+		this._deleteDialog = this.querySelector("[data-role='almanach-delete-dialog']");
+		this._deleteConfirmButton = this.querySelector("[data-role='almanach-delete-confirm']");
+		this._deleteCancelButton = this.querySelector("[data-role='almanach-delete-cancel']");
 		this._statusEl = this.querySelector("#almanach-save-feedback");
 		if (!this._form || !this._saveButton) {
 			return;
 		}
 		this._saveEndpoint = this._form.getAttribute("data-save-endpoint") || this._deriveSaveEndpoint();
+		this._deleteEndpoint = this._form.getAttribute("data-delete-endpoint") || "";
 		this._saveButton.addEventListener("click", this._handleSaveClick);
+		if (this._resetButton) {
+			this._resetButton.addEventListener("click", this._handleResetClick);
+		}
+		if (this._deleteButton) {
+			this._deleteButton.addEventListener("click", this._handleDeleteClick);
+		}
+		if (this._deleteConfirmButton) {
+			this._deleteConfirmButton.addEventListener("click", this._handleDeleteConfirmClick);
+		}
+		if (this._deleteCancelButton) {
+			this._deleteCancelButton.addEventListener("click", this._handleDeleteCancelClick);
+		}
+		if (this._deleteDialog) {
+			this._deleteDialog.addEventListener("cancel", this._handleDeleteCancelClick);
+		}
 	}
 
 	_teardownSaveHandling() {
 		if (this._saveButton) {
 			this._saveButton.removeEventListener("click", this._handleSaveClick);
 		}
+		if (this._resetButton) {
+			this._resetButton.removeEventListener("click", this._handleResetClick);
+		}
+		if (this._deleteButton) {
+			this._deleteButton.removeEventListener("click", this._handleDeleteClick);
+		}
+		if (this._deleteConfirmButton) {
+			this._deleteConfirmButton.removeEventListener("click", this._handleDeleteConfirmClick);
+		}
+		if (this._deleteCancelButton) {
+			this._deleteCancelButton.removeEventListener("click", this._handleDeleteCancelClick);
+		}
+		if (this._deleteDialog) {
+			this._deleteDialog.removeEventListener("cancel", this._handleDeleteCancelClick);
+		}
 		this._saveButton = null;
+		this._resetButton = null;
+		this._deleteButton = null;
+		this._deleteDialog = null;
+		this._deleteConfirmButton = null;
+		this._deleteCancelButton = null;
 		this._statusEl = null;
 	}
 
@@ -157,6 +208,81 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 	}
 
+	async _handleResetClick(event) {
+		event.preventDefault();
+		if (this._isSaving) {
+			return;
+		}
+		this._clearStatus();
+		try {
+			await this._reloadForm("");
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : "Formular konnte nicht aktualisiert werden.", "error");
+		}
+	}
+
+	async _handleDeleteClick(event) {
+		event.preventDefault();
+		if (this._isSaving) {
+			return;
+		}
+		if (this._deleteDialog && typeof this._deleteDialog.showModal === "function") {
+			this._deleteDialog.showModal();
+		}
+	}
+
+	_handleDeleteCancelClick(event) {
+		if (event) {
+			event.preventDefault();
+		}
+		if (this._deleteDialog && this._deleteDialog.open) {
+			this._deleteDialog.close();
+		}
+	}
+
+	async _handleDeleteConfirmClick(event) {
+		event.preventDefault();
+		if (!this._form || !this._deleteEndpoint || this._isSaving) {
+			return;
+		}
+		if (this._deleteDialog && this._deleteDialog.open) {
+			this._deleteDialog.close();
+		}
+		this._clearStatus();
+		this._setSavingState(true);
+		try {
+			const formData = new FormData(this._form);
+			const payload = {
+				csrf_token: this._readValue(formData, "csrf_token"),
+				last_edited: this._readValue(formData, "last_edited"),
+			};
+			const response = await fetch(this._deleteEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+			let data = null;
+			try {
+				data = await response.clone().json();
+			} catch {
+				data = null;
+			}
+			if (!response.ok) {
+				const message = data?.error || `Löschen fehlgeschlagen (${response.status}).`;
+				throw new Error(message);
+			}
+			const redirect = data?.redirect || "/suche/baende";
+			window.location.assign(redirect);
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : "Löschen fehlgeschlagen.", "error");
+		} finally {
+			this._setSavingState(false);
+		}
+	}
+
 	_buildPayload() {
 		if (!this._form) {
 			throw new Error("Formular konnte nicht gefunden werden.");
@@ -206,11 +332,14 @@ export class AlmanachEditPage extends HTMLElement {
 			targetField: "series",
 		});
 		const newSeriesRelations = this._collectNewRelations("entries_series");
-		const hasPreferredSeries = [...seriesRelations, ...newSeriesRelations].some(
+		const preferredCount = [...seriesRelations, ...newSeriesRelations].filter(
 			(relation) => relation.type === PREFERRED_SERIES_RELATION,
-		);
-		if (!hasPreferredSeries) {
+		).length;
+		if (preferredCount === 0) {
 			throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
+		}
+		if (preferredCount > 1) {
+			throw new Error("Es darf nur ein bevorzugter Reihentitel gesetzt sein.");
 		}
 
 		const {
@@ -374,6 +503,12 @@ export class AlmanachEditPage extends HTMLElement {
 		const label = this._saveButton.querySelector("span");
 		if (label) {
 			label.textContent = isSaving ? "Speichern..." : "Speichern";
+		}
+		if (this._resetButton) {
+			this._resetButton.disabled = isSaving;
+		}
+		if (this._deleteButton) {
+			this._deleteButton.disabled = isSaving;
 		}
 	}
 

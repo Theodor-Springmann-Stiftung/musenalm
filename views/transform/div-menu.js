@@ -253,6 +253,12 @@ export class DivManager extends HTMLElement {
 				// Small delay to ensure element is visible before measuring
 				setTimeout(() => {
 					textareas.forEach((textarea) => {
+						if (textarea.dataset.dmResizeBound !== "true") {
+							textarea.dataset.dmResizeBound = "true";
+							textarea.addEventListener("input", () => {
+								window.TextareaAutoResize(textarea);
+							});
+						}
 						window.TextareaAutoResize(textarea);
 					});
 				}, 10);

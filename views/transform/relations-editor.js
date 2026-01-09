@@ -24,9 +24,11 @@ export class RelationsEditor extends HTMLElement {
 		this._linkBase = this.getAttribute("data-link-base") || "";
 		this._newLabel = this.getAttribute("data-new-label") || "(Neu)";
 		this._addToggleId = this.getAttribute("data-add-toggle-id") || "";
+		this._preferredLabel = (this.getAttribute("data-preferred-label") || "").trim();
 		this._emptyText = this.querySelector(".rel-empty-text");
 		this._setupAddPanel();
 		this._setupDeleteToggles();
+		this._setupPreferredOptionHandling();
 	}
 
 	_getExistingIds() {
@@ -230,6 +232,7 @@ export class RelationsEditor extends HTMLElement {
 			typeSelect.innerHTML = this._typeSelect.innerHTML;
 			typeSelect.value = this._typeSelect.value;
 			typeSelect.name = `${this._prefix}_new_type`;
+			typeSelect.addEventListener("change", () => this._updatePreferredOptions());
 		}
 
 		const uncertain = fragment.querySelector("[data-rel-input='uncertain']");
@@ -271,6 +274,7 @@ export class RelationsEditor extends HTMLElement {
 			this._addPanel.classList.add("hidden");
 		}
 		this._updateEmptyTextVisibility();
+		this._updatePreferredOptions();
 	}
 
 	_setupDeleteToggles() {
@@ -328,6 +332,8 @@ export class RelationsEditor extends HTMLElement {
 						icon.classList.remove("ri-arrow-go-back-line");
 					}
 				}
+
+				this._updatePreferredOptions();
 			});
 
 			button.addEventListener("mouseenter", () => {
@@ -372,6 +378,81 @@ export class RelationsEditor extends HTMLElement {
 					}
 				}
 			});
+		});
+	}
+
+	_setupPreferredOptionHandling() {
+		if (this._prefix !== "entries_series" || !this._preferredLabel) {
+			return;
+		}
+
+		this.querySelectorAll(`select[name^="${this._prefix}_type["]`).forEach((select) => {
+			select.addEventListener("change", () => this._updatePreferredOptions());
+		});
+
+		if (this._typeSelect) {
+			this._typeSelect.addEventListener("change", () => this._updatePreferredOptions());
+		}
+
+		this._updatePreferredOptions();
+	}
+
+	_updatePreferredOptions() {
+		if (this._prefix !== "entries_series" || !this._preferredLabel) {
+			return;
+		}
+		const preferredLabel = this._preferredLabel.trim();
+
+		const selects = [];
+		this.querySelectorAll(`select[name^="${this._prefix}_type["]`).forEach((select) => {
+			selects.push({ select, row: select.closest(ROLE_REL_ROW), isAddPanel: false });
+		});
+		if (this._addRow) {
+			this._addRow.querySelectorAll(`select[name='${this._prefix}_new_type']`).forEach((select) => {
+				selects.push({ select, row: select.closest(ROLE_REL_ROW), isAddPanel: false });
+			});
+		}
+		if (this._typeSelect) {
+			selects.push({ select: this._typeSelect, row: this._typeSelect.closest(ROLE_REL_ROW), isAddPanel: true });
+		}
+
+		const hasPreferred = selects.some(({ select, row, isAddPanel }) => {
+			if (isAddPanel) {
+				return false;
+			}
+			const currentValue = (select?.value || "").trim();
+			if (!select || currentValue !== preferredLabel) {
+				return false;
+			}
+			if (!row) {
+				return true;
+			}
+			const deleteInput = row.querySelector(`input[name^="${this._prefix}_delete["]`);
+			return !(deleteInput && deleteInput.checked);
+		});
+
+		selects.forEach(({ select, row, isAddPanel }) => {
+			if (!select) {
+				return;
+			}
+			const option = Array.from(select.options).find((opt) => opt.value.trim() === preferredLabel);
+			if (!option) {
+				return;
+			}
+			const deleteInput = row ? row.querySelector(`input[name^="${this._prefix}_delete["]`) : null;
+			const rowDeleted = Boolean(deleteInput && deleteInput.checked);
+			const currentValue = (select.value || "").trim();
+			const keepVisible = !hasPreferred || (currentValue === preferredLabel && !rowDeleted);
+			if (isAddPanel && hasPreferred && currentValue === preferredLabel) {
+				const fallback = Array.from(select.options).find((opt) => opt.value.trim() !== preferredLabel);
+				if (fallback) {
+					select.value = fallback.value;
+				}
+			}
+			const shouldHide = !keepVisible || (isAddPanel && hasPreferred);
+			option.hidden = shouldHide;
+			option.disabled = shouldHide;
+			option.style.display = shouldHide ? "none" : "";
 		});
 	}
 }

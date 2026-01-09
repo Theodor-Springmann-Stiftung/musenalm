@@ -45,6 +45,7 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], app 
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))
 	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app))
+	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app))
 	return nil
 }
 
@@ -201,6 +202,74 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 	}
 }
 
+func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		payload := almanachDeletePayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Band wurde nicht gefunden.",
+			})
+		}
+
+		if payload.LastEdited != "" {
+			lastEdited, err := types.ParseDateTime(payload.LastEdited)
+			if err != nil {
+				return e.JSON(http.StatusBadRequest, map[string]any{
+					"error": "Ungültiger Bearbeitungszeitstempel.",
+				})
+			}
+			if !entry.Updated().Time().Equal(lastEdited.Time()) {
+				return e.JSON(http.StatusConflict, map[string]any{
+					"error": "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden.",
+				})
+			}
+		}
+
+		if err := app.RunInTransaction(func(tx core.App) error {
+			if err := deleteEntryRelations(tx, entry.Id); err != nil {
+				return err
+			}
+			if err := deleteEntryItems(tx, entry.Id); err != nil {
+				return err
+			}
+			if err := deleteEntryContents(tx, entry.Id); err != nil {
+				return err
+			}
+			record, err := tx.FindRecordById(dbmodels.ENTRIES_TABLE, entry.Id)
+			if err != nil {
+				return err
+			}
+			return tx.Delete(record)
+		}); err != nil {
+			app.Logger().Error("Failed to delete almanach entry", "entry_id", entry.Id, "error", err)
+			return e.JSON(http.StatusInternalServerError, map[string]any{
+				"error": "Löschen fehlgeschlagen.",
+			})
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":  true,
+			"redirect": "/suche/baende",
+		})
+	}
+}
+
 type almanachEditPayload struct {
 	CSRFToken                string                       `json:"csrf_token"`
 	LastEdited               string                       `json:"last_edited"`
@@ -215,6 +284,11 @@ type almanachEditPayload struct {
 	AgentRelations           []almanachRelationPayload    `json:"agent_relations"`
 	NewAgentRelations        []almanachNewRelationPayload `json:"new_agent_relations"`
 	DeletedAgentRelationIDs  []string                     `json:"deleted_agent_relation_ids"`
+}
+
+type almanachDeletePayload struct {
+	CSRFToken  string `json:"csrf_token"`
+	LastEdited string `json:"last_edited"`
 }
 
 type almanachEntryPayload struct {
@@ -292,23 +366,22 @@ func (payload *almanachEditPayload) Validate() error {
 		}
 	}
 
-	hasPreferred := false
+	preferredCount := 0
 	for _, relation := range payload.SeriesRelations {
 		if strings.TrimSpace(relation.Type) == preferredSeriesRelationType {
-			hasPreferred = true
-			break
+			preferredCount++
 		}
 	}
-	if !hasPreferred {
-		for _, relation := range payload.NewSeriesRelations {
-			if strings.TrimSpace(relation.Type) == preferredSeriesRelationType {
-				hasPreferred = true
-				break
-			}
+	for _, relation := range payload.NewSeriesRelations {
+		if strings.TrimSpace(relation.Type) == preferredSeriesRelationType {
+			preferredCount++
 		}
 	}
-	if !hasPreferred {
+	if preferredCount == 0 {
 		return fmt.Errorf("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.")
+	}
+	if preferredCount > 1 {
+		return fmt.Errorf("Es darf nur ein bevorzugter Reihentitel gesetzt sein.")
 	}
 
 	// Check for duplicate series relations
@@ -602,5 +675,87 @@ func applyAgentRelations(tx core.App, entry *dbmodels.Entry, payload *almanachEd
 		}
 	}
 
+	return nil
+}
+
+func deleteEntryRelations(tx core.App, entryID string) error {
+	seriesRelations, err := dbmodels.REntriesSeries_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	seriesTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)
+	for _, relation := range seriesRelations {
+		record, err := tx.FindRecordById(seriesTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	agentRelations, err := dbmodels.REntriesAgents_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	agentTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range agentRelations {
+		record, err := tx.FindRecordById(agentTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func deleteEntryItems(tx core.App, entryID string) error {
+	items, err := dbmodels.Items_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		record, err := tx.FindRecordById(dbmodels.ITEMS_TABLE, item.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func deleteEntryContents(tx core.App, entryID string) error {
+	contents, err := dbmodels.Contents_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	relationsTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	for _, content := range contents {
+		contentRelations, err := dbmodels.RContentsAgents_Content(tx, content.Id)
+		if err != nil {
+			return err
+		}
+		for _, relation := range contentRelations {
+			record, err := tx.FindRecordById(relationsTable, relation.Id)
+			if err != nil {
+				continue
+			}
+			if err := tx.Delete(record); err != nil {
+				return err
+			}
+		}
+		record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
 	return nil
 }
