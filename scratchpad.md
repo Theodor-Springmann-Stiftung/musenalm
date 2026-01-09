@@ -1,16 +1,12 @@
 TODO danach:
-- Error Pages prüfen & error-Verhalten von HTMX
-- Weißraum in den Antworten
-- Antworten komprimieren
-- Cache?
-
-
-Ideen:
-- Personen: related
-- Inhaltsliste: Personen sehen komisch aus
-- Sammlungen neuer versuch
-
-- Logout auf einer geschützen Seite: weiterleitung (evtl. referer nutzen?) -> evtl. footer-logout link ändern auf AdminPage
-- Tooltips
-
-
+- Input:
+    - Titelauflage von/ hat TA
+    - Zeilenumbrüche in Reihen-Annotationen (EVTL. fix in TinyMCE)
+    - Status: Auopsiert, Erfasst etc.
+- Status farbig
+- Deprecated Fields display
+- TinyMCE f. Annotationen
+- Lsite verknüpfter Bände ind Inhalte wie in Personen (Reihen, Orte)
+    - Rolle anzeigen bei Reihen
+- Lösch-Links in Liste, Übersicht u.s.w. (? CSRF-Token fehlt)
+- Löschen von Personen: werden relationen zu Inhalten mitgelöscht? optional inhalte löschen?
