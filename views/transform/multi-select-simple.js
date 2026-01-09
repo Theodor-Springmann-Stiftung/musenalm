@@ -403,6 +403,15 @@ export class MultiSelectSimple extends HTMLElement {
 			this.toggleButton.addEventListener("click", this._handleToggleClick);
 		}
 
+		// Setup external toggle button if specified
+		const externalToggleId = this.getAttribute("data-external-toggle-id");
+		if (externalToggleId) {
+			this.externalToggleButton = document.getElementById(externalToggleId);
+			if (this.externalToggleButton) {
+				this.externalToggleButton.addEventListener("click", this._handleToggleClick);
+			}
+		}
+
 		this._updateRootElementStateClasses();
 		if (this.hasAttribute("value")) {
 			const attrValue = this.getAttribute("value");
@@ -417,6 +426,10 @@ export class MultiSelectSimple extends HTMLElement {
 		} else {
 			this._renderSelectedItems();
 			this._synchronizeHiddenSelect();
+		}
+		// Ensure selected items are rendered even if value is empty
+		if (this._value.length === 0) {
+			this._renderSelectedItems();
 		}
 		if (this.hasAttribute("disabled")) this.disabledCallback(true);
 		if (this._toggleInput) {
@@ -444,6 +457,7 @@ export class MultiSelectSimple extends HTMLElement {
 		if (this.createNewButton) this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick);
 		if (this.selectedItemsContainer) this.selectedItemsContainer.removeEventListener("click", this._handleSelectedItemsContainerClick);
 		if (this.toggleButton) this.toggleButton.removeEventListener("click", this._handleToggleClick);
+		if (this.externalToggleButton) this.externalToggleButton.removeEventListener("click", this._handleToggleClick);
 		clearTimeout(this._blurTimeout);
 		if (this._remoteFetchTimeout) {
 			clearTimeout(this._remoteFetchTimeout);
@@ -641,7 +655,9 @@ export class MultiSelectSimple extends HTMLElement {
 		const displayIds = [...this._value, ...removedInOrder];
 		if (displayIds.length === 0) {
 			const emptyText = this.getAttribute("data-empty-text") || "Keine Auswahl...";
-			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS}">${emptyText}</span>`;
+			// Start with hidden class - visibility will be managed by show/hide input controls
+			const hiddenClass = this._inputCollapsed ? '' : 'hidden';
+			this.selectedItemsContainer.innerHTML = `<span class="${MSS_NO_ITEMS_TEXT_CLASS} ${hiddenClass}">${emptyText}</span>`;
 		} else {
 			displayIds.forEach((id) => {
 				const pillEl = this._createSelectedItemElement(id);

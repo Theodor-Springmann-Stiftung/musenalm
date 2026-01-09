@@ -7,7 +7,7 @@
 		<div class="flex flex-col justify-end-safe flex-2/5">
 			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
 				{{- if $model.is_new -}}
-					Neue Person
+					Person
 				{{- else -}}
 					{{- $agent.Name -}}
 				{{- end -}}
@@ -97,6 +97,7 @@
 <div class="container-normal mx-auto mt-4 !px-0">
 	{{ template "_usermessage" $model }}
 	<form
+		autocomplete="off"
 		class="w-full dbform"
 		id="changepersonform"
 		method="POST"
@@ -135,16 +136,18 @@
 					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $agent.Annotation -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label class="inputlabel">Typ</label>
-					<div class="px-3 py-2 flex flex-col gap-2">
-						<label class="flex items-center gap-2 text-sm text-gray-700">
-							<input type="checkbox" name="corporate_body" {{ if $agent.CorporateBody }}checked{{ end }} />
-							Körperschaft
-						</label>
-						<label class="flex items-center gap-2 text-sm text-gray-700">
-							<input type="checkbox" name="fictional" {{ if $agent.Fictional }}checked{{ end }} />
-							Fiktiv
-						</label>
+					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+							<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} />
+							<label class="flex items-center gap-2 text-gray-700"
+							for="fictional">Fiktional</label>
+					</div>
+				</div>
+				<div class="inputwrapper">
+					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+							<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
+							$agent.CorporateBody }}checked{{ end }} />
+							<label class="flex items-center gap-2 text-gray-700"
+							for="corporate_body">Körperschaft (Verlag/Vertrieb)</label>
 					</div>
 				</div>
 			</div>

@@ -357,7 +357,7 @@
 	}
 
 	.mss-no-items-text {
-		@apply italic text-sm text-gray-500 w-full;
+		@apply italic text-base text-gray-600 w-full;
 	}
 
 	.mss-selected-item-pill {

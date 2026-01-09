@@ -113,8 +113,17 @@ export class RelationsEditor extends HTMLElement {
 
 		if (this._addToggle) {
 			this._addToggle.addEventListener("click", () => {
+				const wasHidden = this._addPanel.classList.contains("hidden");
 				this._addPanel.classList.toggle("hidden");
 				this._updateEmptyTextVisibility();
+
+				// Auto-focus the search input when opening the panel
+				if (wasHidden && this._addInput) {
+					// Use setTimeout to ensure the panel is visible before focusing
+					setTimeout(() => {
+						this._addInput.focus();
+					}, 0);
+				}
 			});
 		}
 
@@ -256,7 +265,7 @@ export class RelationsEditor extends HTMLElement {
 		const deleteButton = fragment.querySelector(ROLE_NEW_DELETE);
 		if (deleteButton) {
 			deleteButton.addEventListener("click", () => {
-				this._addRow.innerHTML = "";
+				row.remove();
 				this._pendingItem = null;
 				this._clearAddPanel();
 				if (this._addPanel) {
@@ -266,7 +275,6 @@ export class RelationsEditor extends HTMLElement {
 			});
 		}
 
-		this._addRow.innerHTML = "";
 		this._addRow.appendChild(fragment);
 		this._pendingItem = null;
 		this._clearAddPanel();

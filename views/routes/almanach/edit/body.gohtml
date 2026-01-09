@@ -24,7 +24,7 @@ type AlmanachResult struct {
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
 			{{- if $model.is_new -}}
-				Neuer Almanach
+				Almanach
 			{{- else -}}
 				{{- $model.result.Entry.PreferredTitle -}}
 			{{- end -}}
@@ -283,19 +283,9 @@ type AlmanachResult struct {
 			</div>
 
 			<div class="mt-3">
-				<div class="flex items-center justify-between gap-4">
-					<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
-						<i class="ri-links-line"></i>
-						<span>Normdaten &amp; Verknüpfungen</span>
-					</div>
-					<div class="flex items-center gap-3">
-						<button type="button" id="series-add-toggle" class="text-gray-700 hover:text-gray-900">
-							<i class="ri-add-line"></i> Reihe verlinken
-						</button>
-						<button type="button" id="agents-add-toggle" class="text-gray-700 hover:text-gray-900">
-							<i class="ri-add-line"></i> Person verlinken
-						</button>
-					</div>
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+					<i class="ri-links-line"></i>
+					<span>Normdaten &amp; Verknüpfungen</span>
 				</div>
 				<hr class="border-slate-400 mt-2 mb-3" />
 				<div class="mt-3">
@@ -303,9 +293,14 @@ type AlmanachResult struct {
 						<div class="inputwrapper">
 							<div class="flex items-center justify-between">
 								<label class="inputlabel" for="series-section">Reihen</label>
-								<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
-									<i class="ri-add-line"></i> Neue Reihe anlegen
-								</a>
+								<div class="flex items-center gap-3">
+									<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+										<i class="ri-add-line"></i> Neue Reihe anlegen
+									</a>
+									<button type="button" id="series-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+										<i class="ri-link"></i> Reihe verlinken
+									</button>
+								</div>
 							</div>
 							<div id="series-section" class="rel-section-container">
 							{{- if $model.result.Series -}}
@@ -357,7 +352,7 @@ type AlmanachResult struct {
 								<div class="rel-empty-text">Keine Reihen verknüpft.</div>
 							{{- end -}}
 							</div>
-							<div data-role="relation-add-row" class="mt-2 px-2"></div>
+							<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2"></div>
 							<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 							<div class="rel-row">
 								<div class="rel-grid">
@@ -437,9 +432,14 @@ type AlmanachResult struct {
 						<div class="inputwrapper">
 							<div class="flex items-center justify-between">
 								<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
-								<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
-									<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
-								</a>
+								<div class="flex items-center gap-3">
+									<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+										<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
+									</a>
+									<button type="button" id="agents-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+										<i class="ri-link"></i> Person verlinken
+									</button>
+								</div>
 							</div>
 							<div id="agents-section" class="rel-section-container">
 							{{- if $model.result.EntriesAgents -}}
@@ -493,7 +493,7 @@ type AlmanachResult struct {
 								<div class="rel-empty-text">Keine Personen verknüpft.</div>
 							{{- end -}}
 							</div>
-							<div data-role="relation-add-row" class="mt-2 px-2"></div>
+							<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2"></div>
 							<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 							<div class="rel-row">
 								<div class="rel-grid">
@@ -573,19 +573,23 @@ type AlmanachResult struct {
 				<div class="inputwrapper">
 					<div class="flex items-center justify-between">
 						<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
-						<a href="/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3" target="_blank" rel="noreferrer">
-							<i class="ri-add-line"></i> Neuen Ort anlegen
-						</a>
+						<div class="flex items-center gap-3">
+							<a href="/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+								<i class="ri-add-line"></i> Neuen Ort anlegen
+							</a>
+							<button type="button" id="places-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+								<i class="ri-link"></i> Ort verlinken
+							</button>
+						</div>
 					</div>
 					<multi-select-simple
 						id="places"
 						name="places[]"
-						data-edit-base="/ort/"
-						data-edit-suffix="/edit"
+						data-external-toggle-id="places-add-toggle"
 						value='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'
 							placeholder="Orte suchen..."
 								data-toggle-label='<i class="ri-add-circle-line"></i>'
-								data-empty-text="Keine Orte ausgewählt..."
+								data-empty-text="Keine Orte verknüpft"
 								show-create-button="false"
 								data-endpoint="/api/places/search"
 								data-result-key="places"
@@ -682,14 +686,20 @@ type AlmanachResult struct {
 				<div class="flex flex-col gap-4 mt-4">
 					<!-- Languages -->
 					<div class="inputwrapper">
-						<label for="languages" class="inputlabel">Sprachen</label>
+						<div class="flex items-center justify-between">
+							<label for="languages" class="inputlabel">Sprachen</label>
+							<button type="button" id="languages-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+								<i class="ri-link"></i> Sprache verlinken
+							</button>
+						</div>
 						<multi-select-simple
 							id="languages"
 							name="languages[]"
 							show-create-button="false"
 							placeholder="Sprachen suchen..."
 							data-toggle-label='<i class="ri-add-circle-line"></i>'
-							data-empty-text="Keine Sprachen ausgewählt..."
+							data-empty-text="Keine Sprachen verknüpft"
+							data-external-toggle-id="languages-add-toggle"
 							value='[{{- range $i, $lang := $model.result.Entry.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'></multi-select-simple>
 					</div>
 

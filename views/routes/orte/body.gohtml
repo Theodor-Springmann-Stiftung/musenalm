@@ -15,18 +15,28 @@
 		{{- if $model.result.Places -}}
 			<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
 				{{- range $place := $model.result.Places -}}
-					<li class="flex items-baseline justify-between gap-4">
+					<li class="px-2 py-0.5 ml-0 flex items-baseline justify-between gap-4 odd:bg-stone-100">
 						<div class="flex flex-col">
-							<span class="font-bold text-slate-900">{{ $place.Name }}</span>
+							<span class="font-bold text-stone-900">{{ $place.Name }}</span>
 							{{- if $place.Pseudonyms -}}
-								<span class="text-sm text-gray-600 italic">{{ $place.Pseudonyms }}</span>
+								<span class="text-sm text-stone-700 italic">{{ $place.Pseudonyms }}</span>
 							{{- end -}}
 						</div>
-						{{- if (IsAdminOrEditor $model.request.user) -}}
-							<a href="/ort/{{ $place.Id }}/edit" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
-								<i class="ri-edit-line"></i> Bearbeiten
-							</a>
-						{{- end -}}
+						<div class="flex items-center gap-4">
+							{{- if (index $model.bcount $place.Id) -}}
+								<div class="font-sans text-sm">
+									<tool-tip position="top">
+										<i class="ri-book-line"></i> {{ index $model.bcount $place.Id }}
+										<div class="data-tip">Bände</div>
+									</tool-tip>
+								</div>
+							{{- end -}}
+							{{- if (IsAdminOrEditor $model.request.user) -}}
+								<a href="/ort/{{ $place.Id }}/edit" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-edit-line"></i> Bearbeiten
+								</a>
+							{{- end -}}
+						</div>
 					</li>
 				{{- end -}}
 			</ul>
