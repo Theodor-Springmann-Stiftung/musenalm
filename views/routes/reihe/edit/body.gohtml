@@ -5,23 +5,35 @@
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">{{ $series.Title }}</h1>
-			<div class="flex flex-row gap-x-3">
-				<div>
-					<a
-						href="/reihe/{{ $series.MusenalmID }}"
-						class="text-gray-700 hover:text-slate-950 block no-underline">
-						<i class="ri-eye-line"></i> Anschauen
-					</a>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+				{{- if $model.is_new -}}
+					Neue Reihe
+				{{- else -}}
+					{{- $series.Title -}}
+				{{- end -}}
+				{{- if $model.is_new -}}
+					<span class="ml-2 text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs align-middle">Neu</span>
+				{{- end -}}
+			</h1>
+			{{- if not $model.is_new -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/reihe/{{ $series.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/reihe/{{ $series.MusenalmID }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
 				</div>
-				&middot;
-				<div>
-					<a href="/reihe/{{ $series.MusenalmID }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-						<i class="ri-loop-left-line"></i> Reset
-					</a>
-				</div>
-			</div>
+			{{- end -}}
 		</div>
+		{{- if not $model.is_new -}}
 		<div class="flex flex-row" id="series-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
@@ -78,6 +90,7 @@
 				</div>
 			</div>
 		</div>
+		{{- end -}}
 	</div>
 </div>
 
@@ -87,10 +100,12 @@
 		class="w-full dbform"
 		id="changeseriesform"
 		method="POST"
-		action="/reihe/{{ $series.MusenalmID }}/edit"
-		data-delete-endpoint="/reihe/{{ $series.MusenalmID }}/edit/delete">
+		action="{{ if $model.is_new }}/reihen/new/{{ else }}/reihe/{{ $series.MusenalmID }}/edit{{ end }}"
+		{{- if not $model.is_new -}}
+			data-delete-endpoint="/reihe/{{ $series.MusenalmID }}/edit/delete"
+		{{- end -}}>
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-		<input type="hidden" name="last_edited" value="{{ $series.Updated }}" />
+		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $series.Updated }}{{ end }}" />
 
 		<div class="flex gap-8">
 			<div class="flex-1 flex flex-col gap-4">
@@ -205,21 +220,23 @@
 		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
 			<p id="series-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
 			<div class="flex items-center gap-3 self-end flex-wrap">
-				<a href="/reihe/{{ $series.MusenalmID }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+				<a href="{{ if $model.is_new }}/reihen/{{ else }}/reihe/{{ $series.MusenalmID }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-close-line"></i>
 					<span>Abbrechen</span>
 				</a>
-				<a href="/reihe/{{ $series.MusenalmID }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
-					<i class="ri-loop-left-line"></i>
-					<span>Reset</span>
-				</a>
-				<button
-					type="button"
-					class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
-					data-role="edit-delete">
-					<i class="ri-delete-bin-line"></i>
-					<span>Reihe löschen</span>
-				</button>
+				{{- if not $model.is_new -}}
+					<a href="/reihe/{{ $series.MusenalmID }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-loop-left-line"></i>
+						<span>Reset</span>
+					</a>
+					<button
+						type="button"
+						class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+						data-role="edit-delete">
+						<i class="ri-delete-bin-line"></i>
+						<span>Reihe löschen</span>
+					</button>
+				{{- end -}}
 				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-save-line"></i>
 					<span>Speichern</span>
@@ -228,36 +245,38 @@
 		</div>
 	</form>
 </div>
-<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
-	<div class="p-5 w-[26rem]">
-		<div class="text-base font-bold text-gray-900">Reihe löschen?</div>
-		<div class="text-sm font-bold text-gray-900 mt-1">{{ $series.Title }}</div>
-		<p class="text-sm text-gray-700 mt-2">
-			Alle Bände, Inhalte und Verknüpfungen der bevorzugten Reihentitel werden gelöscht.
-		</p>
-		<div class="mt-3">
-			<div class="text-sm font-semibold text-gray-700">Betroffene Bände</div>
-			<div class="mt-2 max-h-40 overflow-auto pr-1">
-				{{- if $model.result.PreferredEntries -}}
-					<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
-						{{- range $entry := $model.result.PreferredEntries -}}
-							<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
-								<span>{{ $entry.PreferredTitle }}</span>
-								<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
-							</li>
-						{{- end -}}
-					</ul>
-				{{- else -}}
-					<div class="italic text-gray-500">Keine Bände betroffen.</div>
-				{{- end -}}
+{{- if not $model.is_new -}}
+	<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+		<div class="p-5 w-[26rem]">
+			<div class="text-base font-bold text-gray-900">Reihe löschen?</div>
+			<div class="text-sm font-bold text-gray-900 mt-1">{{ $series.Title }}</div>
+			<p class="text-sm text-gray-700 mt-2">
+				Alle Bände, Inhalte und Verknüpfungen der bevorzugten Reihentitel werden gelöscht.
+			</p>
+			<div class="mt-3">
+				<div class="text-sm font-semibold text-gray-700">Betroffene Bände</div>
+				<div class="mt-2 max-h-40 overflow-auto pr-1">
+					{{- if $model.result.PreferredEntries -}}
+						<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
+							{{- range $entry := $model.result.PreferredEntries -}}
+								<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
+									<span>{{ $entry.PreferredTitle }}</span>
+									<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
+								</li>
+							{{- end -}}
+						</ul>
+					{{- else -}}
+						<div class="italic text-gray-500">Keine Bände betroffen.</div>
+					{{- end -}}
+				</div>
+			</div>
+			<div class="flex items-center justify-end gap-3 mt-4">
+				<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
+				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="edit-delete-confirm">
+					Löschen
+				</button>
 			</div>
 		</div>
-		<div class="flex items-center justify-end gap-3 mt-4">
-			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
-			<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="edit-delete-confirm">
-				Löschen
-			</button>
-		</div>
-	</div>
-</dialog>
+	</dialog>
+{{- end -}}
 </edit-page>

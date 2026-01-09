@@ -2593,6 +2593,10 @@ class Gt extends HTMLElement {
         const n = (s == null ? void 0 : s.error) || `Speichern fehlgeschlagen (${i.status}).`;
         throw new Error(n);
       }
+      if (s != null && s.redirect) {
+        window.location.assign(s.redirect);
+        return;
+      }
       await this._reloadForm((s == null ? void 0 : s.message) || "Änderungen gespeichert."), this._clearStatus();
     } catch (i) {
       this._showStatus(i instanceof Error ? i.message : "Speichern fehlgeschlagen.", "error");

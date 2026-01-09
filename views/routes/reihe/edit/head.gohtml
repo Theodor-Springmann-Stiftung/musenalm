@@ -1,6 +1,8 @@
 {{ $model := . }}
 <title>
-{{- if $model.result -}}
+{{- if $model.is_new -}}
+	Neue Reihe - Musenalm
+{{- else if $model.result -}}
 	Bearbeiten: {{ $model.result.Series.Title }} - Musenalm
 {{- else -}}
 	Reihe bearbeiten - Musenalm

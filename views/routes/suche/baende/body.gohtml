@@ -68,6 +68,14 @@
 
 <div id="searchcontrol" class="container-normal">
 	{{- template "_heading" $model.parameters -}}
+	{{- if (IsAdminOrEditor $model.request.user) -}}
+		<div class="mt-2">
+			<a href="/almanach-new/" class="inline-flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
+				<i class="ri-add-line"></i>
+				<span>Neu</span>
+			</a>
+		</div>
+	{{- end -}}
 	<div id="searchform" class="border-l border-zinc-300 px-8 py-10 relative">
 		{{- if not $model.parameters.Extended -}}
 			{{- template "_musenalmidbox" Arr $model.parameters.AlmString "baende" -}}

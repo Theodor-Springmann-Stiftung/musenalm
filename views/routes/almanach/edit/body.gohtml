@@ -22,47 +22,59 @@ type AlmanachResult struct {
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-		<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">{{ $model.result.Entry.PreferredTitle }}</h1>
-			<div class="flex flex-row gap-x-3">
-				<div>
-					<a
-						href="/almanach/{{ $model.result.Entry.MusenalmID }}"
-						class="text-gray-700
-					hover:text-slate-950 block  no-underline">
-						<i class="ri-eye-line"></i> Anschauen
-					</a>
-				</div>
-				&middot;
-				<div class="flex flex-row">
-					{{- if $model.result.Prev -}}
-						<div>
-							<a href="/almanach/{{ $model.result.Prev.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block ">
-								<i class="ri-arrow-left-s-line"></i>
-							</a>
-						</div>
-					{{- end -}}
-					<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
-					{{ $model.result.Entry.MusenalmID }}
-						<tool-tip position="right" class="!inline">
-							<div class="data-tip">Die Alm-Nr ist Teil der URL und wird automatisch vergeben.</div>
-							<i class="ri-information-line"></i>
-						</tool-tip>
+		<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+			{{- if $model.is_new -}}
+				Neuer Almanach
+			{{- else -}}
+				{{- $model.result.Entry.PreferredTitle -}}
+			{{- end -}}
+			{{- if $model.is_new -}}
+				<span class="ml-2 text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs align-middle">Neu</span>
+			{{- end -}}
+		</h1>
+			{{- if not $model.is_new -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/almanach/{{ $model.result.Entry.MusenalmID }}"
+							class="text-gray-700
+						hover:text-slate-950 block  no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
 					</div>
-					{{- if $model.result.Next -}}
-						<div>
-							<a href="/almanach/{{ $model.result.Next.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
+					&middot;
+					<div class="flex flex-row">
+						{{- if $model.result.Prev -}}
+							<div>
+								<a href="/almanach/{{ $model.result.Prev.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block ">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
+						{{ $model.result.Entry.MusenalmID }}
+							<tool-tip position="right" class="!inline">
+								<div class="data-tip">Die Alm-Nr ist Teil der URL und wird automatisch vergeben.</div>
+								<i class="ri-information-line"></i>
+							</tool-tip>
 						</div>
-					{{- end -}}
+						{{- if $model.result.Next -}}
+							<div>
+								<a href="/almanach/{{ $model.result.Next.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
+							</div>
+						{{- end -}}
+					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700
+						no-underline hover:text-slate-950 block ">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
 				</div>
-				&middot;
-				<div>
-					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700
-					no-underline hover:text-slate-950 block ">
-						<i class="ri-loop-left-line"></i> Reset
-					</a>
-				</div>
-			</div>
+			{{- end -}}
 		</div>
+		{{- if not $model.is_new -}}
 		<div class="flex flex-row" id="almanach-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
@@ -94,6 +106,7 @@ type AlmanachResult struct {
 				</div>
 			</div>
 		</div>
+		{{- end -}}
 	</div>
 </div>
 
@@ -105,10 +118,12 @@ type AlmanachResult struct {
 			x-target="changealmanachform user-message almanach-header-data"
 			hx-boost="false"
 			method="POST"
-			data-save-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/save"
-			data-delete-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/delete">
+			data-save-endpoint="{{ if $model.is_new }}/almanach-new/save{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}/edit/save{{ end }}"
+			{{- if not $model.is_new -}}
+				data-delete-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/delete"
+			{{- end -}}>
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-		<input type="hidden" name="last_edited" value="{{ $model.result.Entry.Updated }}" />
+		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $model.result.Entry.Updated }}{{ end }}" />
 
 		<div class="flex gap-8">
 		<!-- Left Column -->
@@ -246,7 +261,7 @@ type AlmanachResult struct {
 					<div class="flex gap-4">
 						<div class="flex-1 inputwrapper">
 							<label for="year" class="inputlabel">Jahr</label>
-							<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ $model.result.Entry.Year }}" />
+							<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" />
 						</div>
 
 						<div class="flex-1 inputwrapper">
@@ -889,45 +904,49 @@ type AlmanachResult struct {
 		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
 			<p id="almanach-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
 			<div class="flex items-center gap-3 self-end flex-wrap">
-				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+				<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-close-line"></i>
 					<span>Abbrechen</span>
 				</a>
-				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="almanach-reset">
-					<i class="ri-loop-left-line"></i>
-					<span>Reset</span>
-				</button>
-				<button
-					type="button"
-					class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
-					data-role="almanach-delete">
-					<i class="ri-delete-bin-line"></i>
-					<span>Eintrag löschen</span>
-				</button>
+				{{- if not $model.is_new -}}
+					<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="almanach-reset">
+						<i class="ri-loop-left-line"></i>
+						<span>Reset</span>
+					</button>
+					<button
+						type="button"
+						class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+						data-role="almanach-delete">
+						<i class="ri-delete-bin-line"></i>
+						<span>Eintrag löschen</span>
+					</button>
+				{{- end -}}
 				<button type="button" class="submitbutton w-40 flex items-center gap-2 justify-center" data-role="almanach-save">
 					<i class="ri-save-line"></i>
 					<span>Speichern</span>
 				</button>
 			</div>
 		</div>
-		<dialog data-role="almanach-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
-			<div class="p-5 w-[22rem]">
-				<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
-				<div class="text-sm font-bold text-gray-900 mt-1">{{ $model.result.Entry.PreferredTitle }}</div>
-				<p class="text-sm text-gray-700 mt-2">
-					Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
-				</p>
-				<div class="flex items-center justify-end gap-3 mt-4">
-					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="almanach-delete-cancel">Abbrechen</button>
-					<button
-						type="button"
-						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
-						data-role="almanach-delete-confirm">
-						Löschen
-					</button>
+		{{- if not $model.is_new -}}
+			<dialog data-role="almanach-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+				<div class="p-5 w-[22rem]">
+					<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
+					<div class="text-sm font-bold text-gray-900 mt-1">{{ $model.result.Entry.PreferredTitle }}</div>
+					<p class="text-sm text-gray-700 mt-2">
+						Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
+					</p>
+					<div class="flex items-center justify-end gap-3 mt-4">
+						<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="almanach-delete-cancel">Abbrechen</button>
+						<button
+							type="button"
+							class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+							data-role="almanach-delete-confirm">
+							Löschen
+						</button>
+					</div>
 				</div>
-			</div>
-		</dialog>
+			</dialog>
+		{{- end -}}
 	</form>
 </div>
 </almanach-edit-page>

@@ -199,6 +199,11 @@ export class AlmanachEditPage extends HTMLElement {
 				throw new Error(message);
 			}
 
+			if (data?.redirect) {
+				window.location.assign(data.redirect);
+				return;
+			}
+
 			await this._reloadForm(data?.message || "Änderungen gespeichert.");
 			this._clearStatus();
 		} catch (error) {

@@ -5,23 +5,35 @@
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">{{ $agent.Name }}</h1>
-			<div class="flex flex-row gap-x-3">
-				<div>
-					<a
-						href="/person/{{ $agent.Id }}"
-						class="text-gray-700 hover:text-slate-950 block no-underline">
-						<i class="ri-eye-line"></i> Anschauen
-					</a>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+				{{- if $model.is_new -}}
+					Neue Person
+				{{- else -}}
+					{{- $agent.Name -}}
+				{{- end -}}
+				{{- if $model.is_new -}}
+					<span class="ml-2 text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs align-middle">Neu</span>
+				{{- end -}}
+			</h1>
+			{{- if not $model.is_new -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/person/{{ $agent.Id }}"
+							class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/person/{{ $agent.Id }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
 				</div>
-				&middot;
-				<div>
-					<a href="/person/{{ $agent.Id }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-						<i class="ri-loop-left-line"></i> Reset
-					</a>
-				</div>
-			</div>
+			{{- end -}}
 		</div>
+		{{- if not $model.is_new -}}
 		<div class="flex flex-row" id="person-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
@@ -78,6 +90,7 @@
 				</div>
 			</div>
 		</div>
+		{{- end -}}
 	</div>
 </div>
 
@@ -87,9 +100,9 @@
 		class="w-full dbform"
 		id="changepersonform"
 		method="POST"
-		action="/person/{{ $agent.Id }}/edit">
+		action="{{ if $model.is_new }}/personen/new/{{ else }}/person/{{ $agent.Id }}/edit{{ end }}">
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-		<input type="hidden" name="last_edited" value="{{ $agent.Updated }}" />
+		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $agent.Updated }}{{ end }}" />
 
 		<div class="flex gap-8">
 			<div class="flex-1 flex flex-col gap-4">
@@ -236,14 +249,16 @@
 		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
 			<p id="person-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
 			<div class="flex items-center gap-3 self-end flex-wrap">
-				<a href="/person/{{ $agent.Id }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+				<a href="{{ if $model.is_new }}/personen/{{ else }}/person/{{ $agent.Id }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-close-line"></i>
 					<span>Abbrechen</span>
 				</a>
-				<a href="/person/{{ $agent.Id }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
-					<i class="ri-loop-left-line"></i>
-					<span>Reset</span>
-				</a>
+				{{- if not $model.is_new -}}
+					<a href="/person/{{ $agent.Id }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-loop-left-line"></i>
+						<span>Reset</span>
+					</a>
+				{{- end -}}
 				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-save-line"></i>
 					<span>Speichern</span>

@@ -344,6 +344,19 @@ type reiheEditForm struct {
 	Comment    string `form:"edit_comment"`
 }
 
+func applySeriesForm(series *dbmodels.Series, formdata reiheEditForm, title string, status string, user *dbmodels.FixedUser) {
+	series.SetTitle(title)
+	series.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
+	series.SetAnnotation(strings.TrimSpace(formdata.Annotation))
+	series.SetReferences(strings.TrimSpace(formdata.References))
+	series.SetFrequency(strings.TrimSpace(formdata.Frequency))
+	series.SetEditState(status)
+	series.SetComment(strings.TrimSpace(formdata.Comment))
+	if user != nil {
+		series.SetEditor(user.Id)
+	}
+}
+
 func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
@@ -385,16 +398,7 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			series.SetTitle(title)
-			series.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
-			series.SetAnnotation(strings.TrimSpace(formdata.Annotation))
-			series.SetReferences(strings.TrimSpace(formdata.References))
-			series.SetFrequency(strings.TrimSpace(formdata.Frequency))
-			series.SetEditState(status)
-			series.SetComment(strings.TrimSpace(formdata.Comment))
-			if user != nil {
-				series.SetEditor(user.Id)
-			}
+			applySeriesForm(series, formdata, title, status, user)
 			return tx.Save(series)
 		}); err != nil {
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)

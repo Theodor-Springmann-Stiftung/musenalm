@@ -247,6 +247,23 @@ type personEditForm struct {
 	Comment          string `form:"edit_comment"`
 }
 
+func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string, status string, user *dbmodels.FixedUser) {
+	agent.SetName(name)
+	agent.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
+	agent.SetBiographicalData(strings.TrimSpace(formdata.BiographicalData))
+	agent.SetProfession(strings.TrimSpace(formdata.Profession))
+	agent.SetReferences(strings.TrimSpace(formdata.References))
+	agent.SetAnnotation(strings.TrimSpace(formdata.Annotation))
+	agent.SetURI(strings.TrimSpace(formdata.URI))
+	agent.SetCorporateBody(formdata.CorporateBody)
+	agent.SetFictional(formdata.Fictional)
+	agent.SetEditState(status)
+	agent.SetComment(strings.TrimSpace(formdata.Comment))
+	if user != nil {
+		agent.SetEditor(user.Id)
+	}
+}
+
 func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
@@ -288,20 +305,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			agent.SetName(name)
-			agent.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
-			agent.SetBiographicalData(strings.TrimSpace(formdata.BiographicalData))
-			agent.SetProfession(strings.TrimSpace(formdata.Profession))
-			agent.SetReferences(strings.TrimSpace(formdata.References))
-			agent.SetAnnotation(strings.TrimSpace(formdata.Annotation))
-			agent.SetURI(strings.TrimSpace(formdata.URI))
-			agent.SetCorporateBody(formdata.CorporateBody)
-			agent.SetFictional(formdata.Fictional)
-			agent.SetEditState(status)
-			agent.SetComment(strings.TrimSpace(formdata.Comment))
-			if user != nil {
-				agent.SetEditor(user.Id)
-			}
+			applyPersonForm(agent, formdata, name, status, user)
 			return tx.Save(agent)
 		}); err != nil {
 			app.Logger().Error("Failed to save agent", "agent_id", agent.Id, "error", err)

@@ -46,6 +46,9 @@ const (
 	P_USER_MGMT_NAME = "user_management"
 
 	P_ALMANACH_EDIT_NAME = "almanach_edit"
+	P_ALMANACH_NEW_NAME  = "almanach_new"
 	P_REIHE_EDIT_NAME    = "reihe_edit"
+	P_REIHE_NEW_NAME     = "reihe_new"
 	P_PERSON_EDIT_NAME   = "person_edit"
+	P_PERSON_NEW_NAME    = "person_new"
 )

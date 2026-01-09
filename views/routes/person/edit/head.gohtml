@@ -1,6 +1,8 @@
 {{ $model := . }}
 <title>
-{{- if $model.result -}}
+{{- if $model.is_new -}}
+	Neue Person - Musenalm
+{{- else if $model.result -}}
 	Bearbeiten: {{ $model.result.Agent.Name }} - Musenalm
 {{- else -}}
 	Person bearbeiten - Musenalm

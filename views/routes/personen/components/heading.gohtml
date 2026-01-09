@@ -21,4 +21,12 @@
 		</span>
 		<span x-show="search"> Suche &middot; Alle Personen &amp; Körperschaften </span>
 	</h1>
+	{{- if (IsAdminOrEditor $model.request.user) -}}
+		<div class="ml-24 -mt-4">
+			<a href="/personen/new/" class="inline-flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
+				<i class="ri-add-line"></i>
+				<span>Neu</span>
+			</a>
+		</div>
+	{{- end -}}
 </div>
