@@ -601,8 +601,8 @@ export class MultiSelectSimple extends HTMLElement {
 			textEl.appendChild(newBadge);
 		}
 		if (isRemoved) {
-			textEl.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500");
-			detailEl.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500");
+			pillEl.classList.add("bg-red-100");
+			pillEl.style.position = "relative";
 		}
 		deleteBtn.setAttribute("aria-label", isRemoved ? `Undo remove ${itemData.name}` : `Remove ${itemData.name}`);
 		deleteBtn.dataset.id = itemId;

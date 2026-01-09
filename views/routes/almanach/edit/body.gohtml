@@ -303,9 +303,9 @@ type AlmanachResult struct {
 									{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 									{{- if $rel -}}
 										<div data-rel-row class="entries-series-row border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-											<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+											<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 												<div data-rel-strike class="relation-strike flex flex-col min-w-0">
-													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="text-base font-bold text-gray-800 no-underline hover:text-slate-900 truncate">
+													<a data-rel-link href="/reihe/{{ $s.MusenalmID }}" class="text-base text-gray-800 no-underline hover:text-slate-900 truncate">
 														<span data-rel-name>{{- $s.Title -}}</span>
 													</a>
 													{{- if $s.Pseudonyms -}}
@@ -330,7 +330,7 @@ type AlmanachResult struct {
 												<div class="flex justify-end">
 													<button
 														type="button"
-														class="text-sm text-red-700 hover:text-red-900"
+														class="text-sm"
 														data-delete-toggle="entries_series_delete_{{ $rel.Id }}">
 														<i class="ri-delete-bin-line mr-1"></i>
 														<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
@@ -350,7 +350,7 @@ type AlmanachResult struct {
 							<div data-role="relation-add-row" class="mt-2"></div>
 							<div data-role="relation-add-panel" class="mt-2 hidden">
 							<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-								<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+								<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 									<div class="min-w-0">
 										<label for="series-add-select" class="sr-only">Reihe suchen</label>
 										<single-select-remote
@@ -392,9 +392,9 @@ type AlmanachResult struct {
 							</div>
 							<template data-role="relation-new-template">
 								<div data-rel-row class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-									<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+									<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 										<div data-rel-strike class="relation-strike flex flex-col min-w-0">
-											<div class="text-base font-bold text-gray-800 truncate">
+											<div class="text-base text-gray-800 truncate">
 												<a data-rel-link class="no-underline hover:text-slate-900">
 													<span data-rel-name></span>
 												</a>
@@ -431,17 +431,17 @@ type AlmanachResult struct {
 								{{- range $i, $r := $model.result.EntriesAgents -}}
 									{{- $a := index $model.result.Agents $r.Agent -}}
 									<div data-rel-row class="entries-agent-row border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-										<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+										<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 											<div data-rel-strike class="relation-strike flex flex-col min-w-0">
 												{{- if $a -}}
-													<a data-rel-link href="/person/{{ $a.Id }}" class="text-base font-bold text-gray-800 no-underline hover:text-slate-900 truncate">
+													<a data-rel-link href="/person/{{ $a.Id }}" class="text-base text-gray-800 no-underline hover:text-slate-900 truncate">
 														<span data-rel-name>{{- $a.Name -}}</span>
 													</a>
 													{{- if $a.BiographicalData -}}
 														<div data-rel-detail-container class="text-xs text-gray-600 truncate"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
 													{{- end -}}
 												{{- else -}}
-													<div class="text-base font-bold text-gray-800">Unbekannte Person</div>
+													<div class="text-base text-gray-800">Unbekannte Person</div>
 												{{- end -}}
 											</div>
 											<div data-rel-strike class="relation-strike">
@@ -462,7 +462,7 @@ type AlmanachResult struct {
 											<div class="flex justify-end">
 												<button
 													type="button"
-													class="text-sm text-red-700 hover:text-red-900"
+													class="text-sm"
 													data-delete-toggle="entries_agents_delete_{{ $r.Id }}">
 													<i class="ri-delete-bin-line mr-1"></i>
 													<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
@@ -481,7 +481,7 @@ type AlmanachResult struct {
 							<div data-role="relation-add-row" class="mt-2"></div>
 							<div data-role="relation-add-panel" class="mt-2 hidden">
 							<div class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-								<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+								<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 									<div class="min-w-0">
 										<label for="agents-add-select" class="sr-only">Akteur suchen</label>
 										<single-select-remote
@@ -523,9 +523,9 @@ type AlmanachResult struct {
 							</div>
 							<template data-role="relation-new-template">
 								<div data-rel-row class="border border-stone-200 rounded-xs bg-stone-50 px-3 py-2">
-									<div class="grid grid-cols-[1fr_14rem_8rem_7rem] gap-3 items-center">
+									<div class="grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center">
 										<div data-rel-strike class="relation-strike flex flex-col min-w-0">
-											<div class="text-base font-bold text-gray-800 truncate">
+											<div class="text-base text-gray-800 truncate">
 												<a data-rel-link class="no-underline hover:text-slate-900">
 													<span data-rel-name></span>
 												</a>
@@ -740,7 +740,7 @@ type AlmanachResult struct {
 											<button type="button" class="items-edit-button text-gray-700 hover:text-gray-900" aria-label="Bearbeiten">
 												<i class="ri-edit-line"></i>
 											</button>
-											<button type="button" class="items-remove-button text-red-700 hover:text-red-900" aria-label="Entfernen">
+											<button type="button" class="items-remove-button" aria-label="Entfernen">
 												<i class="ri-delete-bin-line"></i>
 												<span class="ml-1 text-sm no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 											</button>
@@ -787,7 +787,7 @@ type AlmanachResult struct {
 									<button type="button" class="items-cancel-button resetbutton w-auto px-2 py-1 text-base">
 										<i class="ri-close-line mr-2"></i> Abbrechen
 									</button>
-									<button type="button" class="items-remove-button resetbutton w-auto px-2 py-1 text-base text-red-700 hover:text-red-900">
+									<button type="button" class="items-remove-button resetbutton w-auto px-2 py-1 text-base">
 										<i class="ri-delete-bin-line mr-2"></i>
 										<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 									</button>
@@ -839,7 +839,7 @@ type AlmanachResult struct {
 										<button type="button" class="items-edit-button text-gray-700 hover:text-gray-900" aria-label="Bearbeiten">
 											<i class="ri-edit-line"></i>
 										</button>
-										<button type="button" class="items-remove-button text-red-700 hover:text-red-900" aria-label="Entfernen">
+										<button type="button" class="items-remove-button" aria-label="Entfernen">
 											<i class="ri-delete-bin-line"></i>
 											<span class="ml-1 text-sm no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 										</button>

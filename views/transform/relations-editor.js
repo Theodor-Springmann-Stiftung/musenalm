@@ -208,15 +208,10 @@ export class RelationsEditor extends HTMLElement {
 					return;
 				}
 				checkbox.checked = !checkbox.checked;
-				button.classList.toggle("opacity-60", checkbox.checked);
 
 				const row = button.closest(ROLE_REL_ROW);
 				if (row) {
 					row.classList.toggle("bg-red-50", checkbox.checked);
-					row.querySelectorAll(ROLE_REL_STRIKE).forEach((el) => {
-						el.classList.toggle("is-removed", checkbox.checked);
-						el.classList.toggle("text-gray-500", checkbox.checked);
-					});
 				}
 
 				const label = button.querySelector("[data-delete-label]");
@@ -248,8 +243,6 @@ export class RelationsEditor extends HTMLElement {
 				const label = button.querySelector("[data-delete-label]");
 				if (label) {
 					label.textContent = label.getAttribute("data-delete-hover") || "Rückgängig";
-					label.classList.add("text-orange-700");
-					label.classList.remove("text-gray-500");
 				}
 				const icon = button.querySelector("i");
 				if (icon) {
@@ -266,7 +259,6 @@ export class RelationsEditor extends HTMLElement {
 				if (!label) {
 					return;
 				}
-				label.classList.remove("text-orange-700");
 				if (checkbox && checkbox.checked) {
 					label.textContent = label.getAttribute("data-delete-active") || "Wird entfernt";
 				} else {

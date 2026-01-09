@@ -99,7 +99,6 @@ export class ItemsEditor extends HTMLElement {
 				const label = btn.querySelector("[data-delete-label]");
 				if (label) {
 					label.textContent = label.getAttribute("data-delete-hover") || "Rückgängig";
-					label.classList.add("text-orange-700");
 				}
 				const icon = btn.querySelector("i");
 				if (icon) {
@@ -114,7 +113,6 @@ export class ItemsEditor extends HTMLElement {
 				if (!label) {
 					return;
 				}
-				label.classList.remove("text-orange-700");
 				if (row && row.getAttribute(REMOVED_ROW_STATE) === "true") {
 					label.textContent = label.getAttribute("data-delete-active") || "Wird entfernt";
 				} else {
@@ -197,12 +195,6 @@ export class ItemsEditor extends HTMLElement {
 	_setRowRemoved(row, removed) {
 		row.setAttribute(REMOVED_ROW_STATE, removed ? "true" : "false");
 		row.classList.toggle("bg-red-50", removed);
-		row.querySelectorAll("[data-items-strike]").forEach((el) => {
-			el.classList.toggle("line-through", removed);
-			el.classList.toggle("decoration-2", removed);
-			el.classList.toggle("decoration-red-600", removed);
-			el.classList.toggle("text-gray-500", removed);
-		});
 
 		row.querySelectorAll("[data-delete-label]").forEach((label) => {
 			const nextLabel = removed

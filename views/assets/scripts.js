@@ -1561,7 +1561,7 @@ class kt extends HTMLElement {
       const u = document.createElement("span");
       u.className = "ml-1 text-xs text-gray-600", u.textContent = "(Neu)", l.appendChild(u);
     }
-    return c && (l.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500"), r.classList.add("line-through", "decoration-2", "decoration-red-600", "text-gray-500")), o.setAttribute("aria-label", c ? `Undo remove ${e.name}` : `Remove ${e.name}`), o.dataset.id = t, o.disabled = this.hasAttribute("disabled"), o.innerHTML = c ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;", o.addEventListener("click", (u) => {
+    return c && (n.classList.add("bg-red-100"), n.style.position = "relative"), o.setAttribute("aria-label", c ? `Undo remove ${e.name}` : `Remove ${e.name}`), o.dataset.id = t, o.disabled = this.hasAttribute("disabled"), o.innerHTML = c ? '<span class="text-xs inline-flex items-center"><i class="ri-arrow-go-back-line"></i></span>' : "&times;", o.addEventListener("click", (u) => {
       u.stopPropagation(), this._handleDeleteSelectedItem(t);
     }), n;
   }
@@ -2135,14 +2135,14 @@ class $e extends HTMLElement {
         if (!e || e.getAttribute(v) !== "true")
           return;
         const s = t.querySelector("[data-delete-label]");
-        s && (s.textContent = s.getAttribute("data-delete-hover") || "Rückgängig", s.classList.add("text-orange-700"));
+        s && (s.textContent = s.getAttribute("data-delete-hover") || "Rückgängig");
         const n = t.querySelector("i");
         n && (n.classList.remove("hidden"), n.classList.add("ri-arrow-go-back-line"), n.classList.remove("ri-delete-bin-line"));
       }), t.addEventListener("mouseleave", () => {
         const e = t.closest(`.${p}`), s = t.querySelector("[data-delete-label]");
         if (!s)
           return;
-        s.classList.remove("text-orange-700"), e && e.getAttribute(v) === "true" ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
+        e && e.getAttribute(v) === "true" ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
         const n = t.querySelector("i");
         n && (e && e.getAttribute(v) === "true" ? (n.classList.add("hidden"), n.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (n.classList.remove("hidden"), n.classList.add("ri-delete-bin-line"), n.classList.remove("ri-arrow-go-back-line")));
       }));
@@ -2181,9 +2181,7 @@ class $e extends HTMLElement {
     this._resetToOriginal(i), this._setRowMode(i, "summary");
   }
   _setRowRemoved(i, t) {
-    i.setAttribute(v, t ? "true" : "false"), i.classList.toggle("bg-red-50", t), i.querySelectorAll("[data-items-strike]").forEach((n) => {
-      n.classList.toggle("line-through", t), n.classList.toggle("decoration-2", t), n.classList.toggle("decoration-red-600", t), n.classList.toggle("text-gray-500", t);
-    }), i.querySelectorAll("[data-delete-label]").forEach((n) => {
+    i.setAttribute(v, t ? "true" : "false"), i.classList.toggle("bg-red-50", t), i.querySelectorAll("[data-delete-label]").forEach((n) => {
       const l = t ? n.getAttribute("data-delete-active") || "Wird entfernt" : n.getAttribute("data-delete-default") || "Entfernen";
       n.textContent = l;
     }), i.querySelectorAll(`.${yt} i`).forEach((n) => {
@@ -2716,8 +2714,8 @@ class Ke extends HTMLElement {
     h && u && u.replaceWith(h), this._initForm(), this._initPlaces(), this._initSaveHandling();
   }
 }
-const ze = "[data-role='relation-add-toggle']", We = "[data-role='relation-add-panel']", Ge = "[data-role='relation-add-close']", je = "[data-role='relation-add-apply']", Je = "[data-role='relation-add-error']", Qe = "[data-role='relation-add-row']", Xe = "[data-role='relation-add-select']", Ye = "[data-role='relation-type-select']", Ze = "[data-role='relation-uncertain']", ti = "template[data-role='relation-new-template']", ei = "[data-role='relation-new-delete']", wt = "[data-rel-row]", ii = "[data-rel-strike]";
-class si extends HTMLElement {
+const ze = "[data-role='relation-add-toggle']", We = "[data-role='relation-add-panel']", Ge = "[data-role='relation-add-close']", je = "[data-role='relation-add-apply']", Je = "[data-role='relation-add-error']", Qe = "[data-role='relation-add-row']", Xe = "[data-role='relation-add-select']", Ye = "[data-role='relation-type-select']", Ze = "[data-role='relation-uncertain']", ti = "template[data-role='relation-new-template']", ei = "[data-role='relation-new-delete']", wt = "[data-rel-row]";
+class ii extends HTMLElement {
   constructor() {
     super(), this._pendingItem = null, this._pendingApply = !1;
   }
@@ -2790,11 +2788,9 @@ class si extends HTMLElement {
         const t = i.getAttribute("data-delete-toggle"), e = this.querySelector(`#${CSS.escape(t)}`);
         if (!e)
           return;
-        e.checked = !e.checked, i.classList.toggle("opacity-60", e.checked);
+        e.checked = !e.checked;
         const s = i.closest(wt);
-        s && (s.classList.toggle("bg-red-50", e.checked), s.querySelectorAll(ii).forEach((r) => {
-          r.classList.toggle("is-removed", e.checked), r.classList.toggle("text-gray-500", e.checked);
-        }));
+        s && s.classList.toggle("bg-red-50", e.checked);
         const n = i.querySelector("[data-delete-label]");
         n && (n.textContent = e.checked ? n.getAttribute("data-delete-active") || "Wird entfernt" : n.getAttribute("data-delete-default") || "Entfernen");
         const l = i.querySelector("i");
@@ -2804,43 +2800,43 @@ class si extends HTMLElement {
         if (!e || !e.checked)
           return;
         const s = i.querySelector("[data-delete-label]");
-        s && (s.textContent = s.getAttribute("data-delete-hover") || "Rückgängig", s.classList.add("text-orange-700"), s.classList.remove("text-gray-500"));
+        s && (s.textContent = s.getAttribute("data-delete-hover") || "Rückgängig");
         const n = i.querySelector("i");
         n && (n.classList.remove("hidden"), n.classList.add("ri-arrow-go-back-line"), n.classList.remove("ri-delete-bin-line"));
       }), i.addEventListener("mouseleave", () => {
         const t = i.getAttribute("data-delete-toggle"), e = this.querySelector(`#${CSS.escape(t)}`), s = i.querySelector("[data-delete-label]");
         if (!s)
           return;
-        s.classList.remove("text-orange-700"), e && e.checked ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
+        e && e.checked ? s.textContent = s.getAttribute("data-delete-active") || "Wird entfernt" : s.textContent = s.getAttribute("data-delete-default") || "Entfernen";
         const n = i.querySelector("i");
         n && (e && e.checked ? (n.classList.add("hidden"), n.classList.remove("ri-delete-bin-line", "ri-arrow-go-back-line")) : (n.classList.remove("hidden"), n.classList.add("ri-delete-bin-line"), n.classList.remove("ri-arrow-go-back-line")));
       });
     });
   }
 }
-const ni = "filter-list", ai = "scroll-button", li = "tool-tip", ri = "abbrev-tooltips", oi = "int-link", di = "popup-image", hi = "tab-list", ci = "filter-pill", ui = "image-reel", mi = "multi-select-places", _i = "multi-select-simple", pi = "single-select-remote", Rt = "reset-button", fi = "div-manager", gi = "items-editor", bi = "almanach-edit-page", Ei = "relations-editor";
-customElements.define(oi, zt);
-customElements.define(ri, L);
-customElements.define(ni, Ht);
-customElements.define(ai, Ft);
-customElements.define(li, Vt);
-customElements.define(di, Ut);
-customElements.define(hi, Kt);
-customElements.define(ci, Pt);
-customElements.define(ui, Wt);
-customElements.define(mi, xt);
-customElements.define(_i, kt);
-customElements.define(pi, Ve);
+const si = "filter-list", ni = "scroll-button", ai = "tool-tip", li = "abbrev-tooltips", ri = "int-link", oi = "popup-image", di = "tab-list", hi = "filter-pill", ci = "image-reel", ui = "multi-select-places", mi = "multi-select-simple", _i = "single-select-remote", Rt = "reset-button", pi = "div-manager", fi = "items-editor", gi = "almanach-edit-page", bi = "relations-editor";
+customElements.define(ri, zt);
+customElements.define(li, L);
+customElements.define(si, Ht);
+customElements.define(ni, Ft);
+customElements.define(ai, Vt);
+customElements.define(oi, Ut);
+customElements.define(di, Kt);
+customElements.define(hi, Pt);
+customElements.define(ci, Wt);
+customElements.define(ui, xt);
+customElements.define(mi, kt);
+customElements.define(_i, Ve);
 customElements.define(Rt, Le);
-customElements.define(fi, Te);
-customElements.define(gi, $e);
-customElements.define(bi, Ke);
-customElements.define(Ei, si);
-function Si() {
+customElements.define(pi, Te);
+customElements.define(fi, $e);
+customElements.define(gi, Ke);
+customElements.define(bi, ii);
+function Ei() {
   const a = window.location.pathname, i = window.location.search, t = a + i;
   return encodeURIComponent(t);
 }
-function vi(a = 5e3, i = 100) {
+function Si(a = 5e3, i = 100) {
   return new Promise((t, e) => {
     let s = 0;
     const n = setInterval(() => {
@@ -2848,8 +2844,8 @@ function vi(a = 5e3, i = 100) {
     }, i);
   });
 }
-async function Li(a) {
-  const i = await vi(), t = document.getElementById("qr");
+async function vi(a) {
+  const i = await Si(), t = document.getElementById("qr");
   t && (t.innerHTML = "", t.classList.add("hidden"), new i(t, {
     text: a,
     width: 1280,
@@ -2861,7 +2857,7 @@ async function Li(a) {
     t.classList.remove("hidden");
   }, 20));
 }
-function yi(a) {
+function Li(a) {
   a && (a.addEventListener("focus", (i) => {
     i.preventDefault(), a.select();
   }), a.addEventListener("mousedown", (i) => {
@@ -2874,7 +2870,7 @@ function yi(a) {
     a.select();
   }));
 }
-function Ai() {
+function yi() {
   document.body.addEventListener("htmx:responseError", function(a) {
     const i = a.detail.requestConfig;
     if (i.boosted) {
@@ -2884,7 +2880,7 @@ function Ai() {
     }
   });
 }
-function Ii(a, i) {
+function Ai(a, i) {
   if (!(a instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -2922,7 +2918,7 @@ function Bt(a) {
     R(a);
   });
 }
-function Ti(a) {
+function Ii(a) {
   if (!(a instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -2931,22 +2927,22 @@ function Ti(a) {
     R(a);
   });
 }
-function Ci(a) {
+function Ti(a) {
   !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.addEventListener("keydown", Mt);
 }
-function wi(a) {
+function Ci(a) {
   !(a instanceof HTMLTextAreaElement) && a.classList.contains("no-enter") || a.removeEventListener("keydown", Mt);
 }
-function xi(a, i) {
+function wi(a, i) {
   for (const t of a)
     if (t.type === "childList") {
       for (const e of t.addedNodes)
         e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Bt(e), R(e));
       for (const e of t.removedNodes)
-        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (wi(e), Ti(e));
+        e.nodeType === Node.ELEMENT_NODE && e.matches("textarea") && (Ci(e), Ii(e));
     }
 }
-function ki(a) {
+function xi(a) {
   if (!(a instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
@@ -2956,8 +2952,8 @@ function ki(a) {
     Bt(s), R(s);
   const t = document.querySelectorAll("textarea.no-enter");
   for (const s of t)
-    Ci(s);
-  new MutationObserver(xi).observe(a, {
+    Ti(s);
+  new MutationObserver(wi).observe(a, {
     childList: !0,
     subtree: !0
   });
@@ -2968,12 +2964,12 @@ document.addEventListener("keydown", (a) => {
   const i = a.target;
   i instanceof HTMLElement && i.matches("textarea.no-enter") && a.preventDefault();
 });
-window.ShowBoostedErrors = Ai;
-window.GenQRCode = Li;
-window.SelectableInput = yi;
-window.PathPlusQuery = Si;
-window.HookupRBChange = Ii;
-window.FormLoad = ki;
+window.ShowBoostedErrors = yi;
+window.GenQRCode = vi;
+window.SelectableInput = Li;
+window.PathPlusQuery = Ei;
+window.HookupRBChange = Ai;
+window.FormLoad = xi;
 export {
   L as AbbreviationTooltips,
   Ke as AlmanachEditPage,
@@ -2985,7 +2981,7 @@ export {
   xt as MultiSelectRole,
   kt as MultiSelectSimple,
   Ut as PopupImage,
-  si as RelationsEditor,
+  ii as RelationsEditor,
   Ft as ScrollButton,
   Ve as SingleSelectRemote,
   Kt as TabList,
