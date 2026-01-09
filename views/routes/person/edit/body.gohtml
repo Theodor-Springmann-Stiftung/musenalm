@@ -59,6 +59,9 @@
 								</a>
 							</tool-tip>
 						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						A&thinsp;-&thinsp;Z
+						</span>
 						{{- if $model.result.Next -}}
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.Next.Name }}</div>
@@ -193,28 +196,27 @@
 							<div class="tab-list-head flex items-center gap-2">
 								<i class="ri-book-2-line"></i>
 								<span>Verknüpfte Bände</span>
-								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Entries }}</span>
+								<span class="text-xs bg-stone-200 text-gray-800 px-2 py-0.5 rounded-sm">{{ len $model.result.Entries }}</span>
 							</div>
 							<div class="tab-list-head flex items-center gap-2">
 								<i class="ri-article-line"></i>
 								<span>Verknüpfte Inhalte</span>
-								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Contents }}</span>
+								<span class="text-xs bg-stone-200 text-gray-800 px-2 py-0.5 rounded-sm">{{ len $model.result.Contents }}</span>
 							</div>
 						</div>
 						<hr class="border-slate-400 mt-2 mb-3" />
-						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+						<div class="tab-list-panel text-sm text-gray-800 max-h-96 overflow-auto pr-1 pl-0 ml-0">
 							{{- if $model.result.Entries -}}
 								<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
 									{{- range $entry := $model.result.Entries -}}
 										{{- $entryTypes := index $model.result.EntryTypes $entry.Id -}}
-										<li class="flex items-baseline justify-between gap-3 ml-0 pl-0">
+										<li class="flex items-baseline justify-between gap-3 ml-0 px-1 odd:bg-stone-100">
 											<div class="flex flex-col gap-1">
-												<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">
+												<a href="/almanach/{{ $entry.MusenalmID }}" class="font-bold no-underline hover:text-slate-900">
 													{{- $entry.PreferredTitle -}}
 												</a>
 												{{- if $entryTypes -}}
-													<div class="text-xs text-gray-600">
-														Rolle:
+													<div class="text-xs text-gray-800">
 														{{- range $i, $t := $entryTypes -}}
 															{{- if $i }}, {{ end -}}{{ $t -}}
 														{{- end -}}
@@ -229,27 +231,27 @@
 								<div class="italic text-gray-500">Keine Bände verknüpft.</div>
 							{{- end -}}
 						</div>
-						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+						<div class="tab-list-panel text-sm text-gray-800 max-h-96 overflow-auto pr-1 pl-0 ml-0
+						self-stretch">
 							{{- if $model.result.Contents -}}
 								<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
 									{{- range $content := $model.result.Contents -}}
 										{{- $entry := index $model.result.ContentEntries $content.Entry -}}
 										{{- $types := index $model.result.ContentTypes $content.Id -}}
-										<li class="flex flex-col gap-1 ml-0 pl-0">
+										<li class="flex flex-col gap-1 ml-0 pl-0 odd:bg-stone-100 px-1">
 											<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
 												{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
 											</a>
-											<div class="text-xs text-gray-600 flex flex-wrap gap-3">
-												{{- if $entry -}}
-													<span>Band: <a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">{{ $entry.PreferredTitle }}</a></span>
-												{{- end -}}
+											<div class="text-xs text-gray-800 ">
 												{{- if $types -}}
-													<span>
-														Rolle:
-														{{- range $i, $t := $types -}}
-															{{- if $i }}, {{ end -}}{{ $t -}}
-														{{- end -}}
-													</span>
+												<span>
+												{{- range $i, $t := $types -}}
+												{{- if $i }}, {{ end -}}{{ $t -}}
+												{{- end -}}
+												</span>
+												{{- end -}}
+												{{- if $entry -}}, in:
+													<span><a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">{{ $entry.PreferredTitle }}</a></span>
 												{{- end -}}
 												{{- if $content.MusenalmPagination -}}
 													<span>Seite: {{ $content.MusenalmPagination }}</span>
