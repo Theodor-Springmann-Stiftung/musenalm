@@ -49,6 +49,13 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], app co
 type PersonEditResult struct {
 	Agent *dbmodels.Agent
 	User  *dbmodels.User
+	Prev  *dbmodels.Agent
+	Next  *dbmodels.Agent
+	Entries []*dbmodels.Entry
+	EntryTypes map[string][]string
+	Contents []*dbmodels.Content
+	ContentEntries map[string]*dbmodels.Entry
+	ContentTypes map[string][]string
 }
 
 func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
@@ -67,9 +74,37 @@ func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
 		}
 	}
 
+	prev, next, err := agentNeighbors(app, agent.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load agent neighbors", "agent", agent.Id, "error", err)
+	}
+
+	entries, entryTypes, err := agentEntries(app, agent.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load agent entries", "agent", agent.Id, "error", err)
+	}
+	if len(entries) > 0 {
+		dbmodels.Sort_Entries_Year_Title(entries)
+	}
+
+	contents, contentEntries, contentTypes, err := agentContentsDetails(app, agent.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load agent contents", "agent", agent.Id, "error", err)
+	}
+	if len(contents) > 0 {
+		dbmodels.Sort_Contents_Numbering(contents)
+	}
+
 	return &PersonEditResult{
-		Agent: agent,
-		User:  user,
+		Agent:   agent,
+		User:    user,
+		Prev:    prev,
+		Next:    next,
+		Entries: entries,
+		EntryTypes: entryTypes,
+		Contents: contents,
+		ContentEntries: contentEntries,
+		ContentTypes: contentTypes,
 	}, nil
 }
 
@@ -108,6 +143,92 @@ func (p *PersonEditPage) renderError(engine *templating.Engine, app core.App, e 
 	data["csrf_token"] = req.Session().Token
 
 	return engine.Response200(e, p.Template, data, p.Layout)
+}
+
+func agentNeighbors(app core.App, currentID string) (*dbmodels.Agent, *dbmodels.Agent, error) {
+	agents := []*dbmodels.Agent{}
+	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&agents); err != nil {
+		return nil, nil, err
+	}
+	if len(agents) == 0 {
+		return nil, nil, nil
+	}
+	dbmodels.Sort_Agents_Name(agents)
+	for index, item := range agents {
+		if item.Id != currentID {
+			continue
+		}
+		var prev *dbmodels.Agent
+		var next *dbmodels.Agent
+		if index > 0 {
+			prev = agents[index-1]
+		}
+		if index+1 < len(agents) {
+			next = agents[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
+}
+
+func agentEntries(app core.App, agentID string) ([]*dbmodels.Entry, map[string][]string, error) {
+	relations, err := dbmodels.REntriesAgents_Agent(app, agentID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(relations) == 0 {
+		return []*dbmodels.Entry{}, map[string][]string{}, nil
+	}
+	entryIds := make([]any, 0, len(relations))
+	typeMap := make(map[string][]string)
+	for _, relation := range relations {
+		entryIds = append(entryIds, relation.Entry())
+		typeMap[relation.Entry()] = append(typeMap[relation.Entry()], relation.Type())
+	}
+	entries, err := dbmodels.Entries_IDs(app, entryIds)
+	if err != nil {
+		return nil, typeMap, err
+	}
+	return entries, typeMap, nil
+}
+
+func agentContentsDetails(app core.App, agentID string) ([]*dbmodels.Content, map[string]*dbmodels.Entry, map[string][]string, error) {
+	relations, err := dbmodels.RContentsAgents_Agent(app, agentID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if len(relations) == 0 {
+		return []*dbmodels.Content{}, map[string]*dbmodels.Entry{}, map[string][]string{}, nil
+	}
+
+	contentIDs := make([]any, 0, len(relations))
+	typeMap := make(map[string][]string)
+	for _, relation := range relations {
+		contentIDs = append(contentIDs, relation.Content())
+		typeMap[relation.Content()] = append(typeMap[relation.Content()], relation.Type())
+	}
+
+	contents, err := dbmodels.Contents_IDs(app, contentIDs)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	entryIDs := []any{}
+	for _, content := range contents {
+		entryIDs = append(entryIDs, content.Entry())
+	}
+
+	entries, err := dbmodels.Entries_IDs(app, entryIDs)
+	if err != nil {
+		return contents, map[string]*dbmodels.Entry{}, typeMap, nil
+	}
+
+	entryMap := make(map[string]*dbmodels.Entry, len(entries))
+	for _, entry := range entries {
+		entryMap[entry.Id] = entry
+	}
+
+	return contents, entryMap, typeMap, nil
 }
 
 type personEditForm struct {

@@ -491,13 +491,17 @@ class Ge extends HTMLElement {
   static get observedAttributes() {
   }
   constructor() {
-    super(), this._showall = !1, this.shown = -1, this._headings = [], this._contents = [], this._checkbox = null;
+    super(), this._showall = !1, this.shown = -1, this._headings = [], this._contents = [], this._checkbox = null, this._disabled = /* @__PURE__ */ new Set(), this._defaultIndex = null;
   }
   connectedCallback() {
-    this._headings = Array.from(this.querySelectorAll(".tab-list-head")), this._contents = Array.from(this.querySelectorAll(".tab-list-panel")), this.hookupEvtHandlers(), this.hideDependent(), this._headings.length === 1 && this.expand(0);
+    if (this._headings = Array.from(this.querySelectorAll(".tab-list-head")), this._contents = Array.from(this.querySelectorAll(".tab-list-panel")), this._readConfig(), this.hookupEvtHandlers(), this._applyDisabled(), this.hideDependent(), this._headings.length === 1) {
+      this.expand(0);
+      return;
+    }
+    this._defaultIndex !== null && this._expandFirstAvailable(this._defaultIndex);
   }
   expand(t) {
-    t < 0 || t >= this._headings.length || (this.shown = t, this._contents.forEach((e, i) => {
+    t < 0 || t >= this._headings.length || this._disabled.has(t) || (this.shown = t, this._contents.forEach((e, i) => {
       i === t ? (e.classList.remove("hidden"), this._headings[i].setAttribute("aria-pressed", "true")) : (e.classList.add("hidden"), this._headings[i].setAttribute("aria-pressed", "false"));
     }));
   }
@@ -511,6 +515,32 @@ class Ge extends HTMLElement {
       t.addEventListener("click", this.handleTabClick.bind(this)), t.classList.add("cursor-pointer"), t.classList.add("select-none"), t.setAttribute("role", "button"), t.setAttribute("aria-pressed", "false"), t.setAttribute("tabindex", "0");
     for (let t of this._contents)
       t.classList.add("hidden");
+  }
+  _readConfig() {
+    const t = (this.getAttribute("data-disabled-indices") || "").trim(), e = (this.getAttribute("data-default-index") || "").trim();
+    if (this._disabled.clear(), t && t.split(",").map((i) => parseInt(i.trim(), 10)).filter((i) => Number.isFinite(i)).forEach((i) => this._disabled.add(i)), e !== "") {
+      const i = parseInt(e, 10);
+      this._defaultIndex = Number.isFinite(i) ? i : null;
+    } else
+      this._defaultIndex = null;
+  }
+  _applyDisabled() {
+    this._headings.forEach((t, e) => {
+      this._disabled.has(e) ? t.classList.add("pointer-events-none", "opacity-60") : t.classList.remove("pointer-events-none", "opacity-60");
+    });
+  }
+  _expandFirstAvailable(t) {
+    if (this._headings.length !== 0) {
+      if (!this._disabled.has(t)) {
+        this.expand(t);
+        return;
+      }
+      for (let e = 0; e < this._headings.length; e += 1)
+        if (!this._disabled.has(e)) {
+          this.expand(e);
+          return;
+        }
+    }
   }
   restore() {
     for (let t of this._headings)
@@ -2966,8 +2996,43 @@ class li extends HTMLElement {
   connectedCallback() {
     setTimeout(() => {
       const t = this.querySelector("form");
-      t && typeof window.FormLoad == "function" && window.FormLoad(t);
+      t && typeof window.FormLoad == "function" && window.FormLoad(t), this._setupDelete();
     }, 0);
+  }
+  _setupDelete() {
+    const t = this.querySelector("form");
+    if (!t)
+      return;
+    const e = t.getAttribute("data-delete-endpoint");
+    if (!e)
+      return;
+    const i = this.querySelector("[data-role='edit-delete-dialog']"), s = this.querySelector("[data-role='edit-delete']"), n = this.querySelector("[data-role='edit-delete-confirm']"), a = this.querySelector("[data-role='edit-delete-cancel']");
+    if (!i || !s || !n || !a)
+      return;
+    s.addEventListener("click", (o) => {
+      o.preventDefault(), typeof i.showModal == "function" && i.showModal();
+    });
+    const r = (o) => {
+      o && o.preventDefault(), i.open && i.close();
+    };
+    a.addEventListener("click", r), i.addEventListener("cancel", r), n.addEventListener("click", async (o) => {
+      o.preventDefault(), r();
+      const d = new FormData(t), c = {
+        csrf_token: d.get("csrf_token") || "",
+        last_edited: d.get("last_edited") || ""
+      }, h = await fetch(e, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify(c)
+      });
+      if (!h.ok)
+        return;
+      const u = await h.json().catch(() => null), m = (u == null ? void 0 : u.redirect) || "/";
+      window.location.assign(m);
+    });
   }
 }
 const ri = "filter-list", oi = "scroll-button", di = "tool-tip", hi = "abbrev-tooltips", ci = "int-link", ui = "popup-image", mi = "tab-list", _i = "filter-pill", pi = "image-reel", fi = "multi-select-places", gi = "multi-select-simple", bi = "single-select-remote", Me = "reset-button", Ei = "div-manager", Si = "items-editor", vi = "almanach-edit-page", Li = "relations-editor", yi = "edit-page";

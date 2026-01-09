@@ -8,21 +8,33 @@ export class TabList extends HTMLElement {
 		this._headings = [];
 		this._contents = [];
 		this._checkbox = null;
+		this._disabled = new Set();
+		this._defaultIndex = null;
 	}
 
 	connectedCallback() {
 		this._headings = Array.from(this.querySelectorAll(".tab-list-head"));
 		this._contents = Array.from(this.querySelectorAll(".tab-list-panel"));
+		this._readConfig();
 		this.hookupEvtHandlers();
+		this._applyDisabled();
 		this.hideDependent();
 
 		if (this._headings.length === 1) {
 			this.expand(0);
+			return;
+		}
+
+		if (this._defaultIndex !== null) {
+			this._expandFirstAvailable(this._defaultIndex);
 		}
 	}
 
 	expand(index) {
 		if (index < 0 || index >= this._headings.length) {
+			return;
+		}
+		if (this._disabled.has(index)) {
 			return;
 		}
 
@@ -64,6 +76,53 @@ export class TabList extends HTMLElement {
 
 		for (let content of this._contents) {
 			content.classList.add("hidden");
+		}
+	}
+
+	_readConfig() {
+		const disabledRaw = (this.getAttribute("data-disabled-indices") || "").trim();
+		const defaultRaw = (this.getAttribute("data-default-index") || "").trim();
+
+		this._disabled.clear();
+		if (disabledRaw) {
+			disabledRaw
+				.split(",")
+				.map((value) => parseInt(value.trim(), 10))
+				.filter((value) => Number.isFinite(value))
+				.forEach((value) => this._disabled.add(value));
+		}
+
+		if (defaultRaw !== "") {
+			const parsed = parseInt(defaultRaw, 10);
+			this._defaultIndex = Number.isFinite(parsed) ? parsed : null;
+		} else {
+			this._defaultIndex = null;
+		}
+	}
+
+	_applyDisabled() {
+		this._headings.forEach((heading, index) => {
+			if (this._disabled.has(index)) {
+				heading.classList.add("pointer-events-none", "opacity-60");
+			} else {
+				heading.classList.remove("pointer-events-none", "opacity-60");
+			}
+		});
+	}
+
+	_expandFirstAvailable(preferredIndex) {
+		if (this._headings.length === 0) {
+			return;
+		}
+		if (!this._disabled.has(preferredIndex)) {
+			this.expand(preferredIndex);
+			return;
+		}
+		for (let i = 0; i < this._headings.length; i += 1) {
+			if (!this._disabled.has(i)) {
+				this.expand(i);
+				return;
+			}
 		}
 	}
 

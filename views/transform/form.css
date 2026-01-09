@@ -102,6 +102,18 @@
 		@apply px-1.5 italic text-gray-600;
 	}
 
+	/* Reset global list indentation inside tab panels */
+	.tab-list-panel ul {
+		margin-left: 0;
+		padding-left: 0;
+		list-style: none;
+	}
+
+	.tab-list-panel li {
+		margin-left: 0;
+		padding-left: 0;
+	}
+
 	/* Disabled form controls in deleted relations */
 	[data-rel-row].bg-red-50 select:disabled,
 	[data-rel-row].bg-red-50 input[type="checkbox"]:disabled:not([data-delete-toggle]) {

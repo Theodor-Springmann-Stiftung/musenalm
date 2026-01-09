@@ -31,6 +31,35 @@
 					<div class="">{{ $agent.Id }}</div>
 				</div>
 			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-6">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if $model.result.Prev -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Prev.Name }}</div>
+								<a
+									href="/person/{{ $model.result.Prev.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+						{{- if $model.result.Next -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Next.Name }}</div>
+								<a
+									href="/person/{{ $model.result.Next.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
 			<div class="flex flex-col justify-end gap-y-6 pr-4">
 				<div class="">
 					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
@@ -121,6 +150,85 @@
 				<div class="inputwrapper">
 					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
 					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $agent.Comment -}}</textarea>
+				</div>
+				<div class="mt-2">
+					<tab-list
+						data-default-index="{{ if gt (len $model.result.Entries) 0 }}0{{ else if gt (len $model.result.Contents) 0 }}1{{ end }}"
+						data-disabled-indices="{{ if and (eq (len $model.result.Entries) 0) (eq (len $model.result.Contents) 0) }}0,1{{ else if eq (len $model.result.Entries) 0 }}0{{ else if eq (len $model.result.Contents) 0 }}1{{ end }}">
+						<div class="flex items-center gap-3 text-sm font-bold text-gray-700">
+							<div class="tab-list-head flex items-center gap-2">
+								<i class="ri-book-2-line"></i>
+								<span>Verknüpfte Bände</span>
+								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Entries }}</span>
+							</div>
+							<div class="tab-list-head flex items-center gap-2">
+								<i class="ri-article-line"></i>
+								<span>Verknüpfte Inhalte</span>
+								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Contents }}</span>
+							</div>
+						</div>
+						<hr class="border-slate-400 mt-2 mb-3" />
+						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+							{{- if $model.result.Entries -}}
+								<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
+									{{- range $entry := $model.result.Entries -}}
+										{{- $entryTypes := index $model.result.EntryTypes $entry.Id -}}
+										<li class="flex items-baseline justify-between gap-3 ml-0 pl-0">
+											<div class="flex flex-col gap-1">
+												<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">
+													{{- $entry.PreferredTitle -}}
+												</a>
+												{{- if $entryTypes -}}
+													<div class="text-xs text-gray-600">
+														Rolle:
+														{{- range $i, $t := $entryTypes -}}
+															{{- if $i }}, {{ end -}}{{ $t -}}
+														{{- end -}}
+													</div>
+												{{- end -}}
+											</div>
+											<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
+										</li>
+									{{- end -}}
+								</ul>
+							{{- else -}}
+								<div class="italic text-gray-500">Keine Bände verknüpft.</div>
+							{{- end -}}
+						</div>
+						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+							{{- if $model.result.Contents -}}
+								<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
+									{{- range $content := $model.result.Contents -}}
+										{{- $entry := index $model.result.ContentEntries $content.Entry -}}
+										{{- $types := index $model.result.ContentTypes $content.Id -}}
+										<li class="flex flex-col gap-1 ml-0 pl-0">
+											<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
+												{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
+											</a>
+											<div class="text-xs text-gray-600 flex flex-wrap gap-3">
+												{{- if $entry -}}
+													<span>Band: <a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">{{ $entry.PreferredTitle }}</a></span>
+												{{- end -}}
+												{{- if $types -}}
+													<span>
+														Rolle:
+														{{- range $i, $t := $types -}}
+															{{- if $i }}, {{ end -}}{{ $t -}}
+														{{- end -}}
+													</span>
+												{{- end -}}
+												{{- if $content.MusenalmPagination -}}
+													<span>Seite: {{ $content.MusenalmPagination }}</span>
+												{{- end -}}
+											</div>
+										</li>
+									{{- end -}}
+								</ul>
+							{{- else -}}
+								<div class="italic text-gray-500">Keine Inhalte verknüpft.</div>
+							{{- end -}}
+						</div>
+					</tab-list>
 				</div>
 			</div>
 		</div>
