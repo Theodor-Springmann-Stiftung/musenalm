@@ -124,12 +124,9 @@
 					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
 				</div>
 				<div class="inputwrapper">
-					<label class="inputlabel">Typ</label>
-					<div class="px-3 py-2 flex flex-col gap-2">
-						<label class="flex items-center gap-2 text-sm text-gray-700">
-							<input type="checkbox" name="fictional" {{ if $place.Fictional }}checked{{ end }} />
-							Fiktiv
-						</label>
+					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+							<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} />
+							<label class="flex items-center gap-2 text-gray-700" for="fictional">Fiktiv</label>
 					</div>
 				</div>
 			</div>
@@ -238,7 +235,8 @@
 			</div>
 			<div class="flex items-center justify-end gap-3 mt-4">
 				<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
-				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="edit-delete-confirm">
+				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1
+				text-sm text-slate-50" data-role="edit-delete-confirm">
 					Löschen
 				</button>
 			</div>
