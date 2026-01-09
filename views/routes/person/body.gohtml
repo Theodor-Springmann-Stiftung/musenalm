@@ -41,6 +41,12 @@
 			<span class="filtercategory">Person</span>
 		</div>
 	{{ end }}
+	{{- if (IsAdminOrEditor $model.request.user) -}}
+		<div class="font-sans mt-1">
+			<i class="ri-edit-line"></i>
+			<a href="/person/{{ $model.result.Agent.Id }}/edit">Bearbeiten</a>
+		</div>
+	{{- end -}}
 	<h1 class="text-3xl font-bold">{{ $model.result.Agent.Name }}</h1>
 	{{- if $model.result.Agent.Pseudonyms -}}
 		<p class="italic">

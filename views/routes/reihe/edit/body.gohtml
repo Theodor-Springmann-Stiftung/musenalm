@@ -1,0 +1,126 @@
+{{ $model := . }}
+{{ $series := $model.result.Series }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">{{ $series.Title }}</h1>
+			<div class="flex flex-row gap-x-3">
+				<div>
+					<a
+						href="/reihe/{{ $series.MusenalmID }}"
+						class="text-gray-700 hover:text-slate-950 block no-underline">
+						<i class="ri-eye-line"></i> Anschauen
+					</a>
+				</div>
+				&middot;
+				<div>
+					<a href="/reihe/{{ $series.MusenalmID }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+						<i class="ri-loop-left-line"></i> Reset
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="flex flex-row" id="series-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $series.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit" id="series-updated-stamp">
+							<span id="series-updated-date">{{ GermanDate $series.Updated }}</span>,
+							<span id="series-updated-time">{{ GermanTime $series.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
+							id="series-updated-user">
+							<i class="ri-user-line mr-1"></i>
+							<span id="series-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+	<form
+		class="w-full dbform"
+		id="changeseriesform"
+		method="POST"
+		action="/reihe/{{ $series.MusenalmID }}/edit">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="last_edited" value="{{ $series.Updated }}" />
+
+		<div class="flex gap-8">
+			<div class="flex-1 flex flex-col gap-4">
+				<div class="inputwrapper">
+					<label for="title" class="inputlabel">Reihentitel</label>
+					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.Title -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="pseudonyms" class="inputlabel">Alternativtitel</label>
+					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $series.Pseudonyms -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="annotation" class="inputlabel">Annotation</label>
+					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $series.Annotation -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="references" class="inputlabel">Nachweise</label>
+					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
+					<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />
+				</div>
+			</div>
+
+			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+				<div class="inputwrapper">
+					<label for="status" class="inputlabel">Status</label>
+					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
+						<option value="Unknown" {{ if eq $series.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+						<option value="ToDo" {{ if eq $series.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+						<option value="Review" {{ if eq $series.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+						<option value="Seen" {{ if eq $series.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+						<option value="Edited" {{ if eq $series.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+					</select>
+				</div>
+				<div class="inputwrapper">
+					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $series.Comment -}}</textarea>
+				</div>
+			</div>
+		</div>
+
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p id="series-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
+			<div class="flex items-center gap-3 self-end flex-wrap">
+				<a href="/reihe/{{ $series.MusenalmID }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-close-line"></i>
+					<span>Abbrechen</span>
+				</a>
+				<a href="/reihe/{{ $series.MusenalmID }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-loop-left-line"></i>
+					<span>Reset</span>
+				</a>
+				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+			</div>
+		</div>
+	</form>
+</div>
+</edit-page>

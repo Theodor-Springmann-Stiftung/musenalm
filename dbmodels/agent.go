@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 var _ core.RecordProxy = (*Agent)(nil)
@@ -153,4 +154,8 @@ func (a *Agent) Editor() string {
 
 func (a *Agent) SetEditor(editor string) {
 	a.Set(EDITOR_FIELD, editor)
+}
+
+func (a *Agent) Updated() types.DateTime {
+	return a.GetDateTime(UPDATED_FIELD)
 }

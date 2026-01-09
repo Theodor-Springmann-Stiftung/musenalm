@@ -2962,29 +2962,38 @@ class ai extends HTMLElement {
     });
   }
 }
-const li = "filter-list", ri = "scroll-button", oi = "tool-tip", di = "abbrev-tooltips", hi = "int-link", ci = "popup-image", ui = "tab-list", mi = "filter-pill", _i = "image-reel", pi = "multi-select-places", fi = "multi-select-simple", gi = "single-select-remote", Me = "reset-button", bi = "div-manager", Ei = "items-editor", Si = "almanach-edit-page", vi = "relations-editor";
-customElements.define(hi, je);
-customElements.define(di, T);
-customElements.define(li, Ue);
-customElements.define(ri, ze);
-customElements.define(oi, Ke);
-customElements.define(ci, We);
-customElements.define(ui, Ge);
-customElements.define(mi, He);
-customElements.define(_i, Je);
-customElements.define(pi, Re);
-customElements.define(fi, Oe);
-customElements.define(gi, Kt);
+class li extends HTMLElement {
+  connectedCallback() {
+    setTimeout(() => {
+      const t = this.querySelector("form");
+      t && typeof window.FormLoad == "function" && window.FormLoad(t);
+    }, 0);
+  }
+}
+const ri = "filter-list", oi = "scroll-button", di = "tool-tip", hi = "abbrev-tooltips", ci = "int-link", ui = "popup-image", mi = "tab-list", _i = "filter-pill", pi = "image-reel", fi = "multi-select-places", gi = "multi-select-simple", bi = "single-select-remote", Me = "reset-button", Ei = "div-manager", Si = "items-editor", vi = "almanach-edit-page", Li = "relations-editor", yi = "edit-page";
+customElements.define(ci, je);
+customElements.define(hi, T);
+customElements.define(ri, Ue);
+customElements.define(oi, ze);
+customElements.define(di, Ke);
+customElements.define(ui, We);
+customElements.define(mi, Ge);
+customElements.define(_i, He);
+customElements.define(pi, Je);
+customElements.define(fi, Re);
+customElements.define(gi, Oe);
+customElements.define(bi, Kt);
 customElements.define(Me, It);
-customElements.define(bi, xt);
-customElements.define(Ei, Pt);
-customElements.define(Si, Gt);
-customElements.define(vi, ai);
-function Li() {
+customElements.define(Ei, xt);
+customElements.define(Si, Pt);
+customElements.define(vi, Gt);
+customElements.define(Li, ai);
+customElements.define(yi, li);
+function Ai() {
   const l = window.location.pathname, t = window.location.search, e = l + t;
   return encodeURIComponent(e);
 }
-function yi(l = 5e3, t = 100) {
+function Ii(l = 5e3, t = 100) {
   return new Promise((e, i) => {
     let s = 0;
     const n = setInterval(() => {
@@ -2992,8 +3001,8 @@ function yi(l = 5e3, t = 100) {
     }, t);
   });
 }
-async function Ai(l) {
-  const t = await yi(), e = document.getElementById("qr");
+async function Ci(l) {
+  const t = await Ii(), e = document.getElementById("qr");
   e && (e.innerHTML = "", e.classList.add("hidden"), new t(e, {
     text: l,
     width: 1280,
@@ -3005,7 +3014,7 @@ async function Ai(l) {
     e.classList.remove("hidden");
   }, 20));
 }
-function Ii(l) {
+function Ti(l) {
   l && (l.addEventListener("focus", (t) => {
     t.preventDefault(), l.select();
   }), l.addEventListener("mousedown", (t) => {
@@ -3018,7 +3027,7 @@ function Ii(l) {
     l.select();
   }));
 }
-function Ci() {
+function wi() {
   document.body.addEventListener("htmx:responseError", function(l) {
     const t = l.detail.requestConfig;
     if (t.boosted) {
@@ -3028,7 +3037,7 @@ function Ci() {
     }
   });
 }
-function Ti(l, t) {
+function xi(l, t) {
   if (!(l instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -3073,7 +3082,7 @@ function E(l) {
 function Ne(l) {
   l.key === "Enter" && l.preventDefault();
 }
-function wi(l) {
+function ki(l) {
   if (!(l instanceof HTMLTextAreaElement)) {
     console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -3082,7 +3091,7 @@ function wi(l) {
     E(l);
   });
 }
-function xi(l) {
+function Ri(l) {
   if (!(l instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -3091,23 +3100,23 @@ function xi(l) {
     E(l);
   });
 }
-function ki(l) {
+function Oi(l) {
   !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.addEventListener("keydown", Ne);
 }
-function Ri(l) {
+function Bi(l) {
   !(l instanceof HTMLTextAreaElement) && l.classList.contains("no-enter") || l.removeEventListener("keydown", Ne);
 }
-function Oi(l, t) {
+function Mi(l, t) {
   const e = !$e();
   for (const i of l)
     if (i.type === "childList") {
       for (const s of i.addedNodes)
-        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && e && (wi(s), E(s));
+        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && e && (ki(s), E(s));
       for (const s of i.removedNodes)
-        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && (Ri(s), e && xi(s));
+        s.nodeType === Node.ELEMENT_NODE && s.matches("textarea") && (Bi(s), e && Ri(s));
     }
 }
-function Bi(l) {
+function $i(l) {
   if (console.log("=== FormLoad CALLED ==="), !(l instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
@@ -3125,8 +3134,8 @@ function Bi(l) {
   }, 200);
   const e = document.querySelectorAll("textarea.no-enter");
   for (const n of e)
-    ki(n);
-  new MutationObserver(Oi).observe(l, {
+    Oi(n);
+  new MutationObserver(Mi).observe(l, {
     childList: !0,
     subtree: !0
   }), new MutationObserver((n) => {
@@ -3151,16 +3160,17 @@ document.addEventListener("keydown", (l) => {
   const t = l.target;
   t instanceof HTMLElement && t.matches("textarea.no-enter") && l.preventDefault();
 });
-window.ShowBoostedErrors = Ci;
-window.GenQRCode = Ai;
-window.SelectableInput = Ii;
-window.PathPlusQuery = Li;
-window.HookupRBChange = Ti;
-window.FormLoad = Bi;
+window.ShowBoostedErrors = wi;
+window.GenQRCode = Ci;
+window.SelectableInput = Ti;
+window.PathPlusQuery = Ai;
+window.HookupRBChange = xi;
+window.FormLoad = $i;
 window.TextareaAutoResize = E;
 export {
   T as AbbreviationTooltips,
   Gt as AlmanachEditPage,
+  li as EditPage,
   Ue as FilterList,
   He as FilterPill,
   Je as ImageReel,

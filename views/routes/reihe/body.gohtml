@@ -18,7 +18,7 @@
 
 <div class="container-normal flex flex-col font-serif mt-12">
 	<div class="font-sans">
-		{{/* <svg
+	{{/* <svg
 			class="w-[0.9rem] h-[0.9rem] relative bottom-[0.04rem] inline-block"
 			width="65px"
 			height="65px"
@@ -39,10 +39,16 @@
 			</g>
 			</g>
 			</svg>
-		*/}}
+	*/}}
 		<i class="ri-book-shelf-fill"></i>
 		Reihe
 	</div>
+	{{- if (IsAdminOrEditor $model.request.user) -}}
+		<div class="font-sans mt-1">
+			<i class="ri-edit-line"></i>
+			<a href="/reihe/{{ $r.MusenalmID }}/edit">Bearbeiten</a>
+		</div>
+	{{- end -}}
 	<div class="grow-0">
 		<div>
 			<span class="font-bold text-3xl mr-2">{{ $r.Title }}</span>

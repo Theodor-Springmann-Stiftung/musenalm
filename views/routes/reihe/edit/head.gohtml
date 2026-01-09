@@ -1,0 +1,8 @@
+{{ $model := . }}
+<title>
+{{- if $model.result -}}
+	Bearbeiten: {{ $model.result.Series.Title }} - Musenalm
+{{- else -}}
+	Reihe bearbeiten - Musenalm
+{{- end -}}
+</title>

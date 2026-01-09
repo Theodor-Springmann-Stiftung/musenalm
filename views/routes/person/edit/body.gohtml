@@ -1,0 +1,147 @@
+{{ $model := . }}
+{{ $agent := $model.result.Agent }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">{{ $agent.Name }}</h1>
+			<div class="flex flex-row gap-x-3">
+				<div>
+					<a
+						href="/person/{{ $agent.Id }}"
+						class="text-gray-700 hover:text-slate-950 block no-underline">
+						<i class="ri-eye-line"></i> Anschauen
+					</a>
+				</div>
+				&middot;
+				<div>
+					<a href="/person/{{ $agent.Id }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+						<i class="ri-loop-left-line"></i> Reset
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="flex flex-row" id="person-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $agent.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit" id="person-updated-stamp">
+							<span id="person-updated-date">{{ GermanDate $agent.Updated }}</span>,
+							<span id="person-updated-time">{{ GermanTime $agent.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
+							id="person-updated-user">
+							<i class="ri-user-line mr-1"></i>
+							<span id="person-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+	<form
+		class="w-full dbform"
+		id="changepersonform"
+		method="POST"
+		action="/person/{{ $agent.Id }}/edit">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="last_edited" value="{{ $agent.Updated }}" />
+
+		<div class="flex gap-8">
+			<div class="flex-1 flex flex-col gap-4">
+				<div class="inputwrapper">
+					<label for="name" class="inputlabel">Name</label>
+					<textarea name="name" id="name" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.Name -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="pseudonyms" class="inputlabel">Pseudonyme</label>
+					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
+					<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="profession" class="inputlabel">Profession</label>
+					<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
+				</div>
+				<div class="inputwrapper">
+					<label for="uri" class="inputlabel">URI</label>
+					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
+				</div>
+				<div class="inputwrapper">
+					<label for="references" class="inputlabel">Nachweise</label>
+					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label for="annotation" class="inputlabel">Annotation</label>
+					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $agent.Annotation -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<label class="inputlabel">Typ</label>
+					<div class="px-3 py-2 flex flex-col gap-2">
+						<label class="flex items-center gap-2 text-sm text-gray-700">
+							<input type="checkbox" name="corporate_body" {{ if $agent.CorporateBody }}checked{{ end }} />
+							Körperschaft
+						</label>
+						<label class="flex items-center gap-2 text-sm text-gray-700">
+							<input type="checkbox" name="fictional" {{ if $agent.Fictional }}checked{{ end }} />
+							Fiktiv
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+				<div class="inputwrapper">
+					<label for="status" class="inputlabel">Status</label>
+					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
+						<option value="Unknown" {{ if eq $agent.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+						<option value="ToDo" {{ if eq $agent.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+						<option value="Review" {{ if eq $agent.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+						<option value="Seen" {{ if eq $agent.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+						<option value="Edited" {{ if eq $agent.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+					</select>
+				</div>
+				<div class="inputwrapper">
+					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $agent.Comment -}}</textarea>
+				</div>
+			</div>
+		</div>
+
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p id="person-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
+			<div class="flex items-center gap-3 self-end flex-wrap">
+				<a href="/person/{{ $agent.Id }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-close-line"></i>
+					<span>Abbrechen</span>
+				</a>
+				<a href="/person/{{ $agent.Id }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-loop-left-line"></i>
+					<span>Reset</span>
+				</a>
+				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+			</div>
+		</div>
+	</form>
+</div>
+</edit-page>
