@@ -778,7 +778,7 @@ class nt extends HTMLElement {
   }
 }
 F = new WeakMap();
-const at = "msr-component-wrapper", ae = "msr-selected-items-container", re = "msr-placeholder-no-selection-text", rt = "msr-selected-item-pill", lt = "msr-selected-item-text", ot = "msr-item-name", dt = "msr-item-additional-data", ht = "msr-selected-item-role", le = "msr-selected-item-delete-btn", ct = "msr-controls-area", oe = "msr-pre-add-button", de = "msr-input-area-wrapper", P = "msr-input-area-default-border", j = "msr-input-area-staged", he = "msr-staging-area-container", ut = "msr-staged-item-pill", mt = "msr-staged-item-text", W = "msr-staged-role-select", ce = "msr-staged-cancel-btn", ue = "msr-text-input", me = "msr-add-button", _e = "msr-options-list", pe = "msr-option-item", _t = "msr-option-item-name", pt = "msr-option-item-detail", fe = "msr-option-item-highlighted", G = "msr-hidden-select", ft = "msr-state-no-selection", gt = "msr-state-has-selection", bt = "msr-state-list-open", Et = "msr-state-item-staged";
+const at = "msr-component-wrapper", ae = "msr-selected-items-container", re = "msr-placeholder-no-selection-text", rt = "msr-selected-item-pill", lt = "msr-selected-item-text", ot = "msr-item-name", dt = "msr-item-additional-data", ht = "msr-selected-item-role", le = "msr-selected-item-delete-btn", ct = "msr-controls-area", oe = "msr-pre-add-button", de = "msr-input-area-wrapper", q = "msr-input-area-default-border", j = "msr-input-area-staged", he = "msr-staging-area-container", ut = "msr-staged-item-pill", mt = "msr-staged-item-text", W = "msr-staged-role-select", ce = "msr-staged-cancel-btn", ue = "msr-text-input", me = "msr-add-button", _e = "msr-options-list", pe = "msr-option-item", _t = "msr-option-item-name", pt = "msr-option-item-detail", fe = "msr-option-item-highlighted", G = "msr-hidden-select", ft = "msr-state-no-selection", gt = "msr-state-has-selection", bt = "msr-state-list-open", Et = "msr-state-item-staged";
 class Ne extends HTMLElement {
   constructor() {
     super();
@@ -1003,7 +1003,7 @@ class Ne extends HTMLElement {
                            ${this._value.length === 0 ? `<span class="${re}">${this.placeholderNoSelection}</span>` : ""}
                         </div>
                         <div class="${ct} flex items-center">
-                            <div class="${de} ${P} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
+                            <div class="${de} ${q} flex-grow min-h-[42px] flex items-center flex-wrap gap-1" tabindex="-1">
                                 <span class="${he} flex items-center gap-2"></span>
                                 <input type="text"
                                        class="${ue} flex-1 min-w-[100px] outline-none"
@@ -1041,7 +1041,7 @@ class Ne extends HTMLElement {
   _renderStagedPillOrInput() {
     if (!(!this.stagedItemPillContainer || !this.inputElement || !this.inputAreaWrapper)) {
       if (this.stagedItemPillContainer.innerHTML = "", this._stagedItem && this._stagedItem.item) {
-        this.inputAreaWrapper.classList.remove(P), this.inputAreaWrapper.classList.add(j);
+        this.inputAreaWrapper.classList.remove(q), this.inputAreaWrapper.classList.add(j);
         const e = this._createStagedItemPillElement(this._stagedItem.item);
         this.stagedItemPillContainer.appendChild(e);
         const i = this._getAvailableRolesForItem(this._stagedItem.item.id), s = this._createStagedRoleSelectElement(
@@ -1052,7 +1052,7 @@ class Ne extends HTMLElement {
         const n = this._createStagedCancelButtonElement(this._stagedItem.item.name);
         this.stagedItemPillContainer.appendChild(n), this.inputElement.classList.add("hidden"), this.inputElement.value = "", this.inputElement.removeAttribute("aria-activedescendant"), this.inputElement.setAttribute("aria-expanded", "false");
       } else
-        this.inputAreaWrapper.classList.add(P), this.inputAreaWrapper.classList.remove(j), this.inputElement.classList.remove("hidden");
+        this.inputAreaWrapper.classList.add(q), this.inputAreaWrapper.classList.remove(j), this.inputElement.classList.remove("hidden");
       this._updateAddButtonState(), this._updatePreAddButtonVisibility(), this._updateRootElementStateClasses();
     }
   }
@@ -1191,7 +1191,7 @@ class Ne extends HTMLElement {
   }
   _handleFocus() {
     if (!(this.hasAttribute("disabled") || this.inputElement && this.inputElement.disabled || this._stagedItem)) {
-      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(P), this.inputAreaWrapper.classList.remove(j)), this.inputElement && this.inputElement.value.length > 0) {
+      if (!this._stagedItem && this.inputAreaWrapper && (this.inputAreaWrapper.classList.add(q), this.inputAreaWrapper.classList.remove(j)), this.inputElement && this.inputElement.value.length > 0) {
         const e = this.inputElement.value.toLowerCase();
         this._filteredOptions = this._options.filter((i) => this._getAvailableRolesForItem(i.id).length === 0 ? !1 : i.name.toLowerCase().includes(e) || i.additional_data && i.additional_data.toLowerCase().includes(e)), this._filteredOptions.length > 0 ? (this._isOptionsListVisible = !0, this._highlightedIndex = 0, this._renderOptionsList()) : this._hideOptionsList();
       } else
@@ -1981,13 +1981,13 @@ class $t extends HTMLElement {
     this.button.setAttribute("aria-label", t);
   }
 }
-const g = "hidden", we = "dm-stay", q = "dm-title", Te = "dm-menu-button", Nt = "dm-target", Dt = "data-dm-target", ke = "dm-menu", Re = "dm-menu-item", Pt = "dm-close-button";
-var V, Pe;
-class qt extends HTMLElement {
+const g = "hidden", we = "dm-stay", P = "dm-title", Te = "dm-menu-button", Nt = "dm-target", Dt = "data-dm-target", ke = "dm-menu", Re = "dm-menu-item", qt = "dm-close-button";
+var V, qe;
+class Pt extends HTMLElement {
   constructor() {
     super();
     w(this, V);
-    N(this, V, Pe).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+    N(this, V, qe).call(this), this.boundHandleClickOutside = this.handleClickOutside.bind(this);
   }
   connectedCallback() {
     if (this._target = document.getElementById(this.getAttribute(Nt)), this._target || (this._target = this), this._cildren = Array.from(this.children).filter((e) => e.nodeType === Node.ELEMENT_NODE && !e.classList.contains(Te)).map((e) => ({
@@ -2000,11 +2000,11 @@ class qt extends HTMLElement {
       hidden: () => e.classList.contains(g),
       name: () => {
         const i = e.querySelector("label");
-        return i ? i.innerHTML : e.hasAttribute(q) ? e.getAttribute(q) : "";
+        return i ? i.innerHTML : e.hasAttribute(P) ? e.getAttribute(P) : "";
       },
       nameText: () => {
         const i = e.querySelector("label");
-        return i ? i.textContent.trim() : e.hasAttribute(q) ? e.getAttribute(q) : "";
+        return i ? i.textContent.trim() : e.hasAttribute(P) ? e.getAttribute(P) : "";
       }
     })), this._button = this.querySelector(`.${Te}`), !this._button) {
       console.error("DivManagerMenu needs a button element.");
@@ -2015,7 +2015,7 @@ class qt extends HTMLElement {
       this.removeChild(e.node);
     this._button.addEventListener("click", this._toggleMenu.bind(this)), this._button.classList.add("relative");
     for (const e of this._cildren)
-      e.node.querySelectorAll(`.${Pt}`).forEach((s) => {
+      e.node.querySelectorAll(`.${qt}`).forEach((s) => {
         s.addEventListener("click", (n) => {
           this.hideDiv(n, e.node);
         });
@@ -2134,7 +2134,7 @@ ${e[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
     });
   }
 }
-V = new WeakSet(), Pe = function() {
+V = new WeakSet(), qe = function() {
   this._cildren = [], this._rendered = [], this._target = null, this._button = null, this._menu = null, this._originalButtonText = null;
 };
 const b = "items-row", Ht = "items-list", Ft = "items-template", Vt = "items-add-button", Ut = "items-cancel-button", H = "items-remove-button", zt = "items-edit-button", Kt = "items-close-button", jt = "items-summary", Wt = "items-edit-panel", Z = "items_removed[]", T = "data-items-removed";
@@ -3333,7 +3333,7 @@ class gi extends HTMLElement {
     }
   }
 }
-const bi = "filter-list", Ei = "fab-menu", vi = "scroll-button", Si = "tool-tip", yi = "abbrev-tooltips", Li = "int-link", xi = "popup-image", Ai = "tab-list", Ci = "filter-pill", Ii = "image-reel", wi = "multi-select-places", Ti = "multi-select-simple", ki = "single-select-remote", qe = "reset-button", Ri = "div-manager", Oi = "items-editor", Bi = "almanach-edit-page", Mi = "relations-editor", $i = "edit-page";
+const bi = "filter-list", Ei = "fab-menu", vi = "scroll-button", Si = "tool-tip", yi = "abbrev-tooltips", Li = "int-link", xi = "popup-image", Ai = "tab-list", Ci = "filter-pill", Ii = "image-reel", wi = "multi-select-places", Ti = "multi-select-simple", ki = "single-select-remote", Pe = "reset-button", Ri = "div-manager", Oi = "items-editor", Bi = "almanach-edit-page", Mi = "relations-editor", $i = "edit-page";
 customElements.define(Li, st);
 customElements.define(yi, R);
 customElements.define(bi, Xe);
@@ -3346,8 +3346,8 @@ customElements.define(Ii, nt);
 customElements.define(wi, Ne);
 customElements.define(Ti, De);
 customElements.define(ki, ti);
-customElements.define(qe, $t);
-customElements.define(Ri, qt);
+customElements.define(Pe, $t);
+customElements.define(Ri, Pt);
 customElements.define(Oi, Gt);
 customElements.define(Bi, si);
 customElements.define(Mi, pi);
@@ -3365,7 +3365,7 @@ function Di(r = 5e3, t = 100) {
     }, t);
   });
 }
-async function Pi(r) {
+async function qi(r) {
   const t = await Di(), e = document.getElementById("qr");
   e && (e.innerHTML = "", e.classList.add("hidden"), new t(e, {
     text: r,
@@ -3378,7 +3378,7 @@ async function Pi(r) {
     e.classList.remove("hidden");
   }, 20));
 }
-function qi(r) {
+function Pi(r) {
   r && (r.addEventListener("focus", (t) => {
     t.preventDefault(), r.select();
   }), r.addEventListener("mousedown", (t) => {
@@ -3410,7 +3410,7 @@ function Fi(r, t) {
     console.warn("Action must be a function.");
     return;
   }
-  const e = r.querySelectorAll(qe);
+  const e = r.querySelectorAll(Pe);
   r.addEventListener("rbichange", (i) => {
     for (const s of e)
       if (s.isCurrentlyModified()) {
@@ -3487,35 +3487,45 @@ function Wi(r) {
   }
   const t = document.querySelectorAll("textarea");
   console.log("Found", t.length, "textareas");
-  for (const n of t)
-    console.log("Attaching input listener to:", n.name || n.id), n.addEventListener("input", function() {
+  for (const a of t)
+    console.log("Attaching input listener to:", a.name || a.id), a.addEventListener("input", function() {
       console.log("Input event on textarea:", this.name || this.id), x(this);
     });
   setTimeout(() => {
     console.log("Running initial textarea resize on", t.length, "textareas");
-    for (const n of t)
-      x(n);
+    for (const a of t)
+      x(a);
   }, 200);
   const e = document.querySelectorAll("textarea.no-enter");
-  for (const n of e)
-    zi(n);
+  for (const a of e)
+    zi(a);
   new MutationObserver(ji).observe(r, {
     childList: !0,
     subtree: !0
-  }), new MutationObserver((n) => {
-    for (const a of n)
-      if (a.type === "attributes" && a.attributeName === "class") {
-        const l = a.target;
-        if (l instanceof HTMLElement) {
-          const o = l.matches("textarea") ? [l] : Array.from(l.querySelectorAll("textarea"));
-          for (const d of o)
-            d.offsetParent !== null && x(d);
+  }), new MutationObserver((a) => {
+    for (const l of a)
+      if (l.type === "attributes" && l.attributeName === "class") {
+        const o = l.target;
+        if (o instanceof HTMLElement) {
+          const d = o.matches("textarea") ? [o] : Array.from(o.querySelectorAll("textarea"));
+          for (const c of d)
+            c.offsetParent !== null && x(c);
         }
       }
   }).observe(r, {
     attributes: !0,
     attributeFilter: ["class"],
     subtree: !0
+  }), r.querySelectorAll('input[type="checkbox"][data-boolean-checkbox]').forEach((a) => {
+    a.value = "true";
+    const l = () => {
+      const o = r.querySelector(`input[type="hidden"][name="${a.name}"]`);
+      if (o && o.remove(), !a.checked) {
+        const d = document.createElement("input");
+        d.type = "hidden", d.name = a.name, d.value = "false", a.parentNode.insertBefore(d, a);
+      }
+    };
+    l(), a.addEventListener("change", l);
   });
 }
 document.addEventListener("keydown", (r) => {
@@ -3525,8 +3535,8 @@ document.addEventListener("keydown", (r) => {
   t instanceof HTMLElement && t.matches("textarea.no-enter") && r.preventDefault();
 });
 window.ShowBoostedErrors = Hi;
-window.GenQRCode = Pi;
-window.SelectableInput = qi;
+window.GenQRCode = qi;
+window.SelectableInput = Pi;
 window.PathPlusQuery = Ni;
 window.HookupRBChange = Fi;
 window.FormLoad = Wi;

@@ -389,6 +389,37 @@ function FormLoad(form) {
 		attributeFilter: ["class"],
 		subtree: true,
 	});
+
+	// Handle boolean checkboxes
+	const booleanCheckboxes = form.querySelectorAll('input[type="checkbox"][data-boolean-checkbox]');
+	booleanCheckboxes.forEach(checkbox => {
+		// Ensure each boolean checkbox has proper value handling
+		checkbox.value = 'true';
+
+		// Add change handler to manage hidden input
+		const updateHiddenInput = () => {
+			// Remove any existing hidden input for this checkbox
+			const existingHidden = form.querySelector(`input[type="hidden"][name="${checkbox.name}"]`);
+			if (existingHidden) {
+				existingHidden.remove();
+			}
+
+			// If checkbox is unchecked, add hidden input with false value
+			if (!checkbox.checked) {
+				const hidden = document.createElement('input');
+				hidden.type = 'hidden';
+				hidden.name = checkbox.name;
+				hidden.value = 'false';
+				checkbox.parentNode.insertBefore(hidden, checkbox);
+			}
+		};
+
+		// Initial setup
+		updateHiddenInput();
+
+		// Update on change
+		checkbox.addEventListener('change', updateHiddenInput);
+	});
 }
 
 document.addEventListener("keydown", (event) => {

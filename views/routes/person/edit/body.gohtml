@@ -116,6 +116,14 @@
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
 				</div>
 				<div class="inputwrapper">
+					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+							<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
+							$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
+							<label class="flex items-center gap-2 text-gray-700"
+							for="corporate_body">Körperschaft (Verlag/Vertrieb)</label>
+					</div>
+				</div>
+				<div class="inputwrapper">
 					<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
 					<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
 				</div>
@@ -137,17 +145,9 @@
 				</div>
 				<div class="inputwrapper">
 					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-							<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} />
+							<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
 							<label class="flex items-center gap-2 text-gray-700"
 							for="fictional">Fiktional</label>
-					</div>
-				</div>
-				<div class="inputwrapper">
-					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-							<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
-							$agent.CorporateBody }}checked{{ end }} />
-							<label class="flex items-center gap-2 text-gray-700"
-							for="corporate_body">Körperschaft (Verlag/Vertrieb)</label>
 					</div>
 				</div>
 			</div>
