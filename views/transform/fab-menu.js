@@ -4,7 +4,6 @@ export class FabMenu extends HTMLElement {
 		this.state = null; // Will be set in connectedCallback: 'closed', 'half', 'full'
 		this.handleClick = this.handleClick.bind(this);
 		this.handleClickAway = this.handleClickAway.bind(this);
-		this.handleDeleteClick = this.handleDeleteClick.bind(this);
 	}
 
 	connectedCallback() {
@@ -71,14 +70,6 @@ export class FabMenu extends HTMLElement {
 		// Build half-open menu content
 		let halfOpenContent = "";
 		if (hasReihe) {
-			const deleteButton = hasCsrf
-				? `
-				<button data-action="delete-reihe" data-id="${reiheId}" class="w-full flex items-center px-4 py-2 hover:bg-gray-100 transition-colors text-sm text-left">
-					<i class="ri-delete-bin-line text-base text-red-600 mr-2.5"></i>
-					<span class="text-red-600">Löschen</span>
-				</button>
-			`
-				: "";
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihe
@@ -87,7 +78,6 @@ export class FabMenu extends HTMLElement {
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				${deleteButton}
 			`;
 		} else if (hasPerson) {
 			halfOpenContent = `
@@ -100,14 +90,6 @@ export class FabMenu extends HTMLElement {
 				</a>
 			`;
 		} else if (hasEntry) {
-			const deleteButton = hasCsrf
-				? `
-				<button data-action="delete-almanach" data-id="${entryId}" class="w-full flex items-center px-4 py-2 hover:bg-gray-100 transition-colors text-sm text-left">
-					<i class="ri-delete-bin-line text-base text-red-600 mr-2.5"></i>
-					<span class="text-red-600">Löschen</span>
-				</button>
-			`
-				: "";
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Almanach
@@ -116,7 +98,6 @@ export class FabMenu extends HTMLElement {
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				${deleteButton}
 			`;
 		}
 
@@ -229,53 +210,6 @@ export class FabMenu extends HTMLElement {
 		`
 			: "";
 
-		// Build delete dialogs (only if CSRF token is available)
-		let deleteDialogs = "";
-		if (hasReihe && hasCsrf) {
-			deleteDialogs += `
-				<div class="fab-delete-dialog hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-dialog="reihe">
-					<div class="bg-white rounded-lg p-6 max-w-md mx-4">
-						<h3 class="text-lg font-semibold mb-4">Reihe löschen?</h3>
-						<p class="text-gray-700 mb-6">Möchten Sie diese Reihe wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-						<div class="flex gap-3 justify-end">
-							<button data-action="cancel-delete" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors">
-								Abbrechen
-							</button>
-							<form method="POST" action="/reihe/${reiheId}/edit/delete">
-								<input type="hidden" name="csrf_token" value="${csrfToken}">
-								<input type="hidden" name="last_edited" value="${reiheUpdated}">
-								<button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
-									Löschen
-								</button>
-							</form>
-						</div>
-					</div>
-				</div>
-			`;
-		}
-		if (hasEntry && hasCsrf) {
-			deleteDialogs += `
-				<div class="fab-delete-dialog hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-dialog="almanach">
-					<div class="bg-white rounded-lg p-6 max-w-md mx-4">
-						<h3 class="text-lg font-semibold mb-4">Almanach-Eintrag löschen?</h3>
-						<p class="text-gray-700 mb-6">Möchten Sie diesen Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.</p>
-						<div class="flex gap-3 justify-end">
-							<button data-action="cancel-delete" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors">
-								Abbrechen
-							</button>
-							<form method="POST" action="/almanach/${entryId}/edit/delete">
-								<input type="hidden" name="csrf_token" value="${csrfToken}">
-								<input type="hidden" name="last_edited" value="${entryUpdated}">
-								<button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
-									Löschen
-								</button>
-							</form>
-						</div>
-					</div>
-				</div>
-			`;
-		}
-
 		// Build the unified menu content
 		const contextualSection = halfOpenContent ? halfOpenContent : "";
 		const contextualDivider = halfOpenContent ? '<div class="border-t border-gray-200"></div>' : "";
@@ -284,7 +218,7 @@ export class FabMenu extends HTMLElement {
 		this.innerHTML = `
 			<div class="fixed bottom-12 left-8 z-50">
 				<!-- Unified Menu Container -->
-				<div class="fab-menu hidden absolute bottom-16 left-0 w-64 bg-white rounded border border-gray-300 shadow transition-all duration-200 ease-out">
+				<div class="fab-menu hidden absolute bottom-16 left-0 w-64 bg-white rounded border border-gray-300 shadow transition-all duration-100 ease-out">
 					<!-- Contextual actions (always at top when present) -->
 					${contextualSection}
 					${contextualDivider}
@@ -314,7 +248,6 @@ export class FabMenu extends HTMLElement {
 					<i class="fab-icon text-2xl transition-all duration-200 ri-menu-line"></i>
 				</button>
 
-				${deleteDialogs}
 			</div>
 		`;
 
@@ -331,20 +264,6 @@ export class FabMenu extends HTMLElement {
 		// Add event listeners
 		this._button.addEventListener("click", this.handleClick);
 		document.addEventListener("click", this.handleClickAway);
-
-		// Delete button handlers
-		const deleteButtons = this.querySelectorAll('[data-action^="delete-"]');
-		deleteButtons.forEach((btn) => {
-			btn.addEventListener("click", this.handleDeleteClick);
-		});
-
-		// Cancel delete handlers
-		const cancelButtons = this.querySelectorAll('[data-action="cancel-delete"]');
-		cancelButtons.forEach((btn) => {
-			btn.addEventListener("click", () => {
-				this.closeAllDialogs();
-			});
-		});
 	}
 
 	disconnectedCallback() {
@@ -361,20 +280,6 @@ export class FabMenu extends HTMLElement {
 		if (!this.contains(e.target)) {
 			this.setState("closed");
 		}
-	}
-
-	handleDeleteClick(e) {
-		const action = e.currentTarget.getAttribute("data-action");
-		const entityType = action.replace("delete-", "");
-		const dialog = this.querySelector(`[data-dialog="${entityType}"]`);
-		if (dialog) {
-			dialog.classList.remove("hidden");
-		}
-	}
-
-	closeAllDialogs() {
-		const dialogs = this.querySelectorAll(".fab-delete-dialog");
-		dialogs.forEach((dialog) => dialog.classList.add("hidden"));
 	}
 
 	nextState() {

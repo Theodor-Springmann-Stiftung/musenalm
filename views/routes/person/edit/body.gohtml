@@ -108,11 +108,15 @@
 		<div class="flex gap-8">
 			<div class="flex-1 flex flex-col gap-4">
 				<div class="inputwrapper">
-					<label for="name" class="inputlabel">Name</label>
+					<div class="inputlabelrow">
+						<label for="name" class="inputlabel">Name</label>
+					</div>
 					<textarea name="name" id="name" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.Name -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="pseudonyms" class="inputlabel">Pseudonyme</label>
+					<div class="inputlabelrow">
+						<label for="pseudonyms" class="inputlabel">Pseudonyme</label>
+					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
 				</div>
 				<div class="inputwrapper">
@@ -124,23 +128,33 @@
 					</div>
 				</div>
 				<div class="inputwrapper">
-					<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
+					<div class="inputlabelrow">
+						<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
+					</div>
 					<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="profession" class="inputlabel">Profession</label>
+					<div class="inputlabelrow">
+						<label for="profession" class="inputlabel">Profession</label>
+					</div>
 					<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
 				</div>
 				<div class="inputwrapper">
-					<label for="uri" class="inputlabel">URI</label>
+					<div class="inputlabelrow">
+						<label for="uri" class="inputlabel">URI</label>
+					</div>
 					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
 				</div>
 				<div class="inputwrapper">
-					<label for="references" class="inputlabel">Nachweise</label>
+					<div class="inputlabelrow">
+						<label for="references" class="inputlabel">Nachweise</label>
+					</div>
 					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="annotation" class="inputlabel">Annotation</label>
+					<div class="inputlabelrow">
+						<label for="annotation" class="inputlabel">Annotation</label>
+					</div>
 					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $agent.Annotation -}}</textarea>
 				</div>
 				<div class="inputwrapper">
@@ -154,7 +168,9 @@
 
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
 				<div class="inputwrapper">
-					<label for="status" class="inputlabel">Status</label>
+					<div class="inputlabelrow">
+						<label for="status" class="inputlabel">Status</label>
+					</div>
 					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
 						<option value="Unknown" {{ if eq $agent.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
 						<option value="ToDo" {{ if eq $agent.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
@@ -164,7 +180,9 @@
 					</select>
 				</div>
 				<div class="inputwrapper">
-					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					<div class="inputlabelrow">
+						<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					</div>
 					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $agent.Comment -}}</textarea>
 				</div>
 				<div class="mt-2">

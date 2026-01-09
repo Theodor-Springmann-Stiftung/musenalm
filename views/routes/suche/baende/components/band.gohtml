@@ -54,7 +54,7 @@
 
 
 <div class="flex flex-row max-w-[60rem]">
-	<div class="w-32 grow-0 shrink-0 border-r border-zinc-300 pr-3 pt-4">
+	<div class="w-40 grow-0 shrink-0 border-r border-zinc-300 pr-3 pt-4">
 		<div class="flex flex-col items-end pt-1">
 			<div class="flex flex-row gap-x-1">
 				<div class="inline-block ml-1 whitespace-nowrap">
@@ -96,6 +96,15 @@
 					{{ $entry.References }}
 				</div>
 			{{ end }}
+
+
+			{{- if (IsAdminOrEditor $model.request.user) -}}
+				<a href="/almanach/{{ $entry.MusenalmID }}/edit" class="no-underline rounded
+				bg-stone-100 px-1.5 text-sm mt-1.5">
+					<i class="ri-edit-line"></i>
+					Bearbeiten
+				</a>
+			{{- end -}}
 
 		</div>
 	</div>

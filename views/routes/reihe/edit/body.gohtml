@@ -111,30 +111,42 @@
 		<div class="flex gap-8">
 			<div class="flex-1 flex flex-col gap-4">
 				<div class="inputwrapper">
-					<label for="title" class="inputlabel">Reihentitel</label>
+					<div class="inputlabelrow">
+						<label for="title" class="inputlabel">Reihentitel</label>
+					</div>
 					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.Title -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="pseudonyms" class="inputlabel">Alternativtitel</label>
+					<div class="inputlabelrow">
+						<label for="pseudonyms" class="inputlabel">Alternativtitel</label>
+					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $series.Pseudonyms -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="annotation" class="inputlabel">Annotation</label>
+					<div class="inputlabelrow">
+						<label for="annotation" class="inputlabel">Annotation</label>
+					</div>
 					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $series.Annotation -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="references" class="inputlabel">Nachweise</label>
+					<div class="inputlabelrow">
+						<label for="references" class="inputlabel">Nachweise</label>
+					</div>
 					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
 				</div>
 				<div class="inputwrapper">
-					<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
+					<div class="inputlabelrow">
+						<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
+					</div>
 					<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />
 				</div>
 			</div>
 
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
 				<div class="inputwrapper">
-					<label for="status" class="inputlabel">Status</label>
+					<div class="inputlabelrow">
+						<label for="status" class="inputlabel">Status</label>
+					</div>
 					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
 						<option value="Unknown" {{ if eq $series.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
 						<option value="ToDo" {{ if eq $series.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
@@ -144,7 +156,9 @@
 					</select>
 				</div>
 				<div class="inputwrapper">
-					<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					<div class="inputlabelrow">
+						<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
+					</div>
 					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $series.Comment -}}</textarea>
 				</div>
 				<div class="mt-2">
@@ -273,7 +287,8 @@
 			</div>
 			<div class="flex items-center justify-end gap-3 mt-4">
 				<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
-				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="edit-delete-confirm">
+				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3
+				py-1 text-sm text-white" data-role="edit-delete-confirm">
 					Löschen
 				</button>
 			</div>

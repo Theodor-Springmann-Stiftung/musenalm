@@ -113,6 +113,7 @@ type AlmanachResult struct {
 <div class="container-normal mx-auto mt-4 !px-0">
 	{{ template "_usermessage" $model }}
 		<form
+			autocomplete="off"
 			class="w-full dbform"
 			id="changealmanachform"
 			x-target="changealmanachform user-message almanach-header-data"
@@ -127,17 +128,17 @@ type AlmanachResult struct {
 
 		<div class="flex gap-8">
 		<!-- Left Column -->
-		<div class="flex-1 flex flex-col gap-4">
+		<div class="flex-1 flex flex-col gap-2">
 			<!-- Kurztitel -->
 			<div class="inputwrapper">
-				<div class="flex flex-row justify-between">
+				<div class="inputlabelrow">
 					<label for="preferred_title" class="inputlabel">Kurztitel</label>
 				</div>
 				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">{{- $model.result.Entry.PreferredTitle -}}</textarea>
 			</div>
 
 			<div class="mt-3">
-				<div class="flex items-center justify-between gap-4">
+				<div class="flex items-center justify-between gap-2">
 					<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
 						<i class="ri-book-2-line"></i>
 						<span>Titeldaten &amp; Anmerkungen</span>
@@ -147,7 +148,7 @@ type AlmanachResult struct {
 							Felder hinzufügen</button>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="title" class="inputlabel menu-label">Titel</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -160,7 +161,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-2 inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="paralleltitle" class="inputlabel menu-label">Titel
 									(übersetzt)</label>
 								<div class="pr-2">
@@ -174,7 +175,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -187,7 +188,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -200,7 +201,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="incipit" class="inputlabel menu-label">Incipit</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -213,7 +214,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}" data-dm-target="publication">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="responsibility_statement" class="inputlabel
 								menu-label">Herausgeberangabe</label>
 								<div class="pr-2">
@@ -227,7 +228,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="publication">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -240,7 +241,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}" data-dm-target="publication">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="place_statement" class="inputlabel menu-label">Ortsangabe</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -259,14 +260,18 @@ type AlmanachResult struct {
 					<div id="titles"></div>
 
 					<!-- Publication Information: Year and Edition - Always visible -->
-					<div class="flex gap-4">
+					<div class="flex gap-2">
 						<div class="flex-1 inputwrapper">
-							<label for="year" class="inputlabel">Jahr</label>
+							<div class="inputlabelrow">
+								<label for="year" class="inputlabel">Jahr</label>
+							</div>
 							<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" />
 						</div>
 
 						<div class="flex-1 inputwrapper">
-							<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
+							<div class="inputlabelrow">
+								<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
+							</div>
 							<textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
 						</div>
 					</div>
@@ -276,7 +281,9 @@ type AlmanachResult struct {
 
 					<!-- Annotationen -->
 					<div class="inputwrapper">
-						<label for="annotation" class="inputlabel">Annotationen</label>
+						<div class="inputlabelrow">
+							<label for="annotation" class="inputlabel">Annotationen</label>
+						</div>
 						<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Annotation -}}</textarea>
 					</div>
 				</div>
@@ -291,7 +298,7 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_series" data-link-base="/reihe/" data-new-label="(Neu)" data-add-toggle-id="series-add-toggle" data-preferred-label="Bevorzugter Reihentitel">
 						<div class="inputwrapper">
-							<div class="flex items-center justify-between">
+							<div class="inputlabelrow">
 								<label class="inputlabel" for="series-section">Reihen</label>
 								<div class="flex items-center gap-3">
 									<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
@@ -430,7 +437,7 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_agents" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="agents-add-toggle">
 						<div class="inputwrapper">
-							<div class="flex items-center justify-between">
+							<div class="inputlabelrow">
 								<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
 								<div class="flex items-center gap-3">
 									<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
@@ -569,9 +576,9 @@ type AlmanachResult struct {
 					</relations-editor>
 				</div>
 
-				<div class="flex flex-col gap-4 mt-4">
+				<div class="flex flex-col gap-2 mt-4">
 				<div class="inputwrapper">
-					<div class="flex items-center justify-between">
+					<div class="inputlabelrow">
 						<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
 						<div class="flex items-center gap-3">
 							<a href="/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
@@ -611,7 +618,7 @@ type AlmanachResult struct {
 				<div class="flex flex-col gap-4">
 					<!-- Status -->
 					<div class="inputwrapper">
-						<div class="flex flex-row justify-between">
+						<div class="inputlabelrow">
 						<label for="type" class="inputlabel">Status</label>
 						</div>
 						<select name="type" id="type" autocomplete="off" class="inputselect font-bold">
@@ -630,7 +637,7 @@ type AlmanachResult struct {
 							Bearbeitungsvermerk hinzufügen</button>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.Comment "" }}hidden{{ end }}">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -656,7 +663,7 @@ type AlmanachResult struct {
 							Physische Beschreibung hinzufügen</button>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.Extent "" }}hidden{{ end }}">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -669,7 +676,7 @@ type AlmanachResult struct {
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
-							<div class="flex flex-row justify-between">
+							<div class="inputlabelrow">
 								<label for="dimensions" class="inputlabel menu-label">Maße</label>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -686,7 +693,7 @@ type AlmanachResult struct {
 				<div class="flex flex-col gap-4 mt-4">
 					<!-- Languages -->
 					<div class="inputwrapper">
-						<div class="flex items-center justify-between">
+						<div class="inputlabelrow">
 							<label for="languages" class="inputlabel">Sprachen</label>
 							<button type="button" id="languages-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
 								<i class="ri-link"></i> Sprache verlinken
@@ -705,7 +712,9 @@ type AlmanachResult struct {
 
 					<!-- Nachweise - Always visible -->
 					<div class="inputwrapper">
-						<label for="refs" class="inputlabel">Nachweise</label>
+						<div class="inputlabelrow">
+							<label for="refs" class="inputlabel">Nachweise</label>
+						</div>
 						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
 					</div>
 
