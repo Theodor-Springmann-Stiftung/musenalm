@@ -1,6 +1,7 @@
 // INFO: We import this so vite processes the stylesheet
 import "./site.css";
 
+import Trix from "trix";
 import { FilterPill } from "./filter-pill.js";
 import { FilterList } from "./filter-list.js";
 import { ScrollButton } from "./scroll-button.js";
@@ -337,7 +338,7 @@ function FormLoad(form) {
 	// Attach resize handler to all textareas
 	for (const textarea of textareas) {
 		console.log("Attaching input listener to:", textarea.name || textarea.id);
-		textarea.addEventListener('input', function() {
+		textarea.addEventListener("input", function () {
 			console.log("Input event on textarea:", this.name || this.id);
 			TextareaAutoResize(this);
 		});
@@ -369,9 +370,7 @@ function FormLoad(form) {
 				const target = mutation.target;
 				// Check if this element or its children contain textareas
 				if (target instanceof HTMLElement) {
-					const textareasInTarget = target.matches("textarea")
-						? [target]
-						: Array.from(target.querySelectorAll("textarea"));
+					const textareasInTarget = target.matches("textarea") ? [target] : Array.from(target.querySelectorAll("textarea"));
 
 					for (const textarea of textareasInTarget) {
 						// Only resize if now visible
@@ -392,9 +391,9 @@ function FormLoad(form) {
 
 	// Handle boolean checkboxes
 	const booleanCheckboxes = form.querySelectorAll('input[type="checkbox"][data-boolean-checkbox]');
-	booleanCheckboxes.forEach(checkbox => {
+	booleanCheckboxes.forEach((checkbox) => {
 		// Ensure each boolean checkbox has proper value handling
-		checkbox.value = 'true';
+		checkbox.value = "true";
 
 		// Add change handler to manage hidden input
 		const updateHiddenInput = () => {
@@ -406,10 +405,10 @@ function FormLoad(form) {
 
 			// If checkbox is unchecked, add hidden input with false value
 			if (!checkbox.checked) {
-				const hidden = document.createElement('input');
-				hidden.type = 'hidden';
+				const hidden = document.createElement("input");
+				hidden.type = "hidden";
 				hidden.name = checkbox.name;
-				hidden.value = 'false';
+				hidden.value = "false";
 				checkbox.parentNode.insertBefore(hidden, checkbox);
 			}
 		};
@@ -418,7 +417,7 @@ function FormLoad(form) {
 		updateHiddenInput();
 
 		// Update on change
-		checkbox.addEventListener('change', updateHiddenInput);
+		checkbox.addEventListener("change", updateHiddenInput);
 	});
 }
 
@@ -443,22 +442,4 @@ window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 window.TextareaAutoResize = TextareaAutoResize;
 
-export {
-	FilterList,
-	ScrollButton,
-	AbbreviationTooltips,
-	MultiSelectSimple,
-	MultiSelectRole,
-	ToolTip,
-	PopupImage,
-	TabList,
-	FilterPill,
-	ImageReel,
-	IntLink,
-	ItemsEditor,
-	SingleSelectRemote,
-	AlmanachEditPage,
-	RelationsEditor,
-	EditPage,
-	FabMenu,
-};
+export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor, EditPage, FabMenu };

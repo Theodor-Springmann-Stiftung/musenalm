@@ -10,5 +10,72 @@
 	<div class="inputlabelrow">
 		<label for="annotation" class="inputlabel">{{ $label }}</label>
 	</div>
-	<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off" rows="2">{{- $annotation -}}</textarea>
+
+	<trix-toolbar id="annotation-toolbar">
+		<div class="trix-toolbar-container">
+			<!-- Text formatting group -->
+			<span class="trix-toolbar-group">
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="bold" data-trix-key="b" title="Bold">
+					<i class="ri-bold"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="italic" data-trix-key="i" title="Italic">
+					<i class="ri-italic"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="strike" title="Strikethrough">
+					<i class="ri-strikethrough"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link">
+					<i class="ri-links-line"></i>
+				</button>
+			</span>
+
+			<!-- Block formatting group -->
+			<span class="trix-toolbar-group">
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="heading1" title="Heading">
+					<i class="ri-h-1"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="quote" title="Quote">
+					<i class="ri-double-quotes-l"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="bullet" title="Bullets">
+					<i class="ri-list-unordered"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-attribute="number" title="Numbers">
+					<i class="ri-list-ordered"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-action="decreaseNestingLevel" title="Decrease Indent">
+					<i class="ri-indent-decrease"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-action="increaseNestingLevel" title="Increase Indent">
+					<i class="ri-indent-increase"></i>
+				</button>
+			</span>
+
+			<!-- History group -->
+			<span class="trix-toolbar-group">
+				<button type="button" class="trix-toolbar-button" data-trix-action="undo" data-trix-key="z" title="Undo">
+					<i class="ri-arrow-go-back-line"></i>
+				</button>
+				<button type="button" class="trix-toolbar-button" data-trix-action="redo" data-trix-key="shift+z" title="Redo">
+					<i class="ri-arrow-go-forward-line"></i>
+				</button>
+			</span>
+		</div>
+
+		<!-- Link dialog (required for link functionality) -->
+		<div class="trix-dialogs" data-trix-dialogs>
+			<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
+				<div class="trix-dialog__link-fields">
+					<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="Enter a URL…" aria-label="URL" required data-trix-input>
+					<div class="trix-button-group">
+						<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
+						<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
+					</div>
+				</div>
+			</div>
+		</div>
+	</trix-toolbar>
+
+	<textarea hidden id="annotation" name="annotation" autocomplete="off">{{- $annotation -}}</textarea>
+	<trix-editor input="annotation" toolbar="annotation-toolbar"></trix-editor>
 </div>

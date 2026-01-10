@@ -494,4 +494,155 @@
 	select + reset-button .rbi-button {
 		@apply ml-3;
 	}
+
+	/* Trix Custom Toolbar Styles */
+	.trix-toolbar-container {
+		@apply flex flex-wrap gap-1 px-2 py-1.5 bg-stone-200 border-b border-stone-300;
+	}
+
+	.trix-toolbar-group {
+		@apply inline-flex gap-0.5 items-center;
+	}
+
+	.trix-toolbar-group:not(:last-child) {
+		@apply mr-2 pr-2 border-r border-stone-400;
+	}
+
+	.trix-toolbar-button {
+		@apply w-7 h-7 inline-flex items-center justify-center
+		       text-gray-700 hover:text-slate-900 hover:bg-stone-300
+		       rounded transition-all duration-100
+		       focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1;
+	}
+
+	.trix-toolbar-button i {
+		@apply text-base pointer-events-none;
+	}
+
+	/* Active state for toggle buttons */
+	.trix-toolbar-button.trix-active {
+		@apply bg-slate-600 text-white hover:bg-slate-700 hover:text-white;
+	}
+
+	/* Disabled state */
+	.trix-toolbar-button:disabled {
+		@apply opacity-30 cursor-not-allowed hover:bg-transparent hover:text-gray-400;
+	}
+
+	.trix-toolbar-button:disabled i {
+		@apply text-gray-400;
+	}
+
+	/* Trix editor content area */
+	trix-editor {
+		@apply block w-full focus:border-none focus:outline-none px-3 py-2 min-h-[6rem];
+	}
+
+	/* Trix content formatting styles */
+	trix-editor h1 {
+		@apply text-2xl font-bold mt-4 mb-2 first:mt-0;
+	}
+
+	trix-editor blockquote {
+		@apply border-l-4 border-stone-400 pl-4 py-1 italic text-gray-700;
+	}
+
+	trix-editor ul {
+		@apply list-disc list-outside ml-1 my-2;
+	}
+
+	trix-editor ol {
+		@apply list-decimal list-outside ml-1 my-2;
+	}
+
+	trix-editor li {
+		@apply leading-normal;
+		margin-left: 1.5rem;
+	}
+
+	trix-editor ul > li {
+		list-style-type: disc;
+	}
+
+	trix-editor ol > li {
+		list-style-type: decimal;
+	}
+
+	trix-editor ul ul,
+	trix-editor ol ul {
+		@apply list-disc my-0;
+	}
+
+	trix-editor ul ol,
+	trix-editor ol ol {
+		@apply list-decimal my-0;
+	}
+
+	trix-editor ul ul > li,
+	trix-editor ol ul > li,
+	trix-editor ul ol > li,
+	trix-editor ol ol > li {
+		@apply leading-normal;
+	}
+
+	trix-editor a {
+		@apply text-blue-600 underline hover:text-blue-800;
+	}
+
+	trix-editor strong {
+		@apply font-bold;
+	}
+
+	trix-editor em {
+		@apply italic;
+	}
+
+	trix-editor del {
+		@apply line-through;
+	}
+
+	trix-editor pre {
+		@apply bg-stone-100 border border-stone-300 rounded px-3 py-2 my-2 font-mono text-sm overflow-x-auto;
+	}
+
+	/* Link dialog styling */
+	.trix-dialogs {
+		@apply relative;
+	}
+
+	.trix-dialog {
+		@apply hidden absolute top-full left-0 right-0 mt-1 p-3 bg-white border border-stone-300 rounded-md shadow-lg z-10;
+	}
+
+	.trix-dialog[data-trix-active] {
+		@apply block;
+	}
+
+	.trix-dialog__link-fields {
+		@apply flex flex-col gap-2;
+	}
+
+	.trix-input--dialog {
+		@apply w-full px-3 py-1.5 border border-stone-300 rounded-md
+		       focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1;
+	}
+
+	.trix-button-group {
+		@apply flex gap-2;
+	}
+
+	.trix-button--dialog {
+		@apply px-4 py-1.5 text-sm font-medium rounded-md
+		       border border-transparent shadow-sm
+		       cursor-pointer transition-all duration-75
+		       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500;
+	}
+
+	.trix-button--dialog[value="Link"] {
+		@apply bg-slate-700 text-white hover:bg-slate-800 active:bg-slate-900;
+	}
+
+	.trix-button--dialog[value="Unlink"] {
+		@apply bg-stone-200 text-gray-800 hover:bg-stone-300 active:bg-stone-400;
+	}
 }
