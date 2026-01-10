@@ -232,6 +232,11 @@ func HasScans(contents []*dbmodels.Content) bool {
 }
 
 func updateEntryFTS5(app core.App, entry *dbmodels.Entry) error {
+	// Always update contents for backward compatibility
+	return updateEntryFTS5WithContents(app, entry, true)
+}
+
+func updateEntryFTS5WithContents(app core.App, entry *dbmodels.Entry, updateContents bool) error {
 	if entry == nil {
 		return nil
 	}
@@ -267,6 +272,9 @@ func updateEntryFTS5(app core.App, entry *dbmodels.Entry) error {
 		}
 	}
 
-	// Update entry and all related contents
-	return dbmodels.UpdateFTS5EntryAndRelatedContents(app, entry, places, agents, series)
+	// Update entry and conditionally update related contents
+	if updateContents {
+		return dbmodels.UpdateFTS5EntryAndRelatedContents(app, entry, places, agents, series)
+	}
+	return dbmodels.UpdateFTS5Entry(app, entry, places, agents, series)
 }

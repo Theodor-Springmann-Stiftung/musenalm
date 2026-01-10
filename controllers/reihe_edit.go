@@ -409,6 +409,9 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			return p.renderError(engine, app, e, "Ungültiger Status.")
 		}
 
+		// Capture old title (entries depend on series title)
+		oldTitle := series.Title()
+
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
 			applySeriesForm(series, formdata, title, status, user)
@@ -418,17 +421,27 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
 		}
 
-		// Update FTS5 index for series and all related entries asynchronously
-		go func(appInstance core.App, seriesID string) {
+		// Check if title changed (entries store series title)
+		titleChanged := series.Title() != oldTitle
+
+		// Update FTS5 index for series and conditionally update related entries asynchronously
+		go func(appInstance core.App, seriesID string, updateEntries bool) {
 			freshSeries, err := dbmodels.Series_ID(appInstance, seriesID)
 			if err != nil {
 				appInstance.Logger().Error("Failed to load series for FTS5 update", "series_id", seriesID, "error", err)
 				return
 			}
-			if err := dbmodels.UpdateFTS5SeriesAndRelatedEntries(appInstance, freshSeries); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for series and related records", "series_id", seriesID, "error", err)
+			// If title changed, update series + entries. Otherwise just update series.
+			if updateEntries {
+				if err := dbmodels.UpdateFTS5SeriesAndRelatedEntries(appInstance, freshSeries); err != nil {
+					appInstance.Logger().Error("Failed to update FTS5 index for series and entries", "series_id", seriesID, "error", err)
+				}
+			} else {
+				if err := dbmodels.UpdateFTS5Series(appInstance, freshSeries); err != nil {
+					appInstance.Logger().Error("Failed to update FTS5 index for series", "series_id", seriesID, "error", err)
+				}
 			}
-		}(app, series.Id)
+		}(app, series.Id, titleChanged)
 
 		redirect := fmt.Sprintf("/reihe/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		return e.Redirect(http.StatusSeeOther, redirect)

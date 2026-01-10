@@ -192,6 +192,13 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 			}
 		}
 
+		// Capture old values that affect content FTS5 records
+		oldPreferredTitle := entry.PreferredTitle()
+		oldYear := entry.Year()
+
+		// Check if agent relations will change (affects contents)
+		agentRelationsChanged := len(payload.NewAgentRelations) > 0 || len(payload.DeletedAgentRelationIDs) > 0
+
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
 			if err := applyEntryChanges(tx, entry, &payload, user); err != nil {
@@ -214,17 +221,22 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 			})
 		}
 
+		// Check if fields that affect contents changed
+		contentsNeedUpdate := entry.PreferredTitle() != oldPreferredTitle ||
+			entry.Year() != oldYear ||
+			agentRelationsChanged
+
 		// Update FTS5 index asynchronously
-		go func(appInstance core.App, entryID string) {
+		go func(appInstance core.App, entryID string, updateContents bool) {
 			freshEntry, err := dbmodels.Entries_ID(appInstance, entryID)
 			if err != nil {
 				appInstance.Logger().Error("Failed to load entry for FTS5 update", "entry_id", entryID, "error", err)
 				return
 			}
-			if err := updateEntryFTS5(appInstance, freshEntry); err != nil {
+			if err := updateEntryFTS5WithContents(appInstance, freshEntry, updateContents); err != nil {
 				appInstance.Logger().Error("Failed to update FTS5 index for entry", "entry_id", entryID, "error", err)
 			}
-		}(app, entry.Id)
+		}(app, entry.Id, contentsNeedUpdate)
 
 		freshEntry, err := dbmodels.Entries_MusenalmID(app, id)
 		if err == nil {

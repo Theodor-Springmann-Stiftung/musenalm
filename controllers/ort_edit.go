@@ -197,6 +197,9 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return p.renderError(engine, app, e, "Ungültiger Status.")
 		}
 
+		// Capture old name (entries depend on place name)
+		oldName := place.Name()
+
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
 			applyPlaceForm(place, formdata, name, status, user)
@@ -206,17 +209,27 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
 		}
 
-		// Update FTS5 index for place and all related entries asynchronously
-		go func(appInstance core.App, placeID string) {
+		// Check if name changed (entries store place name)
+		nameChanged := place.Name() != oldName
+
+		// Update FTS5 index for place and conditionally update related entries asynchronously
+		go func(appInstance core.App, placeID string, updateEntries bool) {
 			freshPlace, err := dbmodels.Places_ID(appInstance, placeID)
 			if err != nil {
 				appInstance.Logger().Error("Failed to load place for FTS5 update", "place_id", placeID, "error", err)
 				return
 			}
-			if err := dbmodels.UpdateFTS5PlaceAndRelatedEntries(appInstance, freshPlace); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for place and related records", "place_id", placeID, "error", err)
+			// If name changed, update place + entries. Otherwise just update place.
+			if updateEntries {
+				if err := dbmodels.UpdateFTS5PlaceAndRelatedEntries(appInstance, freshPlace); err != nil {
+					appInstance.Logger().Error("Failed to update FTS5 index for place and entries", "place_id", placeID, "error", err)
+				}
+			} else {
+				if err := dbmodels.UpdateFTS5Place(appInstance, freshPlace); err != nil {
+					appInstance.Logger().Error("Failed to update FTS5 index for place", "place_id", placeID, "error", err)
+				}
 			}
-		}(app, place.Id)
+		}(app, place.Id, nameChanged)
 
 		redirect := fmt.Sprintf("/ort/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		return e.Redirect(http.StatusSeeOther, redirect)
