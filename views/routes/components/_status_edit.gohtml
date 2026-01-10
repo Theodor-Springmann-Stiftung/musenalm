@@ -1,0 +1,39 @@
+{{- $entity := index . 0 -}}
+{{- $fieldName := index . 1 -}}
+{{- $fieldId := index . 2 -}}
+
+<div class="flex flex-col gap-4">
+	<!-- Status -->
+	<div class="inputwrapper">
+		<div class="inputlabelrow">
+		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
+		</div>
+		<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="inputselect font-bold">
+			<option value="Unknown" {{ if eq $entity.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+			<option value="ToDo" {{ if eq $entity.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+			<option value="Review" {{ if eq $entity.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+			<option value="Seen" {{ if eq $entity.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+			<option value="Edited" {{ if eq $entity.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+		</select>
+	</div>
+
+	<!-- Bearbeitungsvermerk -->
+	<div id="edit_comment_section"></div>
+	<div-manager dm-target="edit_comment_section">
+		<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
+			Bearbeitungsvermerk hinzufügen</button>
+
+		<div class="inputwrapper {{ if eq $entity.Comment "" }}hidden{{ end }}">
+			<div class="inputlabelrow">
+				<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
+				<div class="pr-2">
+					<button class="dm-close-button font-bold input-label">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+			</div>
+
+			<textarea name="edit_comment" id="edit_comment" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $entity.Comment -}}</textarea>
+		</div>
+	</div-manager>
+</div>

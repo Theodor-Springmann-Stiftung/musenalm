@@ -5,14 +5,14 @@
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
+		<div class="mb-3">
+			<i class="ri-book-shelf-fill"></i> Reihe
+		</div>
 			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
 				{{- if $model.is_new -}}
-					Reihe
+					Neue Reihe anlegen
 				{{- else -}}
 					{{- $series.Title -}}
-				{{- end -}}
-				{{- if $model.is_new -}}
-					<span class="ml-2 text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-xs align-middle">Neu</span>
 				{{- end -}}
 			</h1>
 			{{- if not $model.is_new -}}
@@ -125,12 +125,7 @@
 					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $series.Pseudonyms -}}</textarea>
 				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="annotation" class="inputlabel">Annotation</label>
-					</div>
-					<textarea name="annotation" id="annotation" class="inputinput" autocomplete="off" rows="2">{{- $series.Annotation -}}</textarea>
-				</div>
+				{{ template "_annotation_field" (Arr $series.Annotation "Annotation") }}
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
 						<label for="references" class="inputlabel">Nachweise</label>
@@ -146,91 +141,9 @@
 			</div>
 
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="status" class="inputlabel">Status</label>
-					</div>
-					<select name="status" id="status" autocomplete="off" class="inputselect font-bold">
-						<option value="Unknown" {{ if eq $series.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-						<option value="ToDo" {{ if eq $series.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-						<option value="Review" {{ if eq $series.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-						<option value="Seen" {{ if eq $series.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
-						<option value="Edited" {{ if eq $series.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
-					</select>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="edit_comment" class="inputlabel">Bearbeitungsvermerk</label>
-					</div>
-					<textarea name="edit_comment" id="edit_comment" class="inputinput" autocomplete="off" rows="1">{{- $series.Comment -}}</textarea>
-				</div>
+				{{ template "_status_edit" (Arr $series "status" "status") }}
 				<div class="mt-2">
-					<tab-list
-						data-default-index="{{ if gt (len $model.result.Entries) 0 }}0{{ else if gt (len $model.result.Contents) 0 }}1{{ end }}"
-						data-disabled-indices="{{ if and (eq (len $model.result.Entries) 0) (eq (len $model.result.Contents) 0) }}0,1{{ else if eq (len $model.result.Entries) 0 }}0{{ else if eq (len $model.result.Contents) 0 }}1{{ end }}">
-						<div class="flex items-center gap-3 text-sm font-bold text-gray-700">
-							<div class="tab-list-head flex items-center gap-2">
-								<i class="ri-book-2-line"></i>
-								<span>Verknüpfte Bände</span>
-								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Entries }}</span>
-							</div>
-							<div class="tab-list-head flex items-center gap-2">
-								<i class="ri-article-line"></i>
-								<span>Verknüpfte Inhalte</span>
-								<span class="text-xs bg-stone-200 text-gray-700 px-2 py-0.5 rounded-sm">{{ len $model.result.Contents }}</span>
-							</div>
-						</div>
-						<hr class="border-slate-400 mt-2 mb-3" />
-						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
-							{{- if $model.result.Entries -}}
-								<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 ml-0 list-none">
-									{{- range $entry := $model.result.Entries -}}
-										<li class="flex items-baseline justify-between gap-3 ml-0 pl-0">
-											<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">
-												{{- $entry.PreferredTitle -}}
-											</a>
-											<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
-										</li>
-									{{- end -}}
-								</ul>
-							{{- else -}}
-								<div class="italic text-gray-500">Keine Bände verknüpft.</div>
-							{{- end -}}
-						</div>
-						<div class="tab-list-panel text-sm text-gray-700 max-h-96 overflow-auto pr-1 pl-0 ml-0">
-							{{- if $model.result.Contents -}}
-								<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
-									{{- range $content := $model.result.Contents -}}
-										{{- $entry := index $model.result.ContentEntries $content.Entry -}}
-										{{- $types := index $model.result.ContentTypes $content.Id -}}
-										<li class="flex flex-col gap-1 ml-0 pl-0">
-											<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
-												{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
-											</a>
-											<div class="text-xs text-gray-600 flex flex-wrap gap-3">
-												{{- if $entry -}}
-													<span>Band: <a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline hover:text-slate-900">{{ $entry.PreferredTitle }}</a></span>
-												{{- end -}}
-												{{- if $types -}}
-													<span>
-														Typ:
-														{{- range $i, $t := $types -}}
-															{{- if $i }}, {{ end -}}{{ $t -}}
-														{{- end -}}
-													</span>
-												{{- end -}}
-												{{- if $content.MusenalmPagination -}}
-													<span>Seite: {{ $content.MusenalmPagination }}</span>
-												{{- end -}}
-											</div>
-										</li>
-									{{- end -}}
-								</ul>
-							{{- else -}}
-								<div class="italic text-gray-500">Keine Inhalte verknüpft.</div>
-							{{- end -}}
-						</div>
-					</tab-list>
+					{{ template "_linked_items" (Arr $model.result.Entries $model.result.Contents nil $model.result.ContentTypes $model.result.ContentEntries) }}
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,14 @@
+{{- $annotation := index . 0 -}}
+{{- $label := "Annotation" -}}
+{{- if gt (len .) 1 -}}
+	{{- if index . 1 -}}
+		{{- $label = index . 1 -}}
+	{{- end -}}
+{{- end -}}
+
+<div class="inputwrapper">
+	<div class="inputlabelrow">
+		<label for="annotation" class="inputlabel">{{ $label }}</label>
+	</div>
+	<textarea name="annotation" id="annotation" class="inputinput" placeholder="" autocomplete="off" rows="2">{{- $annotation -}}</textarea>
+</div>
