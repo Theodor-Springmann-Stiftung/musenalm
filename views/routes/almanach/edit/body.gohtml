@@ -715,6 +715,41 @@ type AlmanachResult struct {
 					<div id="physical"></div>
 				</div>
 			</div>
+			{{- $deprecated := $model.result.Entry.Deprecated -}}
+			{{- if or $deprecated.Reihentitel $deprecated.Norm (gt $deprecated.BiblioID 0) $deprecated.Status $deprecated.Gesichtet $deprecated.Erfasst -}}
+			<details class="mt-4">
+				<summary class="flex items-center gap-2 text-lg font-bold text-stone-700 cursor-pointer select-none rounded-xs py-1 hover:bg-stone-50 hover:text-stone-900">
+					<i class="ri-history-line"></i>
+					<span>Abgekündigte Access-DB-Felder</span>
+					<i class="ri-arrow-down-s-line text-base legacy-toggle-icon"></i>
+				</summary>
+				<hr class="border-slate-400 mt-2 mb-3" />
+				<div class="text-xs leading-relaxed font-mono bg-slate-50 text-gray-600 border border-slate-200 rounded-xs px-3 py-2">
+					<div class="grid grid-cols-[7.5rem_1fr] gap-x-3 gap-y-1">
+						{{- if $deprecated.Reihentitel -}}
+							<div class="text-gray-500">Reihentitel</div>
+							<div>{{ $deprecated.Reihentitel }}</div>
+						{{- end -}}
+						{{- if $deprecated.Norm -}}
+							<div class="text-gray-500">Norm</div>
+							<div>{{ $deprecated.Norm }}</div>
+						{{- end -}}
+						{{- if gt $deprecated.BiblioID 0 -}}
+							<div class="text-gray-500">Biblio-ID</div>
+							<div>{{ $deprecated.BiblioID }}</div>
+						{{- end -}}
+						{{- if $deprecated.Status -}}
+							<div class="text-gray-500">Status</div>
+							<div>{{- range $i, $s := $deprecated.Status -}}{{- if $i }}, {{ end -}}{{- $s -}}{{- end -}}</div>
+						{{- end -}}
+						<div class="text-gray-500">Gesichtet</div>
+						<div>{{ if $deprecated.Gesichtet }}Ja{{ else }}Nein{{ end }}</div>
+						<div class="text-gray-500">Erfasst</div>
+						<div>{{ if $deprecated.Erfasst }}Ja{{ else }}Nein{{ end }}</div>
+					</div>
+				</div>
+			</details>
+			{{- end -}}
 			<!-- Exemplare -->
 			<div class="">
 				<items-editor class="block mt-4">

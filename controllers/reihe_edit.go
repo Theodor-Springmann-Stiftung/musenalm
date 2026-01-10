@@ -253,6 +253,19 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App) Hand
 			})
 		}
 
+		// Delete series and entries from FTS5 asynchronously
+		go func(appInstance core.App, seriesID string, deletedEntries []*dbmodels.Entry) {
+			if err := dbmodels.DeleteFTS5Series(appInstance, seriesID); err != nil {
+				appInstance.Logger().Error("Failed to delete series from FTS5", "series_id", seriesID, "error", err)
+			}
+
+			for _, entry := range deletedEntries {
+				if err := dbmodels.DeleteFTS5Entry(appInstance, entry.Id); err != nil {
+					appInstance.Logger().Error("Failed to delete FTS5 entry", "entry_id", entry.Id, "error", err)
+				}
+			}
+		}(app, series.Id, preferredEntries)
+
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
 			"redirect": "/reihen",
@@ -404,6 +417,18 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)
 			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
 		}
+
+		// Update FTS5 index for series and all related entries asynchronously
+		go func(appInstance core.App, seriesID string) {
+			freshSeries, err := dbmodels.Series_ID(appInstance, seriesID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load series for FTS5 update", "series_id", seriesID, "error", err)
+				return
+			}
+			if err := dbmodels.UpdateFTS5SeriesAndRelatedEntries(appInstance, freshSeries); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for series and related records", "series_id", seriesID, "error", err)
+			}
+		}(app, series.Id)
 
 		redirect := fmt.Sprintf("/reihe/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		return e.Redirect(http.StatusSeeOther, redirect)

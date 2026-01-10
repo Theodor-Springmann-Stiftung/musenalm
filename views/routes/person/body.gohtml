@@ -52,12 +52,12 @@
 	</div>
 	<h1 class="text-3xl font-bold">{{ $model.result.Agent.Name }}</h1>
 	{{- if $model.result.Agent.Pseudonyms -}}
-		<p class="italic">
+		<p class="mt-1 italic">
 			auch:
 			<span class="">{{ $model.result.Agent.Pseudonyms }}</span>
 		</p>
 	{{- end -}}
-	<div>
+	<div class="mt-1">
 		<span class="">
 			{{ $model.result.Agent.BiographicalData }}
 		</span>
@@ -80,6 +80,11 @@
 			{{- end -}}
 		</span>
 	</div>
+	{{ if $model.result.Agent.Annotation }}
+		<div class="max-w-[48rem] mt-1 annotation-content">
+			<span class="">{{ Safe $model.result.Agent.Annotation }}</span>
+		</div>
+	{{ end }}
 </div>
 
 {{- if .result.BResult -}}

@@ -312,6 +312,18 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
 		}
 
+		// Update FTS5 index for agent and all related entries/contents asynchronously
+		go func(appInstance core.App, agentID string) {
+			freshAgent, err := dbmodels.Agents_ID(appInstance, agentID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load agent for FTS5 update", "agent_id", agentID, "error", err)
+				return
+			}
+			if err := dbmodels.UpdateFTS5AgentAndRelated(appInstance, freshAgent); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for agent and related records", "agent_id", agentID, "error", err)
+			}
+		}(app, agent.Id)
+
 		redirect := fmt.Sprintf("/person/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}

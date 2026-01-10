@@ -134,6 +134,18 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
 
+		// Update FTS5 index for agent (no related records for new agent) asynchronously
+		go func(appInstance core.App, agentID string) {
+			freshAgent, err := dbmodels.Agents_ID(appInstance, agentID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load agent for FTS5 update", "agent_id", agentID, "error", err)
+				return
+			}
+			if err := dbmodels.UpdateFTS5Agent(appInstance, freshAgent); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for new agent", "agent_id", agentID, "error", err)
+			}
+		}(app, createdAgent.Id)
+
 		redirect := fmt.Sprintf(
 			"/person/%s/edit?saved_message=%s",
 			createdAgent.Id,

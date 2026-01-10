@@ -134,6 +134,18 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
 
+		// Update FTS5 index for new series (no related entries yet) asynchronously
+		go func(appInstance core.App, seriesID string) {
+			freshSeries, err := dbmodels.Series_ID(appInstance, seriesID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load series for FTS5 update", "series_id", seriesID, "error", err)
+				return
+			}
+			if err := dbmodels.UpdateFTS5Series(appInstance, freshSeries); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for new series", "series_id", seriesID, "error", err)
+			}
+		}(app, createdSeries.Id)
+
 		redirect := fmt.Sprintf(
 			"/reihe/%d/edit?saved_message=%s",
 			createdSeries.MusenalmID(),

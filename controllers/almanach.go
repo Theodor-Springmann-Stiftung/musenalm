@@ -230,3 +230,43 @@ func HasScans(contents []*dbmodels.Content) bool {
 	}
 	return false
 }
+
+func updateEntryFTS5(app core.App, entry *dbmodels.Entry) error {
+	if entry == nil {
+		return nil
+	}
+
+	// Load related data for FTS5
+	places := []*dbmodels.Place{}
+	for _, placeID := range entry.Places() {
+		place, err := dbmodels.Places_ID(app, placeID)
+		if err == nil && place != nil {
+			places = append(places, place)
+		}
+	}
+
+	agents := []*dbmodels.Agent{}
+	agentRelations, err := dbmodels.REntriesAgents_Entry(app, entry.Id)
+	if err == nil {
+		for _, relation := range agentRelations {
+			agent, err := dbmodels.Agents_ID(app, relation.Agent())
+			if err == nil && agent != nil {
+				agents = append(agents, agent)
+			}
+		}
+	}
+
+	series := []*dbmodels.Series{}
+	seriesRelations, err := dbmodels.REntriesSeries_Entry(app, entry.Id)
+	if err == nil {
+		for _, relation := range seriesRelations {
+			s, err := dbmodels.Series_ID(app, relation.Series())
+			if err == nil && s != nil {
+				series = append(series, s)
+			}
+		}
+	}
+
+	// Update entry and all related contents
+	return dbmodels.UpdateFTS5EntryAndRelatedContents(app, entry, places, agents, series)
+}

@@ -214,6 +214,18 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 			})
 		}
 
+		// Update FTS5 index asynchronously
+		go func(appInstance core.App, entryID string) {
+			freshEntry, err := dbmodels.Entries_ID(appInstance, entryID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load entry for FTS5 update", "entry_id", entryID, "error", err)
+				return
+			}
+			if err := updateEntryFTS5(appInstance, freshEntry); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for entry", "entry_id", entryID, "error", err)
+			}
+		}(app, entry.Id)
+
 		freshEntry, err := dbmodels.Entries_MusenalmID(app, id)
 		if err == nil {
 			entry = freshEntry
@@ -296,6 +308,13 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) H
 				"error": "Löschen fehlgeschlagen.",
 			})
 		}
+
+		// Delete from FTS5 index asynchronously
+		go func(appInstance core.App, entryID string) {
+			if err := dbmodels.DeleteFTS5Entry(appInstance, entryID); err != nil {
+				appInstance.Logger().Error("Failed to delete FTS5 entry", "entry_id", entryID, "error", err)
+			}
+		}(app, entry.Id)
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,

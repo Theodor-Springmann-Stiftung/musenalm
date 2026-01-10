@@ -562,3 +562,306 @@ func deleteTableContents(app core.App, table string) error {
 	}
 	return nil
 }
+
+func DeleteFTS5Entry(app core.App, entryID string) error {
+	query := "DELETE FROM " + FTS5TableName(ENTRIES_TABLE) + " WHERE " + ID_FIELD + " = {:id}"
+	_, err := app.DB().NewQuery(query).Bind(dbx.Params{"id": entryID}).Execute()
+	return err
+}
+
+func UpdateFTS5Entry(app core.App, entry *Entry, places []*Place, agents []*Agent, series []*Series) error {
+	if err := DeleteFTS5Entry(app, entry.Id); err != nil {
+		return err
+	}
+	return InsertFTS5Entry(app, entry, places, agents, series)
+}
+
+func UpdateFTS5EntryAndRelatedContents(app core.App, entry *Entry, places []*Place, agents []*Agent, series []*Series) error {
+	// Update the entry itself
+	if err := UpdateFTS5Entry(app, entry, places, agents, series); err != nil {
+		return err
+	}
+
+	// Update all contents that belong to this entry
+	contents, err := Contents_Entry(app, entry.Id)
+	if err == nil {
+		for _, content := range contents {
+			// Load all agents for this content
+			contentAgents := []*Agent{}
+			agentRels, err := RContentsAgents_Content(app, content.Id)
+			if err == nil {
+				for _, rel := range agentRels {
+					agent, err := Agents_ID(app, rel.Agent())
+					if err == nil && agent != nil {
+						contentAgents = append(contentAgents, agent)
+					}
+				}
+			}
+
+			if err := UpdateFTS5Content(app, content, entry, contentAgents); err != nil {
+				app.Logger().Error("Failed to update FTS5 for content", "content_id", content.Id, "error", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func DeleteFTS5Agent(app core.App, agentID string) error {
+	query := "DELETE FROM " + FTS5TableName(AGENTS_TABLE) + " WHERE " + ID_FIELD + " = {:id}"
+	_, err := app.DB().NewQuery(query).Bind(dbx.Params{"id": agentID}).Execute()
+	return err
+}
+
+func UpdateFTS5Agent(app core.App, agent *Agent) error {
+	if err := DeleteFTS5Agent(app, agent.Id); err != nil {
+		return err
+	}
+	return InsertFTS5Agent(app, agent)
+}
+
+func UpdateFTS5AgentAndRelated(app core.App, agent *Agent) error {
+	// Update the agent itself
+	if err := UpdateFTS5Agent(app, agent); err != nil {
+		return err
+	}
+
+	// Update all entries related to this agent
+	entryRelations, err := REntriesAgents_Agent(app, agent.Id)
+	if err == nil {
+		for _, relation := range entryRelations {
+			entry, err := Entries_ID(app, relation.Entry())
+			if err != nil {
+				app.Logger().Error("Failed to load entry for FTS5 update", "entry_id", relation.Entry(), "error", err)
+				continue
+			}
+
+			// Load all related data for this entry
+			places := []*Place{}
+			for _, placeID := range entry.Places() {
+				place, err := Places_ID(app, placeID)
+				if err == nil && place != nil {
+					places = append(places, place)
+				}
+			}
+
+			agents := []*Agent{}
+			agentRels, err := REntriesAgents_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range agentRels {
+					ag, err := Agents_ID(app, rel.Agent())
+					if err == nil && ag != nil {
+						agents = append(agents, ag)
+					}
+				}
+			}
+
+			series := []*Series{}
+			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range seriesRels {
+					s, err := Series_ID(app, rel.Series())
+					if err == nil && s != nil {
+						series = append(series, s)
+					}
+				}
+			}
+
+			if err := UpdateFTS5Entry(app, entry, places, agents, series); err != nil {
+				app.Logger().Error("Failed to update FTS5 for entry", "entry_id", entry.Id, "error", err)
+			}
+		}
+	}
+
+	// Update all contents related to this agent
+	contentRelations, err := RContentsAgents_Agent(app, agent.Id)
+	if err == nil {
+		for _, relation := range contentRelations {
+			contents, err := Contents_IDs(app, []any{relation.Content()})
+			if err != nil || len(contents) == 0 {
+				app.Logger().Error("Failed to load content for FTS5 update", "content_id", relation.Content(), "error", err)
+				continue
+			}
+			content := contents[0]
+
+			// Load the parent entry
+			entry, err := Entries_ID(app, content.Entry())
+			if err != nil {
+				app.Logger().Error("Failed to load entry for content FTS5 update", "entry_id", content.Entry(), "error", err)
+				continue
+			}
+
+			// Load all agents for this content
+			agents := []*Agent{}
+			agentRels, err := RContentsAgents_Content(app, content.Id)
+			if err == nil {
+				for _, rel := range agentRels {
+					ag, err := Agents_ID(app, rel.Agent())
+					if err == nil && ag != nil {
+						agents = append(agents, ag)
+					}
+				}
+			}
+
+			if err := UpdateFTS5Content(app, content, entry, agents); err != nil {
+				app.Logger().Error("Failed to update FTS5 for content", "content_id", content.Id, "error", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func DeleteFTS5Content(app core.App, contentID string) error {
+	query := "DELETE FROM " + FTS5TableName(CONTENTS_TABLE) + " WHERE " + ID_FIELD + " = {:id}"
+	_, err := app.DB().NewQuery(query).Bind(dbx.Params{"id": contentID}).Execute()
+	return err
+}
+
+func UpdateFTS5Content(app core.App, content *Content, entry *Entry, agents []*Agent) error {
+	if err := DeleteFTS5Content(app, content.Id); err != nil {
+		return err
+	}
+	return InsertFTS5Content(app, content, entry, agents)
+}
+
+func DeleteFTS5Place(app core.App, placeID string) error {
+	query := "DELETE FROM " + FTS5TableName(PLACES_TABLE) + " WHERE " + ID_FIELD + " = {:id}"
+	_, err := app.DB().NewQuery(query).Bind(dbx.Params{"id": placeID}).Execute()
+	return err
+}
+
+func UpdateFTS5Place(app core.App, place *Place) error {
+	if err := DeleteFTS5Place(app, place.Id); err != nil {
+		return err
+	}
+	return InsertFTS5Place(app, place)
+}
+
+func UpdateFTS5PlaceAndRelatedEntries(app core.App, place *Place) error {
+	// Update the place itself
+	if err := UpdateFTS5Place(app, place); err != nil {
+		return err
+	}
+
+	// Find all entries that reference this place
+	entries := []*Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.NewExp(
+			PLACES_TABLE+" = {:id} OR (json_valid("+PLACES_TABLE+") = 1 AND EXISTS (SELECT 1 FROM json_each("+PLACES_TABLE+") WHERE value = {:id}))",
+			dbx.Params{"id": place.Id},
+		)).
+		All(&entries)
+
+	if err == nil {
+		for _, entry := range entries {
+			// Load all related data for this entry
+			places := []*Place{}
+			for _, placeID := range entry.Places() {
+				p, err := Places_ID(app, placeID)
+				if err == nil && p != nil {
+					places = append(places, p)
+				}
+			}
+
+			agents := []*Agent{}
+			agentRels, err := REntriesAgents_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range agentRels {
+					agent, err := Agents_ID(app, rel.Agent())
+					if err == nil && agent != nil {
+						agents = append(agents, agent)
+					}
+				}
+			}
+
+			series := []*Series{}
+			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range seriesRels {
+					s, err := Series_ID(app, rel.Series())
+					if err == nil && s != nil {
+						series = append(series, s)
+					}
+				}
+			}
+
+			// Only update the entry itself, not contents (contents don't store place data)
+			if err := UpdateFTS5Entry(app, entry, places, agents, series); err != nil {
+				app.Logger().Error("Failed to update FTS5 for entry", "entry_id", entry.Id, "error", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func DeleteFTS5Series(app core.App, seriesID string) error {
+	query := "DELETE FROM " + FTS5TableName(SERIES_TABLE) + " WHERE " + ID_FIELD + " = {:id}"
+	_, err := app.DB().NewQuery(query).Bind(dbx.Params{"id": seriesID}).Execute()
+	return err
+}
+
+func UpdateFTS5Series(app core.App, series *Series) error {
+	if err := DeleteFTS5Series(app, series.Id); err != nil {
+		return err
+	}
+	return InsertFTS5Series(app, series)
+}
+
+func UpdateFTS5SeriesAndRelatedEntries(app core.App, series *Series) error {
+	// Update the series itself
+	if err := UpdateFTS5Series(app, series); err != nil {
+		return err
+	}
+
+	// Find all entries that reference this series
+	relations, err := REntriesSeries_Seriess(app, []any{series.Id})
+	if err == nil {
+		for _, relation := range relations {
+			entry, err := Entries_ID(app, relation.Entry())
+			if err != nil {
+				app.Logger().Error("Failed to load entry for FTS5 update", "entry_id", relation.Entry(), "error", err)
+				continue
+			}
+
+			// Load all related data for this entry
+			places := []*Place{}
+			for _, placeID := range entry.Places() {
+				place, err := Places_ID(app, placeID)
+				if err == nil && place != nil {
+					places = append(places, place)
+				}
+			}
+
+			agents := []*Agent{}
+			agentRels, err := REntriesAgents_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range agentRels {
+					agent, err := Agents_ID(app, rel.Agent())
+					if err == nil && agent != nil {
+						agents = append(agents, agent)
+					}
+				}
+			}
+
+			allSeries := []*Series{}
+			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
+			if err == nil {
+				for _, rel := range seriesRels {
+					s, err := Series_ID(app, rel.Series())
+					if err == nil && s != nil {
+						allSeries = append(allSeries, s)
+					}
+				}
+			}
+
+			// Only update the entry itself, not contents (contents don't store series data)
+			if err := UpdateFTS5Entry(app, entry, places, agents, allSeries); err != nil {
+				app.Logger().Error("Failed to update FTS5 for entry", "entry_id", entry.Id, "error", err)
+			}
+		}
+	}
+
+	return nil
+}

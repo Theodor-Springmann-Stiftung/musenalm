@@ -4,9 +4,8 @@ TODO danach:
     - Zeilenumbrüche in Reihen-Annotationen (EVTL. fix in TinyMCE)
     - Status: Auopsiert, Erfasst etc.
 - Status farbig
-- Deprecated Fields display
-- TinyMCE f. Annotationen
-- Lsite verknüpfter Bände ind Inhalte wie in Personen (Reihen, Orte)
-    - Rolle anzeigen bei Reihen
 - Lösch-Links in Liste, Übersicht u.s.w. (? CSRF-Token fehlt)
 - Löschen von Personen: werden relationen zu Inhalten mitgelöscht? optional inhalte löschen?
+- Display von Status u. Bearbeitungsvermerk in Almanach-Ansicht für eingeloggte Nutzer
+- ACHTUNG! FTS5-Tabellen müssen beim Speichern (und löschen) synchronisiert werden!
+- Hilfe-Texte für Felder

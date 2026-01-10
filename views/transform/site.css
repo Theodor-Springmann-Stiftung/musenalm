@@ -161,6 +161,14 @@
 		@apply border-l-4 border-zinc-300 font-bold;
 	}
 
+	.legacy-toggle-icon {
+		transition: transform 150ms ease;
+	}
+
+	details[open] .legacy-toggle-icon {
+		transform: rotate(180deg);
+	}
+
 	.notifier {
 		@apply bg-stone-100 text-center text-base px-2.5 py-1 font-sans rounded;
 	}

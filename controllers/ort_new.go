@@ -130,6 +130,18 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
 
+		// Update FTS5 index for new place (no related entries yet) asynchronously
+		go func(appInstance core.App, placeID string) {
+			freshPlace, err := dbmodels.Places_ID(appInstance, placeID)
+			if err != nil {
+				appInstance.Logger().Error("Failed to load place for FTS5 update", "place_id", placeID, "error", err)
+				return
+			}
+			if err := dbmodels.UpdateFTS5Place(appInstance, freshPlace); err != nil {
+				appInstance.Logger().Error("Failed to update FTS5 index for new place", "place_id", placeID, "error", err)
+			}
+		}(app, createdPlace.Id)
+
 		redirect := fmt.Sprintf(
 			"/ort/%s/edit?saved_message=%s",
 			createdPlace.Id,
