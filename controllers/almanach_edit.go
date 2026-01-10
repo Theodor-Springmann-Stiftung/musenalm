@@ -80,8 +80,10 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 }
 
 type AlmanachEditResult struct {
-	Next *dbmodels.Entry
-	Prev *dbmodels.Entry
+	NextByID    *dbmodels.Entry
+	PrevByID    *dbmodels.Entry
+	NextByTitle *dbmodels.Entry
+	PrevByTitle *dbmodels.Entry
 	User *dbmodels.User
 	AlmanachResult
 }
@@ -102,15 +104,47 @@ func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParam
 		}
 	}
 
-	next := result.Entry.Next(app)
-	prev := result.Entry.Prev(app)
+	prevByID := result.Entry.Prev(app)
+	nextByID := result.Entry.Next(app)
+	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, result.Entry.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load entry neighbors", "entry", result.Entry.Id, "error", err)
+	}
 
 	return &AlmanachEditResult{
 		User:           user,
 		AlmanachResult: *result,
-		Next:           next,
-		Prev:           prev,
+		NextByID:       nextByID,
+		PrevByID:       prevByID,
+		NextByTitle:    nextByTitle,
+		PrevByTitle:    prevByTitle,
 	}, nil
+}
+
+func entryNeighborsByPreferredTitle(app core.App, entryID string) (*dbmodels.Entry, *dbmodels.Entry, error) {
+	entries := []*dbmodels.Entry{}
+	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
+		return nil, nil, err
+	}
+	if len(entries) == 0 {
+		return nil, nil, nil
+	}
+	dbmodels.Sort_Entries_Title_Year(entries)
+	for index, item := range entries {
+		if item.Id != entryID {
+			continue
+		}
+		var prev *dbmodels.Entry
+		var next *dbmodels.Entry
+		if index > 0 {
+			prev = entries[index-1]
+		}
+		if index+1 < len(entries) {
+			next = entries[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
 }
 
 func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {

@@ -69,8 +69,10 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 				Types:          []string{},
 				HasScans:       false,
 			},
-			Prev: nil,
-			Next: nil,
+			PrevByID:    nil,
+			NextByID:    nil,
+			PrevByTitle: nil,
+			NextByTitle: nil,
 		}
 
 		data["result"] = result

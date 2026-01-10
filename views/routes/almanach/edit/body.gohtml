@@ -44,9 +44,9 @@ type AlmanachResult struct {
 					</div>
 					&middot;
 					<div class="flex flex-row">
-						{{- if $model.result.Prev -}}
+						{{- if $model.result.PrevByID -}}
 							<div>
-								<a href="/almanach/{{ $model.result.Prev.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block ">
+								<a href="/almanach/{{ $model.result.PrevByID.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block ">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
 							</div>
@@ -58,9 +58,9 @@ type AlmanachResult struct {
 								<i class="ri-information-line"></i>
 							</tool-tip>
 						</div>
-						{{- if $model.result.Next -}}
+						{{- if $model.result.NextByID -}}
 							<div>
-								<a href="/almanach/{{ $model.result.Next.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
+								<a href="/almanach/{{ $model.result.NextByID.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
 							</div>
 						{{- end -}}
 					</div>
@@ -86,6 +86,38 @@ type AlmanachResult struct {
 						</tool-tip>
 					</div>
 					<div class="">{{ $model.result.Entry.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-6">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if $model.result.PrevByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
+								<a
+									href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						A&thinsp;-&thinsp;Z
+						</span>
+						{{- if $model.result.NextByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
+								<a
+									href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+					</div>
 				</div>
 			</div>
 			<div class="flex flex-col justify-end gap-y-6 pr-4">
