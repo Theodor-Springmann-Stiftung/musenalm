@@ -8810,6 +8810,9 @@ class Qc extends HTMLElement {
     }
   }
 }
+document.addEventListener("trix-file-accept", (s) => {
+  s.preventDefault();
+});
 const Zc = "filter-list", th = "fab-menu", eh = "scroll-button", ih = "tool-tip", nh = "abbrev-tooltips", sh = "int-link", rh = "popup-image", oh = "tab-list", ah = "filter-pill", lh = "image-reel", ch = "multi-select-places", hh = "multi-select-simple", dh = "single-select-remote", mo = "reset-button", uh = "div-manager", mh = "items-editor", gh = "almanach-edit-page", ph = "relations-editor", fh = "edit-page";
 customElements.define(sh, Fl);
 customElements.define(nh, Ae);

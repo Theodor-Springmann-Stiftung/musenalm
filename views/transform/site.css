@@ -253,6 +253,73 @@
 		@apply -indent-3.5 ml-3.5;
 	}
 
+	/* Annotation Content Display Styling */
+	.annotation-content {
+		@apply font-serif;
+	}
+
+	/* Headings - bold with spacing, same font size */
+	.annotation-content h1 {
+		@apply font-bold mt-2 mb-1 leading-normal;
+	}
+
+	/* Blockquotes - minimal styling */
+	.annotation-content blockquote {
+		@apply border-l-4 border-stone-400 pl-4 py-1 italic text-gray-700;
+	}
+
+	/* Lists - compact with proper indentation */
+	.annotation-content ul {
+		@apply list-disc list-outside my-1;
+	}
+
+	.annotation-content ol {
+		@apply list-decimal list-outside my-1;
+	}
+
+	.annotation-content li {
+		@apply leading-normal;
+		margin-left: 1.5rem;
+	}
+
+	.annotation-content ul > li {
+		list-style-type: disc;
+	}
+
+	.annotation-content ol > li {
+		list-style-type: decimal;
+	}
+
+	/* Nested lists - remove extra spacing */
+	.annotation-content ul ul,
+	.annotation-content ol ul {
+		@apply list-disc my-0;
+	}
+
+	.annotation-content ul ol,
+	.annotation-content ol ol {
+		@apply list-decimal my-0;
+	}
+
+	.annotation-content ul ul > li,
+	.annotation-content ol ul > li,
+	.annotation-content ul ol > li,
+	.annotation-content ol ol > li {
+		@apply leading-normal;
+	}
+
+	/* Links - match site link styling */
+	.annotation-content a {
+		@apply hyphens-none underline decoration-dotted hover:decoration-solid
+		       text-slate-700 hover:text-slate-900 underline-offset-3;
+	}
+
+	/* Code blocks (if needed) */
+	.annotation-content pre {
+		@apply bg-stone-100 border border-stone-300 rounded px-3 py-2 my-1
+		       font-mono text-sm overflow-x-auto;
+	}
+
 	#indexpage {
 		background-image: url("/assets/bg.jpg");
 		@apply h-full w-full;

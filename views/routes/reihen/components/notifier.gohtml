@@ -43,6 +43,11 @@
 			<i class="ri-map-pin-line"></i>
 			<span class="filtercategory">Erscheinungsort</span> &middot;
 			<span class="filterterm">{{ $model.result.Place.Name }}</span>
+			{{- if (IsAdminOrEditor $model.request.user) -}}
+				<a href="/ort/{{ $model.result.Place.Id }}/edit" class="no-underline rounded bg-stone-100 px-1.5">
+					<i class="ri-edit-line"></i>
+				</a>
+			{{- end -}}
 		</div>
 	{{ end }}
 

@@ -123,13 +123,13 @@
 					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
 				</div>
-				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-						<label for="uri" class="inputlabel">URI</label>
+					<label for="uri" class="inputlabel">URL</label>
 					</div>
 					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
 				</div>
+				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}
 				<div class="inputwrapper">
 					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
 							<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />

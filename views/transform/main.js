@@ -2,6 +2,12 @@
 import "./site.css";
 
 import Trix from "trix";
+
+// Disable file attachments in Trix editor
+document.addEventListener("trix-file-accept", (event) => {
+	event.preventDefault();
+});
+
 import { FilterPill } from "./filter-pill.js";
 import { FilterList } from "./filter-list.js";
 import { ScrollButton } from "./scroll-button.js";

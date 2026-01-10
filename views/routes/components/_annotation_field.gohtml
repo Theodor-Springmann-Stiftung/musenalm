@@ -65,9 +65,10 @@
 		<!-- Link dialog (required for link functionality) -->
 		<div class="trix-dialogs" data-trix-dialogs>
 			<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
-				<div class="trix-dialog__link-fields">
-					<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="Enter a URL…" aria-label="URL" required data-trix-input>
-					<div class="trix-button-group">
+				<div class="trix-dialog__link-fields flex flex-row">
+					<input type="url" name="href" class="trix-input trix-input--dialog"
+					placeholder="URL eingeben…" aria-label="URL" required data-trix-input>
+					<div class="trix-button-group flex-row">
 						<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
 						<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
 					</div>

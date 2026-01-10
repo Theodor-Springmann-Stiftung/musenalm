@@ -47,7 +47,7 @@
 			</span>
 			{{ if $r.Annotation }}
 				<span>&ensp;&middot;&ensp;</span>
-				<span class="{{ if $marka }}reihen-text{{ end }}">{{ Safe $r.Annotation }}</span>
+				<span class="{{ if $marka }}reihen-text{{ end }} annotation-content">{{ Safe $r.Annotation }}</span>
 			{{ end }}
 		</div>
 		{{ template "_reiherelations" (Arr $r $bds $entries false $request) }}

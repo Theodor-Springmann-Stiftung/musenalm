@@ -535,12 +535,12 @@
 
 	/* Trix editor content area */
 	trix-editor {
-		@apply block w-full focus:border-none focus:outline-none px-3 py-2 min-h-[6rem];
+		@apply block w-full focus:border-none focus:outline-none px-3 py-2 min-h-[9rem];
 	}
 
 	/* Trix content formatting styles */
 	trix-editor h1 {
-		@apply text-2xl font-bold mt-4 mb-2 first:mt-0;
+		@apply mt-1.5 mb-0.5 first:mt-0 !text-base !font-sans !font-bold;
 	}
 
 	trix-editor blockquote {
@@ -611,7 +611,7 @@
 	}
 
 	.trix-dialog {
-		@apply hidden absolute top-full left-0 right-0 mt-1 p-3 bg-white border border-stone-300 rounded-md shadow-lg z-10;
+		@apply hidden absolute top-full left-0 right-0 mt-1 p-3 bg-white border border-stone-300 rounded-xs shadow-lg z-10;
 	}
 
 	.trix-dialog[data-trix-active] {
@@ -623,7 +623,7 @@
 	}
 
 	.trix-input--dialog {
-		@apply w-full px-3 py-1.5 border border-stone-300 rounded-md
+		@apply w-full px-3 py-1.5 border border-stone-300 rounded-xs
 		       focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1;
 	}
 
@@ -632,7 +632,7 @@
 	}
 
 	.trix-button--dialog {
-		@apply px-4 py-1.5 text-sm font-medium rounded-md
+		@apply px-4 py-1.5 text-sm font-medium rounded-xs
 		       border border-transparent shadow-sm
 		       cursor-pointer transition-all duration-75
 		       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500;

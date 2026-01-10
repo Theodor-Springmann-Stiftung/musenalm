@@ -176,7 +176,7 @@
 				{{- if $model.result.Entry.Annotation -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Anmerkungen</div>
-						<div class="fieldvalue">
+						<div class="fieldvalue annotation-content">
 							{{- Safe (ReplaceSlashParen $model.result.Entry.Annotation) -}}
 						</div>
 					</div>
