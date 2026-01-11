@@ -6,7 +6,53 @@ export class EditPage extends HTMLElement {
 				window.FormLoad(form);
 			}
 			this._setupDelete();
+			this._setupStatusSelect();
 		}, 0);
+	}
+
+	_setupStatusSelect() {
+		const statusSelect = this.querySelector(".status-select");
+		if (!statusSelect) {
+			return;
+		}
+		const statusIcon = this.querySelector(".status-icon");
+		statusSelect.addEventListener("change", (event) => {
+			const newStatus = event.target.value;
+			statusSelect.setAttribute("data-status", newStatus);
+			if (statusIcon) {
+				this._updateStatusIcon(statusIcon, newStatus);
+			}
+		});
+	}
+
+	_updateStatusIcon(iconElement, status) {
+		// Remove all status icon classes
+		iconElement.classList.remove(
+			"ri-checkbox-circle-line",
+			"ri-information-line",
+			"ri-search-line",
+			"ri-list-check",
+			"ri-forbid-2-line"
+		);
+		// Add the appropriate icon class
+		switch (status) {
+			case "Edited":
+				iconElement.classList.add("ri-checkbox-circle-line");
+				break;
+			case "Seen":
+				iconElement.classList.add("ri-information-line");
+				break;
+			case "Review":
+				iconElement.classList.add("ri-search-line");
+				break;
+			case "ToDo":
+				iconElement.classList.add("ri-list-check");
+				break;
+			case "Unknown":
+			default:
+				iconElement.classList.add("ri-forbid-2-line");
+				break;
+		}
 	}
 
 	_setupDelete() {

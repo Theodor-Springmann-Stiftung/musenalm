@@ -1,6 +1,11 @@
 {{- $entity := index . 0 -}}
 {{- $fieldName := index . 1 -}}
 {{- $fieldId := index . 2 -}}
+{{- $context := "" -}}
+{{- if gt (len .) 3 -}}
+	{{- $context = index . 3 -}}
+{{- end -}}
+{{- $isAlmanach := eq $context "almanach" -}}
 
 <div class="flex flex-col gap-4">
 	<!-- Status -->
@@ -8,13 +13,21 @@
 		<div class="inputlabelrow">
 		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
 		</div>
-		<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="inputselect font-bold">
-			<option value="Unknown" {{ if eq $entity.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-			<option value="ToDo" {{ if eq $entity.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-			<option value="Review" {{ if eq $entity.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-			<option value="Seen" {{ if eq $entity.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
-			<option value="Edited" {{ if eq $entity.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
-		</select>
+		<div class="relative">
+			<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="inputselect
+			font-bold status-select py-2 pl-8" data-status="{{ $entity.EditState }}">
+				<option value="Unknown" {{ if eq $entity.EditState "Unknown" }}selected{{ end }}>{{ if $isAlmanach }}Gesucht{{ else }}Unbekannt{{ end }}</option>
+				<option value="ToDo" {{ if eq $entity.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+				<option value="Review" {{ if eq $entity.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+				{{- if $isAlmanach -}}
+				<option value="Seen" {{ if eq $entity.EditState "Seen" }}selected{{ end }}>Autopsiert</option>
+				<option value="Edited" {{ if eq $entity.EditState "Edited" }}selected{{ end }}>Vollständig Erfasst</option>
+				{{- else -}}
+				<option value="Edited" {{ if eq $entity.EditState "Edited" }}selected{{ end }}>Erfasst</option>
+				{{- end -}}
+			</select>
+			<i class="status-icon absolute left-2 top-[calc(50%-1px)] -translate-y-1/2 pointer-events-none {{- if eq $entity.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entity.EditState "Seen" }} ri-information-line{{- else if eq $entity.EditState "Review" }} ri-search-line{{- else if eq $entity.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+		</div>
 	</div>
 
 	<!-- Bearbeitungsvermerk -->
