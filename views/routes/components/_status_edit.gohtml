@@ -9,13 +9,13 @@
 
 <div class="flex flex-col gap-4">
 	<!-- Status -->
-	<div class="inputwrapper">
+	<div class="inputwrapper bg-stone-50 !border-none">
 		<div class="inputlabelrow">
 		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
 		</div>
 		<div class="relative">
 			<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="inputselect
-			font-bold status-select py-2 pl-8" data-status="{{ $entity.EditState }}">
+			font-bold status-select py-2.5 pl-8" data-status="{{ $entity.EditState }}">
 				<option value="Unknown" {{ if eq $entity.EditState "Unknown" }}selected{{ end }}>{{ if $isAlmanach }}Gesucht{{ else }}Unbekannt{{ end }}</option>
 				<option value="ToDo" {{ if eq $entity.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
 				<option value="Review" {{ if eq $entity.EditState "Review" }}selected{{ end }}>Überprüfen</option>

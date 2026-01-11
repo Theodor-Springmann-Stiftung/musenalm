@@ -45,16 +45,12 @@ func (p *AgentsAPI) searchHandler(app core.App) HandleFunc {
 		query := strings.TrimSpace(e.Request.URL.Query().Get("q"))
 		limit := parseAgentsLimit(e.Request.URL.Query().Get("limit"))
 
-		results, err := dbmodels.FTS5SearchAgents(app, query)
+		results, err := dbmodels.TitleSearchAgents(app, query)
 		if err != nil {
-			primary, alt, err := dbmodels.BasicSearchAgents(app, query)
-			if err != nil {
-				app.Logger().Error("agent search failed", "query", query, "limit", limit, "error", err)
-				return e.JSON(http.StatusInternalServerError, map[string]any{
-					"error": "failed to search agents",
-				})
-			}
-			results = append(primary, alt...)
+			app.Logger().Error("agent search failed", "query", query, "limit", limit, "error", err)
+			return e.JSON(http.StatusInternalServerError, map[string]any{
+				"error": "failed to search agents",
+			})
 		}
 
 		seen := map[string]bool{}

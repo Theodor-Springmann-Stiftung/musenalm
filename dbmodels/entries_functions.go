@@ -32,3 +32,16 @@ func (e *Entry) Next(app core.App) *Entry {
 
 	return &entry
 }
+
+func TitleSearchEntries(app core.App, query string) ([]*Entry, error) {
+	entries := []*Entry{}
+	err := app.RecordQuery(ENTRIES_TABLE).
+		Where(dbx.Like(PREFERRED_TITLE_FIELD, query).Match(true, true)).
+		OrderBy(PREFERRED_TITLE_FIELD).
+		All(&entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return entries, nil
+}
