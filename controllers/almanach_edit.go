@@ -330,7 +330,7 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) H
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
-			"redirect": "/suche/baende",
+			"redirect": "/reihen",
 		})
 	}
 }

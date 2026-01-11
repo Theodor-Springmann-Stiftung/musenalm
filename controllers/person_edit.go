@@ -43,6 +43,7 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], app co
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
 	rg.POST(URL_PERSON_EDIT, p.POST(engine, app))
+	rg.POST(URL_PERSON_EDIT+"/delete", p.POSTDelete(engine, app))
 	return nil
 }
 
@@ -247,6 +248,11 @@ type personEditForm struct {
 	Comment          string `form:"edit_comment"`
 }
 
+type personDeletePayload struct {
+	CSRFToken  string `json:"csrf_token"`
+	LastEdited string `json:"last_edited"`
+}
+
 func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string, status string, user *dbmodels.FixedUser) {
 	agent.SetName(name)
 	agent.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
@@ -340,4 +346,109 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 		redirect := fmt.Sprintf("/person/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
+}
+
+func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		payload := personDeletePayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		agent, err := dbmodels.Agents_ID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Person wurde nicht gefunden.",
+			})
+		}
+
+		if payload.LastEdited != "" {
+			lastEdited, err := types.ParseDateTime(payload.LastEdited)
+			if err != nil {
+				return e.JSON(http.StatusBadRequest, map[string]any{
+					"error": "Ungültiger Bearbeitungszeitstempel.",
+				})
+			}
+			if !agent.Updated().Time().Equal(lastEdited.Time()) {
+				return e.JSON(http.StatusConflict, map[string]any{
+					"error": "Die Person wurde inzwischen geändert. Bitte Seite neu laden.",
+				})
+			}
+		}
+
+		if err := app.RunInTransaction(func(tx core.App) error {
+			if err := deleteAgentRelations(tx, agent.Id); err != nil {
+				return err
+			}
+			record, err := tx.FindRecordById(dbmodels.AGENTS_TABLE, agent.Id)
+			if err != nil {
+				return err
+			}
+			return tx.Delete(record)
+		}); err != nil {
+			app.Logger().Error("Failed to delete agent", "agent_id", agent.Id, "error", err)
+			return e.JSON(http.StatusInternalServerError, map[string]any{
+				"error": "Löschen fehlgeschlagen.",
+			})
+		}
+
+		// Delete from FTS5 index asynchronously
+		go func(appInstance core.App, agentID string) {
+			if err := dbmodels.DeleteFTS5Agent(appInstance, agentID); err != nil {
+				appInstance.Logger().Error("Failed to delete FTS5 agent", "agent_id", agentID, "error", err)
+			}
+		}(app, agent.Id)
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":  true,
+			"redirect": "/personen/",
+		})
+	}
+}
+
+func deleteAgentRelations(tx core.App, agentID string) error {
+	// Delete all REntriesAgents relations
+	entryRelations, err := dbmodels.REntriesAgents_Agent(tx, agentID)
+	if err != nil {
+		return err
+	}
+	entryTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range entryRelations {
+		record, err := tx.FindRecordById(entryTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	// Delete all RContentsAgents relations
+	contentRelations, err := dbmodels.RContentsAgents_Agent(tx, agentID)
+	if err != nil {
+		return err
+	}
+	contentTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range contentRelations {
+		record, err := tx.FindRecordById(contentTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

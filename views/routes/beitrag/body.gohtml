@@ -34,7 +34,7 @@
 </div>
 
 <div class="container-normal mt-12 flex flex-col font-serif">
-	<div class="font-sans"><i class="ri-article-line"></i> Einzelbeitrag</div>
+	<div class="font-sans mb-1"><i class="ri-article-line"></i> Einzelbeitrag</div>
 	<h1 class="text-3xl font-bold">
 		{{ $model.result.Entry.PreferredTitle }},
 		{{ if $model.result.Content.Extent -}}
@@ -45,13 +45,13 @@
 			{{ $model.result.Content.MusenalmID }}
 		{{- end -}}
 	</h1>
-	<span class="">
+	<span class="mt-1">
 		{{- $arr := $model.result.Content.MusenalmType -}}
 		{{- if $arr -}}
 			{{- range $i, $p := $arr -}}
 				<span
 					class="inline-block align-middle bg-slate-200 px-2 font-sans text-sm py-0.5
-					rounded mx-1 mt-1.5 hover:text-slate-900 no-underline">
+					rounded not-first:ml-1 mr-1 mt-1.5 hover:text-slate-900 no-underline">
 					{{- $p -}}
 				</span>
 			{{- end -}}
