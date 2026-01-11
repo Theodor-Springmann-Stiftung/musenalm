@@ -165,7 +165,13 @@ type AlmanachResult struct {
 			<!-- Kurztitel -->
 			<div class="inputwrapper">
 				<div class="inputlabelrow">
-					<label for="preferred_title" class="inputlabel">Kurztitel</label>
+					<div class="flex items-center gap-1">
+						<label for="preferred_title" class="inputlabel">Kurztitel</label>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">Kurzer, eindeutiger Titel für die Anzeige.</div>
+							<i class="ri-question-line"></i>
+						</tool-tip>
+					</div>
 				</div>
 				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/entries/search" data-duplicate-result-key="entries" data-duplicate-current-id="{{ if not $model.is_new }}{{ $model.result.Entry.Id }}{{ end }}">{{- $model.result.Entry.PreferredTitle -}}</textarea>
 				<div class="duplicate-warning hidden" data-duplicate-warning-for="preferred_title">
@@ -186,7 +192,13 @@ type AlmanachResult struct {
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
-								<label for="title" class="inputlabel menu-label">Titel</label>
+								<div class="flex items-center gap-1">
+									<label for="title" class="inputlabel menu-label">Titel</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Vollständiger Titel des Almanachs.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -199,8 +211,14 @@ type AlmanachResult struct {
 
 						<div class="mt-2 inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
-								<label for="paralleltitle" class="inputlabel menu-label">Titel
-									(übersetzt)</label>
+								<div class="flex items-center gap-1">
+									<label for="paralleltitle" class="inputlabel menu-label">Titel
+										(übersetzt)</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Übersetzter oder paralleler Titel.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -213,7 +231,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
-								<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
+								<div class="flex items-center gap-1">
+									<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Ergänzender Untertitel oder Zusatz.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -226,7 +250,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
-								<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
+								<div class="flex items-center gap-1">
+									<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Alternative oder abweichende Titelformen.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -239,7 +269,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
-								<label for="incipit" class="inputlabel menu-label">Incipit</label>
+								<div class="flex items-center gap-1">
+									<label for="incipit" class="inputlabel menu-label">Incipit</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Erste Worte oder Anfang des Texts.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -252,8 +288,14 @@ type AlmanachResult struct {
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}" data-dm-target="publication">
 							<div class="inputlabelrow">
-								<label for="responsibility_statement" class="inputlabel
-								menu-label">Herausgeberangabe</label>
+								<div class="flex items-center gap-1">
+									<label for="responsibility_statement" class="inputlabel
+									menu-label">Herausgeberangabe</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Angabe zu Herausgebern oder Verantwortlichen.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -266,7 +308,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="publication">
 							<div class="inputlabelrow">
-								<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
+								<div class="flex items-center gap-1">
+									<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Verlags- oder Publikationsangaben.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -279,7 +327,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PlaceStmt "" }}hidden{{ end }}" data-dm-target="publication">
 							<div class="inputlabelrow">
-								<label for="place_statement" class="inputlabel menu-label">Ortsangabe</label>
+								<div class="flex items-center gap-1">
+									<label for="place_statement" class="inputlabel menu-label">Ortsangabe</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Ort(e) der Veröffentlichung.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -300,14 +354,26 @@ type AlmanachResult struct {
 					<div class="flex gap-2">
 						<div class="flex-1 inputwrapper">
 							<div class="inputlabelrow">
-								<label for="year" class="inputlabel">Jahr</label>
+								<div class="flex items-center gap-1">
+									<label for="year" class="inputlabel">Jahr</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Erscheinungsjahr des Almanachs.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 							</div>
 							<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" />
 						</div>
 
 						<div class="flex-1 inputwrapper">
 							<div class="inputlabelrow">
-								<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
+								<div class="flex items-center gap-1">
+									<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Hinweis zur Ausgabe oder Edition.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 							</div>
 							<textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
 						</div>
@@ -330,11 +396,17 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_series" data-link-base="/reihe/" data-new-label="(Neu)" data-add-toggle-id="series-add-toggle" data-preferred-label="Bevorzugter Reihentitel">
 						<div class="inputwrapper">
-							<div class="inputlabelrow">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
 								<label class="inputlabel" for="series-section">Reihen</label>
-								<div class="flex items-center gap-3">
-									<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-										<i class="ri-add-line"></i> Neue Reihe anlegen
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Verknüpfte Reihen für diesen Almanach.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
+							<div class="flex items-center gap-3">
+								<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+									<i class="ri-add-line"></i> Neue Reihe anlegen
 									</a>
 									<button type="button" id="series-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
 										<i class="ri-link"></i> Reihe verlinken
@@ -469,11 +541,17 @@ type AlmanachResult struct {
 				<div class="mt-3">
 					<relations-editor data-prefix="entries_agents" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="agents-add-toggle">
 						<div class="inputwrapper">
-							<div class="inputlabelrow">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
 								<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
-								<div class="flex items-center gap-3">
-									<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-										<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Beteiligte Personen oder Körperschaften.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
+							<div class="flex items-center gap-3">
+								<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+									<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
 									</a>
 									<button type="button" id="agents-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
 										<i class="ri-link"></i> Person verlinken
@@ -611,7 +689,13 @@ type AlmanachResult struct {
 				<div class="flex flex-col gap-2 mt-4">
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-						<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
+						<div class="flex items-center gap-1">
+							<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">Orte der Veröffentlichung und des Verlags.</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
 						<div class="flex items-center gap-3">
 							<a href="/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
 								<i class="ri-add-line"></i> Neuen Ort anlegen
@@ -662,7 +746,13 @@ type AlmanachResult struct {
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.Extent "" }}hidden{{ end }}">
 							<div class="inputlabelrow">
-								<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
+								<div class="flex items-center gap-1">
+									<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Hinweise zu Umfang oder Struktur.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -675,7 +765,13 @@ type AlmanachResult struct {
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
 							<div class="inputlabelrow">
-								<label for="dimensions" class="inputlabel menu-label">Maße</label>
+								<div class="flex items-center gap-1">
+									<label for="dimensions" class="inputlabel menu-label">Maße</label>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">Maße oder Formatangaben.</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -692,7 +788,13 @@ type AlmanachResult struct {
 					<!-- Languages -->
 					<div class="inputwrapper">
 						<div class="inputlabelrow">
-							<label for="languages" class="inputlabel">Sprachen</label>
+							<div class="flex items-center gap-1">
+								<label for="languages" class="inputlabel">Sprachen</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Sprachen des Almanachs oder der Inhalte.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
 							<button type="button" id="languages-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
 								<i class="ri-link"></i> Sprache verlinken
 							</button>
@@ -711,7 +813,13 @@ type AlmanachResult struct {
 					<!-- Nachweise - Always visible -->
 					<div class="inputwrapper">
 						<div class="inputlabelrow">
-							<label for="refs" class="inputlabel">Nachweise</label>
+							<div class="flex items-center gap-1">
+								<label for="refs" class="inputlabel">Nachweise</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Literatur- oder Quellenangaben.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
 						</div>
 						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
 					</div>
@@ -827,18 +935,34 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Institution oder Besitzer des Exemplars.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Interne Signatur oder Kennung.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Aufbewahrungsort des Exemplars.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off">
 											<option value=""></option>
 											{{- range $t := $model.item_types -}}
@@ -852,6 +976,10 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Link oder Identifier zum Exemplar.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" />
 									</div>
 								</div>
@@ -925,18 +1053,34 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Institution oder Besitzer des Exemplars.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Interne Signatur oder Kennung.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Aufbewahrungsort des Exemplars.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off">
 											<option value=""></option>
 											{{- range $t := $model.item_types -}}
@@ -950,6 +1094,10 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">Link oder Identifier zum Exemplar.</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" />
 									</div>
 								</div>

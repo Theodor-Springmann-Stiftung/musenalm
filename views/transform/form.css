@@ -10,7 +10,7 @@
 	}
 
 	.dbform .inputwrapper .inputlabel {
-		@apply px-3 text-gray-800 font-bold py-1;
+		@apply pl-3 pr-0 text-gray-800 font-bold py-1;
 	}
 
 	.dbform .inputwrapper .inputinput {

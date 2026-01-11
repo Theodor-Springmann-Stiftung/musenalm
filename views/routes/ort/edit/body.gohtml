@@ -114,7 +114,13 @@
 			<div class="flex-1 flex flex-col gap-4">
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-						<label for="name" class="inputlabel">Name</label>
+						<div class="flex items-center gap-1">
+							<label for="name" class="inputlabel">Name</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">Kurze Hilfe zum Ortsnamen.</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
 					</div>
 					<textarea name="name" id="name" class="inputinput no-enter" autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/places/search" data-duplicate-result-key="places" data-duplicate-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}">{{- $place.Name -}}</textarea>
 					<div class="duplicate-warning hidden" data-duplicate-warning-for="name">
@@ -124,21 +130,38 @@
 				</div>
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-						<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
+						<div class="flex items-center gap-1">
+							<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">Weitere gebräuchliche Namen für den Ort.</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
 					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
 				</div>
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-					<label for="uri" class="inputlabel">URL</label>
+					<div class="flex items-center gap-1">
+						<label for="uri" class="inputlabel">URL</label>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">Externe Referenz oder offizielle Webseite.</div>
+							<i class="ri-question-line"></i>
+						</tool-tip>
+					</div>
 					</div>
 					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
 				</div>
 				<div class="inputwrapper">
 				<div class="px-3 py-2 flex flex-row gap-2 font-bold">
 				<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />
-				<label class="flex items-center gap-2 text-gray-700"
-				for="fictional">Fiktional</label>
+				<label class="flex items-center gap-1 text-gray-700" for="fictional">
+					<span>Fiktional</span>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">Markiere den Ort als fiktiv.</div>
+						<i class="ri-question-line"></i>
+					</tool-tip>
+				</label>
 				</div>
 				</div>
 				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}

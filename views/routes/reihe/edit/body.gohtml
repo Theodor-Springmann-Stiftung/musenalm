@@ -116,7 +116,13 @@
 			<div class="flex-1 flex flex-col gap-4">
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
-						<label for="title" class="inputlabel">Reihentitel</label>
+						<div class="flex items-center gap-1">
+							<label for="title" class="inputlabel">Reihentitel</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">Offizieller oder bevorzugter Titel der Reihe.</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
 					</div>
 					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/series/search" data-duplicate-result-key="series" data-duplicate-current-id="{{ if not $model.is_new }}{{ $series.Id }}{{ end }}">{{- $series.Title -}}</textarea>
 					<div class="duplicate-warning hidden" data-duplicate-warning-for="title">
@@ -124,25 +130,33 @@
 						<span data-duplicate-count></span>
 					</div>
 				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="pseudonyms" class="inputlabel">Alternativtitel</label>
+				<div class="flex flex-row gap-3">
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
+								<label for="references" class="inputlabel">Nachweise</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Quellen oder Belege zur Reihe.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
+						</div>
+						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
 					</div>
-					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $series.Pseudonyms -}}</textarea>
+					<div class="inputwrapper w-1/4 grow-0">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
+								<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">Wie oft die Reihe veröffentlicht wurde.</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
+						</div>
+						<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />
+					</div>
 				</div>
 				{{ template "_annotation_field" (Arr $series.Annotation "Annotation") }}
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="references" class="inputlabel">Nachweise</label>
-					</div>
-					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
-					</div>
-					<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />
-				</div>
 			</div>
 
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">

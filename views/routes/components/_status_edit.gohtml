@@ -11,7 +11,13 @@
 	<!-- Status -->
 	<div class="inputwrapper bg-stone-50 !border-none">
 		<div class="inputlabelrow">
-		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
+		<div class="flex items-center gap-1">
+			<label for="{{ $fieldId }}" class="inputlabel">Status</label>
+			<tool-tip position="top" class="!inline">
+				<div class="data-tip">Kurzinfo zum Bearbeitungsstatus.</div>
+				<i class="ri-question-line"></i>
+			</tool-tip>
+		</div>
 		</div>
 		<div class="relative">
 			<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="inputselect
@@ -38,7 +44,13 @@
 
 		<div class="inputwrapper {{ if eq $entity.Comment "" }}hidden{{ end }}">
 			<div class="inputlabelrow">
-				<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
+				<div class="flex items-center gap-1">
+					<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">Hinweise zum Bearbeitungsstand oder offene Fragen.</div>
+						<i class="ri-question-line"></i>
+					</tool-tip>
+				</div>
 				<div class="pr-2">
 					<button class="dm-close-button font-bold input-label">
 						<i class="ri-close-line"></i>
