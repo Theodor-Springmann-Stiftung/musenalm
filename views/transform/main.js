@@ -27,6 +27,7 @@ import { AlmanachEditPage } from "./almanach-edit.js";
 import { RelationsEditor } from "./relations-editor.js";
 import { EditPage } from "./edit-page.js";
 import { FabMenu } from "./fab-menu.js";
+import { DuplicateWarningChecker } from "./duplicate-warning.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const FAB_MENU_ELEMENT = "fab-menu";
@@ -47,6 +48,7 @@ const ITEMS_EDITOR_ELEMENT = "items-editor";
 const ALMANACH_EDIT_PAGE_ELEMENT = "almanach-edit-page";
 const RELATIONS_EDITOR_ELEMENT = "relations-editor";
 const EDIT_PAGE_ELEMENT = "edit-page";
+const DUPLICATE_WARNING_ELEMENT = "duplicate-warning-checker";
 
 customElements.define(INT_LINK_ELEMENT, IntLink);
 customElements.define(ABBREV_TOOLTIPS_ELEMENT, AbbreviationTooltips);
@@ -67,6 +69,7 @@ customElements.define(ALMANACH_EDIT_PAGE_ELEMENT, AlmanachEditPage);
 customElements.define(RELATIONS_EDITOR_ELEMENT, RelationsEditor);
 customElements.define(EDIT_PAGE_ELEMENT, EditPage);
 customElements.define(FAB_MENU_ELEMENT, FabMenu);
+customElements.define(DUPLICATE_WARNING_ELEMENT, DuplicateWarningChecker);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;

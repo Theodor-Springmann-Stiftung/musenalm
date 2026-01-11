@@ -45,6 +45,10 @@
 					disabled:opacity-50 py-1 px-3;
 	}
 
+	.dbform .duplicate-warning {
+		@apply text-sm text-sky-600 mt-0.5 pl-2.5 pb-1.5 flex items-center gap-1;
+	}
+
 	/* Status select color coding */
 	.status-select[data-status="Edited"] {
 		@apply bg-green-100 text-green-900;

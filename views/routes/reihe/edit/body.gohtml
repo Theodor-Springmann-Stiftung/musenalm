@@ -2,6 +2,7 @@
 {{ $series := $model.result.Series }}
 
 <edit-page>
+<duplicate-warning-checker></duplicate-warning-checker>
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
@@ -117,7 +118,11 @@
 					<div class="inputlabelrow">
 						<label for="title" class="inputlabel">Reihentitel</label>
 					</div>
-					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.Title -}}</textarea>
+					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/series/search" data-duplicate-result-key="series" data-duplicate-current-id="{{ if not $model.is_new }}{{ $series.Id }}{{ end }}">{{- $series.Title -}}</textarea>
+					<div class="duplicate-warning hidden" data-duplicate-warning-for="title">
+						<i class="ri-information-line"></i>
+						<span data-duplicate-count></span>
+					</div>
 				</div>
 				<div class="inputwrapper">
 					<div class="inputlabelrow">

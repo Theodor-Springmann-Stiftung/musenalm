@@ -18,6 +18,7 @@ type AlmanachResult struct {
 -->
 
 <almanach-edit-page>
+<duplicate-warning-checker></duplicate-warning-checker>
 
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
@@ -166,7 +167,11 @@ type AlmanachResult struct {
 				<div class="inputlabelrow">
 					<label for="preferred_title" class="inputlabel">Kurztitel</label>
 				</div>
-				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1">{{- $model.result.Entry.PreferredTitle -}}</textarea>
+				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/entries/search" data-duplicate-result-key="entries" data-duplicate-current-id="{{ if not $model.is_new }}{{ $model.result.Entry.Id }}{{ end }}">{{- $model.result.Entry.PreferredTitle -}}</textarea>
+				<div class="duplicate-warning hidden" data-duplicate-warning-for="preferred_title">
+					<i class="ri-information-line"></i>
+					<span data-duplicate-count></span>
+				</div>
 			</div>
 
 			<div class="mt-3">
