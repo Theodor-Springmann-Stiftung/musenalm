@@ -6,10 +6,10 @@
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-			<div class="mb-3">
+			<div class="mb-1">
 				<i class="ri-map-pin-line"></i> Ort
 			</div>
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 				{{- if $model.is_new -}}
 					Neuen Ort anlegen
 				{{- else -}}
@@ -35,14 +35,6 @@
 		{{- if not $model.is_new -}}
 		<div class="flex flex-row" id="place-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-					</div>
-					<div class="">{{ $place.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-6">
 				<div class="">
 					<div class="font-bold text-sm">
 						<i class="ri-navigation-line"></i> Navigation
@@ -72,6 +64,14 @@
 							</tool-tip>
 						{{- end -}}
 					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $place.Id }}</div>
 				</div>
 			</div>
 			<div class="flex flex-col justify-end gap-y-6 pr-4">

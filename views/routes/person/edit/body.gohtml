@@ -6,10 +6,10 @@
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-			<div class="mb-3">
+			<div class="mb-1">
 				<i class="ri-user-line"></i> Person
 			</div>
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 				{{- if $model.is_new -}}
 					Neue Person anlegen
 				{{- else -}}
@@ -39,14 +39,6 @@
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
 					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-					</div>
-					<div class="">{{ $agent.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-6">
-				<div class="">
-					<div class="font-bold text-sm">
 						<i class="ri-navigation-line"></i> Navigation
 					</div>
 					<div class="flex items-center gap-3">
@@ -74,6 +66,14 @@
 							</tool-tip>
 						{{- end -}}
 					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $agent.Id }}</div>
 				</div>
 			</div>
 			<div class="flex flex-col justify-end gap-y-6 pr-4">
@@ -131,45 +131,49 @@
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
 				</div>
 				<div class="flex flex-row gap-2">
-				<div class="inputwrapper">
-					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-							<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
-							$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
-							<label class="flex items-center gap-2 text-gray-700"
-							for="corporate_body">Körperschaft (Verlag od. Vertrieb)</label>
+					<div class="inputwrapper">
+						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+								<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
+								$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
+								<label class="flex items-center gap-2 text-gray-700"
+								for="corporate_body">Körperschaft (Verlag od. Vertrieb)</label>
+						</div>
+					</div>
+					<div class="inputwrapper">
+						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+								<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
+								<label class="flex items-center gap-2 text-gray-700"
+								for="fictional">Fiktional</label>
+						</div>
 					</div>
 				</div>
-				<div class="inputwrapper">
-					<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-							<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
-							<label class="flex items-center gap-2 text-gray-700"
-							for="fictional">Fiktional</label>
+				<div class="flex flex-row gap-2 w-full">
+					<div class="inputwrapper w-3/4 grow-0">
+						<div class="inputlabelrow">
+							<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
+						</div>
+						<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
+					</div>
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<label for="profession" class="inputlabel">Profession</label>
+						</div>
+						<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
 					</div>
 				</div>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
+				<div class="flex flex-row gap-2 w-full">
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<label for="uri" class="inputlabel">URL</label>
+						</div>
+						<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
 					</div>
-					<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="profession" class="inputlabel">Profession</label>
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<label for="references" class="inputlabel">Nachweise</label>
+						</div>
+						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>
 					</div>
-					<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="uri" class="inputlabel">URI</label>
-					</div>
-					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="references" class="inputlabel">Nachweise</label>
-					</div>
-					<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>
 				</div>
 				{{ template "_annotation_field" (Arr $agent.Annotation "Annotation") }}
 			</div>

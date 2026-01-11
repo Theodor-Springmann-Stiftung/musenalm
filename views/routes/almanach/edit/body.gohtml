@@ -23,10 +23,10 @@ type AlmanachResult struct {
 <div class="flex container-normal bg-slate-100 mx-auto px-8">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
-		<div class="mb-3">
+		<div class="mb-1">
 			<i class="ri-book-line"></i> Almanach
 		</div>
-		<h1 class="text-2xl w-full font-bold text-slate-900 mb-4">
+		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.is_new -}}
 				 Neuen Almanach anlegen
 			{{- else -}}
@@ -80,18 +80,6 @@ type AlmanachResult struct {
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
 					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-						<tool-tip position="right" class="!inline">
-							<div class="data-tip">Die Datenbank-ID kann zur Fehlerdiagnose hilfreich sein.</div>
-							<i class="ri-information-line"></i>
-						</tool-tip>
-					</div>
-					<div class="">{{ $model.result.Entry.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-6">
-				<div class="">
-					<div class="font-bold text-sm">
 						<i class="ri-navigation-line"></i> Navigation
 					</div>
 					<div class="flex items-center gap-3">
@@ -119,6 +107,18 @@ type AlmanachResult struct {
 							</tool-tip>
 						{{- end -}}
 					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+						<tool-tip position="right" class="!inline">
+							<div class="data-tip">Die Datenbank-ID kann zur Fehlerdiagnose hilfreich sein.</div>
+							<i class="ri-information-line"></i>
+						</tool-tip>
+					</div>
+					<div class="">{{ $model.result.Entry.Id }}</div>
 				</div>
 			</div>
 			<div class="flex flex-col justify-end gap-y-6 pr-4">
