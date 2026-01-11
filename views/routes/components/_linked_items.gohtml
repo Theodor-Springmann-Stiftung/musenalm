@@ -24,13 +24,13 @@
 	<hr class="border-slate-400 mt-2 mb-3" />
 	<div class="tab-list-panel text-sm text-gray-800 max-h-96 overflow-auto pr-1 pl-0 ml-0">
 		{{- if $entries -}}
-			<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
+			<ul class="flex flex-col pl-0 pr-0 m-0 ml-0 list-none">
 				{{- range $entry := $entries -}}
 					{{- $types := "" -}}
 					{{- if $entryTypes -}}
 						{{- $types = index $entryTypes $entry.Id -}}
 					{{- end -}}
-					<li class="flex items-baseline justify-between gap-3 ml-0 px-1 odd:bg-stone-100">
+					<li class="flex items-baseline justify-between ml-0 p-1 odd:bg-stone-100">
 						<div class="flex flex-col gap-1">
 							<a href="/almanach/{{ $entry.MusenalmID }}" class="font-bold no-underline hover:text-slate-900">
 								{{- $entry.PreferredTitle -}}
@@ -54,7 +54,7 @@
 	{{- if $contents -}}
 	<div class="tab-list-panel text-sm text-gray-800 max-h-96 overflow-auto pr-1 pl-0 ml-0 self-stretch">
 		{{- if $contents -}}
-			<ul class="flex flex-col gap-3 pl-0 pr-0 m-0 ml-0 list-none">
+			<ul class="flex flex-col pl-0 pr-0 m-0 ml-0 list-none">
 				{{- range $content := $contents -}}
 					{{- $entry := "" -}}
 					{{- if $contentEntries -}}
@@ -64,7 +64,7 @@
 					{{- if $contentTypes -}}
 						{{- $types = index $contentTypes $content.Id -}}
 					{{- end -}}
-					<li class="flex flex-col gap-1 ml-0 pl-0 odd:bg-stone-100 px-1">
+					<li class="flex flex-col gap-1 ml-0 p-1 odd:bg-stone-100 px-1">
 						<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
 							{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
 						</a>
