@@ -963,8 +963,7 @@ type AlmanachResult struct {
 											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
-										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off">
-											<option value=""></option>
+										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
 											{{- end -}}
@@ -1081,8 +1080,7 @@ type AlmanachResult struct {
 											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
-										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off">
-											<option value=""></option>
+										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}">{{- $t -}}</option>
 											{{- end -}}

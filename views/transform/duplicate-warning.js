@@ -15,6 +15,11 @@ export class DuplicateWarningChecker extends HTMLElement {
 			const handler = this._createHandler(field);
 			this._boundHandlers.set(field, handler);
 			field.addEventListener("input", handler);
+			// Run initial check on page load only if field has a non-empty value
+			const initialValue = field.value ? field.value.trim() : "";
+			if (initialValue !== "") {
+				this._checkDuplicates(field);
+			}
 		});
 	}
 

@@ -457,6 +457,10 @@ export class AlmanachEditPage extends HTMLElement {
 			if (!hasValues) {
 				continue;
 			}
+			// Validate that media field is not empty
+			if (!mediaValue) {
+				throw new Error(`Exemplar ${index + 1}: "Vorhanden als" muss ausgefüllt werden.`);
+			}
 			items.push({
 				id,
 				owner,

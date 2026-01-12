@@ -786,7 +786,7 @@ var Ee = function s() {
   const e = (c) => s(c);
   if (e.version = "3.2.7", e.removed = [], !t || !t.document || t.document.nodeType !== ya || !t.Element) return e.isSupported = !1, e;
   let { document: i } = t;
-  const n = i, r = n.currentScript, { DocumentFragment: o, HTMLTemplateElement: a, Node: l, Element: d, NodeFilter: h, NamedNodeMap: m = t.NamedNodeMap || t.MozNamedAttrMap, HTMLFormElement: p, DOMParser: f, trustedTypes: x } = t, C = d.prototype, U = le(C, "cloneNode"), j = le(C, "remove"), q = le(C, "nextSibling"), N = le(C, "childNodes"), O = le(C, "parentNode");
+  const n = i, r = n.currentScript, { DocumentFragment: o, HTMLTemplateElement: a, Node: l, Element: d, NodeFilter: h, NamedNodeMap: m = t.NamedNodeMap || t.MozNamedAttrMap, HTMLFormElement: p, DOMParser: f, trustedTypes: x } = t, C = d.prototype, U = le(C, "cloneNode"), j = le(C, "remove"), N = le(C, "nextSibling"), P = le(C, "childNodes"), O = le(C, "parentNode");
   if (typeof a == "function") {
     const c = i.createElement("template");
     c.content && c.content.ownerDocument && (i = c.content.ownerDocument);
@@ -796,7 +796,7 @@ var Ee = function s() {
   let W = { afterSanitizeAttributes: [], afterSanitizeElements: [], afterSanitizeShadowDOM: [], beforeSanitizeAttributes: [], beforeSanitizeElements: [], beforeSanitizeShadowDOM: [], uponSanitizeAttribute: [], uponSanitizeElement: [], uponSanitizeShadowNode: [] };
   e.isSupported = typeof Rr == "function" && typeof O == "function" && ct && ct.createHTMLDocument !== void 0;
   const { MUSTACHE_EXPR: ai, ERB_EXPR: li, TMPLIT_EXPR: ci, DATA_ATTR: _o, ARIA_ATTR: Ao, IS_SCRIPT_OR_DATA: yo, ATTR_WHITESPACE: Dn, CUSTOM_ELEMENT: Eo } = ys;
-  let { IS_ALLOWED_URI: On } = ys, P = null;
+  let { IS_ALLOWED_URI: On } = ys, F = null;
   const Mn = A({}, [...bs, ...Bi, ...Ni, ...Pi, ...vs]);
   let H = null;
   const Bn = A({}, [..._s, ...Fi, ...As, ...Fe]);
@@ -812,13 +812,13 @@ var Ee = function s() {
   const xo = A({}, ["title", "style", "font", "a", "script"]);
   let te = null;
   const Lo = ["application/xhtml+xml", "text/html"];
-  let F = null, jt = null;
+  let q = null, jt = null;
   const Co = i.createElement("form"), Wn = function(c) {
     return c instanceof RegExp || c instanceof Function;
   }, vi = function() {
     let c = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
     if (!jt || jt !== c) {
-      if (c && typeof c == "object" || (c = {}), c = ut(c), te = Lo.indexOf(c.PARSER_MEDIA_TYPE) === -1 ? "text/html" : c.PARSER_MEDIA_TYPE, F = te === "application/xhtml+xml" ? Oi : Ge, P = rt(c, "ALLOWED_TAGS") ? A({}, c.ALLOWED_TAGS, F) : Mn, H = rt(c, "ALLOWED_ATTR") ? A({}, c.ALLOWED_ATTR, F) : Bn, bi = rt(c, "ALLOWED_NAMESPACES") ? A({}, c.ALLOWED_NAMESPACES, Oi) : So, pi = rt(c, "ADD_URI_SAFE_ATTR") ? A(ut(Vn), c.ADD_URI_SAFE_ATTR, F) : Vn, Un = rt(c, "ADD_DATA_URI_TAGS") ? A(ut(jn), c.ADD_DATA_URI_TAGS, F) : jn, $t = rt(c, "FORBID_CONTENTS") ? A({}, c.FORBID_CONTENTS, F) : $n, Qt = rt(c, "FORBID_TAGS") ? A({}, c.FORBID_TAGS, F) : ut({}), di = rt(c, "FORBID_ATTR") ? A({}, c.FORBID_ATTR, F) : ut({}), Ht = !!rt(c, "USE_PROFILES") && c.USE_PROFILES, Nn = c.ALLOW_ARIA_ATTR !== !1, hi = c.ALLOW_DATA_ATTR !== !1, Pn = c.ALLOW_UNKNOWN_PROTOCOLS || !1, Fn = c.ALLOW_SELF_CLOSE_IN_ATTR !== !1, Ft = c.SAFE_FOR_TEMPLATES || !1, we = c.SAFE_FOR_XML !== !1, St = c.WHOLE_DOCUMENT || !1, qt = c.RETURN_DOM || !1, Te = c.RETURN_DOM_FRAGMENT || !1, ke = c.RETURN_TRUSTED_TYPE || !1, mi = c.FORCE_BODY || !1, qn = c.SANITIZE_DOM !== !1, Hn = c.SANITIZE_NAMED_PROPS || !1, gi = c.KEEP_CONTENT !== !1, Zt = c.IN_PLACE || !1, On = c.ALLOWED_URI_REGEXP || Or, Ut = c.NAMESPACE || dt, De = c.MATHML_TEXT_INTEGRATION_POINTS || De, Oe = c.HTML_INTEGRATION_POINTS || Oe, I = c.CUSTOM_ELEMENT_HANDLING || {}, c.CUSTOM_ELEMENT_HANDLING && Wn(c.CUSTOM_ELEMENT_HANDLING.tagNameCheck) && (I.tagNameCheck = c.CUSTOM_ELEMENT_HANDLING.tagNameCheck), c.CUSTOM_ELEMENT_HANDLING && Wn(c.CUSTOM_ELEMENT_HANDLING.attributeNameCheck) && (I.attributeNameCheck = c.CUSTOM_ELEMENT_HANDLING.attributeNameCheck), c.CUSTOM_ELEMENT_HANDLING && typeof c.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements == "boolean" && (I.allowCustomizedBuiltInElements = c.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements), Ft && (hi = !1), Te && (qt = !0), Ht && (P = A({}, vs), H = [], Ht.html === !0 && (A(P, bs), A(H, _s)), Ht.svg === !0 && (A(P, Bi), A(H, Fi), A(H, Fe)), Ht.svgFilters === !0 && (A(P, Ni), A(H, Fi), A(H, Fe)), Ht.mathMl === !0 && (A(P, Pi), A(H, As), A(H, Fe))), c.ADD_TAGS && (P === Mn && (P = ut(P)), A(P, c.ADD_TAGS, F)), c.ADD_ATTR && (H === Bn && (H = ut(H)), A(H, c.ADD_ATTR, F)), c.ADD_URI_SAFE_ATTR && A(pi, c.ADD_URI_SAFE_ATTR, F), c.FORBID_CONTENTS && ($t === $n && ($t = ut($t)), A($t, c.FORBID_CONTENTS, F)), gi && (P["#text"] = !0), St && A(P, ["html", "head", "body"]), P.table && (A(P, ["tbody"]), delete Qt.tbody), c.TRUSTED_TYPES_POLICY) {
+      if (c && typeof c == "object" || (c = {}), c = ut(c), te = Lo.indexOf(c.PARSER_MEDIA_TYPE) === -1 ? "text/html" : c.PARSER_MEDIA_TYPE, q = te === "application/xhtml+xml" ? Oi : Ge, F = rt(c, "ALLOWED_TAGS") ? A({}, c.ALLOWED_TAGS, q) : Mn, H = rt(c, "ALLOWED_ATTR") ? A({}, c.ALLOWED_ATTR, q) : Bn, bi = rt(c, "ALLOWED_NAMESPACES") ? A({}, c.ALLOWED_NAMESPACES, Oi) : So, pi = rt(c, "ADD_URI_SAFE_ATTR") ? A(ut(Vn), c.ADD_URI_SAFE_ATTR, q) : Vn, Un = rt(c, "ADD_DATA_URI_TAGS") ? A(ut(jn), c.ADD_DATA_URI_TAGS, q) : jn, $t = rt(c, "FORBID_CONTENTS") ? A({}, c.FORBID_CONTENTS, q) : $n, Qt = rt(c, "FORBID_TAGS") ? A({}, c.FORBID_TAGS, q) : ut({}), di = rt(c, "FORBID_ATTR") ? A({}, c.FORBID_ATTR, q) : ut({}), Ht = !!rt(c, "USE_PROFILES") && c.USE_PROFILES, Nn = c.ALLOW_ARIA_ATTR !== !1, hi = c.ALLOW_DATA_ATTR !== !1, Pn = c.ALLOW_UNKNOWN_PROTOCOLS || !1, Fn = c.ALLOW_SELF_CLOSE_IN_ATTR !== !1, Ft = c.SAFE_FOR_TEMPLATES || !1, we = c.SAFE_FOR_XML !== !1, St = c.WHOLE_DOCUMENT || !1, qt = c.RETURN_DOM || !1, Te = c.RETURN_DOM_FRAGMENT || !1, ke = c.RETURN_TRUSTED_TYPE || !1, mi = c.FORCE_BODY || !1, qn = c.SANITIZE_DOM !== !1, Hn = c.SANITIZE_NAMED_PROPS || !1, gi = c.KEEP_CONTENT !== !1, Zt = c.IN_PLACE || !1, On = c.ALLOWED_URI_REGEXP || Or, Ut = c.NAMESPACE || dt, De = c.MATHML_TEXT_INTEGRATION_POINTS || De, Oe = c.HTML_INTEGRATION_POINTS || Oe, I = c.CUSTOM_ELEMENT_HANDLING || {}, c.CUSTOM_ELEMENT_HANDLING && Wn(c.CUSTOM_ELEMENT_HANDLING.tagNameCheck) && (I.tagNameCheck = c.CUSTOM_ELEMENT_HANDLING.tagNameCheck), c.CUSTOM_ELEMENT_HANDLING && Wn(c.CUSTOM_ELEMENT_HANDLING.attributeNameCheck) && (I.attributeNameCheck = c.CUSTOM_ELEMENT_HANDLING.attributeNameCheck), c.CUSTOM_ELEMENT_HANDLING && typeof c.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements == "boolean" && (I.allowCustomizedBuiltInElements = c.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements), Ft && (hi = !1), Te && (qt = !0), Ht && (F = A({}, vs), H = [], Ht.html === !0 && (A(F, bs), A(H, _s)), Ht.svg === !0 && (A(F, Bi), A(H, Fi), A(H, Fe)), Ht.svgFilters === !0 && (A(F, Ni), A(H, Fi), A(H, Fe)), Ht.mathMl === !0 && (A(F, Pi), A(H, As), A(H, Fe))), c.ADD_TAGS && (F === Mn && (F = ut(F)), A(F, c.ADD_TAGS, q)), c.ADD_ATTR && (H === Bn && (H = ut(H)), A(H, c.ADD_ATTR, q)), c.ADD_URI_SAFE_ATTR && A(pi, c.ADD_URI_SAFE_ATTR, q), c.FORBID_CONTENTS && ($t === $n && ($t = ut($t)), A($t, c.FORBID_CONTENTS, q)), gi && (F["#text"] = !0), St && A(F, ["html", "head", "body"]), F.table && (A(F, ["tbody"]), delete Qt.tbody), c.TRUSTED_TYPES_POLICY) {
         if (typeof c.TRUSTED_TYPES_POLICY.createHTML != "function") throw ae('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
         if (typeof c.TRUSTED_TYPES_POLICY.createScriptURL != "function") throw ae('TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.');
         w = c.TRUSTED_TYPES_POLICY, tt = w.createHTML("");
@@ -894,17 +894,17 @@ var Ee = function s() {
   const Xn = function(c) {
     let g = null;
     if (ht(W.beforeSanitizeElements, c, null), _i(c)) return at(c), !0;
-    const u = F(c.nodeName);
-    if (ht(W.uponSanitizeElement, c, { tagName: u, allowedTags: P }), we && c.hasChildNodes() && !Yn(c.firstElementChild) && z(/<[/\w!]/g, c.innerHTML) && z(/<[/\w!]/g, c.textContent) || c.nodeType === _a || we && c.nodeType === Aa && z(/<[/\w]/g, c.data)) return at(c), !0;
-    if (!P[u] || Qt[u]) {
+    const u = q(c.nodeName);
+    if (ht(W.uponSanitizeElement, c, { tagName: u, allowedTags: F }), we && c.hasChildNodes() && !Yn(c.firstElementChild) && z(/<[/\w!]/g, c.innerHTML) && z(/<[/\w!]/g, c.textContent) || c.nodeType === _a || we && c.nodeType === Aa && z(/<[/\w]/g, c.data)) return at(c), !0;
+    if (!F[u] || Qt[u]) {
       if (!Qt[u] && Zn(u) && (I.tagNameCheck instanceof RegExp && z(I.tagNameCheck, u) || I.tagNameCheck instanceof Function && I.tagNameCheck(u)))
         return !1;
       if (gi && !$t[u]) {
-        const y = O(c) || c.parentNode, S = N(c) || c.childNodes;
+        const y = O(c) || c.parentNode, S = P(c) || c.childNodes;
         if (S && y)
           for (let v = S.length - 1; v >= 0; --v) {
             const B = U(S[v], !0);
-            B.__removalCount = (c.__removalCount || 0) + 1, y.insertBefore(B, q(c));
+            B.__removalCount = (c.__removalCount || 0) + 1, y.insertBefore(B, N(c));
           }
       }
       return at(c), !0;
@@ -942,7 +942,7 @@ var Ee = function s() {
     const u = { attrName: "", attrValue: "", keepAttr: !0, allowedAttributes: H, forceKeepAttr: void 0 };
     let y = g.length;
     for (; y--; ) {
-      const S = g[y], { name: v, namespaceURI: B, value: pt } = S, et = F(v), Ai = pt;
+      const S = g[y], { name: v, namespaceURI: B, value: pt } = S, et = q(v), Ai = pt;
       let $ = v === "value" ? Ai : ra(Ai);
       if (u.attrName = et, u.attrValue = $, u.keepAttr = !0, u.forceKeepAttr = void 0, ht(W.uponSanitizeAttribute, c, u), $ = u.attrValue, !Hn || et !== "id" && et !== "name" || (xt(v, c), $ = "user-content-" + $), we && z(/((--!?|])>)|<\/(style|title|textarea)/i, $)) {
         xt(v, c);
@@ -964,7 +964,7 @@ var Ee = function s() {
       Ft && Pe([ai, li, ci], (is) => {
         $ = oe($, is, " ");
       });
-      const es = F(c.nodeName);
+      const es = q(c.nodeName);
       if (Qn(es, et, $)) {
         if (w && typeof x == "object" && typeof x.getAttributeType == "function" && !B) switch (x.getAttributeType(es, et)) {
           case "TrustedHTML":
@@ -996,8 +996,8 @@ var Ee = function s() {
     if (!e.isSupported) return c;
     if (ui || vi(g), e.removed = [], typeof c == "string" && (Zt = !1), Zt) {
       if (c.nodeName) {
-        const et = F(c.nodeName);
-        if (!P[et] || Qt[et]) throw ae("root node is forbidden and cannot be sanitized in-place");
+        const et = q(c.nodeName);
+        if (!F[et] || Qt[et]) throw ae("root node is forbidden and cannot be sanitized in-place");
       }
     } else if (c instanceof l) u = Gn("<!---->"), y = u.ownerDocument.importNode(c, !0), y.nodeType === ba && y.nodeName === "BODY" || y.nodeName === "HTML" ? u = y : u.appendChild(y);
     else {
@@ -1014,7 +1014,7 @@ var Ee = function s() {
       return (H.shadowroot || H.shadowrootmode) && (v = vo.call(n, v, !0)), v;
     }
     let pt = St ? u.outerHTML : u.innerHTML;
-    return St && P["!doctype"] && u.ownerDocument && u.ownerDocument.doctype && u.ownerDocument.doctype.name && z(Mr, u.ownerDocument.doctype.name) && (pt = "<!DOCTYPE " + u.ownerDocument.doctype.name + `>
+    return St && F["!doctype"] && u.ownerDocument && u.ownerDocument.doctype && u.ownerDocument.doctype.name && z(Mr, u.ownerDocument.doctype.name) && (pt = "<!DOCTYPE " + u.ownerDocument.doctype.name + `>
 ` + pt), Ft && Pe([ai, li, ci], (et) => {
       pt = oe(pt, et, " ");
     }), w && ke ? w.createHTML(pt) : pt;
@@ -1024,7 +1024,7 @@ var Ee = function s() {
     jt = null, ui = !1;
   }, e.isValidAttribute = function(c, g, u) {
     jt || vi({});
-    const y = F(c), S = F(g);
+    const y = q(c), S = q(g);
     return Qn(y, S, u);
   }, e.addHook = function(c, g) {
     typeof g == "function" && re(W[c], g);
@@ -4330,9 +4330,9 @@ V(mt, "events", { keydown(s) {
     var C, U;
     const O = (C = t.items) === null || C === void 0 || (C = C[0]) === null || C === void 0 || (U = C.getAsFile) === null || U === void 0 ? void 0 : U.call(C);
     if (O) {
-      var j, q, N;
+      var j, N, P;
       const w = cl(O);
-      !O.name && w && (O.name = "pasted-file-".concat(++ll, ".").concat(w)), e.type = "File", e.file = O, (j = this.delegate) === null || j === void 0 || j.inputControllerWillAttachFiles(), (q = this.responder) === null || q === void 0 || q.insertFile(e.file), this.requestRender(), (N = this.delegate) === null || N === void 0 || N.inputControllerDidPaste(e);
+      !O.name && w && (O.name = "pasted-file-".concat(++ll, ".").concat(w)), e.type = "File", e.file = O, (j = this.delegate) === null || j === void 0 || j.inputControllerWillAttachFiles(), (N = this.responder) === null || N === void 0 || N.insertFile(e.file), this.requestRender(), (P = this.delegate) === null || P === void 0 || P.inputControllerDidPaste(e);
     }
   }
   s.preventDefault();
@@ -6781,7 +6781,7 @@ class ho extends HTMLElement {
   constructor() {
     super();
     ee(this, "_blurTimeout", null);
-    this.internals_ = this.attachInternals(), this._value = [], this._initialValue = [], this._initialOrder = [], this._removedIds = /* @__PURE__ */ new Set(), this._initialCaptured = !1, this._allowInitialCapture = !0, this._options = [
+    this.internals_ = this.attachInternals(), this._value = [], this._initialValue = [], this._initialOrder = [], this._displayOrder = [], this._removedIds = /* @__PURE__ */ new Set(), this._initialCaptured = !1, this._allowInitialCapture = !0, this._options = [
       { id: "abk", name: "Abchasisch" },
       { id: "aar", name: "Afar" },
       { id: "afr", name: "Afrikaans" },
@@ -7017,15 +7017,17 @@ class ho extends HTMLElement {
     return this._value;
   }
   set value(e) {
-    const i = JSON.stringify(this._value.sort());
+    const i = JSON.stringify([...this._value].sort());
     if (Array.isArray(e))
       this._value = [...new Set(e.filter((r) => typeof r == "string" && this._getItemById(r)))];
     else if (typeof e == "string" && e.trim() !== "") {
       const r = e.trim();
       this._getItemById(r) && !this._value.includes(r) ? this._value = [r] : this._getItemById(r) || (this._value = this._value.filter((o) => o !== r));
     } else this._value = [];
-    const n = JSON.stringify(this._value.sort());
-    !this._initialCaptured && this._allowInitialCapture && this._value.length > 0 && (this._initialValue = [...this._value], this._initialOrder = [...this._value], this._initialCaptured = !0), this._value.forEach((r) => {
+    const n = JSON.stringify([...this._value].sort());
+    this._value.forEach((r) => {
+      this._displayOrder.includes(r) || this._displayOrder.push(r);
+    }), !this._initialCaptured && this._allowInitialCapture && this._value.length > 0 && (this._initialValue = [...this._value], this._initialOrder = [...this._value], this._initialCaptured = !0), this._value.forEach((r) => {
       this._removedIds.has(r) && this._removedIds.delete(r);
     }), i !== n && (this._updateFormValue(), this.selectedItemsContainer && this._renderSelectedItems(), this._updateRootElementStateClasses(), this.dispatchEvent(new Event("change", { bubbles: !0 })));
   }
@@ -7047,7 +7049,7 @@ class ho extends HTMLElement {
       }
     } else
       this._renderSelectedItems(), this._synchronizeHiddenSelect();
-    this._value.length === 0 && this._renderSelectedItems(), this.hasAttribute("disabled") && this.disabledCallback(!0), this._toggleInput && this._hideInputControls(), this._allowInitialCapture = !1, this._initialCaptured || (this._initialValue = [...this._value], this._initialOrder = [...this._value], this._initialCaptured = !0);
+    this._value.length === 0 && this._renderSelectedItems(), this.hasAttribute("disabled") && this.disabledCallback(!0), this._toggleInput && this._hideInputControls(), this._allowInitialCapture = !1, this._initialCaptured || (this._initialValue = [...this._value], this._initialOrder = [...this._value], this._displayOrder = [...this._value], this._initialCaptured = !0);
   }
   disconnectedCallback() {
     this.inputElement && (this.inputElement.removeEventListener("input", this._handleInput), this.inputElement.removeEventListener("keydown", this._handleKeyDown), this.inputElement.removeEventListener("focus", this._handleFocus), this.inputElement.removeEventListener("blur", this._handleBlur)), this.optionsListElement && (this.optionsListElement.removeEventListener("mousedown", this._handleOptionMouseDown), this.optionsListElement.removeEventListener("click", this._handleOptionClick)), this.createNewButton && this.createNewButton.removeEventListener("click", this._handleCreateNewButtonClick), this.selectedItemsContainer && this.selectedItemsContainer.removeEventListener("click", this._handleSelectedItemsContainerClick), this.toggleButton && this.toggleButton.removeEventListener("click", this._handleToggleClick), this.externalToggleButton && this.externalToggleButton.removeEventListener("click", this._handleToggleClick), clearTimeout(this._blurTimeout), this._remoteFetchTimeout && (clearTimeout(this._remoteFetchTimeout), this._remoteFetchTimeout = null), this._cancelRemoteFetch();
@@ -7084,13 +7086,13 @@ class ho extends HTMLElement {
     this.disabledCallback(e);
   }
   formResetCallback() {
-    this.value = [], this._hideOptionsList(), this.inputElement && (this.inputElement.value = ""), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this._updateRootElementStateClasses(), this._renderSelectedItems(), this._toggleInput && this._hideInputControls();
+    this.value = [], this._displayOrder = [], this._hideOptionsList(), this.inputElement && (this.inputElement.value = ""), this.placeholder = this.getAttribute("placeholder") || "Search items...", this.showCreateButton = this.getAttribute("show-create-button") !== "false", this._updateRootElementStateClasses(), this._renderSelectedItems(), this._toggleInput && this._hideInputControls();
   }
   formStateRestoreCallback(e, i) {
     this.value = Array.isArray(e) ? e : [], this._updateRootElementStateClasses();
   }
   captureInitialSelection() {
-    this._initialValue = [...this._value], this._initialOrder = [...this._value], this._removedIds.clear(), this._initialCaptured = !0, this._renderSelectedItems();
+    this._initialValue = [...this._value], this._initialOrder = [...this._value], this._displayOrder = [...this._value], this._removedIds.clear(), this._initialCaptured = !0, this._renderSelectedItems();
   }
   _synchronizeHiddenSelect() {
     this.hiddenSelect && (this.hiddenSelect.innerHTML = "", this._value.forEach((e) => {
@@ -7158,14 +7160,16 @@ class ho extends HTMLElement {
   _renderSelectedItems() {
     if (!this.selectedItemsContainer) return;
     this.selectedItemsContainer.innerHTML = "";
-    const e = this._initialOrder.filter((n) => this._removedIds.has(n) && !this._value.includes(n)), i = [...this._value, ...e];
-    if (i.length === 0) {
-      const n = this.getAttribute("data-empty-text") || "Keine Auswahl...", r = this._inputCollapsed ? "" : "hidden";
-      this.selectedItemsContainer.innerHTML = `<span class="${tn} ${r}">${n}</span>`;
+    const e = this._displayOrder.filter(
+      (i) => this._value.includes(i) || this._removedIds.has(i)
+    );
+    if (e.length === 0) {
+      const i = this.getAttribute("data-empty-text") || "Keine Auswahl...", n = this._inputCollapsed ? "" : "hidden";
+      this.selectedItemsContainer.innerHTML = `<span class="${tn} ${n}">${i}</span>`;
     } else
-      i.forEach((n) => {
-        const r = this._createSelectedItemElement(n);
-        r && this.selectedItemsContainer.appendChild(r);
+      e.forEach((i) => {
+        const n = this._createSelectedItemElement(i);
+        n && this.selectedItemsContainer.appendChild(n);
       });
     this._updateRootElementStateClasses();
   }
@@ -8280,14 +8284,14 @@ class Fc extends HTMLElement {
     if (Number.isNaN(n))
       throw new Error("Jahr ist ungültig.");
     e.year = n;
-    const r = t.getAll("languages[]").map((N) => N.trim()).filter(Boolean), o = t.getAll("places[]").map((N) => N.trim()).filter(Boolean), { items: a, removedIds: l } = this._collectItems(t), {
+    const r = t.getAll("languages[]").map((P) => P.trim()).filter(Boolean), o = t.getAll("places[]").map((P) => P.trim()).filter(Boolean), { items: a, removedIds: l } = this._collectItems(t), {
       relations: d,
       deleted: h
     } = this._collectRelations(t, {
       prefix: "entries_series",
       targetField: "series"
     }), m = this._collectNewRelations("entries_series"), p = [...d, ...m].filter(
-      (N) => N.type === Pc
+      (P) => P.type === Pc
     ).length;
     if (p === 0)
       throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
@@ -8299,8 +8303,8 @@ class Fc extends HTMLElement {
     } = this._collectRelations(t, {
       prefix: "entries_agents",
       targetField: "agent"
-    }), C = this._collectNewRelations("entries_agents"), j = [...d, ...m].map((N) => N.target_id);
-    if (j.filter((N, O) => j.indexOf(N) !== O).length > 0)
+    }), C = this._collectNewRelations("entries_agents"), j = [...d, ...m].map((P) => P.target_id);
+    if (j.filter((P, O) => j.indexOf(P) !== O).length > 0)
       throw new Error("Doppelte Reihenverknüpfungen sind nicht erlaubt.");
     return {
       csrf_token: this._readValue(t, "csrf_token"),
@@ -8326,16 +8330,20 @@ class Fc extends HTMLElement {
       const p = e[m] || "";
       if (p && d.has(p))
         continue;
-      const f = (i[m] || "").trim(), x = (n[m] || "").trim(), C = (r[m] || "").trim(), U = (a[m] || "").trim(), j = (l[m] || "").trim(), q = (o[m] || "").trim();
-      (p || f || x || C || U || j || q) && h.push({
-        id: p,
-        owner: f,
-        identifier: x,
-        location: C,
-        annotation: U,
-        uri: j,
-        media: q ? [q] : []
-      });
+      const f = (i[m] || "").trim(), x = (n[m] || "").trim(), C = (r[m] || "").trim(), U = (a[m] || "").trim(), j = (l[m] || "").trim(), N = (o[m] || "").trim();
+      if (p || f || x || C || U || j || N) {
+        if (!N)
+          throw new Error(`Exemplar ${m + 1}: "Vorhanden als" muss ausgefüllt werden.`);
+        h.push({
+          id: p,
+          owner: f,
+          identifier: x,
+          location: C,
+          annotation: U,
+          uri: j,
+          media: N ? [N] : []
+        });
+      }
     }
     return {
       items: h,
@@ -8697,8 +8705,8 @@ class Qc extends HTMLElement {
     }
     const j = document.querySelector('input[name="csrf_token"]');
     j && j.value, this.hasContext = l || h || p;
-    let q = "";
-    l ? q = `
+    let N = "";
+    l ? N = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihe
 				</div>
@@ -8706,7 +8714,7 @@ class Qc extends HTMLElement {
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-			` : h ? q = `
+			` : h ? N = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Person
 				</div>
@@ -8714,7 +8722,7 @@ class Qc extends HTMLElement {
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-			` : p && (q = `
+			` : p && (N = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Almanach
 				</div>
@@ -8723,7 +8731,7 @@ class Qc extends HTMLElement {
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
 			`);
-    const N = n ? `
+    const P = n ? `
 			<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 				Erstellen
 			</div>
@@ -8828,7 +8836,7 @@ class Qc extends HTMLElement {
 				</a>
 			</div>
 			<div class="border-t border-gray-200 my-1"></div>
-		` : "", tt = q || "", ct = q ? '<div class="border-t border-gray-200"></div>' : "";
+		` : "", tt = N || "", ct = N ? '<div class="border-t border-gray-200"></div>' : "";
     this.innerHTML = `
 			<div class="fixed bottom-12 left-8 z-50">
 				<!-- Unified Menu Container -->
@@ -8839,7 +8847,7 @@ class Qc extends HTMLElement {
 
 					<!-- Rest of menu (hidden in half state, shown in full state) -->
 					<div class="fab-full-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0; opacity: 0;">
-						${N}
+						${P}
 						${O}
 						${w}
 						<div class="px-4 py-2">
@@ -8899,7 +8907,7 @@ class td extends HTMLElement {
   connectedCallback() {
     this._fields = document.querySelectorAll("[data-duplicate-check]"), this._fields.forEach((t) => {
       const e = this._createHandler(t);
-      this._boundHandlers.set(t, e), t.addEventListener("input", e);
+      this._boundHandlers.set(t, e), t.addEventListener("input", e), (t.value ? t.value.trim() : "") !== "" && this._checkDuplicates(t);
     });
   }
   disconnectedCallback() {

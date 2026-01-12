@@ -41,6 +41,7 @@ export class MultiSelectSimple extends HTMLElement {
 		this._value = [];
 		this._initialValue = [];
 		this._initialOrder = [];
+		this._displayOrder = [];
 		this._removedIds = new Set();
 		this._initialCaptured = false;
 		this._allowInitialCapture = true;
@@ -333,7 +334,7 @@ export class MultiSelectSimple extends HTMLElement {
 		return this._value;
 	}
 	set value(newVal) {
-		const oldValString = JSON.stringify(this._value.sort());
+		const oldValString = JSON.stringify([...this._value].sort());
 		if (Array.isArray(newVal)) {
 			this._value = [...new Set(newVal.filter((id) => typeof id === "string" && this._getItemById(id)))];
 		} else if (typeof newVal === "string" && newVal.trim() !== "") {
@@ -341,7 +342,15 @@ export class MultiSelectSimple extends HTMLElement {
 			if (this._getItemById(singleId) && !this._value.includes(singleId)) this._value = [singleId];
 			else if (!this._getItemById(singleId)) this._value = this._value.filter((id) => id !== singleId);
 		} else this._value = [];
-		const newValString = JSON.stringify(this._value.sort());
+		const newValString = JSON.stringify([...this._value].sort());
+
+		// Update display order: add new items, keep existing order
+		this._value.forEach((id) => {
+			if (!this._displayOrder.includes(id)) {
+				this._displayOrder.push(id);
+			}
+		});
+
 		if (!this._initialCaptured && this._allowInitialCapture && this._value.length > 0) {
 			this._initialValue = [...this._value];
 			this._initialOrder = [...this._value];
@@ -439,6 +448,7 @@ export class MultiSelectSimple extends HTMLElement {
 		if (!this._initialCaptured) {
 			this._initialValue = [...this._value];
 			this._initialOrder = [...this._value];
+			this._displayOrder = [...this._value];
 			this._initialCaptured = true;
 		}
 	}
@@ -511,6 +521,7 @@ export class MultiSelectSimple extends HTMLElement {
 	}
 	formResetCallback() {
 		this.value = [];
+		this._displayOrder = [];
 		this._hideOptionsList();
 		if (this.inputElement) this.inputElement.value = "";
 		this.placeholder = this.getAttribute("placeholder") || "Search items...";
@@ -529,6 +540,7 @@ export class MultiSelectSimple extends HTMLElement {
 	captureInitialSelection() {
 		this._initialValue = [...this._value];
 		this._initialOrder = [...this._value];
+		this._displayOrder = [...this._value];
 		this._removedIds.clear();
 		this._initialCaptured = true;
 		this._renderSelectedItems();
@@ -651,8 +663,10 @@ export class MultiSelectSimple extends HTMLElement {
 	_renderSelectedItems() {
 		if (!this.selectedItemsContainer) return;
 		this.selectedItemsContainer.innerHTML = "";
-		const removedInOrder = this._initialOrder.filter((id) => this._removedIds.has(id) && !this._value.includes(id));
-		const displayIds = [...this._value, ...removedInOrder];
+		// Use display order to maintain item positions
+		const displayIds = this._displayOrder.filter((id) =>
+			this._value.includes(id) || this._removedIds.has(id)
+		);
 		if (displayIds.length === 0) {
 			const emptyText = this.getAttribute("data-empty-text") || "Keine Auswahl...";
 			// Start with hidden class - visibility will be managed by show/hide input controls
