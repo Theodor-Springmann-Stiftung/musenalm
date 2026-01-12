@@ -116,32 +116,6 @@ func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParam
 	}, nil
 }
 
-func entryNeighborsByPreferredTitle(app core.App, entryID string) (*dbmodels.Entry, *dbmodels.Entry, error) {
-	entries := []*dbmodels.Entry{}
-	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
-		return nil, nil, err
-	}
-	if len(entries) == 0 {
-		return nil, nil, nil
-	}
-	dbmodels.Sort_Entries_Title_Year(entries)
-	for index, item := range entries {
-		if item.Id != entryID {
-			continue
-		}
-		var prev *dbmodels.Entry
-		var next *dbmodels.Entry
-		if index > 0 {
-			prev = entries[index-1]
-		}
-		if index+1 < len(entries) {
-			next = entries[index+1]
-		}
-		return prev, next, nil
-	}
-	return nil, nil, nil
-}
-
 func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")

@@ -67,6 +67,9 @@ type AlmanachResult struct {
 
 	Types    []string
 	HasScans bool
+
+	PrevByTitle *dbmodels.Entry
+	NextByTitle *dbmodels.Entry
 }
 
 func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters) (*AlmanachResult, error) {
@@ -167,6 +170,11 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		agentsMap[a.Id] = a
 	}
 
+	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, entry.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &AlmanachResult{
 		Entry:          entry,
 		Places:         places,
@@ -179,11 +187,39 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		ContentsAgents: caMap,
 		Types:          types,
 		HasScans:       hs,
+		PrevByTitle:    prevByTitle,
+		NextByTitle:    nextByTitle,
 	}
 
 	ret.Collections()
 	return ret, nil
 
+}
+
+func entryNeighborsByPreferredTitle(app core.App, entryID string) (*dbmodels.Entry, *dbmodels.Entry, error) {
+	entries := []*dbmodels.Entry{}
+	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
+		return nil, nil, err
+	}
+	if len(entries) == 0 {
+		return nil, nil, nil
+	}
+	dbmodels.Sort_Entries_Title_Year(entries)
+	for index, item := range entries {
+		if item.Id != entryID {
+			continue
+		}
+		var prev *dbmodels.Entry
+		var next *dbmodels.Entry
+		if index > 0 {
+			prev = entries[index-1]
+		}
+		if index+1 < len(entries) {
+			next = entries[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
 }
 
 func (r *AlmanachResult) Collections() {

@@ -22,12 +22,41 @@
 <div class="container-oversize mt-12 pb-0 mb-0">
 	<div class="pb-1.5 mx-32 flex flex-row items-center justify-between gap-2">
 		<div><i class="ri-book-line"></i> Almanach</div>
-		{{- if (IsAdminOrEditor $model.request.user) -}}
-			<div>
-				<i class="ri-edit-line"></i>
-				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit">Bearbeiten</a>
+		<div class="flex items-center gap-6">
+			<!-- Alphabetical Navigation (visible to all users) -->
+			<div class="flex items-center gap-3">
+				{{- if $model.result.PrevByTitle -}}
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
+						<a
+							href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 no-underline">
+							<i class="ri-arrow-left-s-line"></i>
+						</a>
+					</tool-tip>
+				{{- end -}}
+				<span class="text-gray-800 font-bold no-underline">
+					A&thinsp;-&thinsp;Z
+				</span>
+				{{- if $model.result.NextByTitle -}}
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
+						<a
+							href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 no-underline">
+							<i class="ri-arrow-right-s-line"></i>
+						</a>
+					</tool-tip>
+				{{- end -}}
 			</div>
-		{{- end -}}
+			<!-- Edit Button (admin/editor only) -->
+			{{- if (IsAdminOrEditor $model.request.user) -}}
+				<div>
+					<i class="ri-edit-line"></i>
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit">Bearbeiten</a>
+				</div>
+			{{- end -}}
+		</div>
 	</div>
 	<div class="pt-0 {{ if $hasContents -}}contentsentrydata{{- end -}}" id="entrydata">
 		<div class="container-normal !py-8">
