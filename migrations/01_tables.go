@@ -72,6 +72,31 @@ func init() {
 			return err
 		}
 
+		err = app.Save(dataTable())
+		if err != nil {
+			return err
+		}
+
+		err = app.Save(imagesTable())
+		if err != nil {
+			return err
+		}
+
+		err = app.Save(filesTable())
+		if err != nil {
+			return err
+		}
+
+		err = app.Save(htmlTable())
+		if err != nil {
+			return err
+		}
+
+		err = app.Save(pagesTable())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}, func(app core.App) error {
 		places, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
@@ -435,4 +460,139 @@ func contentsIndexes(collection *core.Collection) {
 	dbmodels.AddIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.YEAR_FIELD, false)
 	dbmodels.AddIndexNoCollate(collection, dbmodels.ENTRIES_TABLE, false)
+}
+
+func dataTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.DATA_TABLE)
+	dbmodels.SetBasicPublicRules(collection)
+	collection.Fields = dataTableFields()
+	dataTableIndexes(collection)
+	return collection
+}
+
+func dataTableFields() core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.JSONField{Name: dbmodels.VALUE_FIELD, Required: false},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	return fields
+}
+
+func dataTableIndexes(collection *core.Collection) {
+	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+}
+
+func imagesTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.IMAGES_TABLE)
+	dbmodels.SetBasicPublicRules(collection)
+	collection.Fields = imagesTableFields()
+	imagesTableIndexes(collection)
+	return collection
+}
+
+func imagesTableFields() core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.TITLE_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.DESCRIPTION_FIELD, Required: false},
+		&core.FileField{
+			Name:      dbmodels.PREVIEW_FIELD,
+			Required:  false,
+			MaxSize:   100 * 1024 * 1024,
+			MaxSelect: 1,
+			MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
+			Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
+		},
+		&core.FileField{
+			Name:      dbmodels.IMAGE_FIELD,
+			Required:  false,
+			MaxSize:   100 * 1024 * 1024,
+			MaxSelect: 1,
+			MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
+			Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
+		},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	return fields
+}
+
+func imagesTableIndexes(collection *core.Collection) {
+	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.TITLE_FIELD, false)
+}
+
+func filesTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.FILES_TABLE)
+	dbmodels.SetBasicPublicRules(collection)
+	collection.Fields = filesTableFields()
+	filesTableIndexes(collection)
+	return collection
+}
+
+func filesTableFields() core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.DESCRIPTION_FIELD, Required: false},
+		&core.FileField{
+			Name:      dbmodels.FILE_FIELD,
+			Required:  false,
+			MaxSize:   100 * 1024 * 1024,
+			MaxSelect: 1,
+			MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
+		},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	return fields
+}
+
+func filesTableIndexes(collection *core.Collection) {
+	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+}
+
+func htmlTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.HTML_TABLE)
+	dbmodels.SetBasicPublicRules(collection)
+	collection.Fields = htmlTableFields()
+	htmlTableIndexes(collection)
+	return collection
+}
+
+func htmlTableFields() core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.EditorField{Name: dbmodels.HTML_FIELD, Required: false, ConvertURLs: false},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	return fields
+}
+
+func htmlTableIndexes(collection *core.Collection) {
+	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+}
+
+func pagesTable() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.PAGES_TABLE)
+	dbmodels.SetBasicPublicRules(collection)
+	collection.Fields = pagesTableFields()
+	pagesTableIndexes(collection)
+	return collection
+}
+
+func pagesTableFields() core.FieldsList {
+	fields := core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.URL_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.TEMPLATE_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.LAYOUT_FIELD, Required: false},
+		&core.TextField{Name: dbmodels.TYPE_FIELD, Required: false},
+		&core.JSONField{Name: dbmodels.DATA_FIELD, Required: false},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	return fields
+}
+
+func pagesTableIndexes(collection *core.Collection) {
+	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.URL_FIELD, false)
 }

@@ -441,6 +441,11 @@ const (
 	ITEMS_TABLE         = "items"
 	SESSIONS_TABLE      = "sessions"
 	ACCESS_TOKENS_TABLE = "access_tokens"
+	DATA_TABLE          = "data"
+	IMAGES_TABLE        = "images"
+	FILES_TABLE         = "files"
+	HTML_TABLE          = "html"
+	PAGES_TABLE         = "pages"
 
 	ID_FIELD         = "id"
 	CREATED_FIELD    = "created"
@@ -537,6 +542,19 @@ const (
 	ACCESS_TOKENS_EXPIRES_FIELD     = "expires"
 	ACCESS_TOKENS_LAST_ACCESS_FIELD = "accessed"
 	ACCESS_TOKENS_STATUS_FIELD      = "status"
+
+	KEY_FIELD         = "key"
+	VALUE_FIELD       = "value"
+	TITLE_FIELD       = "title"
+	DESCRIPTION_FIELD = "description"
+	PREVIEW_FIELD     = "preview"
+	IMAGE_FIELD       = "image"
+	FILE_FIELD        = "file"
+	HTML_FIELD        = "html"
+	DATA_FIELD        = "data"
+	TEMPLATE_FIELD    = "template"
+	LAYOUT_FIELD      = "layout"
+	TYPE_FIELD        = "type"
 
 	SESSION_COOKIE_NAME = "sid"
 )
