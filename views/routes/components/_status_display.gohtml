@@ -1,0 +1,47 @@
+{{- $entity := index . 0 -}}
+{{- $context := "" -}}
+{{- if gt (len .) 1 -}}
+    {{- $context = index . 1 -}}
+{{- end -}}
+{{- $isAlmanach := eq $context "almanach" -}}
+
+<div class="flex flex-col mb-3">
+    <!-- Status Badge -->
+    <div class="entryrow">
+        <div class="fieldlabel">
+            Status
+        </div>
+        <div class="fieldvalue">
+            <div class="status-badge" data-status="{{ $entity.EditState }}">
+                <i class="status-icon {{- if eq $entity.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entity.EditState "Seen" }} ri-information-line{{- else if eq $entity.EditState "Review" }} ri-search-line{{- else if eq $entity.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+                <span class="status-label">
+                    {{- if eq $entity.EditState "Unknown" -}}
+                        {{ if $isAlmanach }}Gesucht{{ else }}Unbekannt{{ end }}
+                    {{- else if eq $entity.EditState "ToDo" -}}
+                        Zu erledigen
+                    {{- else if eq $entity.EditState "Review" -}}
+                        Überprüfen
+                    {{- else if eq $entity.EditState "Seen" -}}
+                        {{ if $isAlmanach }}Autopsiert{{ else }}Gesichtet{{ end }}
+                    {{- else if eq $entity.EditState "Edited" -}}
+                        {{ if $isAlmanach }}Vollständig Erfasst{{ else }}Erfasst{{ end }}
+                    {{- else -}}
+                        {{ $entity.EditState }}
+                    {{- end -}}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bearbeitungsvermerk (only if has content) -->
+    {{- if $entity.Comment -}}
+        <div class="entryrow">
+            <div class="fieldlabel">
+                Bearbeitungsvermerk
+            </div>
+            <div class="fieldvalue comment-content">
+                {{ $entity.Comment }}
+            </div>
+        </div>
+    {{- end -}}
+</div>

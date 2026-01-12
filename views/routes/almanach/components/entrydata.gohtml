@@ -36,6 +36,9 @@
 					<div class="fieldlabel">Almanach-Nummer</div>
 					<div class="fieldvalue">{{ $model.result.Entry.MusenalmID }}</div>
 				</div>
+				{{- if $model.request.user -}}
+					{{ template "_status_display" (Arr $model.result.Entry "almanach") }}
+				{{- end -}}
 				{{- if $model.result.Entry.PreferredTitle -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Kurztitel</div>
