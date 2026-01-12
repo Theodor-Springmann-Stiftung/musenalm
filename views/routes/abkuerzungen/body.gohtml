@@ -1,0 +1,186 @@
+{{ $model := . }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<div class="mb-1">
+				<i class="ri-text"></i> Verwaltung
+			</div>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+				Abkürzungen
+			</h1>
+			<div class="flex flex-row gap-x-3">
+				<div>
+					<a href="/abkuerzungen/" class="text-gray-700 hover:text-slate-950 block no-underline">
+						<i class="ri-loop-left-line"></i> Reset
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+
+	{{- if (IsAdminOrEditor $model.request.user) -}}
+		{{/* Editable form for admin/editor */}}
+		<form
+			autocomplete="off"
+			class="w-full dbform"
+			id="abkform"
+			method="POST"
+			action="/abkuerzungen/">
+			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+
+			<div class="mb-4 flex items-center gap-3">
+				<button type="button" id="add-row-btn" class="resetbutton w-auto px-3 py-1.5 flex items-center gap-2">
+					<i class="ri-add-line"></i>
+					<span>Zeile hinzufügen</span>
+				</button>
+			</div>
+
+			<div class="overflow-x-auto bg-white border border-gray-200 rounded">
+				<table class="w-full">
+					<thead>
+						<tr class="border-b-2 border-gray-300 bg-gray-50">
+							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700 w-48">Kürzel</th>
+							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700">Bedeutung</th>
+							<th class="w-16 px-4 py-3"></th>
+						</tr>
+					</thead>
+					<tbody id="abk-tbody">
+						{{- range $index, $entry := $model.result.Entries -}}
+							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100" data-row="{{ $index }}">
+								<td class="px-4 py-2.5">
+									<input type="text"
+										name="abkuerzungen[{{ $index }}][key]"
+										value="{{ $entry.Key }}"
+										class="inputinput font-mono text-base w-full border border-gray-300 px-2 py-1 rounded"
+										autocomplete="off"
+										required>
+								</td>
+								<td class="px-4 py-2.5">
+									<input type="text"
+										name="abkuerzungen[{{ $index }}][value]"
+										value="{{ $entry.Value }}"
+										class="inputinput text-base w-full border border-gray-300 px-2 py-1 rounded"
+										autocomplete="off"
+										required>
+								</td>
+								<td class="px-4 py-2.5 text-center">
+									<input type="hidden" name="abkuerzungen[{{ $index }}][_delete]" value="false" class="delete-flag">
+									<button type="button" class="delete-btn text-red-600 hover:text-red-800" title="Löschen">
+										<i class="ri-delete-bin-line text-lg"></i>
+									</button>
+								</td>
+							</tr>
+						{{- end -}}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+				<p id="abk-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
+				<div class="flex items-center gap-3 self-end flex-wrap">
+					<a href="/abkuerzungen/" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-close-line"></i>
+						<span>Abbrechen</span>
+					</a>
+					<a href="/abkuerzungen/" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-loop-left-line"></i>
+						<span>Reset</span>
+					</a>
+					<button type="submit" class="submitbutton w-48 flex items-center gap-2 justify-center">
+						<i class="ri-save-line"></i>
+						<span>Alle speichern</span>
+					</button>
+				</div>
+			</div>
+		</form>
+
+		<script>
+			(function() {
+				const tbody = document.getElementById('abk-tbody');
+				const addBtn = document.getElementById('add-row-btn');
+				let rowIndex = {{ len $model.result.Entries }};
+
+				// Add new row
+				addBtn.addEventListener('click', function() {
+					const tr = document.createElement('tr');
+					tr.className = 'border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100';
+					tr.dataset.row = rowIndex;
+					tr.innerHTML = `
+						<td class="px-4 py-2.5">
+							<input type="text"
+								name="abkuerzungen[${rowIndex}][key]"
+								value=""
+								class="inputinput font-mono text-base w-full border border-gray-300 px-2 py-1 rounded"
+								autocomplete="off"
+								required>
+						</td>
+						<td class="px-4 py-2.5">
+							<input type="text"
+								name="abkuerzungen[${rowIndex}][value]"
+								value=""
+								class="inputinput text-base w-full border border-gray-300 px-2 py-1 rounded"
+								autocomplete="off"
+								required>
+						</td>
+						<td class="px-4 py-2.5 text-center">
+							<input type="hidden" name="abkuerzungen[${rowIndex}][_delete]" value="false" class="delete-flag">
+							<button type="button" class="delete-btn text-red-600 hover:text-red-800" title="Löschen">
+								<i class="ri-delete-bin-line text-lg"></i>
+							</button>
+						</td>
+					`;
+					tbody.appendChild(tr);
+					rowIndex++;
+
+					// Focus the new key input
+					const newKeyInput = tr.querySelector('input[type="text"]');
+					if (newKeyInput) {
+						newKeyInput.focus();
+					}
+				});
+
+				// Delete row handler (using event delegation)
+				tbody.addEventListener('click', function(e) {
+					if (e.target.classList.contains('delete-btn')) {
+						const tr = e.target.closest('tr');
+						const deleteFlag = tr.querySelector('.delete-flag');
+						deleteFlag.value = 'true';
+						tr.style.display = 'none';
+					}
+				});
+			})();
+		</script>
+
+	{{- else -}}
+		{{/* Read-only view for public */}}
+		<div class="bg-white border border-gray-200 rounded overflow-hidden">
+			{{- if $model.result.Entries -}}
+				<table class="w-full">
+					<thead>
+						<tr class="border-b-2 border-gray-300 bg-gray-50">
+							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700 w-48">Kürzel</th>
+							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700">Bedeutung</th>
+						</tr>
+					</thead>
+					<tbody>
+						{{- range $entry := $model.result.Entries -}}
+							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100">
+								<td class="px-4 py-2.5 font-bold font-mono text-base">{{ $entry.Key }}</td>
+								<td class="px-4 py-2.5 text-base">{{ $entry.Value }}</td>
+							</tr>
+						{{- end -}}
+					</tbody>
+				</table>
+			{{- else -}}
+				<div class="px-4 py-8 text-center text-gray-500">Keine Abkürzungen gefunden.</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</div>
+</edit-page>

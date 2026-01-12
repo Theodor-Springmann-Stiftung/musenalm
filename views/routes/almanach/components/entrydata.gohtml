@@ -187,7 +187,7 @@
 </div>
 
 <script type="module">
-	let abbrevs = {{- $model.abbrs -}};
+	let abbrevs = {{- data "abkuerzungen" | SafeJS -}};
 	let ats = document.querySelectorAll('abbrev-tooltips');
 	if (ats) {
 		ats.forEach((at) => {

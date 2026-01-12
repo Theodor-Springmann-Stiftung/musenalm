@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -146,6 +147,14 @@ func (app *App) createEngine() (*templating.Engine, error) {
 			"lang":  "de",
 			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
 		}})
+
+	engine.AddFunc("data", func(key string) any {
+		res, err := dbmodels.Data_Key(app.PB.App, key)
+		if err != nil {
+			return "{}"
+		}
+		return res.Value()
+	})
 
 	return engine, nil
 }

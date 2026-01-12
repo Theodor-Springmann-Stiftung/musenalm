@@ -50,11 +50,6 @@ func (p *AlmanachPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 		data["result"] = result
 		data["filters"] = filters
 
-		abbrs, err := pagemodels.GetAbks(app)
-		if err == nil {
-			data["abbrs"] = abbrs
-		}
-
 		return engine.Response200(e, p.Template, data)
 	}
 }

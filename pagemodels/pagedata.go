@@ -14,16 +14,13 @@ const (
 
 	P_REIHEN_NAME      = "reihen"
 	P_ORTE_NAME        = "orte"
+	P_ABKUERZUNGEN_NAME = "abkuerzungen"
 	P_DANK_NAME        = "danksagungen"
 	P_KONTAKT_NAME     = "kontakt"
 	P_LIT_NAME         = "literatur"
 	P_EINFUEHRUNG_NAME = "einleitung"
 
 	P_DOK_NAME = "benutzerhinweise"
-	T_ABK_NAME = "abkuerzungen"
-
-	F_ABK       = "Abkuerzung"
-	F_BEDEUTUNG = "Bedeutung"
 
 	F_TITLE       = "Titel"
 	F_DESCRIPTION = "Beschreibung"

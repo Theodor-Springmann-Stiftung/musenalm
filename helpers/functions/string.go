@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"regexp"
@@ -17,6 +18,15 @@ func Safe(s string) template.HTML {
 		return ""
 	}
 	return template.HTML(s)
+}
+
+func SafeJS(s any) template.JS {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return template.JS("{}")
+	}
+
+	return template.JS(b)
 }
 
 func ReplaceSlashParen(s string) string {

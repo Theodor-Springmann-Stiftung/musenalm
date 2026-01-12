@@ -115,6 +115,7 @@ func (e *Engine) funcs() error {
 
 	// Passing HTML
 	e.AddFunc("Safe", functions.Safe)
+	e.AddFunc("SafeJS", functions.SafeJS)
 	// Creating an array or dict (to pass to a template)
 	e.AddFunc("Arr", functions.Arr)
 	e.AddFunc("Dict", functions.Dict)

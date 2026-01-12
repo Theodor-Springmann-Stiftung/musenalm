@@ -144,6 +144,11 @@ func Sessions_ID(app core.App, id string) (*Session, error) {
 	return &ret, err
 }
 
+func Data_Key(app core.App, key string) (*Data, error) {
+	ret, err := TableByField[Data](app, DATA_TABLE, KEY_FIELD, key)
+	return &ret, err
+}
+
 func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
 	t := HashStringSHA256(token)
 	return TableByField[*AccessToken](

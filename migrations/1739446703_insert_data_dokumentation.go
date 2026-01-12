@@ -2,11 +2,11 @@ package migrations
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
@@ -505,19 +505,7 @@ func init() {
 			return err
 		}
 
-		abk, err := seed_abkuerzungen(app)
-		if err != nil {
-			app.Logger().Error("Failed to seed abkuerzungen", "error", err)
-			return err
-		}
-
-		for _, a := range abk {
-			if err := app.Save(a); err != nil {
-				app.Logger().Error("Failed to save abk", "error", err, "abk", a)
-			}
-		}
-
-		return nil
+		return seed_abkuerzungen(app)
 	}, func(app core.App) error {
 		coll, err := app.FindCollectionByNameOrId(
 			pagemodels.GeneratePageTableName(pagemodels.P_DOK_NAME))
@@ -526,30 +514,19 @@ func init() {
 			app.DB().NewQuery("DELETE FROM " + coll.TableName()).Execute()
 		}
 
-		coll_abk, err2 := app.FindCollectionByNameOrId(
-			pagemodels.GeneratePageTableName(pagemodels.P_DOK_NAME, pagemodels.T_ABK_NAME))
-
-		if err == nil && coll_abk != nil {
-			app.DB().NewQuery("DELETE FROM " + coll_abk.TableName()).Execute()
-		}
-
-		return errors.Join(err, err2)
+		return err
 	})
 }
 
-func seed_abkuerzungen(app core.App) ([]*pagemodels.Abk, error) {
-	collection, err := app.FindCollectionByNameOrId(pagemodels.GeneratePageTableName(pagemodels.P_DOK_NAME, pagemodels.T_ABK_NAME))
-	if err != nil {
-		return nil, err
-	}
+func seed_abkuerzungen(app core.App) error {
 
 	if _, err := os.Stat(ABK_PATH); err != nil {
-		return nil, err
+		return err
 	}
 
 	file, err := os.Open(ABK_PATH)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer file.Close()
 
@@ -568,13 +545,15 @@ func seed_abkuerzungen(app core.App) ([]*pagemodels.Abk, error) {
 		abk[split[0]] = strings.TrimSpace(besch)
 	}
 
-	ret := make([]*pagemodels.Abk, 0, len(abk))
-	for a, b := range abk {
-		r := pagemodels.NewAbk(core.NewRecord(collection))
-		r.SetAbk(a)
-		r.SetBedeutung(b)
-		ret = append(ret, r)
+	dataColl, err := app.FindCollectionByNameOrId(dbmodels.DATA_TABLE)
+	if err != nil {
+		return err
 	}
 
-	return ret, nil
+	// Create new record in data table
+	record := core.NewRecord(dataColl)
+	record.Set(dbmodels.KEY_FIELD, "abkuerzungen")
+	record.Set(dbmodels.VALUE_FIELD, abk)
+
+	return app.Save(record)
 }

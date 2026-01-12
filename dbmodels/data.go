@@ -14,14 +14,10 @@ func (d *Data) SetKey(key string) {
 	d.Set(KEY_FIELD, key)
 }
 
-func (d *Data) Value() map[string]interface{} {
-	val := d.Get(VALUE_FIELD)
-	if val == nil {
-		return nil
-	}
-	return val.(map[string]interface{})
+func (d *Data) Value() any {
+	return d.GetRaw(VALUE_FIELD)
 }
 
-func (d *Data) SetValue(value map[string]interface{}) {
+func (d *Data) SetValue(value string) {
 	d.Set(VALUE_FIELD, value)
 }

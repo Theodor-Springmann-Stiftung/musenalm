@@ -34,17 +34,12 @@ type BeitragPage struct {
 func (p *BeitragPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
-		data := make(map[string]interface{})
+		data := make(map[string]any)
 		result, err := NewBeitragResult(app, id)
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
 		data["result"] = result
-
-		abbrs, err := pagemodels.GetAbks(app)
-		if err == nil {
-			data["abbrs"] = abbrs
-		}
 
 		return engine.Response200(e, p.Template, data)
 	})

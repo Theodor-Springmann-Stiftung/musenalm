@@ -501,6 +501,7 @@ const (
 
 	REFERENCES_FIELD = "refs"
 	URI_FIELD        = "uri"
+	URL_FIELD ="url"
 
 	MUSENALM_BAENDE_STATUS_FIELD = "musenalm_status"
 	MUSENALM_INHALTE_TYPE_FIELD  = "musenalm_type"

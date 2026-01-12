@@ -66,11 +66,6 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 		data["series_relations"] = dbmodels.SERIES_RELATIONS
 
-		abbrs, err := pagemodels.GetAbks(app)
-		if err == nil {
-			data["abbrs"] = abbrs
-		}
-
 		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
 			data["success"] = msg
 		}
@@ -84,7 +79,7 @@ type AlmanachEditResult struct {
 	PrevByID    *dbmodels.Entry
 	NextByTitle *dbmodels.Entry
 	PrevByTitle *dbmodels.Entry
-	User *dbmodels.User
+	User        *dbmodels.User
 	AlmanachResult
 }
 

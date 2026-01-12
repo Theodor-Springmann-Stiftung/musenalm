@@ -83,11 +83,6 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 		data["series_relations"] = dbmodels.SERIES_RELATIONS
 		data["is_new"] = true
 
-		abbrs, err := pagemodels.GetAbks(app)
-		if err == nil {
-			data["abbrs"] = abbrs
-		}
-
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
 }
@@ -165,7 +160,7 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 
 		redirect := "/"
 		if entry != nil {
-		redirect = "/almanach/" + strconv.Itoa(entry.MusenalmID()) + "/edit?saved_message=" + url.QueryEscape("Änderungen gespeichert.")
+			redirect = "/almanach/" + strconv.Itoa(entry.MusenalmID()) + "/edit?saved_message=" + url.QueryEscape("Änderungen gespeichert.")
 		}
 
 		return e.JSON(http.StatusOK, map[string]any{
