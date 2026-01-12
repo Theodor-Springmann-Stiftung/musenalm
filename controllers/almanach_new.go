@@ -146,6 +146,9 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 			})
 		}
 
+		// Invalidate sorted entries cache since new entry was created
+		InvalidateSortedEntriesCache()
+
 		// Update FTS5 index asynchronously
 		go func(appInstance core.App, entryID string) {
 			freshEntry, err := dbmodels.Entries_ID(appInstance, entryID)

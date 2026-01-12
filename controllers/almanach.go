@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"sort"
+	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -16,6 +17,52 @@ const (
 	URL_ALMANACH      = "/almanach/{id}/"
 	TEMPLATE_ALMANACH = "/almanach/"
 )
+
+// Simple in-memory cache for sorted entries
+var (
+	sortedEntriesCache struct {
+		sync.RWMutex
+		entries []*dbmodels.Entry
+	}
+)
+
+// InvalidateSortedEntriesCache clears the cached sorted entries list
+func InvalidateSortedEntriesCache() {
+	sortedEntriesCache.Lock()
+	defer sortedEntriesCache.Unlock()
+	sortedEntriesCache.entries = nil
+}
+
+// getSortedEntries returns cached sorted entries or loads and caches them
+func getSortedEntries(app core.App) ([]*dbmodels.Entry, error) {
+	// Try to read from cache first
+	sortedEntriesCache.RLock()
+	if sortedEntriesCache.entries != nil {
+		cached := sortedEntriesCache.entries
+		sortedEntriesCache.RUnlock()
+		return cached, nil
+	}
+	sortedEntriesCache.RUnlock()
+
+	// Cache miss - load and sort
+	sortedEntriesCache.Lock()
+	defer sortedEntriesCache.Unlock()
+
+	// Double-check after acquiring write lock
+	if sortedEntriesCache.entries != nil {
+		return sortedEntriesCache.entries, nil
+	}
+
+	entries := []*dbmodels.Entry{}
+	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
+		return nil, err
+	}
+
+	dbmodels.Sort_Entries_Title_Year(entries)
+	sortedEntriesCache.entries = entries
+
+	return entries, nil
+}
 
 func init() {
 	rp := &AlmanachPage{
@@ -197,14 +244,14 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 }
 
 func entryNeighborsByPreferredTitle(app core.App, entryID string) (*dbmodels.Entry, *dbmodels.Entry, error) {
-	entries := []*dbmodels.Entry{}
-	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
+	entries, err := getSortedEntries(app)
+	if err != nil {
 		return nil, nil, err
 	}
 	if len(entries) == 0 {
 		return nil, nil, nil
 	}
-	dbmodels.Sort_Entries_Title_Year(entries)
+
 	for index, item := range entries {
 		if item.Id != entryID {
 			continue

@@ -190,6 +190,9 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 			})
 		}
 
+		// Invalidate sorted entries cache since entry was modified
+		InvalidateSortedEntriesCache()
+
 		// Check if fields that affect contents changed
 		contentsNeedUpdate := entry.PreferredTitle() != oldPreferredTitle ||
 			entry.Year() != oldYear ||
@@ -289,6 +292,9 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) H
 				"error": "Löschen fehlgeschlagen.",
 			})
 		}
+
+		// Invalidate sorted entries cache since entry was deleted
+		InvalidateSortedEntriesCache()
 
 		// Delete from FTS5 index asynchronously
 		go func(appInstance core.App, entryID string) {
