@@ -226,9 +226,10 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 		}
 
 		return e.JSON(http.StatusOK, map[string]any{
-			"success": true,
-			"message": "Änderungen gespeichert.",
-			"updated": updatedInfo,
+			"success":  true,
+			"message":  "Änderungen gespeichert.",
+			"updated":  updatedInfo,
+			"redirect": fmt.Sprintf("/almanach/%s/", id),
 		})
 	}
 }

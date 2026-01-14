@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -164,7 +163,7 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 
 		redirect := "/"
 		if entry != nil {
-			redirect = "/almanach/" + strconv.Itoa(entry.MusenalmID()) + "/edit?saved_message=" + url.QueryEscape("Änderungen gespeichert.")
+			redirect = "/almanach/" + strconv.Itoa(entry.MusenalmID()) + "/"
 		}
 
 		return e.JSON(http.StatusOK, map[string]any{

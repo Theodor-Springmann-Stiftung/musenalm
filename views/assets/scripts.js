@@ -8813,11 +8813,11 @@ class Qc extends HTMLElement {
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/redaktion/seiten/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/redaktion/seiten/" hx-boost="false" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-pages-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Seiten</span>
 				</a>
-				<a href="/redaktion/seiten/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/redaktion/seiten/" target="_blank" hx-boost="false" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
