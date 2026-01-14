@@ -1,12 +1,12 @@
-{{ $toc := TOCFromHTML .record.Text }}
+{{ $toc := TOCFromHTML (printf "%s" (pageHtml "literatur" "text")) }}
 
 
 <div class="container-normal relative">
 	<div class="text ">
-		{{ if .record.Title }}<h1 class="mb-12">{{ .record.Title }}</h1>{{ end }}
+		{{ if (pageMetaField "literatur" "title") }}<h1 class="mb-12">{{ pageMetaField "literatur" "title" }}</h1>{{ end }}
 		<div class="flex flex-row gap-x-6 justify-between ">
 			<div class="grow shrink-0 text indented jumptext">
-				{{ Safe .record.Text }}
+				{{ pageHtml "literatur" "text" }}
 			</div>
 			<div>
 				{{- if $toc -}}

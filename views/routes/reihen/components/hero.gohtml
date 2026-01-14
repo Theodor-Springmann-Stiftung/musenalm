@@ -8,7 +8,7 @@
 			class="max-w-[52rem] font-serif text-base hyphens-auto bg-gray-50 py-8 border-r
 		border-b">
 			<div class="px-8">
-				{{ Safe $model.record.Text }}
+				{{ pageHtml "reihen" "text" }}
 				<div class="pt-3">
 					<a href="/redaktion/einleitung">Einleitung</i></a>
 					<i class="ri-seedling-line px-1.5"></i>
@@ -24,7 +24,7 @@
 			</div>
 		</div>
 		<div class="-mr-16 pt-2 grow-0">
-			<img src="{{ $model.record.ImagePath }}" />
+			<img src="{{ imagePath "page.reihen.image" }}" />
 		</div>
 	</div>
 	<div class="absolute top-0 right-0 m-4 mr-8">

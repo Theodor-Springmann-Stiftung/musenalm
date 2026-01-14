@@ -61,47 +61,21 @@ func (r *TextPage) Down(ia IApp, engine *templating.Engine) error {
 }
 
 func (p *TextPage) Setup(router *router.Router[*core.RequestEvent], ia IApp, engine *templating.Engine) error {
-	app := ia.Core()
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		data := make(map[string]interface{})
-
-		record := &core.Record{}
-		err := app.RecordQuery(GeneratePageTableName(p.Name)).
-			OrderBy("created").
-			One(record)
-		if err != nil {
-			return engine.Response404(e, err, data)
-		}
-
-		p.SetProxyRecord(record)
-		data["record"] = p
 		return engine.Response200(e, p.Template, data, p.Layout)
 	})
 	return nil
 }
 
 func (p *TextPage) Get(e *core.RequestEvent, data map[string]interface{}, engine *templating.Engine) error {
-	err := p.SetCommonData(e.App, data)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
 func (p *TextPage) SetCommonData(app core.App, data map[string]interface{}) error {
-	record, err := p.GetLatestData(app)
-	if err != nil {
-		return err
-	}
-	p.SetProxyRecord(record)
-	data["page"] = p
 	return nil
 }
 
 func (p *TextPage) GetLatestData(app core.App) (*core.Record, error) {
-	record := &core.Record{}
-	tn := GeneratePageTableName(p.Name)
-	err := app.RecordQuery(tn).OrderBy("created").Limit(1).One(record)
-	return record, err
+	return nil, nil
 }

@@ -161,6 +161,25 @@ func Html_All(app core.App) ([]*HTML, error) {
 	return html, err
 }
 
+func Images_All(app core.App) ([]*Image, error) {
+	images := make([]*Image, 0)
+	err := app.RecordQuery(IMAGES_TABLE).All(&images)
+	return images, err
+}
+
+func Images_Key(app core.App, key string) (*Image, error) {
+	ret, err := TableByField[Image](app, IMAGES_TABLE, KEY_FIELD, key)
+	return &ret, err
+}
+
+func Images_KeyPrefix(app core.App, prefix string) ([]*Image, error) {
+	images := make([]*Image, 0)
+	err := app.RecordQuery(IMAGES_TABLE).
+		Where(dbx.NewExp(KEY_FIELD+" LIKE {:prefix}", dbx.Params{"prefix": prefix + "%"})).
+		All(&images)
+	return images, err
+}
+
 func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
 	t := HashStringSHA256(token)
 	return TableByField[*AccessToken](

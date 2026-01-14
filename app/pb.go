@@ -38,6 +38,8 @@ type App struct {
 	dataMutex sync.RWMutex
 	htmlCache *PrefixCache
 	htmlMutex sync.RWMutex
+	imagesCache map[string]*dbmodels.Image
+	imagesMutex sync.RWMutex
 }
 
 const (
@@ -203,6 +205,72 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		}
 		return template.HTML(value)
 	})
+	engine.AddFunc("pageMeta", func(name string) map[string]any {
+		app.ensureDataCache()
+		key := "page." + name
+		app.dataMutex.RLock()
+		value := app.dataCache.Get(key)
+		app.dataMutex.RUnlock()
+		if value == nil {
+			return map[string]any{}
+		}
+		if meta, ok := value.(map[string]any); ok {
+			return meta
+		}
+		if meta, ok := value.(map[string]interface{}); ok {
+			return meta
+		}
+		return map[string]any{}
+	})
+	engine.AddFunc("pageMetaField", func(name, field string) string {
+		app.ensureDataCache()
+		key := "page." + name
+		app.dataMutex.RLock()
+		value := app.dataCache.Get(key)
+		app.dataMutex.RUnlock()
+		if value == nil {
+			return ""
+		}
+		meta, ok := value.(map[string]any)
+		if !ok {
+			if metaAlt, ok := value.(map[string]interface{}); ok {
+				meta = map[string]any(metaAlt)
+			} else {
+				return ""
+			}
+		}
+		fieldValue, ok := meta[field]
+		if !ok || fieldValue == nil {
+			return ""
+		}
+		if s, ok := fieldValue.(string); ok {
+			return s
+		}
+		return fmt.Sprint(fieldValue)
+	})
+	engine.AddFunc("pageHtml", func(name string, section ...string) template.HTML {
+		app.ensureHtmlCache()
+		key := "page." + name
+		if len(section) > 0 && section[0] != "" {
+			key = key + "." + section[0]
+		}
+		app.htmlMutex.RLock()
+		defer app.htmlMutex.RUnlock()
+		return template.HTML(app.htmlCache.GetString(key))
+	})
+	engine.AddFunc("imagePath", func(key string, preview ...bool) string {
+		app.ensureImagesCache()
+		app.imagesMutex.RLock()
+		image := app.imagesCache[key]
+		app.imagesMutex.RUnlock()
+		if image == nil {
+			return ""
+		}
+		if len(preview) > 0 && preview[0] {
+			return image.PreviewPath()
+		}
+		return image.ImagePath()
+	})
 	engine.AddFunc("htmlPrefix", func(prefix string) map[string]any {
 		app.ensureHtmlCache()
 		app.htmlMutex.RLock()
@@ -210,6 +278,7 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		return app.htmlCache.GetPrefix(prefix)
 	})
 
+	app.ResetImagesCache()
 	return engine, nil
 }
 
@@ -228,6 +297,12 @@ func (app *App) ResetHtmlCache() {
 	app.htmlMutex.Lock()
 	defer app.htmlMutex.Unlock()
 	app.htmlCache = NewPrefixCache()
+}
+
+func (app *App) ResetImagesCache() {
+	app.imagesMutex.Lock()
+	defer app.imagesMutex.Unlock()
+	app.imagesCache = make(map[string]*dbmodels.Image)
 }
 
 type PrefixCache struct {
@@ -341,6 +416,32 @@ func (app *App) ensureHtmlCache() {
 		app.htmlCache = cache
 	}
 	app.htmlMutex.Unlock()
+}
+
+func (app *App) ensureImagesCache() {
+	app.imagesMutex.RLock()
+	if app.imagesCache != nil && len(app.imagesCache) > 0 {
+		app.imagesMutex.RUnlock()
+		return
+	}
+	app.imagesMutex.RUnlock()
+
+	images, err := dbmodels.Images_All(app.PB.App)
+	if err != nil {
+		app.PB.Logger().Error("Failed to fetch images cache: %v", err)
+		return
+	}
+
+	cache := make(map[string]*dbmodels.Image, len(images))
+	for _, image := range images {
+		cache[image.Key()] = image
+	}
+
+	app.imagesMutex.Lock()
+	if app.imagesCache == nil || len(app.imagesCache) == 0 {
+		app.imagesCache = cache
+	}
+	app.imagesMutex.Unlock()
 }
 
 func (app *App) setWatchers(engine *templating.Engine) {

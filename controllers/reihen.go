@@ -152,10 +152,6 @@ func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *c
 
 func (p *ReihenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
 	data["common"] = NewCommonReihenData(request.App)
-	record, _ := p.GetLatestData(request.App)
-	if record != nil {
-		data["record"] = pagemodels.NewReihen(record)
-	}
 	return engine.Response200(request, URL_REIHEN, data)
 }
 

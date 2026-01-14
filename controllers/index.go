@@ -1,14 +1,15 @@
 package controllers
 
 import (
+	"math/rand"
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"math/rand"
 )
 
 func init() {
@@ -28,15 +29,7 @@ type IndexPage struct {
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	router.GET("/{$}", func(e *core.RequestEvent) error {
-		bilder := []*pagemodels.IndexBilder{}
-		err := app.RecordQuery(pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_BILDER)).
-			All(&bilder)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-		texte := []*pagemodels.IndexTexte{}
-		err = app.RecordQuery(pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME)).
-			All(&texte)
+		bilder, err := dbmodels.Images_KeyPrefix(app, "page.index.image.")
 		if err != nil {
 			return engine.Response404(e, err, nil)
 		}
@@ -44,7 +37,6 @@ func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 		Shuffle(bilder)
 		data := map[string]interface{}{
 			"bilder": bilder,
-			"texte":  texte[0],
 		}
 
 		return engine.Response200(e, "/", data, "blank")

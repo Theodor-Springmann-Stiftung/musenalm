@@ -29,15 +29,14 @@
 	.search
 	.hidden
 
-	.record
-	.record.Image(Path)
-	.record.Text
+	pageHtml "reihen" "text"
+	imagePath "page.reihen.image"
 
 	.startpage
 */}}
 
 {{ $model := . }}
-{{ if and .startpage .record }}
+{{ if .startpage }}
 	{{ template "hero" . }}
 {{ end }}
 
