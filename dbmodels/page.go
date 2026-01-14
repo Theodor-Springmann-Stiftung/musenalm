@@ -1,6 +1,10 @@
 package dbmodels
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"log/slog"
+
+	"github.com/pocketbase/pocketbase/core"
+)
 
 type Page struct {
 	core.BaseRecordProxy
@@ -59,7 +63,19 @@ func (p *Page) Data() map[string]interface{} {
 	if val == nil {
 		return nil
 	}
-	return val.(map[string]interface{})
+	if data, ok := val.(map[string]interface{}); ok {
+		return data
+	}
+
+	data := make(map[string]interface{})
+	if err := p.UnmarshalJSONField(DATA_FIELD, &data); err != nil {
+		slog.Error("Error unmarshalling page data", "error", err)
+		return nil
+	}
+	if len(data) == 0 {
+		return nil
+	}
+	return data
 }
 
 func (p *Page) SetData(data map[string]interface{}) {

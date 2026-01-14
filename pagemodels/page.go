@@ -11,6 +11,7 @@ type IApp interface {
 	Core() core.App
 	ResetDataCache()
 	ResetHtmlCache()
+	ResetPagesCache()
 	Logger() *slog.Logger
 }
 

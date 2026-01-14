@@ -1,0 +1,43 @@
+{{ $model := . }}
+
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<div class="mb-1">
+				<i class="ri-pages-line"></i> Seiten
+			</div>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+				Seiteneditor
+			</h1>
+		</div>
+
+		<div class="flex flex-col justify-end gap-y-4 pr-4">
+			<div class="inputwrapper !mb-0">
+				<div class="inputlabelrow">
+					<label for="page-editor-select" class="inputlabel">Seite auswählen</label>
+				</div>
+				<select
+					id="page-editor-select"
+					name="key"
+					class="inputinput"
+					hx-get="/redaktion/seiten/form/"
+					hx-trigger="change"
+					hx-target="#page-editor-form"
+					hx-swap="outerHTML"
+					hx-indicator="body">
+					{{- if $model.pages -}}
+						{{- range $page := $model.pages -}}
+							<option value="{{ $page.Key }}" {{ if eq $page.Key $model.selected_key }}selected{{ end }}>{{ $page.Title }}</option>
+						{{- end -}}
+					{{- else -}}
+						<option value="">Keine Seiten gefunden</option>
+					{{- end -}}
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_page_form" $model }}
+</div>

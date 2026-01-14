@@ -43,6 +43,8 @@ const (
 
 	P_USER_MGMT_NAME = "user_management"
 
+	P_SEITEN_EDIT_NAME = "seiten_edit"
+
 	P_ALMANACH_EDIT_NAME = "almanach_edit"
 	P_ALMANACH_NEW_NAME  = "almanach_new"
 	P_REIHE_EDIT_NAME    = "reihe_edit"
