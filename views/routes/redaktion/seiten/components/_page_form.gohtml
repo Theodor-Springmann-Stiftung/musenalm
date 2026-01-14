@@ -57,75 +57,18 @@
 								</div>
 							</div>
 
-							<trix-toolbar id="page-html-toolbar-{{ $index }}">
-								<div class="trix-toolbar-container">
-									<span class="trix-toolbar-group">
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="bold" data-trix-key="b" title="Fett">
-											<i class="ri-bold"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="italic" data-trix-key="i" title="Kursiv">
-											<i class="ri-italic"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="strike" title="Gestrichen">
-											<i class="ri-strikethrough"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link">
-											<i class="ri-links-line"></i>
-										</button>
-									</span>
-
-									<span class="trix-toolbar-group">
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="heading1" title="Überschrift">
-											<i class="ri-h-1"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="quote" title="Zitat">
-											<i class="ri-double-quotes-l"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="bullet" title="Liste">
-											<i class="ri-list-unordered"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-attribute="number" title="Aufzählung">
-											<i class="ri-list-ordered"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-action="decreaseNestingLevel" title="Einzug verkleinern">
-											<i class="ri-indent-decrease"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-action="increaseNestingLevel" title="Einzug vergrößern">
-											<i class="ri-indent-increase"></i>
-										</button>
-									</span>
-
-									<span class="trix-toolbar-group">
-										<button type="button" class="trix-toolbar-button" data-trix-action="undo" data-trix-key="z" title="Rückgängig">
-											<i class="ri-arrow-go-back-line"></i>
-										</button>
-										<button type="button" class="trix-toolbar-button" data-trix-action="redo" data-trix-key="shift+z" title="Wiederholen">
-											<i class="ri-arrow-go-forward-line"></i>
-										</button>
-									</span>
-								</div>
-
-								<div class="trix-dialogs" data-trix-dialogs>
-									<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
-										<div class="trix-dialog__link-fields flex flex-row">
-											<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="URL eingeben…" aria-label="URL" required data-trix-input>
-											<div class="trix-button-group flex-row">
-												<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
-												<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
-											</div>
-										</div>
-									</div>
-								</div>
-							</trix-toolbar>
-
-							<textarea hidden id="page-html-{{ $index }}" name="html[{{ $section.Key }}]" autocomplete="off">{{- $section.HTML -}}</textarea>
-							<trix-editor input="page-html-{{ $index }}" toolbar="page-html-toolbar-{{ $index }}"></trix-editor>
+							<textarea
+								id="page-html-{{ $index }}"
+								name="html[{{ $section.Key }}]"
+								class="inputinput page-html-editor"
+								rows="12"
+								autocomplete="off">{{- $section.HTML -}}</textarea>
 						</div>
 					{{- end -}}
 				{{- end -}}
 
 				<div class="flex justify-end mt-6">
-					<button type="submit" class="btn bg-slate-800 text-white px-4 py-2 rounded-xs hover:bg-slate-900">
+					<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
 						<i class="ri-save-line"></i> Speichern
 					</button>
 				</div>
