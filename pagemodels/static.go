@@ -13,7 +13,7 @@ type StaticPage struct {
 	URL      string
 }
 
-func (p *StaticPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *StaticPage) Setup(router *router.Router[*core.RequestEvent], ia IApp, engine *templating.Engine) error {
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		data := map[string]interface{}{}
 		data["record"] = p
@@ -22,10 +22,10 @@ func (p *StaticPage) Setup(router *router.Router[*core.RequestEvent], app core.A
 	return nil
 }
 
-func (p *StaticPage) Up(app core.App, engine *templating.Engine) error {
+func (p *StaticPage) Up(ia IApp, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *StaticPage) Down(app core.App, engine *templating.Engine) error {
+func (p *StaticPage) Down(ia IApp, engine *templating.Engine) error {
 	return nil
 }

@@ -36,7 +36,8 @@ type PersonNewPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *PersonNewPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *PersonNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_PERSONEN_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))

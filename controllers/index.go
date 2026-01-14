@@ -25,7 +25,8 @@ type IndexPage struct {
 }
 
 // TODO:
-func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET("/{$}", func(e *core.RequestEvent) error {
 		bilder := []*pagemodels.IndexBilder{}
 		err := app.RecordQuery(pagemodels.GeneratePageTableName(pagemodels.P_INDEX_NAME, pagemodels.T_INDEX_BILDER)).

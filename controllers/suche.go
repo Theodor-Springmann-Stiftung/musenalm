@@ -42,7 +42,8 @@ func init() {
 	app.Register(rp)
 }
 
-func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_SUCHE_ALT, func(e *core.RequestEvent) error {
 		return e.Redirect(http.StatusPermanentRedirect, DEFAULT_SUCHE)
 	})

@@ -40,7 +40,8 @@ type UserEditPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *UserEditPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *UserEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_USER)
 	rg.BindFunc(middleware.IsAdminOrUser())
 	rg.GET(URL_USER_EDIT, p.GET(engine, app))

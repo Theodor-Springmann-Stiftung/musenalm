@@ -16,33 +16,33 @@ type DefaultPage[T IPageCollection] struct {
 	URL      string
 }
 
-func (r *DefaultPage[T]) Up(app core.App, engine *templating.Engine) error {
-	_, err := app.FindCollectionByNameOrId(GeneratePageTableName(r.Name))
+func (r *DefaultPage[T]) Up(app IApp, engine *templating.Engine) error {
+	_, err := app.Core().FindCollectionByNameOrId(GeneratePageTableName(r.Name))
 	if err == sql.ErrNoRows {
 		collection := r.Record.Collection(r.Name)
-		err = app.Save(collection)
+		err = app.Core().Save(collection)
 		if err != nil {
-			app.Logger().Error("Error saving collection", "Name", GeneratePageTableName(r.Name), "Error", err, "Collection", collection)
+			app.Core().Logger().Error("Error saving collection", "Name", GeneratePageTableName(r.Name), "Error", err, "Collection", collection)
 			return err
 		}
 	} else if err != nil {
-		app.Logger().Error("Error finding collection %s: %s", GeneratePageTableName(r.Name), err)
+		app.Core().Logger().Error("Error finding collection %s: %s", GeneratePageTableName(r.Name), err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *DefaultPage[T]) Down(app core.App, engine *templating.Engine) error {
+func (r *DefaultPage[T]) Down(app IApp, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *DefaultPage[T]) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *DefaultPage[T]) Setup(router *router.Router[*core.RequestEvent], app IApp, engine *templating.Engine) error {
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		data := make(map[string]interface{})
 
 		record := &core.Record{}
-		err := app.RecordQuery(GeneratePageTableName(p.Name)).
+		err := app.Core().RecordQuery(GeneratePageTableName(p.Name)).
 			OrderBy("created").
 			One(record)
 		if err != nil {

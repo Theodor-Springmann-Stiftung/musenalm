@@ -3,6 +3,9 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -30,9 +33,9 @@ type App struct {
 	PB        *pocketbase.PocketBase
 	MAConfig  Config
 	Pages     []pagemodels.IPage
-	dataCache map[string]any
+	dataCache *PrefixCache
 	dataMutex sync.RWMutex
-	htmlCache map[string]any
+	htmlCache *PrefixCache
 	htmlMutex sync.RWMutex
 }
 
@@ -63,7 +66,7 @@ func init() {
 	dbx.BuilderFuncMap["pb_sqlite3"] = dbx.BuilderFuncMap["sqlite3"]
 }
 
-func New(config Config) App {
+func New(config Config) *App {
 	app := App{
 		MAConfig: config,
 	}
@@ -71,7 +74,7 @@ func New(config Config) App {
 	app.createPBInstance()
 	app.Bootstrap()
 
-	return app
+	return &app
 }
 
 func (app *App) createPBInstance() {
@@ -142,6 +145,10 @@ func (app *App) Serve() error {
 	return app.PB.Start()
 }
 
+func (app *App) Logger() *slog.Logger {
+	return app.PB.Logger()
+}
+
 func (app *App) createEngine() (*templating.Engine, error) {
 	engine := templating.NewEngine(&views.LayoutFS, &views.RoutesFS)
 	engine.Globals(map[string]interface{}{
@@ -150,61 +157,154 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		"site": map[string]interface{}{
 			"title": "Musenalm",
 			"lang":  "de",
-			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
-		}})
+		"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
+	}})
 
 	app.ResetDataCache()
 	engine.AddFunc("data", func(key string) any {
-		if len(app.dataCache) == 0 {
-			data, err := dbmodels.Data_All(app.PB.App)
-			if err != nil {
-				app.PB.Logger().Error("Failed to fetch data cache: %v", err)
-				return "{}"
-			}
-			app.dataMutex.Lock()
-			for _, d := range data {
-				app.dataCache[d.Key()] = d.Value()
-			}
-			app.dataMutex.Unlock()
-		}
+		app.ensureDataCache()
 		app.dataMutex.RLock()
 		defer app.dataMutex.RUnlock()
-		return app.dataCache[key]
+		return app.dataCache.Get(key)
+	})
+	engine.AddFunc("dataPrefix", func(prefix string) map[string]any {
+		app.ensureDataCache()
+		app.dataMutex.RLock()
+		defer app.dataMutex.RUnlock()
+		return app.dataCache.GetPrefix(prefix)
 	})
 
 	app.ResetHtmlCache()
 	engine.AddFunc("html", func(key string) any {
-		if len(app.htmlCache) == 0 {
-			html, err := dbmodels.Html_All(app.PB.App)
-			if err != nil {
-				app.PB.Logger().Error("Failed to fetch html cache: %v", err)
-				return "{}"
-			}
-			app.htmlMutex.Lock()
-			for _, h := range html {
-				app.htmlCache[h.Key()] = h.HTML()
-			}
-			app.htmlMutex.Unlock()
-		}
+		app.ensureHtmlCache()
 		app.htmlMutex.RLock()
 		defer app.htmlMutex.RUnlock()
-		return app.htmlCache[key]
+		return app.htmlCache.Get(key)
+	})
+	engine.AddFunc("htmlPrefix", func(prefix string) map[string]any {
+		app.ensureHtmlCache()
+		app.htmlMutex.RLock()
+		defer app.htmlMutex.RUnlock()
+		return app.htmlCache.GetPrefix(prefix)
 	})
 
 	return engine, nil
 }
 
-// BUG: we cant call this from the templates, bc this App struct is not available
+// Core returns the underlying pocketbase core.App
+func (app *App) Core() core.App {
+	return app.PB.App
+}
+
 func (app *App) ResetDataCache() {
 	app.dataMutex.Lock()
 	defer app.dataMutex.Unlock()
-	app.dataCache = make(map[string]any)
+	app.dataCache = NewPrefixCache()
 }
 
 func (app *App) ResetHtmlCache() {
 	app.htmlMutex.Lock()
 	defer app.htmlMutex.Unlock()
-	app.htmlCache = make(map[string]any)
+	app.htmlCache = NewPrefixCache()
+}
+
+type PrefixCache struct {
+	data map[string]any
+	keys []string
+}
+
+func NewPrefixCache() *PrefixCache {
+	return &PrefixCache{
+		data: make(map[string]any),
+	}
+}
+
+func (c *PrefixCache) Get(key string) any {
+	if c == nil {
+		return nil
+	}
+	return c.data[key]
+}
+
+func (c *PrefixCache) GetPrefix(prefix string) map[string]any {
+	if c == nil || len(c.keys) == 0 {
+		return map[string]any{}
+	}
+
+	start := sort.Search(len(c.keys), func(i int) bool {
+		return c.keys[i] >= prefix
+	})
+
+	matches := make(map[string]any)
+	for i := start; i < len(c.keys); i++ {
+		key := c.keys[i]
+		if !strings.HasPrefix(key, prefix) {
+			break
+		}
+		matches[key] = c.data[key]
+	}
+
+	return matches
+}
+
+func (app *App) ensureDataCache() {
+	app.dataMutex.RLock()
+	if app.dataCache != nil && len(app.dataCache.data) > 0 {
+		app.dataMutex.RUnlock()
+		return
+	}
+	app.dataMutex.RUnlock()
+
+	data, err := dbmodels.Data_All(app.PB.App)
+	if err != nil {
+		app.PB.Logger().Error("Failed to fetch data cache: %v", err)
+		return
+	}
+
+	cache := NewPrefixCache()
+	cache.keys = make([]string, 0, len(data))
+	for _, d := range data {
+		key := d.Key()
+		cache.data[key] = d.Value()
+		cache.keys = append(cache.keys, key)
+	}
+	sort.Strings(cache.keys)
+
+	app.dataMutex.Lock()
+	if app.dataCache == nil || len(app.dataCache.data) == 0 {
+		app.dataCache = cache
+	}
+	app.dataMutex.Unlock()
+}
+
+func (app *App) ensureHtmlCache() {
+	app.htmlMutex.RLock()
+	if app.htmlCache != nil && len(app.htmlCache.data) > 0 {
+		app.htmlMutex.RUnlock()
+		return
+	}
+	app.htmlMutex.RUnlock()
+
+	html, err := dbmodels.Html_All(app.PB.App)
+	if err != nil {
+		app.PB.Logger().Error("Failed to fetch html cache: %v", err)
+		return
+	}
+
+	cache := NewPrefixCache()
+	cache.keys = make([]string, 0, len(html))
+	for _, h := range html {
+		key := h.Key()
+		cache.data[key] = h.HTML()
+		cache.keys = append(cache.keys, key)
+	}
+	sort.Strings(cache.keys)
+
+	app.htmlMutex.Lock()
+	if app.htmlCache == nil || len(app.htmlCache.data) == 0 {
+		app.htmlCache = cache
+	}
+	app.htmlMutex.Unlock()
 }
 
 func (app *App) setWatchers(engine *templating.Engine) {
@@ -234,17 +334,17 @@ func (app *App) bindPages(engine *templating.Engine) ServeFunc {
 
 		// INFO: we put this here, to make sure all migrations are done
 		for _, page := range pages {
-			err := page.Up(e.App, engine)
+			err := page.Up(app, engine)
 			if err != nil {
 				app.PB.Logger().Error("Failed to up page %q: %v", "error", err)
-				page.Down(e.App, engine)
+				page.Down(app, engine)
 				continue
 			}
 			app.Pages = append(app.Pages, page)
 		}
 
 		for _, page := range app.Pages {
-			page.Setup(e.Router, e.App, engine)
+			page.Setup(e.Router, app, engine)
 		}
 
 		return e.Next()

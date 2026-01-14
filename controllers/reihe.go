@@ -31,7 +31,8 @@ type ReihePage struct {
 }
 
 // TODO: data richtig seutzen, damit die Reihe mit dem template _reihe angezeigt wird
-func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_REIHE, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})

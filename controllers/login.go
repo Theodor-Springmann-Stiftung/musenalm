@@ -47,7 +47,8 @@ type LoginPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *LoginPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *LoginPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_LOGIN, p.GET(engine, app))
 	r := router.POST(URL_LOGIN, p.POST(engine, app))
 	r.BindFunc(middleware.RateLimiter(30, time.Minute*2, time.Hour*6))

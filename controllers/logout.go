@@ -28,7 +28,8 @@ type LogoutPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *LogoutPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *LogoutPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(p.URL, p.GET(app))
 	return nil
 }

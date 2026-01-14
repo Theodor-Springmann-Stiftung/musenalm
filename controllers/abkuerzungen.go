@@ -49,12 +49,13 @@ type AbkuerzungenResult struct {
 	Entries []AbkEntry
 }
 
-func (p *AbkuerzungenPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *AbkuerzungenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_ABKUERZUNGEN, p.GET(engine, app))
 
 	rg := router.Group(URL_ABKUERZUNGEN)
 	rg.BindFunc(middleware.IsAdminOrEditor())
-	rg.POST("", p.POST(engine, app))
+	rg.POST("", p.POST(engine, ia))
 
 	return nil
 }
@@ -123,8 +124,9 @@ type abkFormEntry struct {
 	Delete string `form:"_delete"`
 }
 
-func (p *AbkuerzungenPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AbkuerzungenPage) POST(engine *templating.Engine, ia pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
+		app := ia.Core()
 		req := templating.NewRequest(e)
 
 		// Parse form manually to handle array syntax
@@ -197,6 +199,8 @@ func (p *AbkuerzungenPage) POST(engine *templating.Engine, app core.App) HandleF
 			app.Logger().Error("Failed to save abkuerzungen", "error", err)
 			return p.redirectError(e, "Speichern fehlgeschlagen.")
 		}
+
+		go ia.ResetDataCache()
 
 		// Redirect with success message
 		redirect := fmt.Sprintf("%s?success=%s", URL_ABKUERZUNGEN, url.QueryEscape("Änderungen gespeichert."))

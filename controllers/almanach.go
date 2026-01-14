@@ -80,7 +80,8 @@ type AlmanachPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(p.URL, p.GET(engine, app))
 	return nil
 }

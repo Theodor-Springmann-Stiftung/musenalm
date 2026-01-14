@@ -28,7 +28,8 @@ type PersonenPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *PersonenPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *PersonenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_PERSONEN, func(e *core.RequestEvent) error {
 		if e.Request.URL.Query().Get(PARAM_SEARCH) != "" {
 			return p.SearchRequest(app, engine, e)

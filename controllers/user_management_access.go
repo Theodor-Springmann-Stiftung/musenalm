@@ -35,7 +35,8 @@ type UserManagementAccessPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *UserManagementAccessPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *UserManagementAccessPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_USER_MANAGEMENT_ACCESS)
 	rg.BindFunc(middleware.IsAdmin())
 	rg.GET("{"+PATH_VALUE_ROLE+"}", p.GET(engine, app))

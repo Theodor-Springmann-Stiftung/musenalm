@@ -8,6 +8,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -24,15 +25,16 @@ func init() {
 
 type EntriesAPI struct{}
 
-func (p *EntriesAPI) Up(app core.App, engine *templating.Engine) error {
+func (p *EntriesAPI) Up(ia pagemodels.IApp, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *EntriesAPI) Down(app core.App, engine *templating.Engine) error {
+func (p *EntriesAPI) Down(ia pagemodels.IApp, engine *templating.Engine) error {
 	return nil
 }
 
-func (p *EntriesAPI) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *EntriesAPI) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_API_ENTRIES)
 	rg.BindFunc(middleware.Authenticated(app))
 	rg.BindFunc(middleware.IsAdminOrEditor())

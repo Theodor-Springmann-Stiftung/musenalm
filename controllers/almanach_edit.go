@@ -40,7 +40,8 @@ type AlmanachEditPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_ALMANACH)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))

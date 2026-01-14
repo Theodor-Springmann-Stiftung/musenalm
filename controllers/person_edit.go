@@ -38,7 +38,8 @@ type PersonEditPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group("/person/{id}/")
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))

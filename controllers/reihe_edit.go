@@ -39,7 +39,8 @@ type ReiheEditPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_REIHE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_REIHE_EDIT, p.GET(engine, app))

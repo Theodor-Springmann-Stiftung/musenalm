@@ -34,7 +34,8 @@ type OrteResult struct {
 	Places []*dbmodels.Place
 }
 
-func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_ORTE, func(e *core.RequestEvent) error {
 		places := []*dbmodels.Place{}
 		if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {

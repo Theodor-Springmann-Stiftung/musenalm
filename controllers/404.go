@@ -24,7 +24,7 @@ type ErrorPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *ErrorPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *ErrorPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	router.GET(URL_ERROR_404, func(e *core.RequestEvent) error {
 		return engine.Response404(e, nil, nil)
 	})

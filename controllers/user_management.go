@@ -42,7 +42,8 @@ type UserManagementPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *UserManagementPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *UserManagementPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	rg := router.Group(URL_USER_MANAGEMENT)
 	rg.BindFunc(middleware.IsAdmin())
 	rg.GET("", p.GET(engine, app))

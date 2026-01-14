@@ -40,7 +40,8 @@ type ReihenPage struct {
 	pagemodels.DefaultPage[*pagemodels.DefaultPageRecord]
 }
 
-func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_REIHEN, func(e *core.RequestEvent) error {
 		search := e.Request.URL.Query().Get(PARAM_SEARCH)
 		if search != "" {

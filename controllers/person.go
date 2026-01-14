@@ -34,7 +34,8 @@ type PersonPage struct {
 	pagemodels.StaticPage
 }
 
-func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], app core.App, engine *templating.Engine) error {
+func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
+	app := ia.Core()
 	router.GET(URL_PERSON, func(e *core.RequestEvent) error {
 		person := e.Request.PathValue("id")
 		data := make(map[string]interface{})
