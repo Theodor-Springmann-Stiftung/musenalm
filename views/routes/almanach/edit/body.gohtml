@@ -55,7 +55,7 @@ type AlmanachResult struct {
 						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
 						{{ $model.result.Entry.MusenalmID }}
 							<tool-tip position="right" class="!inline">
-								<div class="data-tip">Die Alm-Nr ist Teil der URL und wird automatisch vergeben.</div>
+								<div class="data-tip">{{ help "entries" "musenalm_id" }}</div>
 								<i class="ri-information-line"></i>
 							</tool-tip>
 						</div>
@@ -114,7 +114,7 @@ type AlmanachResult struct {
 					<div class="font-bold text-sm">
 						<i class="ri-database-2-line"></i> Datenbank-ID
 						<tool-tip position="right" class="!inline">
-							<div class="data-tip">Die Datenbank-ID kann zur Fehlerdiagnose hilfreich sein.</div>
+							<div class="data-tip">{{ help "entries" "id" }}</div>
 							<i class="ri-information-line"></i>
 						</tool-tip>
 					</div>
@@ -168,7 +168,7 @@ type AlmanachResult struct {
 					<div class="flex items-center gap-1">
 						<label for="preferred_title" class="inputlabel">Kurztitel</label>
 						<tool-tip position="top" class="!inline">
-							<div class="data-tip">Kurzer, eindeutiger Titel für die Anzeige.</div>
+							<div class="data-tip">{{ help "entries" "preferred_title" }}</div>
 							<i class="ri-question-line"></i>
 						</tool-tip>
 					</div>
@@ -193,12 +193,12 @@ type AlmanachResult struct {
 						<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
-									<label for="title" class="inputlabel menu-label">Titel</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Vollständiger Titel des Almanachs.</div>
-										<i class="ri-question-line"></i>
-									</tool-tip>
-								</div>
+								<label for="title" class="inputlabel menu-label">Titel</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">{{ help "entries" "title_statement" }}</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
 										<i class="ri-close-line"></i>
@@ -215,7 +215,7 @@ type AlmanachResult struct {
 									<label for="paralleltitle" class="inputlabel menu-label">Titel
 										(übersetzt)</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Übersetzter oder paralleler Titel.</div>
+										<div class="data-tip">{{ help "entries" "parallel_title" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -234,7 +234,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Ergänzender Untertitel oder Zusatz.</div>
+										<div class="data-tip">{{ help "entries" "subtitle_statement" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -253,7 +253,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Alternative oder abweichende Titelformen.</div>
+										<div class="data-tip">{{ help "entries" "variant_title" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -272,7 +272,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="incipit" class="inputlabel menu-label">Incipit</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Erste Worte oder Anfang des Texts.</div>
+										<div class="data-tip">{{ help "entries" "incipit_statement" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -292,7 +292,7 @@ type AlmanachResult struct {
 									<label for="responsibility_statement" class="inputlabel
 									menu-label">Herausgeberangabe</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Angabe zu Herausgebern oder Verantwortlichen.</div>
+										<div class="data-tip">{{ help "entries" "responsibility_statement" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -311,7 +311,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Verlags- oder Publikationsangaben.</div>
+										<div class="data-tip">{{ help "entries" "publication_statement" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -330,7 +330,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="place_statement" class="inputlabel menu-label">Ortsangabe</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Ort(e) der Veröffentlichung.</div>
+										<div class="data-tip">{{ help "entries" "place_statement" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -357,7 +357,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="year" class="inputlabel">Jahr</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Erscheinungsjahr des Almanachs.</div>
+										<div class="data-tip">{{ help "entries" "year" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -370,7 +370,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Hinweis zur Ausgabe oder Edition.</div>
+										<div class="data-tip">{{ helpOr "entries" "edition" "Hinweis zur Ausgabe oder Edition." }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -400,7 +400,7 @@ type AlmanachResult struct {
 							<div class="flex items-center gap-1">
 								<label class="inputlabel" for="series-section">Reihen</label>
 								<tool-tip position="top" class="!inline">
-									<div class="data-tip">Verknüpfte Reihen für diesen Almanach.</div>
+									<div class="data-tip">{{ helpOr "entries" "series" "Verknüpfte Reihen für diesen Almanach." }}</div>
 									<i class="ri-question-line"></i>
 								</tool-tip>
 							</div>
@@ -545,7 +545,7 @@ type AlmanachResult struct {
 							<div class="flex items-center gap-1">
 								<label class="inputlabel" for="agents-section">Personen &amp; Körperschaften</label>
 								<tool-tip position="top" class="!inline">
-									<div class="data-tip">Beteiligte Personen oder Körperschaften.</div>
+									<div class="data-tip">{{ helpOr "entries" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
 									<i class="ri-question-line"></i>
 								</tool-tip>
 							</div>
@@ -692,7 +692,7 @@ type AlmanachResult struct {
 						<div class="flex items-center gap-1">
 							<label for="places" class="inputlabel">Erscheinungs- und Verlagsorte</label>
 							<tool-tip position="top" class="!inline">
-								<div class="data-tip">Orte der Veröffentlichung und des Verlags.</div>
+								<div class="data-tip">{{ help "entries" "places" }}</div>
 								<i class="ri-question-line"></i>
 							</tool-tip>
 						</div>
@@ -731,7 +731,7 @@ type AlmanachResult struct {
 		<!-- Right Column -->
 		<div class="w-[28rem] shrink-0 flex flex-col gap-3">
 			<div>
-				{{ template "_status_edit" (Arr $model.result.Entry "type" "type" "almanach") }}
+				{{ template "_status_edit" (Arr $model.result.Entry "type" "type" "entries" "almanach") }}
 			</div>
 
 			<div>
@@ -749,7 +749,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Hinweise zu Umfang oder Struktur.</div>
+										<div class="data-tip">{{ help "entries" "extent" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -768,7 +768,7 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="dimensions" class="inputlabel menu-label">Maße</label>
 									<tool-tip position="top" class="!inline">
-										<div class="data-tip">Maße oder Formatangaben.</div>
+										<div class="data-tip">{{ help "entries" "dimensions" }}</div>
 										<i class="ri-question-line"></i>
 									</tool-tip>
 								</div>
@@ -791,7 +791,7 @@ type AlmanachResult struct {
 							<div class="flex items-center gap-1">
 								<label for="languages" class="inputlabel">Sprachen</label>
 								<tool-tip position="top" class="!inline">
-									<div class="data-tip">Sprachen des Almanachs oder der Inhalte.</div>
+									<div class="data-tip">{{ help "entries" "language" }}</div>
 									<i class="ri-question-line"></i>
 								</tool-tip>
 							</div>
@@ -814,12 +814,12 @@ type AlmanachResult struct {
 					<div class="inputwrapper">
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
-								<label for="refs" class="inputlabel">Nachweise</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">Literatur- oder Quellenangaben.</div>
-									<i class="ri-question-line"></i>
-								</tool-tip>
-							</div>
+							<label for="refs" class="inputlabel">Nachweise</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ help "entries" "refs" }}</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
 						</div>
 						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
 					</div>
@@ -936,7 +936,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Institution oder Besitzer des Exemplars.</div>
+											<div class="data-tip">{{ help "items" "owner" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" />
@@ -944,7 +944,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Interne Signatur oder Kennung.</div>
+											<div class="data-tip">{{ help "items" "identifier" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" />
@@ -952,7 +952,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Aufbewahrungsort des Exemplars.</div>
+											<div class="data-tip">{{ help "items" "location" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" />
@@ -960,7 +960,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
+											<div class="data-tip">{{ help "items" "media" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
@@ -976,7 +976,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Link oder Identifier zum Exemplar.</div>
+											<div class="data-tip">{{ help "items" "uri" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" />
@@ -1053,7 +1053,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Institution oder Besitzer des Exemplars.</div>
+											<div class="data-tip">{{ help "items" "owner" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="" />
@@ -1061,7 +1061,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Interne Signatur oder Kennung.</div>
+											<div class="data-tip">{{ help "items" "identifier" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="" />
@@ -1069,7 +1069,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Aufbewahrungsort des Exemplars.</div>
+											<div class="data-tip">{{ help "items" "location" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="" />
@@ -1077,7 +1077,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Medientyp oder Verfügbarkeit.</div>
+											<div class="data-tip">{{ help "items" "media" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
@@ -1093,7 +1093,7 @@ type AlmanachResult struct {
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
 										<tool-tip position="top" class="!inline">
-											<div class="data-tip">Link oder Identifier zum Exemplar.</div>
+											<div class="data-tip">{{ help "items" "uri" }}</div>
 											<i class="ri-question-line"></i>
 										</tool-tip>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" />

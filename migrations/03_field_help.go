@@ -197,58 +197,37 @@ var fieldHelpSeed = []FieldHelpTable{
 		TableName:   "R_" + dbmodels.ENTRIES_TABLE + "_" + dbmodels.AGENTS_TABLE,
 		Help:        "Liste aller Verknüpfungen von Einträgen und Personen/Körperschaften",
 		Description: "Diese Tabelle enthält alle Verknüpfungen von Einträgen und Personen/Körperschaften, die in der Musenalm-Datenbank verwendet werden. Diese Liste wird für die Erstellung von Verknüpfungen verwendet.",
-		Common: []FieldHelpEntry{
-			{FieldName: dbmodels.ID_FIELD, Help: "Eindeutige Identifikationsnummer", Description: "Systemgenerierte eindeutige ID für diese Relation"},
-			{FieldName: dbmodels.CREATED_FIELD, Help: "Erstellungsdatum", Description: "Zeitpunkt der Erstellung dieser Relation"},
-			{FieldName: dbmodels.UPDATED_FIELD, Help: "Aktualisierungsdatum", Description: "Zeitpunkt der letzten Änderung dieser Relation"},
-			{FieldName: dbmodels.ANNOTATION_FIELD, Help: "Anmerkungen", Description: "Zusätzliche Anmerkungen zu dieser Relation"},
-			{FieldName: dbmodels.COMMENT_FIELD, Help: "Bearbeitungskommentar", Description: "Kommentare zur Bearbeitung"},
-		},
-		Entries: []FieldHelpEntry{
-			{FieldName: dbmodels.ENTRIES_TABLE, Help: "Band", Description: "Verknüpfter Almanachband"},
-			{FieldName: dbmodels.AGENTS_TABLE, Help: "Person/Körperschaft", Description: "Verknüpfte Person oder Körperschaft"},
-			{FieldName: dbmodels.RELATION_TYPE_FIELD, Help: "Relationstyp", Description: "Art der Beziehung (Autor, Herausgeber, etc.)"},
-			{FieldName: dbmodels.RELATION_CONJECTURE_FIELD, Help: "Vermutung", Description: "Ist diese Zuordnung eine Vermutung?"},
-			{FieldName: dbmodels.RELATION_UNCERTAIN_FIELD, Help: "Unsicher", Description: "Ist diese Zuordnung unsicher?"},
-		},
 	},
 	{
 		TableName:   "R_" + dbmodels.CONTENTS_TABLE + "_" + dbmodels.AGENTS_TABLE,
 		Help:        "Liste aller Verknüpfungen von Inhaltsbeiträgen und Personen/Körperschaften",
 		Description: "Diese Tabelle enthält alle Verknüpfungen von Inhaltsbeiträgen und Personen/Körperschaften, die in der Musenalm-Datenbank verwendet werden. Diese Liste wird für die Erstellung von Verknüpfungen verwendet.",
-		Common: []FieldHelpEntry{
-			{FieldName: dbmodels.ID_FIELD, Help: "Eindeutige Identifikationsnummer", Description: "Systemgenerierte eindeutige ID für diese Relation"},
-			{FieldName: dbmodels.CREATED_FIELD, Help: "Erstellungsdatum", Description: "Zeitpunkt der Erstellung dieser Relation"},
-			{FieldName: dbmodels.UPDATED_FIELD, Help: "Aktualisierungsdatum", Description: "Zeitpunkt der letzten Änderung dieser Relation"},
-			{FieldName: dbmodels.ANNOTATION_FIELD, Help: "Anmerkungen", Description: "Zusätzliche Anmerkungen zu dieser Relation"},
-			{FieldName: dbmodels.COMMENT_FIELD, Help: "Bearbeitungskommentar", Description: "Kommentare zur Bearbeitung"},
-		},
-		Entries: []FieldHelpEntry{
-			{FieldName: dbmodels.CONTENTS_TABLE, Help: "Inhalt", Description: "Verknüpfter Inhaltsbeitrag"},
-			{FieldName: dbmodels.AGENTS_TABLE, Help: "Person/Körperschaft", Description: "Verknüpfte Person oder Körperschaft"},
-			{FieldName: dbmodels.RELATION_TYPE_FIELD, Help: "Relationstyp", Description: "Art der Beziehung (Autor, Stecher, etc.)"},
-			{FieldName: dbmodels.RELATION_CONJECTURE_FIELD, Help: "Vermutung", Description: "Ist diese Zuordnung eine Vermutung?"},
-			{FieldName: dbmodels.RELATION_UNCERTAIN_FIELD, Help: "Unsicher", Description: "Ist diese Zuordnung unsicher?"},
-		},
 	},
 	{
 		TableName:   "R_" + dbmodels.ENTRIES_TABLE + "_" + dbmodels.SERIES_TABLE,
 		Help:        "Liste aller Verknüpfungen von Einträgen und Reihentiteln",
 		Description: "Diese Tabelle enthält alle Verknüpfungen von Einträgen und Reihentiteln, die in der Musenalm-Datenbank verwendet werden. Diese Liste wird für die Erstellung von Verknüpfungen verwendet.",
-		Common: []FieldHelpEntry{
-			{FieldName: dbmodels.ID_FIELD, Help: "Eindeutige Identifikationsnummer", Description: "Systemgenerierte eindeutige ID für diese Relation"},
-			{FieldName: dbmodels.CREATED_FIELD, Help: "Erstellungsdatum", Description: "Zeitpunkt der Erstellung dieser Relation"},
-			{FieldName: dbmodels.UPDATED_FIELD, Help: "Aktualisierungsdatum", Description: "Zeitpunkt der letzten Änderung dieser Relation"},
-			{FieldName: dbmodels.ANNOTATION_FIELD, Help: "Anmerkungen", Description: "Zusätzliche Anmerkungen zu dieser Relation"},
-			{FieldName: dbmodels.COMMENT_FIELD, Help: "Bearbeitungskommentar", Description: "Kommentare zur Bearbeitung"},
-		},
-		Entries: []FieldHelpEntry{
-			{FieldName: dbmodels.ENTRIES_TABLE, Help: "Band", Description: "Verknüpfter Almanachband"},
-			{FieldName: dbmodels.SERIES_TABLE, Help: "Reihe", Description: "Verknüpfter Reihentitel"},
-			{FieldName: dbmodels.RELATION_TYPE_FIELD, Help: "Relationstyp", Description: "Art der Beziehung (Bevorzugter Titel, Alternative, etc.)"},
-			{FieldName: dbmodels.RELATION_CONJECTURE_FIELD, Help: "Vermutung", Description: "Ist diese Zuordnung eine Vermutung?"},
-			{FieldName: dbmodels.RELATION_UNCERTAIN_FIELD, Help: "Unsicher", Description: "Ist diese Zuordnung unsicher?"},
-		},
+	},
+}
+
+var additionalFieldHelpSeed = []FieldHelp{
+	{
+		TableName:   dbmodels.ENTRIES_TABLE,
+		FieldName:   dbmodels.EDITION_FIELD,
+		Help:        "Hinweis zur Ausgabe oder Edition.",
+		Description: "Angaben zur Ausgabe, Edition oder Besonderheiten der Veroeffentlichung.",
+	},
+	{
+		TableName:   dbmodels.ENTRIES_TABLE,
+		FieldName:   dbmodels.SERIES_TABLE,
+		Help:        "Verknuepfte Reihen fuer diesen Almanach.",
+		Description: "Reihen, die mit diesem Almanach verbunden sind.",
+	},
+	{
+		TableName:   dbmodels.ENTRIES_TABLE,
+		FieldName:   dbmodels.AGENTS_TABLE,
+		Help:        "Beteiligte Personen oder Koerperschaften.",
+		Description: "Personen oder Koerperschaften, die an diesem Almanach beteiligt sind.",
 	},
 }
 
@@ -363,6 +342,8 @@ func getAllFieldHelps() []FieldHelp {
 			})
 		}
 	}
+
+	helps = append(helps, additionalFieldHelpSeed...)
 
 	return helps
 }

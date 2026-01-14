@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"sort"
 	"strings"
@@ -181,6 +182,27 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		defer app.htmlMutex.RUnlock()
 		return app.htmlCache.Get(key)
 	})
+	engine.AddFunc("help", func(table string, field ...string) template.HTML {
+		app.ensureHtmlCache()
+		key := "help." + table
+		if len(field) > 0 && field[0] != "" {
+			key = key + "." + field[0]
+		}
+		app.htmlMutex.RLock()
+		defer app.htmlMutex.RUnlock()
+		return template.HTML(app.htmlCache.GetString(key))
+	})
+	engine.AddFunc("helpOr", func(table, field, fallback string) template.HTML {
+		app.ensureHtmlCache()
+		key := "help." + table + "." + field
+		app.htmlMutex.RLock()
+		value := app.htmlCache.GetString(key)
+		app.htmlMutex.RUnlock()
+		if value == "" {
+			value = fallback
+		}
+		return template.HTML(value)
+	})
 	engine.AddFunc("htmlPrefix", func(prefix string) map[string]any {
 		app.ensureHtmlCache()
 		app.htmlMutex.RLock()
@@ -224,6 +246,20 @@ func (c *PrefixCache) Get(key string) any {
 		return nil
 	}
 	return c.data[key]
+}
+
+func (c *PrefixCache) GetString(key string) string {
+	if c == nil {
+		return ""
+	}
+	value, ok := c.data[key]
+	if !ok || value == nil {
+		return ""
+	}
+	if s, ok := value.(string); ok {
+		return s
+	}
+	return fmt.Sprint(value)
 }
 
 func (c *PrefixCache) GetPrefix(prefix string) map[string]any {

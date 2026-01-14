@@ -1,9 +1,13 @@
 {{- $entity := index . 0 -}}
 {{- $fieldName := index . 1 -}}
 {{- $fieldId := index . 2 -}}
+{{- $tableName := "" -}}
 {{- $context := "" -}}
 {{- if gt (len .) 3 -}}
-	{{- $context = index . 3 -}}
+	{{- $tableName = index . 3 -}}
+{{- end -}}
+{{- if gt (len .) 4 -}}
+	{{- $context = index . 4 -}}
 {{- end -}}
 {{- $isAlmanach := eq $context "almanach" -}}
 
@@ -14,7 +18,7 @@
 		<div class="flex items-center gap-1">
 			<label for="{{ $fieldId }}" class="inputlabel">Status</label>
 			<tool-tip position="top" class="!inline">
-				<div class="data-tip">Kurzinfo zum Bearbeitungsstatus.</div>
+				<div class="data-tip">{{ help $tableName "edit_state" }}</div>
 				<i class="ri-question-line"></i>
 			</tool-tip>
 		</div>
@@ -47,7 +51,7 @@
 				<div class="flex items-center gap-1">
 					<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
 					<tool-tip position="top" class="!inline">
-						<div class="data-tip">Hinweise zum Bearbeitungsstand oder offene Fragen.</div>
+						<div class="data-tip">{{ help $tableName "edit_comment" }}</div>
 						<i class="ri-question-line"></i>
 					</tool-tip>
 				</div>

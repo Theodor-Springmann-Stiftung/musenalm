@@ -117,7 +117,7 @@
 						<div class="flex items-center gap-1">
 							<label for="name" class="inputlabel">Name</label>
 							<tool-tip position="top" class="!inline">
-								<div class="data-tip">Kurze Hilfe zum Ortsnamen.</div>
+								<div class="data-tip">{{ help "places" "name" }}</div>
 								<i class="ri-question-line"></i>
 							</tool-tip>
 						</div>
@@ -133,7 +133,7 @@
 						<div class="flex items-center gap-1">
 							<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
 							<tool-tip position="top" class="!inline">
-								<div class="data-tip">Weitere gebräuchliche Namen für den Ort.</div>
+								<div class="data-tip">{{ help "places" "pseudonyms" }}</div>
 								<i class="ri-question-line"></i>
 							</tool-tip>
 						</div>
@@ -145,7 +145,7 @@
 					<div class="flex items-center gap-1">
 						<label for="uri" class="inputlabel">URL</label>
 						<tool-tip position="top" class="!inline">
-							<div class="data-tip">Externe Referenz oder offizielle Webseite.</div>
+							<div class="data-tip">{{ help "places" "uri" }}</div>
 							<i class="ri-question-line"></i>
 						</tool-tip>
 					</div>
@@ -158,7 +158,7 @@
 				<label class="flex items-center gap-1 text-gray-700" for="fictional">
 					<span>Fiktional</span>
 					<tool-tip position="top" class="!inline">
-						<div class="data-tip">Markiere den Ort als fiktiv.</div>
+						<div class="data-tip">{{ help "places" "fictional" }}</div>
 						<i class="ri-question-line"></i>
 					</tool-tip>
 				</label>
@@ -168,7 +168,7 @@
 			</div>
 
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
-				{{ template "_status_edit" (Arr $place "status" "status") }}
+				{{ template "_status_edit" (Arr $place "status" "status" "places") }}
 				<div class="mt-2">
 					{{ template "_linked_items" (Arr $model.result.Entries nil nil nil nil) }}
 				</div>
