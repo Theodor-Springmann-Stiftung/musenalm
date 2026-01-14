@@ -34,10 +34,27 @@ func SearchPlaces(app core.App, term string, limit int) ([]*Place, error) {
 		Limit(int64(limit))
 
 	if trimmed != "" {
-		query = query.Where(dbx.Or(
-			dbx.Like(PLACES_NAME_FIELD, trimmed).Match(true, true),
-			dbx.Like(PLACES_PSEUDONYMS_FIELD, trimmed).Match(true, true),
-		))
+		terms := []string{trimmed}
+		if strings.Contains(trimmed, "/") {
+			normalized := strings.ReplaceAll(trimmed, "/", " ")
+			normalized = strings.Join(strings.Fields(normalized), " ")
+			collapsed := strings.ReplaceAll(trimmed, "/", "")
+			if normalized != "" && normalized != trimmed {
+				terms = append(terms, normalized)
+			}
+			if collapsed != "" && collapsed != trimmed && collapsed != normalized {
+				terms = append(terms, collapsed)
+			}
+		}
+
+		conditions := make([]dbx.Expression, 0, len(terms)*2)
+		for _, term := range terms {
+			conditions = append(conditions,
+				dbx.Like(PLACES_NAME_FIELD, term).Match(true, true),
+				dbx.Like(PLACES_PSEUDONYMS_FIELD, term).Match(true, true),
+			)
+		}
+		query = query.Where(dbx.Or(conditions...))
 	}
 
 	if err := query.All(&places); err != nil {

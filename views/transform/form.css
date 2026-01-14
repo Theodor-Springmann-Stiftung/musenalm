@@ -144,7 +144,7 @@
 	}
 
 	.rel-grid {
-		@apply grid grid-cols-[1fr_14rem_5.5rem_7rem] gap-3 items-center;
+		@apply grid grid-cols-[1fr_12.5rem_5rem_7rem] gap-3 items-center;
 	}
 
 	.rel-name-col {

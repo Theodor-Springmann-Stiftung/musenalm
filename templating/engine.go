@@ -135,6 +135,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("ReplaceSlashParen", functions.ReplaceSlashParen)
 	e.AddFunc("ReplaceSlashParenSlash", functions.ReplaceSlashParenSlash)
 	e.AddFunc("LinksAnnotation", functions.LinksAnnotation)
+	e.AddFunc("LanguageNameGerman", functions.LanguageNameGerman)
 
 	// Time & Date Functions
 	e.AddFunc("Today", functions.Today)

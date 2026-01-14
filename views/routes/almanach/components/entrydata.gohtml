@@ -80,6 +80,30 @@
 						<div class="fieldvalue">{{ $model.result.Entry.TitleStmt }}</div>
 					</div>
 				{{- end -}}
+				{{- if $model.result.Entry.ParallelTitle -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Paralleltitel</div>
+						<div class="fieldvalue">{{ $model.result.Entry.ParallelTitle }}</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.Entry.SubtitleStmt -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Untertitel</div>
+						<div class="fieldvalue">{{ $model.result.Entry.SubtitleStmt }}</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.Entry.VariantTitle -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Titelvarianten</div>
+						<div class="fieldvalue">{{ $model.result.Entry.VariantTitle }}</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.Entry.IncipitStmt -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Incipit</div>
+						<div class="fieldvalue">{{ $model.result.Entry.IncipitStmt }}</div>
+					</div>
+				{{- end -}}
 				<div class="entryrow">
 					<div class="fieldlabel">Jahr</div>
 					<div class="fieldvalue">
@@ -98,6 +122,24 @@
 						<div class="fieldvalue">{{ $model.result.Entry.ResponsibilityStmt }}</div>
 					</div>
 				{{- end -}}
+				{{- if $model.result.Entry.PublicationStmt -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Publikationsangabe</div>
+						<div class="fieldvalue">{{ $model.result.Entry.PublicationStmt }}</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.Entry.PlaceStmt -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Ortsangabe</div>
+						<div class="fieldvalue">{{ $model.result.Entry.PlaceStmt }}</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.Entry.Edition -}}
+					<div class="entryrow">
+						<div class="fieldlabel">Ausgabebezeichnung</div>
+						<div class="fieldvalue">{{ $model.result.Entry.Edition }}</div>
+					</div>
+				{{- end -}}
 				{{- if $model.result.Entry.Extent -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Umfang</div>
@@ -111,20 +153,10 @@
 						<div class="fieldlabel">Sprache</div>
 						<div class="fieldvalue">
 							{{- range $i, $lang := $model.result.Entry.Language -}}
-								{{- if $i -}},{{- end -}}
-								{{- if eq $lang "ger" -}}
-									{{ $isGer = true }}
-									Deutsch
-								{{- else if eq $lang "eng" -}}
-									{{ $isEng = true }}
-									Englisch
-								{{- else if eq $lang "fre" -}}
-									{{ $isFra = true }}
-									Französisch
-								{{- else if eq $lang "ita" -}}
-									Italienisch
-								{{- else if eq $lang "lat" -}}
-									Latein
+								{{- if $i }}, {{ end -}}
+								{{- $name := LanguageNameGerman $lang -}}
+								{{- if $name -}}
+									{{ $name }}
 								{{- else -}}
 									{{ $lang }}
 								{{- end -}}
