@@ -325,42 +325,42 @@ const (
 )
 
 var pageMetaSeed = map[string]PageMeta{
-	pageDataKey(pagemodels.P_INDEX_NAME): {
+	pagemodels.P_INDEX_NAME: {
 		Title:       INDEX_TITLE,
 		Description: INDEX_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_REIHEN_NAME): {
+	pagemodels.P_REIHEN_NAME: {
 		Title:       REIHEN_TITLE,
 		Description: REIHEN_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_DANK_NAME): {
+	pagemodels.P_DANK_NAME: {
 		Title:       "Danksagungen",
 		Description: DANKSAGUNGEN_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_EINFUEHRUNG_NAME): {
+	pagemodels.P_EINFUEHRUNG_NAME: {
 		Title:       EINLEITUNG_TITLE,
 		Description: EINLEITUNG_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_KONTAKT_NAME): {
+	pagemodels.P_KONTAKT_NAME: {
 		Title:       KONTAKT_TITLE,
 		Description: KONTAKT_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_LIT_NAME): {
+	pagemodels.P_LIT_NAME: {
 		Title:       LITERATUR_TITLE,
 		Description: LITERATUR_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_DOK_NAME): {
+	pagemodels.P_DOK_NAME: {
 		Title:       DOKUMENTATION_TITLE,
 		Description: DOKUMENTATION_DESCRIPTION,
 		Keywords:    "",
 	},
-	pageDataKey(pagemodels.P_KABINETT_NAME): {
+	pagemodels.P_KABINETT_NAME: {
 		Title:       KABINETT_TITLE,
 		Description: KABINETT_DESCRIPTION,
 		Keywords:    "",
@@ -382,7 +382,7 @@ var pageHTMLSeed = map[string]string{
 func init() {
 	m.Register(func(app core.App) error {
 		for key, meta := range pageMetaSeed {
-			if err := upsertData(app, key, meta); err != nil {
+			if err := upsertPageMeta(app, key, meta); err != nil {
 				return err
 			}
 		}
@@ -413,7 +413,7 @@ func init() {
 		}
 
 		for key := range pageMetaSeed {
-			if err := deleteByKey(app, dbmodels.DATA_TABLE, key); err != nil {
+			if err := deleteByKey(app, dbmodels.PAGES_TABLE, key); err != nil {
 				return err
 			}
 		}

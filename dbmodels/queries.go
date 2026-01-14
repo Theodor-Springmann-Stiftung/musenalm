@@ -155,6 +155,12 @@ func Data_All(app core.App) ([]*Data, error) {
 	return data, err
 }
 
+func Pages_All(app core.App) ([]*Page, error) {
+	pages := make([]*Page, 0)
+	err := app.RecordQuery(PAGES_TABLE).All(&pages)
+	return pages, err
+}
+
 func Html_All(app core.App) ([]*HTML, error) {
 	html := make([]*HTML, 0)
 	err := app.RecordQuery(HTML_TABLE).All(&html)

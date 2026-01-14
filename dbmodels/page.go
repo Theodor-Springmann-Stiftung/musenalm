@@ -18,6 +18,14 @@ func (p *Page) URL() string {
 	return p.GetString(URL_FIELD)
 }
 
+func (p *Page) Title() string {
+	return p.GetString(TITLE_FIELD)
+}
+
+func (p *Page) SetTitle(title string) {
+	p.Set(TITLE_FIELD, title)
+}
+
 func (p *Page) SetURL(url string) {
 	p.Set(URL_FIELD, url)
 }

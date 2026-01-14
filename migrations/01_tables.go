@@ -582,6 +582,7 @@ func pagesTable() *core.Collection {
 func pagesTableFields() core.FieldsList {
 	fields := core.NewFieldsList(
 		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.TITLE_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.URL_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.TEMPLATE_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.LAYOUT_FIELD, Required: false},

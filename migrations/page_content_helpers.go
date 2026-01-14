@@ -11,15 +11,38 @@ type PageMeta struct {
 	Keywords    string `json:"keywords"`
 }
 
-func pageDataKey(name string) string {
-	return "page." + name
-}
-
 func pageHTMLKey(name, section string) string {
 	if section == "" {
 		return "page." + name
 	}
 	return "page." + name + "." + section
+}
+
+func upsertPageMeta(app core.App, key string, meta PageMeta) error {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.PAGES_TABLE)
+	if err != nil {
+		return err
+	}
+
+	record, _ := app.FindFirstRecordByData(collection.Id, dbmodels.KEY_FIELD, key)
+	if record == nil {
+		record = core.NewRecord(collection)
+		record.Set(dbmodels.KEY_FIELD, key)
+	}
+	record.Set(dbmodels.TITLE_FIELD, meta.Title)
+
+	data := map[string]any{}
+	if existing := record.Get(dbmodels.DATA_FIELD); existing != nil {
+		if existingMap, ok := existing.(map[string]any); ok {
+			data = existingMap
+		} else if existingMap, ok := existing.(map[string]interface{}); ok {
+			data = map[string]any(existingMap)
+		}
+	}
+	data["description"] = meta.Description
+	data["keywords"] = meta.Keywords
+	record.Set(dbmodels.DATA_FIELD, data)
+	return app.Save(record)
 }
 
 func upsertHTML(app core.App, key, value string) error {

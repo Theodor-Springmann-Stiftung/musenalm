@@ -38,6 +38,8 @@ type App struct {
 	dataMutex sync.RWMutex
 	htmlCache *PrefixCache
 	htmlMutex sync.RWMutex
+	pagesCache map[string]PageMetaData
+	pagesMutex sync.RWMutex
 	imagesCache map[string]*dbmodels.Image
 	imagesMutex sync.RWMutex
 }
@@ -205,48 +207,39 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		}
 		return template.HTML(value)
 	})
+	app.ResetPagesCache()
 	engine.AddFunc("pageMeta", func(name string) map[string]any {
-		app.ensureDataCache()
-		key := "page." + name
-		app.dataMutex.RLock()
-		value := app.dataCache.Get(key)
-		app.dataMutex.RUnlock()
-		if value == nil {
+		app.ensurePagesCache()
+		app.pagesMutex.RLock()
+		meta, ok := app.pagesCache[name]
+		app.pagesMutex.RUnlock()
+		if !ok {
 			return map[string]any{}
 		}
-		if meta, ok := value.(map[string]any); ok {
-			return meta
+		return map[string]any{
+			"title":       meta.Title,
+			"description": meta.Description,
+			"keywords":    meta.Keywords,
 		}
-		if meta, ok := value.(map[string]interface{}); ok {
-			return meta
-		}
-		return map[string]any{}
 	})
 	engine.AddFunc("pageMetaField", func(name, field string) string {
-		app.ensureDataCache()
-		key := "page." + name
-		app.dataMutex.RLock()
-		value := app.dataCache.Get(key)
-		app.dataMutex.RUnlock()
-		if value == nil {
-			return ""
-		}
-		meta, ok := value.(map[string]any)
+		app.ensurePagesCache()
+		app.pagesMutex.RLock()
+		meta, ok := app.pagesCache[name]
+		app.pagesMutex.RUnlock()
 		if !ok {
-			if metaAlt, ok := value.(map[string]interface{}); ok {
-				meta = map[string]any(metaAlt)
-			} else {
-				return ""
-			}
-		}
-		fieldValue, ok := meta[field]
-		if !ok || fieldValue == nil {
 			return ""
 		}
-		if s, ok := fieldValue.(string); ok {
-			return s
+		switch field {
+		case "title":
+			return meta.Title
+		case "description":
+			return meta.Description
+		case "keywords":
+			return meta.Keywords
+		default:
+			return ""
 		}
-		return fmt.Sprint(fieldValue)
 	})
 	engine.AddFunc("pageHtml", func(name string, section ...string) template.HTML {
 		app.ensureHtmlCache()
@@ -305,9 +298,21 @@ func (app *App) ResetImagesCache() {
 	app.imagesCache = make(map[string]*dbmodels.Image)
 }
 
+func (app *App) ResetPagesCache() {
+	app.pagesMutex.Lock()
+	defer app.pagesMutex.Unlock()
+	app.pagesCache = make(map[string]PageMetaData)
+}
+
 type PrefixCache struct {
 	data map[string]any
 	keys []string
+}
+
+type PageMetaData struct {
+	Title       string
+	Description string
+	Keywords    string
 }
 
 func NewPrefixCache() *PrefixCache {
@@ -416,6 +421,43 @@ func (app *App) ensureHtmlCache() {
 		app.htmlCache = cache
 	}
 	app.htmlMutex.Unlock()
+}
+
+func (app *App) ensurePagesCache() {
+	app.pagesMutex.RLock()
+	if app.pagesCache != nil && len(app.pagesCache) > 0 {
+		app.pagesMutex.RUnlock()
+		return
+	}
+	app.pagesMutex.RUnlock()
+
+	pages, err := dbmodels.Pages_All(app.PB.App)
+	if err != nil {
+		app.PB.Logger().Error("Failed to fetch pages cache: %v", err)
+		return
+	}
+
+	cache := make(map[string]PageMetaData, len(pages))
+	for _, page := range pages {
+		meta := PageMetaData{
+			Title: page.Title(),
+		}
+		if data := page.Data(); data != nil {
+			if value, ok := data["description"]; ok && value != nil {
+				meta.Description = fmt.Sprint(value)
+			}
+			if value, ok := data["keywords"]; ok && value != nil {
+				meta.Keywords = fmt.Sprint(value)
+			}
+		}
+		cache[page.Key()] = meta
+	}
+
+	app.pagesMutex.Lock()
+	if app.pagesCache == nil || len(app.pagesCache) == 0 {
+		app.pagesCache = cache
+	}
+	app.pagesMutex.Unlock()
 }
 
 func (app *App) ensureImagesCache() {
