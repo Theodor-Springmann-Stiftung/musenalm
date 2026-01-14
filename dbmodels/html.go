@@ -14,8 +14,8 @@ func (h *HTML) SetKey(key string) {
 	h.Set(KEY_FIELD, key)
 }
 
-func (h *HTML) HTML() string {
-	return h.GetString(HTML_FIELD)
+func (h *HTML) HTML() any {
+	return h.GetRaw(HTML_FIELD)
 }
 
 func (h *HTML) SetHTML(html string) {

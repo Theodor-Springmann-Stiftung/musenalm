@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
@@ -26,9 +27,13 @@ type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
-	PB       *pocketbase.PocketBase
-	MAConfig Config
-	Pages    []pagemodels.IPage
+	PB        *pocketbase.PocketBase
+	MAConfig  Config
+	Pages     []pagemodels.IPage
+	dataCache map[string]any
+	dataMutex sync.RWMutex
+	htmlCache map[string]any
+	htmlMutex sync.RWMutex
 }
 
 const (
@@ -148,15 +153,58 @@ func (app *App) createEngine() (*templating.Engine, error) {
 			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
 		}})
 
+	app.ResetDataCache()
 	engine.AddFunc("data", func(key string) any {
-		res, err := dbmodels.Data_Key(app.PB.App, key)
-		if err != nil {
-			return "{}"
+		if len(app.dataCache) == 0 {
+			data, err := dbmodels.Data_All(app.PB.App)
+			if err != nil {
+				app.PB.Logger().Error("Failed to fetch data cache: %v", err)
+				return "{}"
+			}
+			app.dataMutex.Lock()
+			for _, d := range data {
+				app.dataCache[d.Key()] = d.Value()
+			}
+			app.dataMutex.Unlock()
 		}
-		return res.Value()
+		app.dataMutex.RLock()
+		defer app.dataMutex.RUnlock()
+		return app.dataCache[key]
+	})
+
+	app.ResetHtmlCache()
+	engine.AddFunc("html", func(key string) any {
+		if len(app.htmlCache) == 0 {
+			html, err := dbmodels.Html_All(app.PB.App)
+			if err != nil {
+				app.PB.Logger().Error("Failed to fetch html cache: %v", err)
+				return "{}"
+			}
+			app.htmlMutex.Lock()
+			for _, h := range html {
+				app.htmlCache[h.Key()] = h.HTML()
+			}
+			app.htmlMutex.Unlock()
+		}
+		app.htmlMutex.RLock()
+		defer app.htmlMutex.RUnlock()
+		return app.htmlCache[key]
 	})
 
 	return engine, nil
+}
+
+// BUG: we cant call this from the templates, bc this App struct is not available
+func (app *App) ResetDataCache() {
+	app.dataMutex.Lock()
+	defer app.dataMutex.Unlock()
+	app.dataCache = make(map[string]any)
+}
+
+func (app *App) ResetHtmlCache() {
+	app.htmlMutex.Lock()
+	defer app.htmlMutex.Unlock()
+	app.htmlCache = make(map[string]any)
 }
 
 func (app *App) setWatchers(engine *templating.Engine) {

@@ -149,6 +149,18 @@ func Data_Key(app core.App, key string) (*Data, error) {
 	return &ret, err
 }
 
+func Data_All(app core.App) ([]*Data, error) {
+	data := make([]*Data, 0)
+	err := app.RecordQuery(DATA_TABLE).All(&data)
+	return data, err
+}
+
+func Html_All(app core.App) ([]*HTML, error) {
+	html := make([]*HTML, 0)
+	err := app.RecordQuery(HTML_TABLE).All(&html)
+	return html, err
+}
+
 func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
 	t := HashStringSHA256(token)
 	return TableByField[*AccessToken](
