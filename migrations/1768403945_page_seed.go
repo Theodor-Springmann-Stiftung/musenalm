@@ -181,7 +181,6 @@ const (
 	DOKUMENTATION_TITLE       = "Benutzerhinweise"
 	DOKUMENTATION_DESCRIPTION = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Dokumentation der Sortierung und Struktur der Almanache."
 	DOKUMENTATION_TEXT        = `
-		<h1 class="mb-12">Benutzerhinweise</h1>
 		<div class="text">
 			<h3>Sortierung der Reihentitel</h3>
 <p>Wir sortieren die Reihentitel nach dem Kopf der Nominalphrase, den wir zu diesem Zweck ggf. an den Anfang stellen und mit Kommas abtrennen.</p>

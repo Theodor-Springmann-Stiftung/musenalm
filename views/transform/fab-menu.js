@@ -25,6 +25,8 @@ export class FabMenu extends HTMLElement {
 		let hasEntry = false,
 			entryId = "",
 			entryUpdated = "";
+		let hasPage = false,
+			pageKey = "";
 
 		// Reihe detail page: /reihe/{id} (but not /reihe/new or /reihe/{id}/edit)
 		const reiheMatch = path.match(/^\/reihe\/([^\/]+)\/?$/);
@@ -57,6 +59,34 @@ export class FabMenu extends HTMLElement {
 			}
 		}
 
+		// Page views use page editor keys via meta tag or URL mapping
+		const pageKeyMeta = document.querySelector('meta[name="page-key"]');
+		if (pageKeyMeta && pageKeyMeta.content) {
+			hasPage = true;
+			pageKey = pageKeyMeta.content;
+		} else {
+			const textPageMatch = path.match(/^\/redaktion\/([^\/]+)\/?$/);
+			const textPageKey = textPageMatch ? textPageMatch[1] : "";
+			const knownPageKeys = new Set([
+				"kontakt",
+				"danksagungen",
+				"literatur",
+				"einleitung",
+				"benutzerhinweise",
+				"lesekabinett",
+			]);
+			if (textPageKey && knownPageKeys.has(textPageKey)) {
+				hasPage = true;
+				pageKey = textPageKey;
+			} else if (path === "/" || path === "/index/") {
+				hasPage = true;
+				pageKey = "index";
+			} else if (path === "/reihen" || path === "/reihen/") {
+				hasPage = true;
+				pageKey = "reihen";
+			}
+		}
+
 		// Try to find CSRF token from page forms
 		let csrfToken = "";
 		const csrfInput = document.querySelector('input[name="csrf_token"]');
@@ -65,7 +95,7 @@ export class FabMenu extends HTMLElement {
 		}
 		const hasCsrf = csrfToken !== "";
 
-		this.hasContext = hasReihe || hasPerson || hasEntry;
+		this.hasContext = hasReihe || hasPerson || hasEntry || hasPage;
 
 		// Build half-open menu content
 		let halfOpenContent = "";
@@ -97,6 +127,16 @@ export class FabMenu extends HTMLElement {
 				<a href="/almanach/${entryId}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
+				</a>
+			`;
+		} else if (hasPage) {
+			halfOpenContent = `
+				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+					Seite
+				</div>
+				<a href="/redaktion/seiten/?key=${pageKey}" hx-boost="false" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Seite bearbeiten</span>
 				</a>
 			`;
 		}

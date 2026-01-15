@@ -198,11 +198,11 @@
 	}
 
 	.text {
-		@apply font-serif  hyphens-auto;
+		@apply font-serif text-lg hyphens-auto;
 	}
 
 	.text p {
-		@apply text-lg hyphens-auto max-w-[70ch];
+		@apply hyphens-auto max-w-[70ch];
 	}
 
 	.text ul {
