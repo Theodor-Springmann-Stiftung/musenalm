@@ -7,6 +7,7 @@ import (
 
 type PageMeta struct {
 	Title       string `json:"title"`
+	URL         string `json:"url"`
 	Description string `json:"description"`
 	Keywords    string `json:"keywords"`
 }
@@ -30,6 +31,9 @@ func upsertPageMeta(app core.App, key string, meta PageMeta) error {
 		record.Set(dbmodels.KEY_FIELD, key)
 	}
 	record.Set(dbmodels.TITLE_FIELD, meta.Title)
+	if meta.URL != "" {
+		record.Set(dbmodels.URL_FIELD, meta.URL)
+	}
 
 	data := map[string]any{}
 	if existing := record.Get(dbmodels.DATA_FIELD); existing != nil {

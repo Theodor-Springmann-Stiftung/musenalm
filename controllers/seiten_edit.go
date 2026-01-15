@@ -59,6 +59,7 @@ type SeitenEditorSection struct {
 type SeitenEditorSelected struct {
 	Key         string
 	Title       string
+	URL         string
 	Description string
 	Keywords    string
 	Sections    []SeitenEditorSection
@@ -286,9 +287,32 @@ func seitenEditorSelected(app core.App, key string) (*SeitenEditorSelected, erro
 		return nil, err
 	}
 
+	pageURL := page.URL()
+	if pageURL == "" {
+		switch key {
+		case pagemodels.P_INDEX_NAME:
+			pageURL = "/"
+		case pagemodels.P_REIHEN_NAME:
+			pageURL = "/reihen/"
+		case pagemodels.P_DANK_NAME:
+			pageURL = "/redaktion/danksagungen/"
+		case pagemodels.P_EINFUEHRUNG_NAME:
+			pageURL = "/redaktion/einleitung/"
+		case pagemodels.P_KONTAKT_NAME:
+			pageURL = "/redaktion/kontakt/"
+		case pagemodels.P_LIT_NAME:
+			pageURL = "/redaktion/literatur/"
+		case pagemodels.P_DOK_NAME:
+			pageURL = "/redaktion/benutzerhinweise/"
+		case pagemodels.P_KABINETT_NAME:
+			pageURL = "/redaktion/lesekabinett/"
+		}
+	}
+
 	return &SeitenEditorSelected{
 		Key:         key,
 		Title:       page.Title(),
+		URL:         pageURL,
 		Description: description,
 		Keywords:    keywords,
 		Sections:    sections,

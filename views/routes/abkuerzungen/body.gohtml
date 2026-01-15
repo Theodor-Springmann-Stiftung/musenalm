@@ -13,6 +13,12 @@
 			<div class="flex flex-row gap-x-3">
 				<div>
 					<a href="/abkuerzungen/" class="text-gray-700 hover:text-slate-950 block no-underline">
+						<i class="ri-eye-line"></i> Anschauen
+					</a>
+				</div>
+				&middot;
+				<div>
+					<a href="/abkuerzungen/" class="text-gray-700 hover:text-slate-950 block no-underline">
 						<i class="ri-loop-left-line"></i> Reset
 					</a>
 				</div>
@@ -42,18 +48,23 @@
 			</div>
 
 			<div class="overflow-x-auto bg-white border border-gray-200 rounded">
-				<table class="w-full">
+				<table class="w-full table-fixed" style="table-layout: fixed;">
+					<colgroup>
+						<col style="width: 12rem;" />
+						<col />
+						<col style="width: 8rem;" />
+					</colgroup>
 					<thead>
 						<tr class="border-b-2 border-gray-300 bg-gray-50">
-							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700 w-48">Kürzel</th>
+							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700">Kürzel</th>
 							<th class="text-left px-4 py-3 font-bold text-sm text-gray-700">Bedeutung</th>
-							<th class="w-16 px-4 py-3"></th>
+							<th class="px-4 py-3"></th>
 						</tr>
 					</thead>
 					<tbody id="abk-tbody">
 						{{- range $index, $entry := $model.result.Entries -}}
-							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100" data-row="{{ $index }}">
-								<td class="px-4 py-2.5">
+							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100" data-rel-row data-row="{{ $index }}">
+								<td class="px-4 py-2.5" style="width: 12rem;">
 									<input type="text"
 										name="abkuerzungen[{{ $index }}][key]"
 										value="{{ $entry.Key }}"
@@ -69,10 +80,11 @@
 										autocomplete="off"
 										required>
 								</td>
-								<td class="px-4 py-2.5 text-center">
-									<input type="hidden" name="abkuerzungen[{{ $index }}][_delete]" value="false" class="delete-flag">
-									<button type="button" class="delete-btn text-red-600 hover:text-red-800" title="Löschen">
-										<i class="ri-delete-bin-line text-lg"></i>
+								<td class="px-2 py-2.5 pr-4 text-center" style="width: 8rem;">
+									<input type="hidden" name="abkuerzungen[{{ $index }}][_delete]" id="abkuerzungen_delete_{{ $index }}" value="false" class="delete-flag">
+									<button type="button" class="delete-btn inline-flex items-center gap-1 whitespace-nowrap text-sm px-1.5" data-delete-toggle="abkuerzungen_delete_{{ $index }}">
+										<i class="ri-delete-bin-line"></i>
+										<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 									</button>
 								</td>
 							</tr>
@@ -106,13 +118,108 @@
 				const addBtn = document.getElementById('add-row-btn');
 				let rowIndex = {{ len $model.result.Entries }};
 
+				const updateDeleteLabel = (button, deleted, hovered) => {
+					const label = button.querySelector('[data-delete-label]');
+					if (label) {
+						let nextLabel;
+						if (deleted && hovered) {
+							nextLabel = label.getAttribute('data-delete-hover') || 'Rückgängig';
+						} else if (deleted) {
+							nextLabel = label.getAttribute('data-delete-active') || 'Wird entfernt';
+						} else {
+							nextLabel = label.getAttribute('data-delete-default') || 'Entfernen';
+						}
+						label.textContent = nextLabel;
+					}
+
+					const icon = button.querySelector('i');
+					if (!icon) {
+						return;
+					}
+					if (deleted) {
+						if (hovered) {
+							icon.classList.remove('hidden');
+							icon.classList.add('ri-arrow-go-back-line');
+							icon.classList.remove('ri-delete-bin-line');
+						} else {
+							icon.classList.add('hidden');
+							icon.classList.remove('ri-delete-bin-line', 'ri-arrow-go-back-line');
+						}
+					} else {
+						icon.classList.remove('hidden');
+						icon.classList.add('ri-delete-bin-line');
+						icon.classList.remove('ri-arrow-go-back-line');
+					}
+				};
+
+				const setRowDeleted = (row, button, deleted) => {
+					const deleteFlag = row.querySelector('.delete-flag');
+					if (deleteFlag) {
+						deleteFlag.value = deleted ? 'true' : 'false';
+					}
+					row.classList.toggle('bg-red-50', deleted);
+					row.querySelectorAll('input, select, textarea').forEach((control) => {
+						if (control === deleteFlag || control.type === 'hidden') {
+							return;
+						}
+						if ('readOnly' in control) {
+							control.readOnly = deleted;
+						}
+						control.classList.toggle('opacity-50', deleted);
+						control.classList.toggle('cursor-not-allowed', deleted);
+					});
+					updateDeleteLabel(button, deleted, button.matches(':hover'));
+				};
+
+				const wireDeleteButton = (button) => {
+					if (!button || button.dataset.abkBound === 'true') {
+						return;
+					}
+					button.dataset.abkBound = 'true';
+
+					button.addEventListener('click', (event) => {
+						event.preventDefault();
+						const row = button.closest('tr');
+						if (!row) {
+							return;
+						}
+						const deleteFlag = row.querySelector('.delete-flag');
+						const isDeleted = deleteFlag && deleteFlag.value === 'true';
+						setRowDeleted(row, button, !isDeleted);
+					});
+
+					button.addEventListener('mouseenter', () => {
+						const row = button.closest('tr');
+						const deleteFlag = row ? row.querySelector('.delete-flag') : null;
+						if (!deleteFlag || deleteFlag.value !== 'true') {
+							return;
+						}
+						updateDeleteLabel(button, true, true);
+					});
+
+					button.addEventListener('mouseleave', () => {
+						const row = button.closest('tr');
+						const deleteFlag = row ? row.querySelector('.delete-flag') : null;
+						updateDeleteLabel(button, deleteFlag && deleteFlag.value === 'true', false);
+					});
+
+					const row = button.closest('tr');
+					const deleteFlag = row ? row.querySelector('.delete-flag') : null;
+					if (row && deleteFlag && deleteFlag.value === 'true') {
+						setRowDeleted(row, button, true);
+					} else {
+						updateDeleteLabel(button, false, false);
+					}
+				};
+
 				// Add new row
 				addBtn.addEventListener('click', function() {
 					const tr = document.createElement('tr');
 					tr.className = 'border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100';
 					tr.dataset.row = rowIndex;
+					tr.setAttribute('data-rel-row', '');
 					tr.innerHTML = `
-						<td class="px-4 py-2.5">
+						<td class="px-4 py-2.5" style="width: 12rem;">
 							<input type="text"
 								name="abkuerzungen[${rowIndex}][key]"
 								value=""
@@ -128,14 +235,16 @@
 								autocomplete="off"
 								required>
 						</td>
-						<td class="px-4 py-2.5 text-center">
-							<input type="hidden" name="abkuerzungen[${rowIndex}][_delete]" value="false" class="delete-flag">
-							<button type="button" class="delete-btn text-red-600 hover:text-red-800" title="Löschen">
-								<i class="ri-delete-bin-line text-lg"></i>
+						<td class="px-2 py-2.5 pr-4 text-center" style="width: 8rem;">
+							<input type="hidden" name="abkuerzungen[${rowIndex}][_delete]" id="abkuerzungen_delete_${rowIndex}" value="false" class="delete-flag">
+							<button type="button" class="delete-btn inline-flex items-center gap-1 whitespace-nowrap text-sm px-1.5" data-delete-toggle="abkuerzungen_delete_${rowIndex}">
+								<i class="ri-delete-bin-line"></i>
+								<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 							</button>
 						</td>
 					`;
 					tbody.appendChild(tr);
+					wireDeleteButton(tr.querySelector('.delete-btn'));
 					rowIndex++;
 
 					// Focus the new key input
@@ -145,15 +254,8 @@
 					}
 				});
 
-				// Delete row handler (using event delegation)
-				tbody.addEventListener('click', function(e) {
-					if (e.target.classList.contains('delete-btn')) {
-						const tr = e.target.closest('tr');
-						const deleteFlag = tr.querySelector('.delete-flag');
-						deleteFlag.value = 'true';
-						tr.style.display = 'none';
-					}
-				});
+				const deleteButtons = tbody.querySelectorAll('.delete-btn');
+				deleteButtons.forEach((button) => wireDeleteButton(button));
 			})();
 		</script>
 

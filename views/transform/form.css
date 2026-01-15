@@ -204,7 +204,13 @@
 		position: relative;
 	}
 
-	[data-rel-row].bg-red-50::before,
+	[data-rel-row].bg-red-50 > td,
+	.items-row.bg-red-50,
+	.mss-selected-item-pill.bg-red-100 {
+		position: relative;
+	}
+
+	[data-rel-row].bg-red-50 > td::before,
 	.items-row.bg-red-50::before,
 	.mss-selected-item-pill.bg-red-100::before {
 		content: "";

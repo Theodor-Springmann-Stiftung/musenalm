@@ -677,41 +677,49 @@ const (
 var pageMetaSeed = map[string]PageMeta{
 	pagemodels.P_INDEX_NAME: {
 		Title:       INDEX_TITLE,
+		URL:         "/",
 		Description: INDEX_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_REIHEN_NAME: {
 		Title:       REIHEN_TITLE,
+		URL:         "/reihen/",
 		Description: REIHEN_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_DANK_NAME: {
 		Title:       "Danksagungen",
+		URL:         "/redaktion/danksagungen/",
 		Description: DANKSAGUNGEN_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_EINFUEHRUNG_NAME: {
 		Title:       EINLEITUNG_TITLE,
+		URL:         "/redaktion/einleitung/",
 		Description: EINLEITUNG_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_KONTAKT_NAME: {
 		Title:       KONTAKT_TITLE,
+		URL:         "/redaktion/kontakt/",
 		Description: KONTAKT_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_LIT_NAME: {
 		Title:       LITERATUR_TITLE,
+		URL:         "/redaktion/literatur/",
 		Description: LITERATUR_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_DOK_NAME: {
 		Title:       DOKUMENTATION_TITLE,
+		URL:         "/redaktion/benutzerhinweise/",
 		Description: DOKUMENTATION_DESCRIPTION,
 		Keywords:    "",
 	},
 	pagemodels.P_KABINETT_NAME: {
 		Title:       KABINETT_TITLE,
+		URL:         "/redaktion/lesekabinett/",
 		Description: KABINETT_DESCRIPTION,
 		Keywords:    "",
 	},
