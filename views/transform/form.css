@@ -344,9 +344,29 @@
 	.msr-staged-role-select {
 		@apply px-2 py-1 text-sm rounded-md border border-gray-300 bg-white outline-none text-gray-700;
 	}
-	.msr-staged-role-select:focus {
-		@apply focus:border-gray-500 focus:ring-1 focus:ring-gray-400;
-	}
+.msr-staged-role-select:focus {
+	@apply focus:border-gray-500 focus:ring-1 focus:ring-gray-400;
+}
+
+.tox-tinymce:focus-within,
+.tox-tinymce--focus {
+	@apply outline-none ring-0;
+	box-shadow: none !important;
+}
+
+.tox-tinymce:focus-within .tox-edit-area,
+.tox-tinymce:focus-within .tox-edit-area__iframe,
+.tox-tinymce .tox-edit-area__iframe:focus,
+.tox-tinymce .tox-edit-area__iframe:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.tox.tox-edit-focus .tox-edit-area::before,
+.tox .tox-edit-area::before {
+	border: 0 !important;
+	opacity: 0 !important;
+}
 
 	.msr-staged-cancel-btn {
 		@apply w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-sm leading-none cursor-pointer;

@@ -73,12 +73,14 @@
 					license_key: "gpl",
 					menubar: false,
 					branding: false,
-					plugins: "advlist lists link code autoresize",
-					toolbar: "undo redo | blocks | bold italic | bullist numlist | outdent indent | link | code removeformat",
+					plugins: "advlist lists link table code autoresize",
+					toolbar: "undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | link table | code removeformat",
 					block_formats: "Absatz=p;Überschrift 2=h2;Überschrift 3=h3;Zitat=blockquote;Vorformatiert=pre",
 					forced_root_block: "p",
 					autoresize_bottom_margin: 16,
-					content_style: "body { font-family: inherit; font-size: 1rem; } p { margin: 0 0 0.75rem; }",
+					content_css: "/assets/style.css",
+					body_class: "text",
+					content_style: "html, body { outline: none !important; box-shadow: none !important; } body, body.text { padding: 0 0 0 1.5rem !important; font-size: 1rem; } .mce-content-body { outline: none !important; }",
 					init_instance_callback: function (editor) {
 						if (editor && editor.targetElm) {
 							editor.targetElm.style.visibility = "";
