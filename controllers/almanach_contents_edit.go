@@ -68,6 +68,7 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 		data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
 		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
 		data["pagination_values"] = paginationValuesSorted()
+		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 
 		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
 			data["success"] = msg
@@ -92,6 +93,7 @@ func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app co
 	data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
 	data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
 	data["pagination_values"] = paginationValuesSorted()
+	data["agent_relations"] = dbmodels.AGENT_RELATIONS
 	data["error"] = message
 	data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
 	data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
@@ -125,6 +127,14 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		contentInputs := parseContentsForm(e.Request.PostForm)
 		contentOrder := parseContentsOrder(e.Request.PostForm)
 		orderMap := buildContentOrderMap(contentOrder)
+		relationsByContent := map[string]contentAgentRelationsPayload{}
+		for contentID := range contentInputs {
+			payload := parseContentAgentRelations(e.Request.PostForm, contentID)
+			if err := validateContentAgentRelations(payload); err != nil {
+				return p.renderSaveError(engine, app, e, req, nil, nil, err.Error(), isHTMX)
+			}
+			relationsByContent[contentID] = payload
+		}
 		user := req.User()
 		existingByID := make(map[string]*dbmodels.Content, len(contents))
 		for _, content := range contents {
@@ -192,6 +202,11 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if err := tx.Save(content); err != nil {
 					return err
 				}
+				if relations, ok := relationsByContent[tempID]; ok {
+					if err := applyContentAgentRelations(tx, content, relations); err != nil {
+						return err
+					}
+				}
 				created = append(created, content)
 			}
 			for _, content := range contents {
@@ -205,6 +220,11 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				}
 				if err := tx.Save(content); err != nil {
 					return err
+				}
+				if relations, ok := relationsByContent[content.Id]; ok {
+					if err := applyContentAgentRelations(tx, content, relations); err != nil {
+						return err
+					}
 				}
 			}
 			updatedContents = append(updatedContents, contents...)
@@ -267,6 +287,9 @@ func (p *AlmanachContentsEditPage) POSTInsert(engine *templating.Engine, app cor
 			"content_types":     dbmodels.CONTENT_TYPE_VALUES,
 			"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
 			"pagination_values": paginationValuesSorted(),
+			"agent_relations":   dbmodels.AGENT_RELATIONS,
+			"agents":            map[string]*dbmodels.Agent{},
+			"content_agents":    []*dbmodels.RContentsAgents{},
 			"open_edit":         true,
 			"is_new":            true,
 			"content_id":        record.Id,
@@ -424,6 +447,49 @@ func (p *AlmanachContentsEditPage) renderSaveError(
 		isNew = true
 	}
 
+	relationsPayload := parseContentAgentRelations(e.Request.PostForm, contentID)
+	if err := validateContentAgentRelations(relationsPayload); err != nil {
+		return p.renderError(engine, app, e, err.Error())
+	}
+
+	renderRelations := []contentAgentRender{}
+	renderNewRelations := []contentAgentRender{}
+	agentIDs := map[string]struct{}{}
+	for _, relation := range relationsPayload.Relations {
+		renderRelations = append(renderRelations, contentAgentRender{
+			Id:        relation.ID,
+			Agent:     relation.TargetID,
+			Type:      relation.Type,
+			Uncertain: relation.Uncertain,
+		})
+		if relation.TargetID != "" {
+			agentIDs[relation.TargetID] = struct{}{}
+		}
+	}
+	for _, relation := range relationsPayload.NewRelations {
+		renderNewRelations = append(renderNewRelations, contentAgentRender{
+			Agent:     relation.TargetID,
+			Type:      relation.Type,
+			Uncertain: relation.Uncertain,
+		})
+		if relation.TargetID != "" {
+			agentIDs[relation.TargetID] = struct{}{}
+		}
+	}
+
+	agentsMap := map[string]*dbmodels.Agent{}
+	if len(agentIDs) > 0 {
+		ids := make([]any, 0, len(agentIDs))
+		for id := range agentIDs {
+			ids = append(ids, id)
+		}
+		if agents, err := dbmodels.Agents_IDs(app, ids); err == nil {
+			for _, agent := range agents {
+				agentsMap[agent.Id] = agent
+			}
+		}
+	}
+
 	numbering := 0.0
 	if order := parseContentsOrder(e.Request.PostForm); len(order) > 0 {
 		if mapped, ok := buildContentOrderMap(order)[contentID]; ok {
@@ -440,6 +506,10 @@ func (p *AlmanachContentsEditPage) renderSaveError(
 		"content_types":     dbmodels.CONTENT_TYPE_VALUES,
 		"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
 		"pagination_values": paginationValuesSorted(),
+		"agent_relations":   dbmodels.AGENT_RELATIONS,
+		"agents":            agentsMap,
+		"content_agents_render": renderRelations,
+		"content_agents_new":    renderNewRelations,
 		"open_edit":         true,
 		"is_new":            isNew,
 		"error":             message,
@@ -480,6 +550,136 @@ func parseContentsForm(form url.Values) map[string]map[string][]string {
 		contentInputs[contentID][field] = values
 	}
 	return contentInputs
+}
+
+type contentAgentRelationPayload struct {
+	ID        string
+	TargetID  string
+	Type      string
+	Uncertain bool
+}
+
+type contentAgentRelationsPayload struct {
+	Relations   []contentAgentRelationPayload
+	NewRelations []contentAgentRelationPayload
+	DeletedIDs  []string
+}
+
+type contentAgentRender struct {
+	Id        string
+	Agent     string
+	Type      string
+	Uncertain bool
+}
+
+func valuesForKey(form url.Values, key string) []string {
+	if values, ok := form[key]; ok {
+		return values
+	}
+	if values, ok := form[key+"[]"]; ok {
+		return values
+	}
+	return nil
+}
+
+func hasKey(form url.Values, key string) bool {
+	_, ok := form[key]
+	return ok
+}
+
+func parseContentAgentRelations(form url.Values, contentID string) contentAgentRelationsPayload {
+	payload := contentAgentRelationsPayload{}
+	if contentID == "" {
+		return payload
+	}
+	prefix := fmt.Sprintf("content_%s_agents_", contentID)
+	idPrefix := prefix + "id["
+
+	for key, values := range form {
+		if !strings.HasPrefix(key, idPrefix) {
+			continue
+		}
+		relationKey := strings.TrimSuffix(strings.TrimPrefix(key, idPrefix), "]")
+		relationID := strings.TrimSpace(firstValue(values))
+		if relationKey == "" || relationID == "" {
+			continue
+		}
+		targetKey := fmt.Sprintf("%sagent[%s]", prefix, relationKey)
+		typeKey := fmt.Sprintf("%stype[%s]", prefix, relationKey)
+		deleteKey := fmt.Sprintf("%sdelete[%s]", prefix, relationKey)
+		uncertainKey := fmt.Sprintf("%suncertain[%s]", prefix, relationKey)
+
+		targetID := strings.TrimSpace(firstValue(valuesForKey(form, targetKey)))
+		if targetID == "" {
+			continue
+		}
+		if _, ok := form[deleteKey]; ok {
+			payload.DeletedIDs = append(payload.DeletedIDs, relationID)
+			continue
+		}
+		payload.Relations = append(payload.Relations, contentAgentRelationPayload{
+			ID:        relationID,
+			TargetID:  targetID,
+			Type:      strings.TrimSpace(firstValue(valuesForKey(form, typeKey))),
+			Uncertain: hasKey(form, uncertainKey),
+		})
+	}
+
+	newIDs := valuesForKey(form, prefix+"new_id")
+	newTypes := valuesForKey(form, prefix+"new_type")
+	newUncertain := valuesForKey(form, prefix+"new_uncertain")
+	uncertainSet := map[string]struct{}{}
+	for _, value := range newUncertain {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			continue
+		}
+		uncertainSet[trimmed] = struct{}{}
+	}
+
+	for index, targetID := range newIDs {
+		targetID = strings.TrimSpace(targetID)
+		if targetID == "" {
+			continue
+		}
+		relationType := ""
+		if index < len(newTypes) {
+			relationType = strings.TrimSpace(newTypes[index])
+		}
+		_, uncertain := uncertainSet[targetID]
+		payload.NewRelations = append(payload.NewRelations, contentAgentRelationPayload{
+			TargetID:  targetID,
+			Type:      relationType,
+			Uncertain: uncertain,
+		})
+	}
+
+	return payload
+}
+
+func validateContentAgentRelations(payload contentAgentRelationsPayload) error {
+	for _, relation := range payload.Relations {
+		if err := validateRelationTypeValue(relation.Type, dbmodels.AGENT_RELATIONS); err != nil {
+			return err
+		}
+	}
+	for _, relation := range payload.NewRelations {
+		if err := validateRelationTypeValue(relation.Type, dbmodels.AGENT_RELATIONS); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateRelationTypeValue(value string, allowed []string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return fmt.Errorf("Ungültiger Beziehungstyp.")
+	}
+	if !slices.Contains(allowed, value) {
+		return fmt.Errorf("Ungültiger Beziehungstyp.")
+	}
+	return nil
 }
 
 func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields map[string][]string, user *dbmodels.FixedUser, numbering float64) error {
@@ -551,6 +751,86 @@ func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields m
 	if user != nil {
 		content.SetEditor(user.Id)
 	}
+	return nil
+}
+
+func applyContentAgentRelations(tx core.App, content *dbmodels.Content, payload contentAgentRelationsPayload) error {
+	if content == nil {
+		return nil
+	}
+	tableName := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	var collection *core.Collection
+	getCollection := func() (*core.Collection, error) {
+		if collection != nil {
+			return collection, nil
+		}
+		col, err := tx.FindCollectionByNameOrId(tableName)
+		if err != nil {
+			return nil, err
+		}
+		collection = col
+		return collection, nil
+	}
+
+	for _, relation := range payload.Relations {
+		relationID := strings.TrimSpace(relation.ID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewRContentsAgents(record)
+		if proxy.Content() != content.Id {
+			return fmt.Errorf("Relation %s gehört zu einem anderen Beitrag.", relationID)
+		}
+		proxy.SetContent(content.Id)
+		proxy.SetAgent(strings.TrimSpace(relation.TargetID))
+		proxy.SetType(strings.TrimSpace(relation.Type))
+		proxy.SetUncertain(relation.Uncertain)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	for _, relationID := range payload.DeletedIDs {
+		relationID = strings.TrimSpace(relationID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			continue
+		}
+		proxy := dbmodels.NewRContentsAgents(record)
+		if proxy.Content() != content.Id {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	for _, relation := range payload.NewRelations {
+		targetID := strings.TrimSpace(relation.TargetID)
+		if targetID == "" {
+			continue
+		}
+		col, err := getCollection()
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewRContentsAgents(core.NewRecord(col))
+		proxy.SetContent(content.Id)
+		proxy.SetAgent(targetID)
+		proxy.SetType(strings.TrimSpace(relation.Type))
+		proxy.SetUncertain(relation.Uncertain)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

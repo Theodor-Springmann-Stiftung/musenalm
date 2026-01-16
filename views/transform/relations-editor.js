@@ -28,6 +28,7 @@ export class RelationsEditor extends HTMLElement {
 		this._emptyText = this.querySelector(".rel-empty-text");
 		this._setupAddPanel();
 		this._setupDeleteToggles();
+		this._setupNewRowDeletes();
 		this._setupPreferredOptionHandling();
 	}
 
@@ -248,6 +249,7 @@ export class RelationsEditor extends HTMLElement {
 		if (uncertain && this._uncertain) {
 			uncertain.checked = this._uncertain.checked;
 			uncertain.name = `${this._prefix}_new_uncertain`;
+			uncertain.value = this._pendingItem.id;
 			const uncertainId = `${this._prefix}_new_uncertain_row`;
 			uncertain.id = uncertainId;
 			const uncertainLabel = fragment.querySelector("[data-rel-uncertain-label]");
@@ -385,6 +387,31 @@ export class RelationsEditor extends HTMLElement {
 						icon.classList.remove("ri-arrow-go-back-line");
 					}
 				}
+			});
+		});
+	}
+
+	_setupNewRowDeletes() {
+		if (!this._addRow) {
+			return;
+		}
+		this._addRow.querySelectorAll(ROLE_NEW_DELETE).forEach((button) => {
+			if (button.dataset.relationNewBound === "true") {
+				return;
+			}
+			button.dataset.relationNewBound = "true";
+			button.addEventListener("click", () => {
+				const row = button.closest(ROLE_REL_ROW);
+				if (row) {
+					row.remove();
+				}
+				this._pendingItem = null;
+				this._clearAddPanel();
+				if (this._addPanel) {
+					this._addPanel.classList.add("hidden");
+				}
+				this._updateEmptyTextVisibility();
+				this._updatePreferredOptions();
 			});
 		});
 	}

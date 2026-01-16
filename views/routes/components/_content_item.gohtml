@@ -4,6 +4,9 @@
 {{- $contentTypes := index . "content_types" -}}
 {{- $musenalmTypes := index . "musenalm_types" -}}
 {{- $paginationValues := index . "pagination_values" -}}
+{{- $agents := index . "agents" -}}
+{{- $contentAgents := index . "content_agents" -}}
+{{- $agentRelations := index . "agent_relations" -}}
 {{- $overrideID := index . "content_id" -}}
 {{- $openEdit := index . "open_edit" -}}
 {{- $isNew := index . "is_new" -}}
@@ -49,7 +52,7 @@
 					</div>
 				</div>
 				<div class="flex items-center gap-2">
-					<span class="status-badge text-xs" data-status="{{ $content.EditState }}">
+					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						{{- if eq $content.EditState "Edited" -}}Erfasst{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else -}}Unbekannt{{- end -}}
 					</span>
@@ -75,6 +78,26 @@
 				{{- if $content.ResponsibilityStmt -}}
 					<div class="text-sm font-bold text-gray-700">Autorangabe</div>
 					<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
+				{{- end -}}
+				{{- if $contentAgents -}}
+					<div class="text-sm font-bold text-gray-700">Personen</div>
+					<div class="text-base">
+						<div class="flex flex-col">
+							{{- range $_, $rel := $contentAgents -}}
+								{{- $agent := index $agents $rel.Agent -}}
+								{{- if $agent -}}
+									<div class="font-sans w-max">
+										<a href="/person/{{- $agent.Id -}}" class="no-underline hover:text-slate-900">
+											{{- $agent.Name -}}
+										</a>
+										{{- if $agent.BiographicalData -}}
+											<span>({{ $agent.BiographicalData }})</span>
+										{{- end -}}
+									</div>
+								{{- end -}}
+							{{- end -}}
+						</div>
+					</div>
 				{{- end -}}
 				{{- if $content.Annotation -}}
 					{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
@@ -109,6 +132,9 @@
 				"content_types" $contentTypes
 				"musenalm_types" $musenalmTypes
 				"pagination_values" $paginationValues
+				"agents" $agents
+				"content_agents" $contentAgents
+				"agent_relations" $agentRelations
 			) -}}
 			<div class="w-full flex items-center justify-end gap-3 mt-4 flex-wrap">
 				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="content-edit-cancel">

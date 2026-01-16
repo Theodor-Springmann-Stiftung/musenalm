@@ -49,6 +49,12 @@
 							<i class="ri-loop-left-line"></i> Reset
 						</a>
 					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-edit-2-line"></i> Almanach
+						</a>
+					</div>
 				</div>
 			{{- end -}}
 		</div>
@@ -137,6 +143,9 @@
 				"content_types" $model.content_types
 				"musenalm_types" $model.musenalm_types
 				"pagination_values" $model.pagination_values
+				"agents" $model.result.Agents
+				"content_agents" (index $model.result.ContentsAgents $content.Id)
+				"agent_relations" $model.agent_relations
 				"open_edit" false
 				"is_new" false
 			) -}}
