@@ -566,10 +566,13 @@
 
 		if (collapseAllButton) {
 			updateCollapseAllLabel();
-			collapseAllButton.addEventListener("click", () => {
-				const shouldCollapse = collapseAllButton.dataset.state !== "collapsed";
-				setAllCollapsed(shouldCollapse);
-			});
+			if (collapseAllButton.dataset.init !== "true") {
+				collapseAllButton.dataset.init = "true";
+				collapseAllButton.addEventListener("click", () => {
+					const shouldCollapse = collapseAllButton.dataset.state !== "collapsed";
+					setAllCollapsed(shouldCollapse);
+				});
+			}
 		}
 
 		getItems().forEach((item) => setupItem(item));
