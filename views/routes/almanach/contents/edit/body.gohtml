@@ -1,0 +1,202 @@
+{{ $model := . }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+		<div class="mb-1">
+			<i class="ri-file-list-3-line"></i> Inhalte
+		</div>
+		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+			{{- if $model.result -}}
+				{{- $model.result.Entry.PreferredTitle -}}
+			{{- else -}}
+				Inhalte bearbeiten
+			{{- end -}}
+		</h1>
+			{{- if $model.result -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/almanach/{{ $model.result.Entry.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div class="flex flex-row">
+						{{- if $model.result.PrevByID -}}
+							<div>
+								<a href="/almanach/{{ $model.result.PrevByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
+							{{ $model.result.Entry.MusenalmID }}
+						</div>
+						{{- if $model.result.NextByID -}}
+							<div>
+								<a href="/almanach/{{ $model.result.NextByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+		{{- if $model.result -}}
+		<div class="flex flex-row" id="contents-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if $model.result.PrevByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
+								<a
+									href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/contents/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						A&thinsp;-&thinsp;Z
+						</span>
+						{{- if $model.result.NextByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
+								<a
+									href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}/contents/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $model.result.Entry.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit">
+							<span>{{ GermanDate $model.result.Entry.Updated }}</span>,
+							<span>{{ GermanTime $model.result.Entry.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}">
+							<i class="ri-user-line mr-1"></i>
+							<span>{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{- end -}}
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+	<form
+		autocomplete="off"
+		class="w-full dbform"
+		id="changecontentsform"
+		method="POST"
+		action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+
+		<div class="flex flex-col gap-3">
+			{{- range $_, $content := $model.result.Contents -}}
+				{{- template "_content_edit" (Dict
+					"content" $content
+					"entry" $model.result.Entry
+					"content_types" $model.content_types
+					"musenalm_types" $model.musenalm_types
+					"pagination_values" $model.pagination_values
+				) -}}
+			{{- end -}}
+		</div>
+
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p class="text-sm text-gray-600" aria-live="polite"></p>
+			<div class="flex items-center gap-3 self-end flex-wrap">
+				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="resetbutton w-48 flex items-center gap-2 justify-center">
+					<i class="ri-close-line"></i>
+					<span>Abbrechen</span>
+				</a>
+				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-48 flex items-center gap-2 justify-center">
+					<i class="ri-loop-left-line"></i>
+					<span>Reset</span>
+				</a>
+				<button type="submit" class="submitbutton w-48 flex items-center gap-2 justify-center">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+			</div>
+		</div>
+	</form>
+</div>
+</edit-page>
+
+<script type="module">
+	const applyMultiSelectInit = (el) => {
+		if (!el) return;
+		const optionsRaw = el.getAttribute("data-initial-options") || "[]";
+		const valuesRaw = el.getAttribute("data-initial-values") || "[]";
+		let options = [];
+		let values = [];
+		try {
+			options = JSON.parse(optionsRaw);
+			values = JSON.parse(valuesRaw);
+		} catch {
+			return;
+		}
+		if (options.length && typeof el.setOptions === "function") {
+			el.setOptions(options);
+		}
+		if (values.length) {
+			el.value = values;
+			if (typeof el.captureInitialSelection === "function") {
+				el.captureInitialSelection();
+			}
+		}
+	};
+
+	const initPage = () => {
+		document.querySelectorAll(".content-numbering").forEach((input, index) => {
+			input.value = index + 1;
+		});
+
+		document
+			.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]")
+			.forEach((el) => applyMultiSelectInit(el));
+	};
+
+	if (window.customElements?.whenDefined) {
+		window.customElements.whenDefined("multi-select-simple").then(() => {
+			requestAnimationFrame(initPage);
+		});
+	} else {
+		initPage();
+	}
+</script>
