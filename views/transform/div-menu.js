@@ -278,6 +278,10 @@ export class DivManager extends HTMLElement {
 				}, 10);
 			}
 		}
+
+		requestAnimationFrame(() => {
+			this._focusFirstField(child.node);
+		});
 	}
 
 	renderMenu() {
@@ -372,5 +376,28 @@ export class DivManager extends HTMLElement {
 				editor.editor.loadHTML("");
 			}
 		});
+	}
+
+	_focusFirstField(container) {
+		if (!container) {
+			return;
+		}
+		const focusables = container.querySelectorAll(
+			"input:not([type='hidden']):not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable='true'], trix-editor",
+		);
+		for (const field of focusables) {
+			if (!(field instanceof HTMLElement)) {
+				continue;
+			}
+			if (field.getClientRects().length === 0) {
+				continue;
+			}
+			try {
+				field.focus({ preventScroll: true });
+			} catch {
+				field.focus();
+			}
+			return;
+		}
 	}
 }

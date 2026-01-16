@@ -712,6 +712,7 @@ type AlmanachResult struct {
 							</button>
 						</div>
 					</div>
+					<div class="px-2">
 					<multi-select-simple
 						id="places"
 						name="places[]"
@@ -728,6 +729,7 @@ type AlmanachResult struct {
 								data-initial-options='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q,\"additional_data\":%q}" $place.Id $place.Name $place.Pseudonyms }}{{- end -}}]'
 								data-initial-values='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
 						</multi-select-simple>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -806,6 +808,7 @@ type AlmanachResult struct {
 								<i class="ri-link"></i> Sprache verlinken
 							</button>
 						</div>
+						<div class="px-2">
 						<multi-select-simple
 							id="languages"
 							name="languages[]"
@@ -815,6 +818,7 @@ type AlmanachResult struct {
 							data-empty-text="Keine Sprachen verknüpft"
 							data-external-toggle-id="languages-add-toggle"
 							value='[{{- range $i, $lang := $model.result.Entry.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'></multi-select-simple>
+							</div>
 					</div>
 
 					<!-- Nachweise - Always visible -->

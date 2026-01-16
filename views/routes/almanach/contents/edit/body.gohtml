@@ -122,6 +122,12 @@
 		Reihenfolge wird gespeichert
 	</div>
 	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
+	<div class="flex items-center justify-end px-4">
+		<button type="button" class="resetbutton w-auto px-3 py-2 text-sm flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
+			<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
+			<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
+		</button>
+	</div>
 	<div class="flex flex-col gap-1" data-role="contents-list" data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert">
 		{{- range $_, $content := $model.result.Contents -}}
 			{{- template "_content_item" (Dict
@@ -170,6 +176,9 @@
 		}
 
 		const getItems = () => Array.from(list.querySelectorAll("[data-role='content-item']"));
+		const collapseAllButton = document.querySelector("[data-role='contents-collapse-all']");
+		const collapseAllLabel = document.querySelector("[data-role='contents-collapse-all-label']");
+		const collapseAllIcon = document.querySelector("[data-role='contents-collapse-all-icon']");
 		const removeGaps = () => {
 			list.querySelectorAll("[data-role='content-gap']").forEach((gap) => gap.remove());
 		};
@@ -354,7 +363,40 @@
 			const deleteCancel = item.querySelector("[data-role='content-delete-cancel']");
 			const view = item.querySelector("[data-role='content-view']");
 			const edit = item.querySelector("[data-role='content-edit']");
+			const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
+			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
+			const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+			const viewBody = item.querySelector("[data-role='content-view-body']");
 			const form = item.querySelector("form");
+
+			const setCollapsed = (collapsed) => {
+				if (!viewBody || !collapsedSummary) {
+					return;
+				}
+				item.dataset.collapsed = collapsed ? "true" : "";
+				item.classList.toggle("data-collapsed", collapsed);
+				viewBody.classList.toggle("hidden", collapsed);
+				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (collapseButton) {
+					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
+					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
+				}
+				if (collapseIcon) {
+					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
+					collapseIcon.classList.toggle("ri-arrow-down-s-line", collapsed);
+				}
+			};
+
+			if (collapseButton) {
+				setCollapsed(item.dataset.collapsed === "true");
+				collapseButton.addEventListener("click", () => {
+					if (item.classList.contains("data-editing") || item.dataset.contentTemp === "true") {
+						return;
+					}
+					setCollapsed(item.dataset.collapsed !== "true");
+					updateCollapseAllLabel();
+				});
+			}
 
 			if (editButton && view && edit) {
 				editButton.addEventListener("click", () => {
@@ -457,9 +499,60 @@
 			}
 		};
 
+		const updateCollapseAllLabel = () => {
+			if (!collapseAllButton || !collapseAllLabel) {
+				return;
+			}
+			const items = getItems().filter((item) => item.dataset.contentTemp !== "true");
+			const allCollapsed = items.length > 0 && items.every((item) => item.dataset.collapsed === "true");
+			collapseAllButton.dataset.state = allCollapsed ? "collapsed" : "expanded";
+			collapseAllLabel.textContent = allCollapsed ? "Alle Eintraege ausklappen" : "Alle Eintraege einklappen";
+			if (collapseAllIcon) {
+				collapseAllIcon.classList.toggle("ri-arrow-up-s-line", !allCollapsed);
+				collapseAllIcon.classList.toggle("ri-arrow-down-s-line", allCollapsed);
+			}
+		};
+
+		const setAllCollapsed = (collapsed) => {
+			getItems().forEach((item) => {
+				if (item.dataset.contentTemp === "true" || item.classList.contains("data-editing")) {
+					return;
+				}
+				const viewBody = item.querySelector("[data-role='content-view-body']");
+				const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+				const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
+				const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
+				if (!viewBody || !collapsedSummary) {
+					return;
+				}
+				item.dataset.collapsed = collapsed ? "true" : "";
+				item.classList.toggle("data-collapsed", collapsed);
+				viewBody.classList.toggle("hidden", collapsed);
+				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (collapseButton) {
+					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
+					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
+				}
+				if (collapseIcon) {
+					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
+					collapseIcon.classList.toggle("ri-arrow-down-s-line", collapsed);
+				}
+			});
+			updateCollapseAllLabel();
+		};
+
+		if (collapseAllButton) {
+			updateCollapseAllLabel();
+			collapseAllButton.addEventListener("click", () => {
+				const shouldCollapse = collapseAllButton.dataset.state !== "collapsed";
+				setAllCollapsed(shouldCollapse);
+			});
+		}
+
 		getItems().forEach((item) => setupItem(item));
 		renderInsertGaps();
 		syncEditSpacing();
+		updateCollapseAllLabel();
 
 		if (list.dataset.pageInit !== "true") {
 			list.dataset.pageInit = "true";
@@ -476,12 +569,18 @@
 					return;
 				}
 				if (moveUp) {
-					const prev = item.previousElementSibling;
+					let prev = item.previousElementSibling;
+					while (prev && !prev.matches("[data-role='content-item']")) {
+						prev = prev.previousElementSibling;
+					}
 					if (prev) {
 						prev.before(item);
 					}
 				} else {
-					const next = item.nextElementSibling;
+					let next = item.nextElementSibling;
+					while (next && !next.matches("[data-role='content-item']")) {
+						next = next.nextElementSibling;
+					}
 					if (next) {
 						next.after(item);
 					}

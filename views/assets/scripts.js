@@ -7655,6 +7655,9 @@ ${e[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
         });
       }, 10);
     }
+    requestAnimationFrame(() => {
+      this._focusFirstField(n.node);
+    });
   }
   renderMenu() {
     const e = this._cildren.filter((n) => n.hidden());
@@ -7705,6 +7708,22 @@ ${e[0].nameText()} hinzufügen`, this._menu = null, this.hideMenu();
       var n;
       typeof ((n = i.editor) == null ? void 0 : n.loadHTML) == "function" && i.editor.loadHTML("");
     }));
+  }
+  _focusFirstField(e) {
+    if (!e)
+      return;
+    const i = e.querySelectorAll(
+      "input:not([type='hidden']):not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable='true'], trix-editor"
+    );
+    for (const n of i)
+      if (n instanceof HTMLElement && n.getClientRects().length !== 0) {
+        try {
+          n.focus({ preventScroll: !0 });
+        } catch {
+          n.focus();
+        }
+        return;
+      }
   }
 }
 ii = new WeakSet(), po = function() {
