@@ -461,6 +461,22 @@
 				});
 			}
 
+			if (header) {
+				header.addEventListener("click", (event) => {
+					if (item.dataset.dragging === "true") {
+						return;
+					}
+					if (item.classList.contains("data-editing") || item.dataset.contentTemp === "true") {
+						return;
+					}
+					if (event.target.closest("button, a, select, input, textarea")) {
+						return;
+					}
+					setCollapsed(item.dataset.collapsed !== "true");
+					updateCollapseAllLabel();
+				});
+			}
+
 			if (editButton) {
 				editButton.addEventListener("click", () => {
 					if (item.querySelector("[data-role='content-edit']")) {
@@ -710,6 +726,7 @@
 					return;
 				}
 				draggedItem = item;
+				item.dataset.dragging = "true";
 				draggedItem.classList.add("opacity-60");
 				list.style.rowGap = "0.75rem";
 				list.style.paddingTop = "0.25rem";
@@ -740,6 +757,7 @@
 			list.addEventListener("dragend", () => {
 				if (draggedItem) {
 					draggedItem.classList.remove("opacity-60");
+					draggedItem.dataset.dragging = "";
 				}
 				draggedItem = null;
 				list.style.rowGap = "";
