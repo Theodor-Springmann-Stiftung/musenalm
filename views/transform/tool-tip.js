@@ -9,15 +9,17 @@ export class ToolTip extends HTMLElement {
 		this._timeout = 200;
 		this._hideTimeout = null;
 		this._hiddenTimeout = null;
+		this._dataTipElem = null;
+		this._observer = null;
 	}
 
 	connectedCallback() {
 		this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal");
-		const dataTipElem = this.querySelector(".data-tip");
-		const tipContent = dataTipElem ? dataTipElem.innerHTML : "Tooltip";
+		this._dataTipElem = this.querySelector(".data-tip");
+		const tipContent = this._dataTipElem ? this._dataTipElem.innerHTML : "Tooltip";
 
-		if (dataTipElem) {
-			dataTipElem.classList.add("hidden");
+		if (this._dataTipElem) {
+			this._dataTipElem.classList.add("hidden");
 		}
 
 		this._tooltipBox = document.createElement("div");
@@ -46,6 +48,19 @@ export class ToolTip extends HTMLElement {
 
 		this.addEventListener("mouseenter", () => this._showTooltip());
 		this.addEventListener("mouseleave", () => this._hideTooltip());
+
+		if (this._dataTipElem) {
+			this._observer = new MutationObserver(() => {
+				if (this._tooltipBox) {
+					this._tooltipBox.innerHTML = this._dataTipElem.innerHTML;
+				}
+			});
+			this._observer.observe(this._dataTipElem, {
+				childList: true,
+				characterData: true,
+				subtree: true,
+			});
+		}
 	}
 
 	attributeChangedCallback(name, oldValue, newValue) {
@@ -54,6 +69,12 @@ export class ToolTip extends HTMLElement {
 		}
 		if (name === "timeout" && newValue) {
 			this._timeout = parseInt(newValue) || 200;
+		}
+	}
+
+	disconnectedCallback() {
+		if (this._observer) {
+			this._observer.disconnect();
 		}
 	}
 

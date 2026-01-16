@@ -218,6 +218,9 @@ function TextareaAutoResize(textarea) {
 		console.log("Not a textarea element");
 		return;
 	}
+	if (textarea.dataset.noAutoresize === "true" || textarea.classList.contains("no-autoresize")) {
+		return;
+	}
 
 	// Skip if not visible
 	if (textarea.offsetParent === null) {
@@ -261,6 +264,9 @@ function NoEnters(event) {
 function HookupTextareaAutoResize(textarea) {
 	if (!(textarea instanceof HTMLTextAreaElement)) {
 		console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
+		return;
+	}
+	if (textarea.dataset.noAutoresize === "true" || textarea.classList.contains("no-autoresize")) {
 		return;
 	}
 
@@ -346,6 +352,9 @@ function FormLoad(form) {
 
 	// Attach resize handler to all textareas
 	for (const textarea of textareas) {
+		if (textarea.dataset.noAutoresize === "true" || textarea.classList.contains("no-autoresize")) {
+			continue;
+		}
 		console.log("Attaching input listener to:", textarea.name || textarea.id);
 		textarea.addEventListener("input", function () {
 			console.log("Input event on textarea:", this.name || this.id);
@@ -357,6 +366,9 @@ function FormLoad(form) {
 	setTimeout(() => {
 		console.log("Running initial textarea resize on", textareas.length, "textareas");
 		for (const textarea of textareas) {
+			if (textarea.dataset.noAutoresize === "true" || textarea.classList.contains("no-autoresize")) {
+				continue;
+			}
 			TextareaAutoResize(textarea);
 		}
 	}, 200);
@@ -382,6 +394,9 @@ function FormLoad(form) {
 					const textareasInTarget = target.matches("textarea") ? [target] : Array.from(target.querySelectorAll("textarea"));
 
 					for (const textarea of textareasInTarget) {
+						if (textarea.dataset.noAutoresize === "true" || textarea.classList.contains("no-autoresize")) {
+							continue;
+						}
 						// Only resize if now visible
 						if (textarea.offsetParent !== null) {
 							TextareaAutoResize(textarea);

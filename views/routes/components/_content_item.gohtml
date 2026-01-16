@@ -19,67 +19,108 @@
 {{- $editContainerID := printf "content-%s-edit-container" $contentID -}}
 
 <div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}" data-collapsed="true">
-	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-2">
-		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-hidden">
-			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-2 cursor-pointer hover:bg-stone-200 transition-colors duration-75" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
-				<div class="flex items-center gap-2 text-sm font-bold text-gray-800">
-					<button type="button" class="text-slate-600 rounded-xs px-2 py-1 text-sm transition-colors hover:bg-stone-100 {{ if $isNew }}hidden{{ end }}" data-role="content-collapse-toggle" aria-label="Beitrag einklappen" aria-expanded="true">
-						<i class="ri-arrow-up-s-line" data-role="content-collapse-icon"></i>
-					</button>
+	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-1">
+		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-visible">
+			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-1 cursor-pointer hover:bg-stone-200 transition-colors duration-75 flex-nowrap whitespace-nowrap" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
+				<div class="flex items-center gap-2 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip" data-role="content-collapse-tooltip">Einklappen</div>
+						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300 {{ if $isNew }}hidden{{ end }}" data-role="content-collapse-toggle" aria-label="Beitrag einklappen" aria-expanded="true">
+							<i class="ri-arrow-up-s-line" data-role="content-collapse-icon"></i>
+						</button>
+					</tool-tip>
 					<div class="flex items-center gap-1">
-						<button type="button" class="text-slate-600 rounded-xs px-2 py-1 text-sm transition-colors hover:bg-stone-100" data-role="content-move-up" aria-label="Beitrag nach oben">
-							<i class="ri-arrow-up-line"></i>
-						</button>
-						<button type="button" class="text-slate-600 rounded-xs px-2 py-1 text-sm transition-colors hover:bg-stone-100" data-role="content-move-down" aria-label="Beitrag nach unten">
-							<i class="ri-arrow-down-line"></i>
-						</button>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">Nach oben verschieben</div>
+							<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
+								<i class="ri-arrow-up-line"></i>
+							</button>
+						</tool-tip>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">Nach unten verschieben</div>
+							<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
+								<i class="ri-arrow-down-line"></i>
+							</button>
+						</tool-tip>
 					</div>
 					{{- if $content.MusenalmType -}}
-						<span class="flex flex-wrap gap-1 text-gray-700 font-normal">
+						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
 								<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
 							{{- end -}}
 						</span>
 					{{- end -}}
-					<div class="hidden flex flex-wrap items-baseline gap-2 text-gray-800" data-role="content-collapsed-summary">
+					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
 						{{- if $content.Extent -}}
-							<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm">S. {{- $content.Extent -}}</span>
+							<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm shrink-0">S. {{- $content.Extent -}}</span>
 						{{- end -}}
 						{{- if $content.PreferredTitle -}}
-							<span class="text-sm font-semibold">{{- $content.PreferredTitle -}}</span>
+							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden">{{- $content.PreferredTitle -}}</span>
 						{{- else if $content.TitleStmt -}}
-							<span class="text-sm font-semibold italic">{{- $content.TitleStmt -}}</span>
+							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden">{{- $content.TitleStmt -}}</span>
+						{{- end -}}
+					</div>
+					<div class="hidden flex items-baseline gap-2 text-gray-800 min-w-0 overflow-hidden flex-1 flex-nowrap whitespace-nowrap" data-role="content-collapsed-summary">
+						{{- if $content.Extent -}}
+							<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0">S. {{- $content.Extent -}}</span>
+						{{- end -}}
+						{{- if $content.PreferredTitle -}}
+							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden">{{- $content.PreferredTitle -}}</span>
+						{{- else if $content.TitleStmt -}}
+							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden">{{- $content.TitleStmt -}}</span>
 						{{- end -}}
 					</div>
 				</div>
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-2 flex-nowrap whitespace-nowrap shrink-0">
 					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						{{- if eq $content.EditState "Edited" -}}Erfasst{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else -}}Unbekannt{{- end -}}
 					</span>
-					<button
-						type="button"
-						class="resetbutton w-32 flex items-center gap-2 justify-center"
-						data-role="content-edit-button"
-						data-loading-label="Eintrag wird geladen"
-						hx-boost="false"
-						hx-get="/almanach/{{ $entry.MusenalmID }}/contents/edit/form?content_id={{ $contentID }}"
-						hx-target="#{{ $editContainerID }}"
-						hx-swap="innerHTML">
-						<i class="ri-edit-2-line"></i>
-						<span>Bearbeiten</span>
-					</button>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">Bearbeiten</div>
+						<button
+							type="button"
+							class="resetbutton w-9 h-9 flex items-center justify-center hover:bg-stone-300 rounded-sm"
+							data-role="content-edit-button"
+							data-loading-label="Eintrag wird geladen"
+							hx-boost="false"
+							hx-get="/almanach/{{ $entry.MusenalmID }}/contents/edit/form?content_id={{ $contentID }}"
+							hx-target="#{{ $editContainerID }}"
+							hx-swap="innerHTML">
+							<i class="ri-edit-2-line"></i>
+							<span class="sr-only">Bearbeiten</span>
+						</button>
+					</tool-tip>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">Löschen</div>
+						<button
+							type="button"
+							class="resetbutton w-9 h-9 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
+							data-role="content-delete-view"
+							aria-label="Beitrag löschen">
+							<i class="ri-delete-bin-line"></i>
+						</button>
+					</tool-tip>
 				</div>
 			</div>
+			<dialog data-role="content-delete-dialog-view" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+				<div class="p-5 w-[22rem]">
+					<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
+					{{- if $content.TitleStmt -}}
+						<div class="text-sm font-bold text-gray-900 mt-1">{{ $content.TitleStmt }}</div>
+					{{- end -}}
+					<p class="text-sm text-gray-700 mt-2">
+						Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
+					</p>
+					<div class="flex items-center justify-end gap-3 mt-4">
+						<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel-view">Abbrechen</button>
+						<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm-view">
+							Löschen
+						</button>
+					</div>
+				</div>
+			</dialog>
 			<div class="grid gap-2 grid-cols-[8rem_1fr] items-baseline px-3 py-2" data-role="content-view-body">
-				{{- if $content.Extent -}}
-					<div class="text-sm font-bold text-gray-700">Seite</div>
-					<div class="text-base">{{- $content.Extent -}}</div>
-				{{- end -}}
-				{{- if $content.TitleStmt -}}
-					<div class="text-sm font-bold text-gray-700">Titel</div>
-					<div class="text-base italic">{{- $content.TitleStmt -}}</div>
-				{{- end -}}
 				{{- if $content.IncipitStmt -}}
 					<div class="text-sm font-bold text-gray-700">Incipit</div>
 					<div class="text-base italic">{{ $content.IncipitStmt }}…</div>

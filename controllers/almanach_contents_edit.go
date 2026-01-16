@@ -25,6 +25,7 @@ const (
 	URL_ALMANACH_CONTENTS_INSERT    = "contents/insert"
 	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
 	URL_ALMANACH_CONTENTS_EDIT_FORM = "contents/edit/form"
+	URL_ALMANACH_CONTENTS_EDIT_EXTENT = "contents/edit/extent"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT = "/almanach/contents/edit/"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM = "/almanach/contents/edit_form/"
 )
@@ -54,6 +55,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT_FORM, p.GETEditForm(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_INSERT, p.POSTInsert(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
+	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app))
 	return nil
 }
 
@@ -428,10 +430,51 @@ func (p *AlmanachContentsEditPage) POSTInsert(engine *templating.Engine, app cor
 	}
 }
 
+func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		if err := e.Request.ParseForm(); err != nil {
+			return p.renderError(engine, app, e, "Formulardaten ungültig.")
+		}
+
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return p.renderError(engine, app, e, err.Error())
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		entry.SetExtent(strings.TrimSpace(e.Request.FormValue("extent")))
+		if user := req.User(); user != nil {
+			entry.SetEditor(user.Id)
+		}
+		if err := app.Save(entry); err != nil {
+			app.Logger().Error("Failed to update entry extent", "entry_id", entry.Id, "error", err)
+			return p.renderError(engine, app, e, "Struktur/Umfang konnte nicht gespeichert werden.")
+		}
+
+		InvalidateSortedEntriesCache()
+
+		go func(appInstance core.App, entryRecord *dbmodels.Entry) {
+			if err := updateEntryFTS5WithContents(appInstance, entryRecord, false); err != nil {
+				appInstance.Logger().Error("Failed to update entry FTS5", "entry_id", entryRecord.Id, "error", err)
+			}
+		}(app, entry)
+
+		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Struktur/Umfang gespeichert."))
+		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
 func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
+		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
 
 		if err := e.Request.ParseForm(); err != nil {
 			return p.renderError(engine, app, e, "Formulardaten ungültig.")
@@ -504,6 +547,11 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 
 		if len(remaining) > 0 {
 			go updateContentsFTS5(app, entry, remaining)
+		}
+
+		if isHTMX {
+			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag geloescht.</div></div>`
+			return e.HTML(http.StatusOK, success)
 		}
 
 		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)

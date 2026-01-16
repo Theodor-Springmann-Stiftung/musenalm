@@ -132,26 +132,45 @@
 		<span data-role="contents-htmx-label">Eintrag wird geladen</span>
 	</div>
 	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
-	<div class="flex items-center justify-end gap-2 px-4">
-		<button type="button" class="resetbutton w-auto px-3 py-2 flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
-			<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
-			<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
-		</button>
-		<button
-			type="button"
-			class="resetbutton w-auto px-3 py-2 flex items-center gap-2"
-			data-role="contents-create"
-			data-loading-label="Eintrag wird geladen"
-			hx-post="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
-			hx-target="[data-role='contents-list']"
-			hx-swap="beforeend"
-			hx-include="[data-role='csrf-token']"
-			hx-vals='{"position":"after","content_id":""}'>
-			<i class="ri-add-line"></i>
-			<span>Eintrag anlegen</span>
-		</button>
+	<div class="flex items-center gap-3 px-4">
+		<form
+			method="POST"
+			action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/extent"
+			class="extent-inline flex-1 grid grid-cols-[max-content_minmax(12rem,1fr)_max-content] items-center gap-2">
+			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+			<label for="contents-extent" class="text-sm font-bold text-gray-700">Struktur</label>
+			<input
+				id="contents-extent"
+				name="extent"
+				type="text"
+				class="min-w-[10rem] w-full max-w-none flex-1 border border-slate-300 rounded-xs bg-white px-2 py-1 text-sm leading-5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="z. B. 12 Bl., 3 Taf."
+				value="{{- $model.result.Entry.Extent -}}" />
+			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-100 px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-stone-200">
+				Speichern
+			</button>
+		</form>
+		<div class="flex items-center gap-2">
+			<button type="button" class="resetbutton w-auto px-3 py-2 flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
+				<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
+				<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
+			</button>
+			<button
+				type="button"
+				class="resetbutton w-auto px-3 py-2 flex items-center gap-2"
+				data-role="contents-create"
+				data-loading-label="Eintrag wird geladen"
+				hx-post="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
+				hx-target="[data-role='contents-list']"
+				hx-swap="beforeend"
+				hx-include="[data-role='csrf-token']"
+				hx-vals='{"position":"after","content_id":""}'>
+				<i class="ri-add-line"></i>
+				<span>Eintrag anlegen</span>
+			</button>
+		</div>
 	</div>
-	<div class="flex flex-col gap-1"
+	<div class="flex flex-col gap-0.5"
 		data-role="contents-list"
 		data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
 		data-edit-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/form"
@@ -263,7 +282,7 @@
 			}
 		};
 		const setEditSpacing = (active) => {
-			list.style.rowGap = active ? "0.75rem" : "";
+			list.style.rowGap = active ? "0.5rem" : "";
 			list.style.paddingTop = active ? "0.25rem" : "";
 			list.style.paddingBottom = active ? "0.25rem" : "";
 		};
@@ -315,6 +334,51 @@
 			if (labelEl) {
 				labelEl.textContent = label;
 			}
+		};
+
+		const deleteContent = (item, dialog) => {
+			if (!item) {
+				return;
+			}
+			if (item.dataset.contentTemp === "true") {
+				dialog?.close();
+				removeItem(item);
+				return;
+			}
+			const contentId = item.dataset.contentId || "";
+			if (!contentId || !csrfToken) {
+				return;
+			}
+			if (window.htmx?.ajax) {
+				window.htmx.ajax("POST", deleteEndpoint, {
+					target: item,
+					swap: "outerHTML",
+					values: {
+						csrf_token: csrfToken,
+						content_id: contentId,
+					},
+				});
+				dialog?.close();
+				return;
+			}
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			payload.set("content_id", contentId);
+			fetch(deleteEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"HX-Request": "true",
+				},
+				body: payload.toString(),
+			})
+				.then(() => {
+					removeItem(item);
+				})
+				.catch(() => null)
+				.finally(() => {
+					dialog?.close();
+				});
 		};
 
 		const performOrderSync = () => {
@@ -442,10 +506,16 @@
 			item.dataset.init = "true";
 
 			const editButton = item.querySelector("[data-role='content-edit-button']");
+			const deleteButtonView = item.querySelector("[data-role='content-delete-view']");
+			const deleteDialogView = item.querySelector("[data-role='content-delete-dialog-view']");
+			const deleteConfirmView = item.querySelector("[data-role='content-delete-confirm-view']");
+			const deleteCancelView = item.querySelector("[data-role='content-delete-cancel-view']");
 			const view = item.querySelector("[data-role='content-view']");
 			const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
+			const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
 			const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+			const headerTitle = item.querySelector("[data-role='content-header-title']");
 			const viewBody = item.querySelector("[data-role='content-view-body']");
 			const header = item.querySelector("[data-content-header='true']");
 
@@ -457,6 +527,9 @@
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
 				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (headerTitle) {
+					headerTitle.classList.toggle("hidden", collapsed);
+				}
 				if (header) {
 					header.classList.toggle("bg-stone-100", collapsed);
 					header.classList.toggle("bg-stone-200", !collapsed);
@@ -464,6 +537,9 @@
 				if (collapseButton) {
 					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
 					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
+				}
+				if (collapseTooltip) {
+					collapseTooltip.textContent = collapsed ? "Ausklappen" : "Einklappen";
 				}
 				if (collapseIcon) {
 					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
@@ -509,6 +585,32 @@
 						return;
 					}
 					item.dataset.pendingEdit = "true";
+				});
+			}
+
+			if (deleteButtonView && deleteDialogView) {
+				deleteButtonView.addEventListener("click", () => {
+					if (deleteDialogView.showModal) {
+						deleteDialogView.showModal();
+					} else {
+						deleteDialogView.setAttribute("open", "true");
+					}
+				});
+			}
+
+			if (deleteCancelView && deleteDialogView) {
+				deleteCancelView.addEventListener("click", () => {
+					deleteDialogView.close();
+				});
+				deleteDialogView.addEventListener("cancel", (event) => {
+					event.preventDefault();
+					deleteDialogView.close();
+				});
+			}
+
+			if (deleteConfirmView) {
+				deleteConfirmView.addEventListener("click", () => {
+					deleteContent(item, deleteDialogView);
 				});
 			}
 
@@ -580,29 +682,7 @@
 
 			if (deleteConfirm) {
 				deleteConfirm.addEventListener("click", () => {
-					if (item.dataset.contentTemp === "true") {
-						deleteDialog?.close();
-						removeItem(item);
-						return;
-					}
-					const payload = new URLSearchParams();
-					payload.set("csrf_token", csrfToken);
-					payload.set("content_id", item.dataset.contentId || "");
-					fetch(deleteEndpoint, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/x-www-form-urlencoded",
-						},
-						body: payload.toString(),
-					})
-						.then((response) => {
-							if (response.redirected) {
-								window.location.assign(response.url);
-							} else {
-								window.location.reload();
-							}
-						})
-						.catch(() => null);
+					deleteContent(item, deleteDialog);
 				});
 			}
 
@@ -646,8 +726,10 @@
 				}
 				const viewBody = item.querySelector("[data-role='content-view-body']");
 				const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+				const headerTitle = item.querySelector("[data-role='content-header-title']");
 				const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 				const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
+				const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
 				const header = item.querySelector("[data-content-header='true']");
 				if (!viewBody || !collapsedSummary) {
 					return;
@@ -656,6 +738,9 @@
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
 				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (headerTitle) {
+					headerTitle.classList.toggle("hidden", collapsed);
+				}
 				if (header) {
 					header.classList.toggle("bg-stone-100", collapsed);
 					header.classList.toggle("bg-stone-200", !collapsed);
@@ -663,6 +748,9 @@
 				if (collapseButton) {
 					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
 					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
+				}
+				if (collapseTooltip) {
+					collapseTooltip.textContent = collapsed ? "Ausklappen" : "Einklappen";
 				}
 				if (collapseIcon) {
 					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
@@ -765,7 +853,7 @@
 				draggedItem = item;
 				item.dataset.dragging = "true";
 				draggedItem.classList.add("opacity-60");
-				list.style.rowGap = "0.75rem";
+				list.style.rowGap = "0.5rem";
 				list.style.paddingTop = "0.25rem";
 				list.style.paddingBottom = "0.25rem";
 				removeGaps();

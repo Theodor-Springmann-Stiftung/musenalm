@@ -5838,12 +5838,12 @@ class Nl extends HTMLElement {
     return ["position", "timeout"];
   }
   constructor() {
-    super(), this._tooltipBox = null, this._timeout = 200, this._hideTimeout = null, this._hiddenTimeout = null;
+    super(), this._tooltipBox = null, this._timeout = 200, this._hideTimeout = null, this._hiddenTimeout = null, this._dataTipElem = null, this._observer = null;
   }
   connectedCallback() {
-    this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal");
-    const t = this.querySelector(".data-tip"), e = t ? t.innerHTML : "Tooltip";
-    t && t.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = e, this._tooltipBox.className = [
+    this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal"), this._dataTipElem = this.querySelector(".data-tip");
+    const t = this._dataTipElem ? this._dataTipElem.innerHTML : "Tooltip";
+    this._dataTipElem && this._dataTipElem.classList.add("hidden"), this._tooltipBox = document.createElement("div"), this._tooltipBox.innerHTML = t, this._tooltipBox.className = [
       "opacity-0",
       "hidden",
       "absolute",
@@ -5859,10 +5859,19 @@ class Nl extends HTMLElement {
       "transition-all",
       "duration-200",
       "font-sans"
-    ].join(" "), this.appendChild(this._tooltipBox), this._updatePosition(), this.addEventListener("mouseenter", () => this._showTooltip()), this.addEventListener("mouseleave", () => this._hideTooltip());
+    ].join(" "), this.appendChild(this._tooltipBox), this._updatePosition(), this.addEventListener("mouseenter", () => this._showTooltip()), this.addEventListener("mouseleave", () => this._hideTooltip()), this._dataTipElem && (this._observer = new MutationObserver(() => {
+      this._tooltipBox && (this._tooltipBox.innerHTML = this._dataTipElem.innerHTML);
+    }), this._observer.observe(this._dataTipElem, {
+      childList: !0,
+      characterData: !0,
+      subtree: !0
+    }));
   }
   attributeChangedCallback(t, e, i) {
     t === "position" && this._tooltipBox && this._updatePosition(), t === "timeout" && i && (this._timeout = parseInt(i) || 200);
+  }
+  disconnectedCallback() {
+    this._observer && this._observer.disconnect();
   }
   _showTooltip() {
     clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._tooltipBox.classList.remove("hidden"), setTimeout(() => {
@@ -9128,6 +9137,8 @@ function Rt(s) {
     console.log("Not a textarea element");
     return;
   }
+  if (s.dataset.noAutoresize === "true" || s.classList.contains("no-autoresize"))
+    return;
   if (s.offsetParent === null) {
     console.log("Textarea not visible");
     return;
@@ -9150,7 +9161,7 @@ function Cd(s) {
     console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
     return;
   }
-  vo() || s.addEventListener("input", () => {
+  s.dataset.noAutoresize === "true" || s.classList.contains("no-autoresize") || vo() || s.addEventListener("input", () => {
     Rt(s);
   });
 }
@@ -9187,13 +9198,13 @@ function Rd(s) {
   const t = document.querySelectorAll("textarea");
   console.log("Found", t.length, "textareas");
   for (const o of t)
-    console.log("Attaching input listener to:", o.name || o.id), o.addEventListener("input", function() {
+    o.dataset.noAutoresize === "true" || o.classList.contains("no-autoresize") || (console.log("Attaching input listener to:", o.name || o.id), o.addEventListener("input", function() {
       console.log("Input event on textarea:", this.name || this.id), Rt(this);
-    });
+    }));
   setTimeout(() => {
     console.log("Running initial textarea resize on", t.length, "textareas");
     for (const o of t)
-      Rt(o);
+      o.dataset.noAutoresize === "true" || o.classList.contains("no-autoresize") || Rt(o);
   }, 200);
   const e = document.querySelectorAll("textarea.no-enter");
   for (const o of e)
@@ -9208,7 +9219,7 @@ function Rd(s) {
         if (l instanceof HTMLElement) {
           const d = l.matches("textarea") ? [l] : Array.from(l.querySelectorAll("textarea"));
           for (const h of d)
-            h.offsetParent !== null && Rt(h);
+            h.dataset.noAutoresize === "true" || h.classList.contains("no-autoresize") || h.offsetParent !== null && Rt(h);
         }
       }
   }).observe(s, {
