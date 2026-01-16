@@ -11,17 +11,19 @@ export class EditPage extends HTMLElement {
 	}
 
 	_setupStatusSelect() {
-		const statusSelect = this.querySelector(".status-select");
-		if (!statusSelect) {
+		const statusSelects = Array.from(this.querySelectorAll(".status-select"));
+		if (statusSelects.length === 0) {
 			return;
 		}
-		const statusIcon = this.querySelector(".status-icon");
-		statusSelect.addEventListener("change", (event) => {
-			const newStatus = event.target.value;
-			statusSelect.setAttribute("data-status", newStatus);
-			if (statusIcon) {
-				this._updateStatusIcon(statusIcon, newStatus);
-			}
+		statusSelects.forEach((statusSelect) => {
+			const statusIcon = statusSelect.parentElement?.querySelector(".status-icon");
+			statusSelect.addEventListener("change", (event) => {
+				const newStatus = event.target.value;
+				statusSelect.setAttribute("data-status", newStatus);
+				if (statusIcon) {
+					this._updateStatusIcon(statusIcon, newStatus);
+				}
+			});
 		});
 	}
 

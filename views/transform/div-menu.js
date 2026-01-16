@@ -62,10 +62,20 @@ export class DivManager extends HTMLElement {
 				};
 			});
 
+		const existingButton = this._button;
 		this._button = this.querySelector(`.${DM_MENU_BUTTON_CLASS}`);
+		if (!this._button && existingButton) {
+			this._button = existingButton;
+			if (!this._button.parentElement) {
+				this.appendChild(this._button);
+			}
+		}
 		if (!this._button) {
-			console.error("DivManagerMenu needs a button element.");
-			return;
+			this._button = document.createElement("button");
+			this._button.type = "button";
+			this._button.classList.add(DM_MENU_BUTTON_CLASS, TAILWIND_HIDDEN_CLASS);
+			this._button.innerHTML = '<i class="ri-add-line"></i> Felder hinzufügen';
+			this.appendChild(this._button);
 		}
 		if (!this._originalButtonText) {
 			this._originalButtonText = this._button.innerHTML;
@@ -214,10 +224,14 @@ export class DivManager extends HTMLElement {
 
 		// Always ensure the hidden class is added
 		child.node.classList.add(TAILWIND_HIDDEN_CLASS);
+		this._clearFields(child.node);
 
 		const target = child.target();
 		if (target && target.contains(child.node)) {
 			target.removeChild(child.node);
+		}
+		if (!child.node.parentElement) {
+			this.appendChild(child.node);
 		}
 		// INFO: the order of these matter, dont fuck it up
 		this.renderButton();
@@ -335,6 +349,28 @@ export class DivManager extends HTMLElement {
 				(node) => !node.classList.contains(TAILWIND_HIDDEN_CLASS),
 			);
 			target.classList.toggle(TAILWIND_HIDDEN_CLASS, !hasVisibleChild);
+		});
+	}
+
+	_clearFields(container) {
+		if (!container) {
+			return;
+		}
+		container.querySelectorAll("input, textarea, select").forEach((field) => {
+			if (field.matches("input[type='checkbox'], input[type='radio']")) {
+				field.checked = false;
+				return;
+			}
+			if (field.matches("select")) {
+				field.selectedIndex = -1;
+				return;
+			}
+			field.value = "";
+		});
+		container.querySelectorAll("trix-editor").forEach((editor) => {
+			if (typeof editor.editor?.loadHTML === "function") {
+				editor.editor.loadHTML("");
+			}
 		});
 	}
 }

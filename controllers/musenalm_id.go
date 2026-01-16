@@ -67,3 +67,18 @@ func nextPlaceMusenalmID(app core.App) (int, error) {
 	}
 	return place.MusenalmID() + 1, nil
 }
+
+func nextContentMusenalmID(app core.App) (int, error) {
+	var content dbmodels.Content
+	err := app.RecordQuery(dbmodels.CONTENTS_TABLE).
+		OrderBy(dbmodels.MUSENALMID_FIELD + " DESC").
+		Limit(1).
+		One(&content)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 1, nil
+		}
+		return 0, err
+	}
+	return content.MusenalmID() + 1, nil
+}

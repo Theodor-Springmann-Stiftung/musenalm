@@ -117,44 +117,25 @@
 
 <div class="container-normal mx-auto mt-4 !px-0">
 	{{ template "_usermessage" $model }}
-	<form
-		autocomplete="off"
-		class="w-full dbform"
-		id="changecontentsform"
-		method="POST"
-		action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
-		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-
-		<div class="flex flex-col gap-3">
-			{{- range $_, $content := $model.result.Contents -}}
-				{{- template "_content_edit" (Dict
-					"content" $content
-					"entry" $model.result.Entry
-					"content_types" $model.content_types
-					"musenalm_types" $model.musenalm_types
-					"pagination_values" $model.pagination_values
-				) -}}
-			{{- end -}}
-		</div>
-
-		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
-			<p class="text-sm text-gray-600" aria-live="polite"></p>
-			<div class="flex items-center gap-3 self-end flex-wrap">
-				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="resetbutton w-48 flex items-center gap-2 justify-center">
-					<i class="ri-close-line"></i>
-					<span>Abbrechen</span>
-				</a>
-				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-48 flex items-center gap-2 justify-center">
-					<i class="ri-loop-left-line"></i>
-					<span>Reset</span>
-				</a>
-				<button type="submit" class="submitbutton w-48 flex items-center gap-2 justify-center">
-					<i class="ri-save-line"></i>
-					<span>Speichern</span>
-				</button>
-			</div>
-		</div>
-	</form>
+	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
+		<i class="ri-loader-4-line spinning mr-2"></i>
+		Reihenfolge wird gespeichert
+	</div>
+	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
+	<div class="flex flex-col gap-1" data-role="contents-list" data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert">
+		{{- range $_, $content := $model.result.Contents -}}
+			{{- template "_content_item" (Dict
+				"content" $content
+				"entry" $model.result.Entry
+				"csrf_token" $model.csrf_token
+				"content_types" $model.content_types
+				"musenalm_types" $model.musenalm_types
+				"pagination_values" $model.pagination_values
+				"open_edit" false
+				"is_new" false
+			) -}}
+		{{- end -}}
+	</div>
 </div>
 </edit-page>
 
@@ -183,20 +164,417 @@
 	};
 
 	const initPage = () => {
-		document.querySelectorAll(".content-numbering").forEach((input, index) => {
-			input.value = index + 1;
-		});
+		const list = document.querySelector("[data-role='contents-list']");
+		if (!list) {
+			return;
+		}
 
-		document
-			.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]")
-			.forEach((el) => applyMultiSelectInit(el));
+		const getItems = () => Array.from(list.querySelectorAll("[data-role='content-item']"));
+		const removeGaps = () => {
+			list.querySelectorAll("[data-role='content-gap']").forEach((gap) => gap.remove());
+		};
+		const renderInsertGaps = () => {
+			removeGaps();
+			const insertEndpoint = list.dataset.insertEndpoint || "";
+			const items = getItems();
+			if (!insertEndpoint) {
+				return;
+			}
+			if (list.querySelector("[data-role='content-item'].data-editing")) {
+				return;
+			}
+			const createGap = (position, contentId, label) => {
+				const gap = document.createElement("div");
+				gap.className = "relative group h-6 -my-2.5";
+				gap.dataset.role = "content-gap";
+				const line = document.createElement("div");
+				line.className = "pointer-events-none absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-slate-300 opacity-0 transition-opacity duration-150 group-hover:opacity-100";
+				const button = document.createElement("button");
+				button.type = "button";
+				button.className = "absolute left-1/2 top-1/2 z-[10000] -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded-full border border-slate-300 bg-stone-100 text-slate-700 px-3 py-2 text-base shadow-sm";
+				button.setAttribute("aria-label", "Beitrag einfügen");
+				button.setAttribute("hx-post", insertEndpoint);
+				button.setAttribute("hx-target", "closest [data-role='content-gap']");
+				button.setAttribute("hx-swap", "beforebegin");
+				button.setAttribute("hx-include", "[data-role='csrf-token']");
+				button.setAttribute("hx-vals", JSON.stringify({ position, content_id: contentId }));
+				button.innerHTML = label ? '<i class="ri-add-line"></i><span>Neuer Beitrag</span>' : '<i class="ri-add-line"></i>';
+				gap.appendChild(line);
+				gap.appendChild(button);
+				gap.appendChild(document.createElement("div")).className = "h-1";
+				return gap;
+			};
+
+			items.forEach((item) => {
+				const contentId = item.querySelector("[data-role='content-card']")?.dataset.contentId || "";
+				list.insertBefore(createGap("before", contentId, false), item);
+			});
+			list.appendChild(createGap("after", "", true));
+			if (window.htmx?.process) {
+				list.querySelectorAll("[data-role='content-gap']").forEach((gap) => {
+					window.htmx.process(gap);
+				});
+			}
+		};
+		const setEditSpacing = (active) => {
+			list.style.rowGap = active ? "0.75rem" : "";
+			list.style.paddingTop = active ? "0.25rem" : "";
+			list.style.paddingBottom = active ? "0.25rem" : "";
+		};
+		const syncEditSpacing = () => {
+			setEditSpacing(!!list.querySelector("[data-role='content-item'].data-editing"));
+		};
+		if (getItems().length === 0) {
+			return;
+		}
+
+		const isTempContentId = (contentId) => contentId && contentId.startsWith("tmp");
+		const orderEndpoint = getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
+		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
+		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
+		const syncIndicator = document.querySelector("#contents-sync-indicator");
+		let orderSyncTimer = null;
+		let isOrderSyncing = false;
+		let pendingOrderSync = false;
+
+		const setSyncIndicator = (active) => {
+			if (!syncIndicator) {
+				return;
+			}
+			syncIndicator.classList.toggle("hidden", !active);
+		};
+
+		const performOrderSync = () => {
+			if (!list || !orderEndpoint || !csrfToken || isOrderSyncing) {
+				pendingOrderSync = true;
+				return;
+			}
+			isOrderSyncing = true;
+			pendingOrderSync = false;
+			setSyncIndicator(true);
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			list.querySelectorAll("[data-role='content-item']").forEach((card) => {
+				const contentId = card.querySelector("[data-role='content-card']")?.dataset.contentId;
+				if (!contentId || isTempContentId(contentId)) {
+					return;
+				}
+				payload.append("content_order[]", contentId);
+			});
+			fetch(orderEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+				body: payload.toString(),
+			})
+				.catch(() => null)
+				.finally(() => {
+					isOrderSyncing = false;
+					setSyncIndicator(false);
+					if (pendingOrderSync) {
+						performOrderSync();
+					}
+				});
+		};
+
+		const syncOrder = () => {
+			if (orderSyncTimer) {
+				clearTimeout(orderSyncTimer);
+			}
+			orderSyncTimer = setTimeout(() => {
+				performOrderSync();
+			}, 300);
+		};
+
+		const closeAll = () => {
+			getItems().forEach((item) => {
+				const view = item.querySelector("[data-role='content-view']");
+				const edit = item.querySelector("[data-role='content-edit']");
+				const editButton = item.querySelector("[data-role='content-edit-button']");
+				item.classList.remove("data-editing");
+				if (view) {
+					view.classList.remove("hidden");
+				}
+				if (edit) {
+					edit.classList.add("hidden");
+				}
+				if (editButton) {
+					editButton.classList.remove("hidden");
+				}
+			});
+		};
+
+		const openItem = (item) => {
+			closeAll();
+			const view = item.querySelector("[data-role='content-view']");
+			const edit = item.querySelector("[data-role='content-edit']");
+			if (view && edit) {
+				view.classList.add("hidden");
+				edit.classList.remove("hidden");
+				item.classList.add("data-editing");
+			}
+			setEditSpacing(true);
+			removeGaps();
+			getItems().forEach((other) => {
+				const otherButton = other.querySelector("[data-role='content-edit-button']");
+				if (!otherButton || other === item) {
+					return;
+				}
+				otherButton.classList.add("hidden");
+			});
+		};
+
+		const removeItem = (item) => {
+			const gap = item.previousElementSibling;
+			if (gap && gap.matches("[data-role='content-gap']")) {
+				gap.remove();
+			}
+			item.remove();
+			renderInsertGaps();
+			getItems().forEach((other) => {
+				const otherButton = other.querySelector("[data-role='content-edit-button']");
+				if (otherButton) {
+					otherButton.classList.remove("hidden");
+				}
+			});
+		};
+
+		const setupItem = (item) => {
+			if (!item || item.dataset.init === "true") {
+				return;
+			}
+			item.dataset.init = "true";
+
+			const editButton = item.querySelector("[data-role='content-edit-button']");
+			const cancelButton = item.querySelector("[data-role='content-edit-cancel']");
+			const deleteButton = item.querySelector("[data-role='content-delete']");
+			const deleteDialog = item.querySelector("[data-role='content-delete-dialog']");
+			const deleteConfirm = item.querySelector("[data-role='content-delete-confirm']");
+			const deleteCancel = item.querySelector("[data-role='content-delete-cancel']");
+			const view = item.querySelector("[data-role='content-view']");
+			const edit = item.querySelector("[data-role='content-edit']");
+			const form = item.querySelector("form");
+
+			if (editButton && view && edit) {
+				editButton.addEventListener("click", () => {
+					openItem(item);
+				});
+			}
+
+			if (cancelButton && view && edit) {
+				cancelButton.addEventListener("click", () => {
+					if (item.dataset.contentTemp === "true") {
+						removeItem(item);
+						return;
+					}
+					edit.classList.add("hidden");
+					view.classList.remove("hidden");
+					item.classList.remove("data-editing");
+					getItems().forEach((other) => {
+						const otherButton = other.querySelector("[data-role='content-edit-button']");
+						if (otherButton) {
+							otherButton.classList.remove("hidden");
+						}
+					});
+					syncEditSpacing();
+					renderInsertGaps();
+				});
+			}
+
+			if (deleteButton && deleteDialog) {
+				deleteButton.addEventListener("click", () => {
+					if (deleteDialog.showModal) {
+						deleteDialog.showModal();
+					} else {
+						deleteDialog.setAttribute("open", "true");
+					}
+				});
+			}
+
+			if (deleteCancel && deleteDialog) {
+				deleteCancel.addEventListener("click", () => {
+					deleteDialog.close();
+				});
+				deleteDialog.addEventListener("cancel", (event) => {
+					event.preventDefault();
+					deleteDialog.close();
+				});
+			}
+
+			if (deleteConfirm) {
+				deleteConfirm.addEventListener("click", () => {
+					if (item.dataset.contentTemp === "true") {
+						deleteDialog?.close();
+						removeItem(item);
+						return;
+					}
+					const payload = new URLSearchParams();
+					payload.set("csrf_token", csrfToken);
+					payload.set("content_id", item.querySelector("[data-role='content-card']")?.dataset.contentId || "");
+					fetch(deleteEndpoint, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/x-www-form-urlencoded",
+						},
+						body: payload.toString(),
+					})
+						.then((response) => {
+							if (response.redirected) {
+								window.location.assign(response.url);
+							} else {
+								window.location.reload();
+							}
+						})
+						.catch(() => null);
+				});
+			}
+
+			if (form) {
+				form.addEventListener("submit", () => {
+					form.querySelectorAll("input[name='content_order[]']").forEach((input) => input.remove());
+					getItems().forEach((card) => {
+						const contentId = card.querySelector("[data-role='content-card']")?.dataset.contentId;
+						if (!contentId) {
+							return;
+						}
+						const input = document.createElement("input");
+						input.type = "hidden";
+						input.name = "content_order[]";
+						input.value = contentId;
+						form.appendChild(input);
+					});
+				});
+			}
+
+			item.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
+				applyMultiSelectInit(el);
+			});
+
+			if (item.dataset.openEdit === "true") {
+				item.dataset.openEdit = "";
+				openItem(item);
+			}
+		};
+
+		getItems().forEach((item) => setupItem(item));
+		renderInsertGaps();
+		syncEditSpacing();
+
+		if (list.dataset.pageInit !== "true") {
+			list.dataset.pageInit = "true";
+			let draggedItem = null;
+			list.addEventListener("click", (event) => {
+				const moveUp = event.target.closest("[data-role='content-move-up']");
+				const moveDown = event.target.closest("[data-role='content-move-down']");
+				if (!moveUp && !moveDown) {
+					return;
+				}
+				event.preventDefault();
+				const item = event.target.closest("[data-role='content-item']");
+				if (!item) {
+					return;
+				}
+				if (moveUp) {
+					const prev = item.previousElementSibling;
+					if (prev) {
+						prev.before(item);
+					}
+				} else {
+					const next = item.nextElementSibling;
+					if (next) {
+						next.after(item);
+					}
+				}
+				syncOrder();
+				renderInsertGaps();
+			});
+
+			list.addEventListener("dragstart", (event) => {
+				if (event.target.closest("[data-role='content-edit-button']")) {
+					return;
+				}
+				if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
+					return;
+				}
+				if (event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
+					return;
+				}
+				const handle = event.target.closest("[data-role='content-drag-handle']");
+				if (!handle) {
+					event.preventDefault();
+					return;
+				}
+				const item = handle.closest("[data-role='content-item']");
+				if (!item) {
+					return;
+				}
+				draggedItem = item;
+				draggedItem.classList.add("opacity-60");
+				list.style.rowGap = "0.75rem";
+				list.style.paddingTop = "0.25rem";
+				list.style.paddingBottom = "0.25rem";
+				removeGaps();
+				event.dataTransfer.effectAllowed = "move";
+				event.dataTransfer.setData("text/plain", "move");
+			});
+
+			list.addEventListener("dragover", (event) => {
+				if (!draggedItem) {
+					return;
+				}
+				event.preventDefault();
+				const targetItem = event.target.closest("[data-role='content-item']");
+				if (!targetItem || targetItem === draggedItem) {
+					return;
+				}
+				const rect = targetItem.getBoundingClientRect();
+				const before = event.clientY - rect.top < rect.height / 2;
+				if (before) {
+					targetItem.before(draggedItem);
+				} else {
+					targetItem.after(draggedItem);
+				}
+			});
+
+			list.addEventListener("dragend", () => {
+				if (draggedItem) {
+					draggedItem.classList.remove("opacity-60");
+				}
+				draggedItem = null;
+				list.style.rowGap = "";
+				list.style.paddingTop = "";
+				list.style.paddingBottom = "";
+				syncOrder();
+				renderInsertGaps();
+			});
+
+			const params = new URLSearchParams(window.location.search);
+			const editContentId = params.get("edit_content");
+			if (editContentId) {
+				const targetItem = getItems().find((item) => {
+					return item.querySelector(`[data-role='content-card'][data-content-id='${editContentId}']`);
+				});
+				if (targetItem) {
+					openItem(targetItem);
+				}
+			}
+		}
 	};
 
-	if (window.customElements?.whenDefined) {
-		window.customElements.whenDefined("multi-select-simple").then(() => {
-			requestAnimationFrame(initPage);
-		});
-	} else {
-		initPage();
-	}
+	const initWhenReady = () => {
+		if (window.customElements?.whenDefined) {
+			window.customElements.whenDefined("multi-select-simple").then(() => {
+				requestAnimationFrame(initPage);
+			});
+		} else {
+			initPage();
+		}
+	};
+
+	initWhenReady();
+
+	document.body.addEventListener("htmx:afterSwap", () => {
+		initWhenReady();
+	});
 </script>

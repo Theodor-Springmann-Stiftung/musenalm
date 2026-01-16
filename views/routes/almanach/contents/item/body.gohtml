@@ -1,0 +1,23 @@
+{{- $content := index . "content" -}}
+{{- $entry := index . "entry" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $contentTypes := index . "content_types" -}}
+{{- $musenalmTypes := index . "musenalm_types" -}}
+{{- $paginationValues := index . "pagination_values" -}}
+{{- $contentID := index . "content_id" -}}
+{{- $openEdit := index . "open_edit" -}}
+{{- $isNew := index . "is_new" -}}
+{{- $error := index . "error" -}}
+
+{{- template "_content_item" (Dict
+	"content" $content
+	"content_id" $contentID
+	"entry" $entry
+	"csrf_token" $csrf
+	"content_types" $contentTypes
+	"musenalm_types" $musenalmTypes
+	"pagination_values" $paginationValues
+	"open_edit" $openEdit
+	"is_new" $isNew
+	"error" $error
+) -}}

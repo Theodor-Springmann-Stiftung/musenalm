@@ -1,93 +1,32 @@
 {{- $content := index . "content" -}}
 {{- $entry := index . "entry" -}}
-{{- $contentTypes := index . "content_types" -}}
 {{- $musenalmTypes := index . "musenalm_types" -}}
 {{- $paginationValues := index . "pagination_values" -}}
-{{- $prefix := printf "content_%s_" $content.Id -}}
-{{- $baseID := printf "content-%s" $content.Id -}}
+{{- $overrideID := index . "content_id" -}}
+{{- $contentID := $content.Id -}}
+{{- if and $overrideID (ne $overrideID "") -}}
+	{{- $contentID = $overrideID -}}
+{{- end -}}
+{{- $prefix := printf "content_%s_" $contentID -}}
+{{- $baseID := printf "content-%s" $contentID -}}
+{{- $annotationID := printf "%sannotation" $prefix -}}
+{{- $annotationToolbar := printf "%sannotation-toolbar" $prefix -}}
 
-<div class="border border-slate-200 bg-white rounded-xs p-3" data-content-id="{{ $content.Id }}" data-content-order="{{ $content.Numbering }}">
+<div class="border border-slate-200 bg-white rounded-xs" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
 	<input type="hidden" name="{{ $prefix }}numbering" class="content-numbering" value="{{- $content.Numbering -}}" />
-	<input type="hidden" name="{{ $prefix }}musenalm_id" value="{{ $entry.MusenalmID }}" />
 	<input type="hidden" name="{{ $prefix }}entries" value="{{ $entry.Id }}" />
-
-	<div class="flex items-center justify-between gap-3">
-		<div class="flex items-center gap-3">
-			<i class="ri-drag-move-2-line text-slate-400 cursor-grab"></i>
-			<div class="text-xs text-slate-500">Alm-ID {{ $entry.MusenalmID }}</div>
-		</div>
-		<div class="border border-dashed border-slate-300 bg-slate-50 px-2 py-1 text-xs text-slate-600 rounded-xs">
-			<i class="ri-image-add-line"></i> Scans folgen
-		</div>
-	</div>
-
-	<div class="mt-3 grid gap-2 xl:grid-cols-[1.3fr_1fr_1fr]">
-		<div class="grid gap-2">
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-preferred-title" class="inputlabel">Kurztitel</label>
-				</div>
-				<textarea name="{{ $prefix }}preferred_title" id="{{ $baseID }}-preferred-title" class="inputinput no-enter" autocomplete="off" rows="1" required>{{- $content.PreferredTitle -}}</textarea>
-			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-title" class="inputlabel">Titel</label>
-				</div>
-				<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
-			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-incipit" class="inputlabel">Incipit</label>
-				</div>
-				<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
-			</div>
-		</div>
-
-		<div class="grid gap-2">
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
-				</div>
-				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
-			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-extent" class="inputlabel">Seite</label>
-				</div>
-				<textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea>
-			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-pagination" class="inputlabel">Paginierung</label>
-				</div>
-				<select name="{{ $prefix }}musenalm_pagination" id="{{ $baseID }}-pagination" class="inputselect">
-					{{- range $_, $p := $paginationValues -}}
-						<option value="{{- $p -}}" {{ if eq $content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
-					{{- end -}}
-				</select>
-			</div>
-		</div>
-
-		<div class="grid gap-2">
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-content-type" class="inputlabel">Inhaltstyp</label>
-				</div>
-				<multi-select-simple
-					id="{{ $baseID }}-content-type"
-					name="{{ $prefix }}content_type[]"
-					show-create-button="false"
-					placeholder="Inhaltstypen suchen..."
-					data-empty-text="Keine Typen verknüpft"
-					value='[{{- range $i, $t := $content.ContentType -}}{{- if $i }},{{ end -}}"{{ $t }}"{{- end -}}]'
-					data-initial-options='[{{- range $i, $t := $contentTypes -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q}" $t $t }}{{- end -}}]'
-					data-initial-values='[{{- range $i, $t := $content.ContentType -}}{{- if $i }},{{ end -}}{{ printf "%q" $t }}{{- end -}}]'>
-				</multi-select-simple>
-			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-musenalm-type" class="inputlabel">Musenalm-Typ</label>
-				</div>
+	<div class="border border-slate-200 bg-stone-100 rounded-xs">
+		<div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-stone-200 px-3 py-2">
+			<div class="flex items-center gap-3">
+				<button type="button" class="text-slate-600 cursor-grab text-sm" data-role="content-drag-handle" draggable="true" aria-label="Beitrag verschieben">
+					<i class="ri-drag-move-2-line"></i>
+				</button>
+				<button type="button" class="text-slate-600 px-1.5 py-1 text-sm rounded-xs hover:bg-stone-200" data-role="content-move-up" aria-label="Beitrag nach oben">
+					<i class="ri-arrow-up-line"></i>
+				</button>
+				<button type="button" class="text-slate-600 px-1.5 py-1 text-sm rounded-xs hover:bg-stone-200" data-role="content-move-down" aria-label="Beitrag nach unten">
+					<i class="ri-arrow-down-line"></i>
+				</button>
 				<multi-select-simple
 					id="{{ $baseID }}-musenalm-type"
 					name="{{ $prefix }}musenalm_type[]"
@@ -99,106 +38,171 @@
 					data-initial-values='[{{- range $i, $t := $content.MusenalmType -}}{{- if $i }},{{ end -}}{{ printf "%q" $t }}{{- end -}}]'>
 				</multi-select-simple>
 			</div>
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-language" class="inputlabel">Sprache</label>
-				</div>
-				<multi-select-simple
-					id="{{ $baseID }}-language"
-					name="{{ $prefix }}language[]"
-					show-create-button="false"
-					placeholder="Sprachen suchen..."
-					data-empty-text="Keine Sprachen verknüpft"
-					value='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
-					data-initial-values='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
-				</multi-select-simple>
+			<div class="flex items-center gap-2">
+				<select name="{{ $prefix }}edit_state" id="{{ $baseID }}-edit-state" class="inputselect font-bold status-select px-2 py-1" data-status="{{ $content.EditState }}">
+					<option value="Unknown" {{ if eq $content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+					<option value="ToDo" {{ if eq $content.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+					<option value="Review" {{ if eq $content.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+					<option value="Edited" {{ if eq $content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
+				</select>
 			</div>
+		</div>
+		<div class="px-3 py-2">
+			<div class="grid grid-cols-[8rem_1fr_1fr] gap-x-3 gap-y-2 items-start">
+				<label for="{{ $baseID }}-extent" class="text-sm font-bold text-gray-700">Seite &amp; Paginierung</label>
+				<textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea>
+				<select name="{{ $prefix }}musenalm_pagination" id="{{ $baseID }}-pagination" class="inputselect border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30">
+					{{- range $_, $p := $paginationValues -}}
+						<option value="{{- $p -}}" {{ if eq $content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
+					{{- end -}}
+				</select>
+			</div>
+
+			<div id="{{ $baseID }}-edit-fields" class="mt-3 flex flex-col gap-3"></div>
+			<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end">
+				<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
+					Felder hinzufügen</button>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq (len $content.Language) 0 }}hidden{{ end }}">
+					<label for="{{ $baseID }}-language" class="text-sm font-bold text-gray-700">Sprache</label>
+					<multi-select-simple
+						id="{{ $baseID }}-language"
+						name="{{ $prefix }}language[]"
+						show-create-button="false"
+						placeholder="Sprachen suchen..."
+						data-empty-text="Keine Sprachen verknüpft"
+						value='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
+						data-initial-values='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
+					</multi-select-simple>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.TitleStmt "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-title" class="text-sm font-bold text-gray-700">Titel</label>
+					<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.SubtitleStmt "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-subtitle" class="text-sm font-bold text-gray-700">Untertitel</label>
+					<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.IncipitStmt "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-incipit" class="text-sm font-bold text-gray-700">Incipit</label>
+					<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.ResponsibilityStmt "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-responsibility" class="text-sm font-bold text-gray-700">Autorangabe</label>
+					<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.ParallelTitle "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-parallel-title" class="text-sm font-bold text-gray-700">Paralleltitel</label>
+					<textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.VariantTitle "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-variant-title" class="text-sm font-bold text-gray-700">Titelvarianten</label>
+					<textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.PlaceStmt "" }}hidden{{ end }}">
+					<label for="{{ $baseID }}-place" class="text-sm font-bold text-gray-700">Ortsangabe</label>
+					<textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+
+				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-start {{ if eq $content.Annotation "" }}hidden{{ end }}">
+					<label for="{{ $annotationID }}" class="text-sm font-bold text-gray-700">Anmerkung</label>
+					<div class="border border-slate-300 rounded-xs bg-white px-2 py-1 focus-within:ring-2 focus-within:ring-slate-400/30">
+						<trix-toolbar id="{{ $annotationToolbar }}">
+							<div class="trix-toolbar-container">
+								<span class="trix-toolbar-group">
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="bold" data-trix-key="b" title="Fett">
+										<i class="ri-bold"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="italic" data-trix-key="i" title="Kursiv">
+										<i class="ri-italic"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="strike" title="Gestrichen">
+										<i class="ri-strikethrough"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link">
+										<i class="ri-links-line"></i>
+									</button>
+								</span>
+								<span class="trix-toolbar-group">
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="heading1" title="Überschrift">
+										<i class="ri-h-1"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="quote" title="Zitat">
+										<i class="ri-double-quotes-l"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="bullet" title="Liste">
+										<i class="ri-list-unordered"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-attribute="number" title="Aufzählung">
+										<i class="ri-list-ordered"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-action="decreaseNestingLevel" title="Einzug verkleinern">
+										<i class="ri-indent-decrease"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-action="increaseNestingLevel" title="Einzug vergrößern">
+										<i class="ri-indent-increase"></i>
+									</button>
+								</span>
+								<span class="trix-toolbar-group">
+									<button type="button" class="trix-toolbar-button" data-trix-action="undo" data-trix-key="z" title="Rückgängig">
+										<i class="ri-arrow-go-back-line"></i>
+									</button>
+									<button type="button" class="trix-toolbar-button" data-trix-action="redo" data-trix-key="shift+z" title="Wiederholen">
+										<i class="ri-arrow-go-forward-line"></i>
+									</button>
+								</span>
+							</div>
+							<div class="trix-dialogs" data-trix-dialogs>
+								<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
+									<div class="trix-dialog__link-fields flex flex-row">
+										<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="URL eingeben…" aria-label="URL" required data-trix-input>
+										<div class="trix-button-group flex-row">
+											<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
+											<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
+										</div>
+									</div>
+								</div>
+							</div>
+						</trix-toolbar>
+						<textarea hidden id="{{ $annotationID }}" name="{{ $annotationID }}" autocomplete="off">{{- $content.Annotation -}}</textarea>
+						<trix-editor input="{{ $annotationID }}" toolbar="{{ $annotationToolbar }}" class="min-h-[6rem]"></trix-editor>
+					</div>
+					<button class="dm-close-button text-gray-500">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+			</div-manager>
 		</div>
 	</div>
-
-	<details class="mt-3">
-		<summary class="text-sm font-bold text-slate-700 cursor-pointer select-none">
-			Weitere Felder &amp; Anmerkungen
-		</summary>
-		<div class="mt-3 grid gap-2">
-			<div class="grid gap-2 md:grid-cols-2">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-subtitle" class="inputlabel">Untertitel</label>
-					</div>
-					<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-parallel-title" class="inputlabel">Paralleltitel</label>
-					</div>
-					<textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea>
-				</div>
-			</div>
-
-			<div class="grid gap-2 md:grid-cols-2">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-variant-title" class="inputlabel">Titelvarianten</label>
-					</div>
-					<textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-year" class="inputlabel">Jahr</label>
-					</div>
-					<input name="{{ $prefix }}year" id="{{ $baseID }}-year" class="inputinput" autocomplete="off" value="{{ if $content.Year }}{{ $content.Year }}{{ end }}" />
-				</div>
-			</div>
-
-			<div class="grid gap-2 md:grid-cols-2">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-publication" class="inputlabel">Publikationsangabe</label>
-					</div>
-					<textarea name="{{ $prefix }}publication_statement" id="{{ $baseID }}-publication" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.PublicationStmt -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-place" class="inputlabel">Ortsangabe</label>
-					</div>
-					<textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea>
-				</div>
-			</div>
-
-			<div class="grid gap-2 md:grid-cols-2">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-dimensions" class="inputlabel">Maße</label>
-					</div>
-					<textarea name="{{ $prefix }}dimensions" id="{{ $baseID }}-dimensions" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.Dimensions -}}</textarea>
-				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<label for="{{ $baseID }}-edit-state" class="inputlabel">Status</label>
-					</div>
-					<select name="{{ $prefix }}edit_state" id="{{ $baseID }}-edit-state" class="inputselect font-bold">
-						<option value="Unknown" {{ if eq $content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-						<option value="ToDo" {{ if eq $content.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-						<option value="Review" {{ if eq $content.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-						<option value="Edited" {{ if eq $content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
-					</select>
-				</div>
-			</div>
-
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-edit-comment" class="inputlabel">Bearbeitungsvermerk</label>
-				</div>
-				<textarea name="{{ $prefix }}edit_comment" id="{{ $baseID }}-edit-comment" class="inputinput no-enter" autocomplete="off" rows="1">{{- $content.Comment -}}</textarea>
-			</div>
-
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-annotation" class="inputlabel">Anmerkung</label>
-				</div>
-				<textarea name="{{ $prefix }}annotation" id="{{ $baseID }}-annotation" class="inputinput" autocomplete="off" rows="2">{{- $content.Annotation -}}</textarea>
-			</div>
-		</div>
-	</details>
 </div>

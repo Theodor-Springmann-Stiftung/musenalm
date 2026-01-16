@@ -1,17 +1,24 @@
 {{- $annotation := index . 0 -}}
 {{- $label := "Annotation" -}}
+{{- $fieldID := "annotation" -}}
 {{- if gt (len .) 1 -}}
 	{{- if index . 1 -}}
 		{{- $label = index . 1 -}}
 	{{- end -}}
 {{- end -}}
+{{- if gt (len .) 2 -}}
+	{{- if index . 2 -}}
+		{{- $fieldID = index . 2 -}}
+	{{- end -}}
+{{- end -}}
+{{- $toolbarID := printf "%s-toolbar" $fieldID -}}
 
 <div class="inputwrapper">
 	<div class="inputlabelrow">
-		<label for="annotation" class="inputlabel">{{ $label }}</label>
+		<label for="{{ $fieldID }}" class="inputlabel">{{ $label }}</label>
 	</div>
 
-	<trix-toolbar id="annotation-toolbar">
+	<trix-toolbar id="{{ $toolbarID }}">
 		<div class="trix-toolbar-container">
 			<!-- Text formatting group -->
 			<span class="trix-toolbar-group">
@@ -87,6 +94,6 @@
 		</div>
 	</trix-toolbar>
 
-	<textarea hidden id="annotation" name="annotation" autocomplete="off">{{- $annotation -}}</textarea>
-	<trix-editor input="annotation" toolbar="annotation-toolbar"></trix-editor>
+	<textarea hidden id="{{ $fieldID }}" name="{{ $fieldID }}" autocomplete="off">{{- $annotation -}}</textarea>
+	<trix-editor input="{{ $fieldID }}" toolbar="{{ $toolbarID }}"></trix-editor>
 </div>
