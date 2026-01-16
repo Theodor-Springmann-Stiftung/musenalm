@@ -224,6 +224,9 @@
 			};
 
 			items.forEach((item) => {
+				if (item.parentElement !== list) {
+					return;
+				}
 				const contentId = item.querySelector("[data-role='content-card']")?.dataset.contentId || "";
 				list.insertBefore(createGap("before", contentId, false), item);
 			});
@@ -241,6 +244,17 @@
 		};
 		const syncEditSpacing = () => {
 			setEditSpacing(!!list.querySelector("[data-role='content-item'].data-editing"));
+		};
+		const showEditButtonsIfIdle = () => {
+			if (list.querySelector("[data-role='content-item'].data-editing")) {
+				return;
+			}
+			getItems().forEach((item) => {
+				const editButton = item.querySelector("[data-role='content-edit-button']");
+				if (editButton) {
+					editButton.classList.remove("hidden");
+				}
+			});
 		};
 		if (getItems().length === 0) {
 			return;
@@ -561,6 +575,7 @@
 		getItems().forEach((item) => setupItem(item));
 		renderInsertGaps();
 		syncEditSpacing();
+		showEditButtonsIfIdle();
 		updateCollapseAllLabel();
 
 		if (list.dataset.pageInit !== "true") {

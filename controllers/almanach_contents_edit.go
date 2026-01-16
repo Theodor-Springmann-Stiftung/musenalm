@@ -242,8 +242,57 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		if isHTMX {
-			e.Response.Header().Set("HX-Redirect", redirect)
-			return e.String(http.StatusOK, "")
+			renderID := ""
+			for contentID := range contentInputs {
+				renderID = contentID
+				break
+			}
+			var renderContent *dbmodels.Content
+			if renderID != "" {
+				if existing, ok := existingByID[renderID]; ok {
+					renderContent = existing
+				} else if len(newContentIDs) > 0 && len(updatedContents) > 0 {
+					renderContent = updatedContents[len(updatedContents)-1]
+				}
+			}
+			if renderContent == nil && renderID != "" {
+				if refreshed, err := dbmodels.Contents_IDs(app, []any{renderID}); err == nil && len(refreshed) > 0 {
+					renderContent = refreshed[0]
+				}
+			}
+			if renderContent == nil {
+				e.Response.Header().Set("HX-Redirect", redirect)
+				return e.String(http.StatusOK, "")
+			}
+			if refreshed, err := dbmodels.Contents_IDs(app, []any{renderContent.Id}); err == nil && len(refreshed) > 0 {
+				renderContent = refreshed[0]
+			}
+			agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{renderContent})
+			if err != nil {
+				agentsMap = map[string]*dbmodels.Agent{}
+				contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
+			}
+			data := map[string]any{
+				"content":           renderContent,
+				"content_id":        renderContent.Id,
+				"entry":             entry,
+				"csrf_token":        req.Session().Token,
+				"content_types":     dbmodels.CONTENT_TYPE_VALUES,
+				"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
+				"pagination_values": paginationValuesSorted(),
+				"agent_relations":   dbmodels.AGENT_RELATIONS,
+				"agents":            agentsMap,
+				"content_agents":    contentAgentsMap[renderContent.Id],
+				"open_edit":         false,
+				"is_new":            false,
+			}
+			var builder strings.Builder
+			if err := engine.Render(&builder, "/almanach/contents/item/", data, "fragment"); err != nil {
+				app.Logger().Error("Failed to render content save", "entry_id", entry.Id, "content_id", renderContent.Id, "error", err)
+				e.Response.Header().Set("HX-Redirect", redirect)
+				return e.String(http.StatusOK, "")
+			}
+			return e.HTML(http.StatusOK, builder.String())
 		}
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
