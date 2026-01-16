@@ -127,9 +127,13 @@
 		<i class="ri-loader-4-line spinning mr-2"></i>
 		Reihenfolge wird gespeichert
 	</div>
+	<div id="contents-htmx-indicator" class="fixed right-6 bottom-16 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
+		<i class="ri-loader-4-line spinning mr-2"></i>
+		<span data-role="contents-htmx-label">Eintrag wird geladen</span>
+	</div>
 	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
 	<div class="flex items-center justify-end px-4">
-		<button type="button" class="resetbutton w-auto px-3 py-2 text-sm flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
+		<button type="button" class="resetbutton w-auto px-3 py-2 flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
 			<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
 			<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
 		</button>
@@ -217,6 +221,7 @@
 				const button = document.createElement("button");
 				button.type = "button";
 				button.className = "absolute left-1/2 top-1/2 z-[10000] -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded-full border border-slate-300 bg-stone-100 text-slate-700 px-3 py-2 text-base shadow-sm";
+				button.dataset.loadingLabel = "Eintrag wird geladen";
 				button.setAttribute("aria-label", "Beitrag einfügen");
 				button.setAttribute("hx-post", insertEndpoint);
 				button.setAttribute("hx-target", "closest [data-role='content-gap']");
@@ -272,6 +277,7 @@
 		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
 		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
 		const syncIndicator = document.querySelector("#contents-sync-indicator");
+		const htmxIndicator = document.querySelector("#contents-htmx-indicator");
 		let orderSyncTimer = null;
 		let isOrderSyncing = false;
 		let pendingOrderSync = false;
@@ -281,6 +287,21 @@
 				return;
 			}
 			syncIndicator.classList.toggle("hidden", !active);
+		};
+		const setHtmxIndicator = (active) => {
+			if (!htmxIndicator) {
+				return;
+			}
+			htmxIndicator.classList.toggle("hidden", !active);
+		};
+		const setHtmxIndicatorLabel = (label) => {
+			if (!htmxIndicator || !label) {
+				return;
+			}
+			const labelEl = htmxIndicator.querySelector("[data-role='contents-htmx-label']");
+			if (labelEl) {
+				labelEl.textContent = label;
+			}
 		};
 
 		const performOrderSync = () => {
@@ -405,6 +426,7 @@
 			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
 			const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
 			const viewBody = item.querySelector("[data-role='content-view-body']");
+			const header = item.querySelector("[data-content-header='true']");
 
 			const setCollapsed = (collapsed) => {
 				if (!viewBody || !collapsedSummary) {
@@ -414,6 +436,10 @@
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
 				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (header) {
+					header.classList.toggle("bg-stone-100", collapsed);
+					header.classList.toggle("bg-stone-200", !collapsed);
+				}
 				if (collapseButton) {
 					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
 					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
@@ -581,6 +607,7 @@
 				const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
 				const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 				const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
+				const header = item.querySelector("[data-content-header='true']");
 				if (!viewBody || !collapsedSummary) {
 					return;
 				}
@@ -588,6 +615,10 @@
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
 				collapsedSummary.classList.toggle("hidden", !collapsed);
+				if (header) {
+					header.classList.toggle("bg-stone-100", collapsed);
+					header.classList.toggle("bg-stone-200", !collapsed);
+				}
 				if (collapseButton) {
 					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
 					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
@@ -618,6 +649,10 @@
 		renderInsertGaps();
 		syncEditSpacing();
 		showEditButtonsIfIdle();
+		if (!list.dataset.collapseInit) {
+			list.dataset.collapseInit = "true";
+			setAllCollapsed(true);
+		}
 		updateCollapseAllLabel();
 
 		if (list.dataset.pageInit !== "true") {
@@ -741,16 +776,55 @@
 
 	document.body.addEventListener("htmx:afterSwap", (event) => {
 		const target = event.detail?.target;
-			if (target && target.matches("[data-role='content-edit-container']")) {
-				const item = target.closest("[data-role='content-item']");
-				if (item && item.dataset.pendingEdit === "true" && enterEditMode) {
-					item.dataset.pendingEdit = "";
-					enterEditMode(item);
-					if (setupEditFormGlobal) {
-						setupEditFormGlobal(item);
-					}
+		if (target && target.matches("[data-role='content-edit-container']")) {
+			const item = target.closest("[data-role='content-item']");
+			if (item && item.dataset.pendingEdit === "true" && enterEditMode) {
+				item.dataset.pendingEdit = "";
+				enterEditMode(item);
+				if (setupEditFormGlobal) {
+					setupEditFormGlobal(item);
 				}
 			}
+			target.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
+				applyMultiSelectInit(el);
+			});
+		}
 		initWhenReady();
+	});
+
+	document.body.addEventListener("htmx:beforeRequest", (event) => {
+		const elt = event.detail?.elt;
+		if (!elt || !list) {
+			return;
+		}
+		if (elt.closest("[data-role='contents-list']")) {
+			const label = elt.getAttribute("data-loading-label");
+			if (label) {
+				setHtmxIndicatorLabel(label);
+			} else {
+				setHtmxIndicatorLabel("Eintrag wird geladen");
+			}
+			setHtmxIndicator(true);
+		}
+	});
+
+	document.body.addEventListener("htmx:afterRequest", (event) => {
+		const elt = event.detail?.elt;
+		if (!elt || !list) {
+			return;
+		}
+		if (elt.closest("[data-role='contents-list']")) {
+			setHtmxIndicator(false);
+		}
+	});
+
+	document.body.addEventListener("htmx:responseError", (event) => {
+		const elt = event.detail?.elt;
+		if (!elt || !list) {
+			return;
+		}
+		if (elt.closest("[data-role='contents-list']")) {
+			setHtmxIndicator(false);
+		}
 	});
 </script>

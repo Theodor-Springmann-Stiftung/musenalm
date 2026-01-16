@@ -293,7 +293,26 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		if len(updatedContents) == 0 {
 			updatedContents = contents
 		}
-		go updateContentsFTS5(app, entry, updatedContents)
+		shouldUpdateFTS := len(contentInputs) > 0 || len(newContentIDs) > 0
+		if shouldUpdateFTS {
+			touched := updatedContents
+			if len(contentInputs) > 0 {
+				touchedIDs := map[string]struct{}{}
+				for id := range contentInputs {
+					touchedIDs[id] = struct{}{}
+				}
+				filtered := make([]*dbmodels.Content, 0, len(touchedIDs))
+				for _, content := range updatedContents {
+					if _, ok := touchedIDs[content.Id]; ok {
+						filtered = append(filtered, content)
+					}
+				}
+				if len(filtered) > 0 {
+					touched = filtered
+				}
+			}
+			go updateContentsFTS5(app, entry, touched)
+		}
 
 		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
 		if isHTMX {

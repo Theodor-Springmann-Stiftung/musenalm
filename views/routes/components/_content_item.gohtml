@@ -18,10 +18,10 @@
 {{- end -}}
 {{- $editContainerID := printf "content-%s-edit-container" $contentID -}}
 
-<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}">
+<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}" data-collapsed="true">
 	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-2">
 		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-hidden">
-			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-200 px-3 py-2 cursor-grab" data-role="content-drag-handle" draggable="true" aria-label="Beitrag verschieben">
+			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-2 cursor-grab" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
 				<div class="flex items-center gap-2 text-sm font-bold text-gray-800">
 					<button type="button" class="text-slate-600 rounded-xs px-2 py-1 text-sm transition-colors hover:bg-stone-100 {{ if $isNew }}hidden{{ end }}" data-role="content-collapse-toggle" aria-label="Beitrag einklappen" aria-expanded="true">
 						<i class="ri-arrow-up-s-line" data-role="content-collapse-icon"></i>
@@ -61,6 +61,7 @@
 						type="button"
 						class="resetbutton w-32 flex items-center gap-2 justify-center"
 						data-role="content-edit-button"
+						data-loading-label="Eintrag wird geladen"
 						hx-boost="false"
 						hx-get="/almanach/{{ $entry.MusenalmID }}/contents/edit/form?content_id={{ $contentID }}"
 						hx-target="#{{ $editContainerID }}"
