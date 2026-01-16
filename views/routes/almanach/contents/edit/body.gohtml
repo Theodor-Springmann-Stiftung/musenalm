@@ -132,10 +132,22 @@
 		<span data-role="contents-htmx-label">Eintrag wird geladen</span>
 	</div>
 	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
-	<div class="flex items-center justify-end px-4">
+	<div class="flex items-center justify-end gap-2 px-4">
 		<button type="button" class="resetbutton w-auto px-3 py-2 flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
 			<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
 			<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
+		</button>
+		<button
+			type="button"
+			class="resetbutton w-auto px-3 py-2 flex items-center gap-2"
+			data-loading-label="Eintrag wird geladen"
+			hx-post="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
+			hx-target="[data-role='contents-list']"
+			hx-swap="beforeend"
+			hx-include="[data-role='csrf-token']"
+			hx-vals='{"position":"after","content_id":""}'>
+			<i class="ri-add-line"></i>
+			<span>Eintrag anlegen</span>
 		</button>
 	</div>
 	<div class="flex flex-col gap-1"
@@ -367,6 +379,14 @@
 				}
 			});
 		};
+		const preserveScroll = (action) => {
+			const top = window.scrollY;
+			const left = window.scrollX;
+			action();
+			requestAnimationFrame(() => {
+				window.scrollTo(left, top);
+			});
+		};
 
 		enterEditMode = (item) => {
 			const view = item.querySelector("[data-role='content-view']");
@@ -456,8 +476,10 @@
 					if (item.classList.contains("data-editing") || item.dataset.contentTemp === "true") {
 						return;
 					}
-					setCollapsed(item.dataset.collapsed !== "true");
-					updateCollapseAllLabel();
+					preserveScroll(() => {
+						setCollapsed(item.dataset.collapsed !== "true");
+						updateCollapseAllLabel();
+					});
 				});
 			}
 
@@ -472,8 +494,10 @@
 					if (event.target.closest("button, a, select, input, textarea")) {
 						return;
 					}
-					setCollapsed(item.dataset.collapsed !== "true");
-					updateCollapseAllLabel();
+					preserveScroll(() => {
+						setCollapsed(item.dataset.collapsed !== "true");
+						updateCollapseAllLabel();
+					});
 				});
 			}
 
