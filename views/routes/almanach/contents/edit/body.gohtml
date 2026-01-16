@@ -140,6 +140,7 @@
 		<button
 			type="button"
 			class="resetbutton w-auto px-3 py-2 flex items-center gap-2"
+			data-role="contents-create"
 			data-loading-label="Eintrag wird geladen"
 			hx-post="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
 			hx-target="[data-role='contents-list']"
@@ -698,6 +699,14 @@
 		if (list.dataset.pageInit !== "true") {
 			list.dataset.pageInit = "true";
 			let draggedItem = null;
+			const createButton = document.querySelector("[data-role='contents-create']");
+			if (createButton) {
+				createButton.addEventListener("click", () => {
+					requestAnimationFrame(() => {
+						window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+					});
+				});
+			}
 			list.addEventListener("click", (event) => {
 				const moveUp = event.target.closest("[data-role='content-move-up']");
 				const moveDown = event.target.closest("[data-role='content-move-down']");
