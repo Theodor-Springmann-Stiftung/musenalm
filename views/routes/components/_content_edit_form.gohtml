@@ -1,0 +1,72 @@
+{{- $content := index . "content" -}}
+{{- $entry := index . "entry" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $contentTypes := index . "content_types" -}}
+{{- $musenalmTypes := index . "musenalm_types" -}}
+{{- $paginationValues := index . "pagination_values" -}}
+{{- $agents := index . "agents" -}}
+{{- $contentAgents := index . "content_agents" -}}
+{{- $agentRelations := index . "agent_relations" -}}
+{{- $contentID := index . "content_id" -}}
+{{- $error := index . "error" -}}
+
+<div data-role="content-edit" class="mt-2">
+	<form
+		autocomplete="off"
+		class="w-full dbform"
+		method="POST"
+		hx-boost="false"
+		hx-post="/almanach/{{ $entry.MusenalmID }}/contents/edit"
+		hx-target="closest [data-role='content-item']"
+		hx-swap="outerHTML"
+		action="/almanach/{{ $entry.MusenalmID }}/contents/edit">
+		<input type="hidden" name="csrf_token" value="{{ $csrf }}" />
+		{{- if $error -}}
+			<div class="mb-3 rounded-xs border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+				{{ $error }}
+			</div>
+		{{- end -}}
+		{{- template "_content_edit" (Dict
+			"content" $content
+			"content_id" $contentID
+			"entry" $entry
+			"content_types" $contentTypes
+			"musenalm_types" $musenalmTypes
+			"pagination_values" $paginationValues
+			"agents" $agents
+			"content_agents" $contentAgents
+			"agent_relations" $agentRelations
+		) -}}
+		<div class="w-full flex items-center justify-end gap-3 mt-4 flex-wrap">
+			<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="content-edit-cancel">
+				<i class="ri-close-line"></i>
+				<span>Verwerfen</span>
+			</button>
+			<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
+				<i class="ri-delete-bin-line"></i>
+				<span>Eintrag löschen</span>
+			</button>
+			<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+				<i class="ri-save-line"></i>
+				<span>Speichern</span>
+			</button>
+		</div>
+	</form>
+	<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+		<div class="p-5 w-[22rem]">
+			<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
+			{{- if $content.TitleStmt -}}
+				<div class="text-sm font-bold text-gray-900 mt-1">{{ $content.TitleStmt }}</div>
+			{{- end -}}
+			<p class="text-sm text-gray-700 mt-2">
+				Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
+			</p>
+			<div class="flex items-center justify-end gap-3 mt-4">
+				<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+				<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
+					Löschen
+				</button>
+			</div>
+		</div>
+	</dialog>
+</div>

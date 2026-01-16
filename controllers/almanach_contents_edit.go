@@ -24,7 +24,9 @@ const (
 	URL_ALMANACH_CONTENTS_EDIT      = "contents/edit"
 	URL_ALMANACH_CONTENTS_INSERT    = "contents/insert"
 	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
+	URL_ALMANACH_CONTENTS_EDIT_FORM = "contents/edit/form"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT = "/almanach/contents/edit/"
+	TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM = "/almanach/contents/edit_form/"
 )
 
 func init() {
@@ -49,6 +51,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_EDIT_FORM, p.GETEditForm(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_INSERT, p.POSTInsert(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
 	return nil
@@ -77,6 +80,58 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 		data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
 
 		return engine.Response200(e, p.Template, data, p.Layout)
+	}
+}
+
+func (p *AlmanachContentsEditPage) GETEditForm(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+		contentID := strings.TrimSpace(e.Request.URL.Query().Get("content_id"))
+		if contentID == "" {
+			return e.String(http.StatusBadRequest, "")
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		contents, err := dbmodels.Contents_IDs(app, []any{contentID})
+		if err != nil || len(contents) == 0 {
+			return e.String(http.StatusNotFound, "")
+		}
+		content := contents[0]
+		if content.Entry() != entry.Id {
+			return e.String(http.StatusNotFound, "")
+		}
+
+		agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
+		if err != nil {
+			agentsMap = map[string]*dbmodels.Agent{}
+			contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
+		}
+
+		data := map[string]any{
+			"content":           content,
+			"content_id":        content.Id,
+			"entry":             entry,
+			"csrf_token":        req.Session().Token,
+			"content_types":     dbmodels.CONTENT_TYPE_VALUES,
+			"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
+			"pagination_values": paginationValuesSorted(),
+			"agent_relations":   dbmodels.AGENT_RELATIONS,
+			"agents":            agentsMap,
+			"content_agents":    contentAgentsMap[content.Id],
+		}
+
+		var builder strings.Builder
+		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM, data, "fragment"); err != nil {
+			app.Logger().Error("Failed to render content edit form", "entry_id", entry.Id, "content_id", contentID, "error", err)
+			return e.String(http.StatusInternalServerError, "")
+		}
+
+		return e.HTML(http.StatusOK, builder.String())
 	}
 }
 

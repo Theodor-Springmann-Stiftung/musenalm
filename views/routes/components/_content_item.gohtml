@@ -16,8 +16,9 @@
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
+{{- $editContainerID := printf "content-%s-edit-container" $contentID -}}
 
-<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}">
+<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}">
 	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-2">
 		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-hidden">
 			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-200 px-3 py-2 cursor-grab" data-role="content-drag-handle" draggable="true" aria-label="Beitrag verschieben">
@@ -56,7 +57,14 @@
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						{{- if eq $content.EditState "Edited" -}}Erfasst{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else -}}Unbekannt{{- end -}}
 					</span>
-					<button type="button" class="resetbutton w-32 flex items-center gap-2 justify-center" data-role="content-edit-button">
+					<button
+						type="button"
+						class="resetbutton w-32 flex items-center gap-2 justify-center"
+						data-role="content-edit-button"
+						hx-boost="false"
+						hx-get="/almanach/{{ $entry.MusenalmID }}/contents/edit/form?content_id={{ $contentID }}"
+						hx-target="#{{ $editContainerID }}"
+						hx-swap="innerHTML">
 						<i class="ri-edit-2-line"></i>
 						<span>Bearbeiten</span>
 					</button>
@@ -109,64 +117,21 @@
 			</div>
 		</div>
 	</div>
-	<div data-role="content-edit" class="{{ if not $openEdit }}hidden{{ end }} mt-2">
-		<form
-			autocomplete="off"
-			class="w-full dbform"
-			method="POST"
-			hx-boost="false"
-			hx-post="/almanach/{{ $entry.MusenalmID }}/contents/edit"
-			hx-target="closest [data-role='content-item']"
-			hx-swap="outerHTML"
-			action="/almanach/{{ $entry.MusenalmID }}/contents/edit">
-			<input type="hidden" name="csrf_token" value="{{ $csrf }}" />
-			{{- if $error -}}
-				<div class="mb-3 rounded-xs border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-					{{ $error }}
-				</div>
-			{{- end -}}
-			{{- template "_content_edit" (Dict
+	<div data-role="content-edit-container" id="{{ $editContainerID }}">
+		{{- if $openEdit -}}
+			{{- template "_content_edit_form" (Dict
 				"content" $content
 				"content_id" $contentID
 				"entry" $entry
+				"csrf_token" $csrf
 				"content_types" $contentTypes
 				"musenalm_types" $musenalmTypes
 				"pagination_values" $paginationValues
 				"agents" $agents
 				"content_agents" $contentAgents
 				"agent_relations" $agentRelations
+				"error" $error
 			) -}}
-			<div class="w-full flex items-center justify-end gap-3 mt-4 flex-wrap">
-				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="content-edit-cancel">
-					<i class="ri-close-line"></i>
-					<span>Verwerfen</span>
-				</button>
-				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
-					<i class="ri-delete-bin-line"></i>
-					<span>Eintrag löschen</span>
-				</button>
-				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
-					<i class="ri-save-line"></i>
-					<span>Speichern</span>
-				</button>
-			</div>
-		</form>
-		<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
-			<div class="p-5 w-[22rem]">
-				<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
-				{{- if $content.TitleStmt -}}
-					<div class="text-sm font-bold text-gray-900 mt-1">{{ $content.TitleStmt }}</div>
-				{{- end -}}
-				<p class="text-sm text-gray-700 mt-2">
-					Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
-				</p>
-				<div class="flex items-center justify-end gap-3 mt-4">
-					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
-					<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
-						Löschen
-					</button>
-				</div>
-			</div>
-		</dialog>
+		{{- end -}}
 	</div>
 </div>

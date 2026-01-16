@@ -134,7 +134,11 @@
 			<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
 		</button>
 	</div>
-	<div class="flex flex-col gap-1" data-role="contents-list" data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert">
+	<div class="flex flex-col gap-1"
+		data-role="contents-list"
+		data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
+		data-edit-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/form"
+		data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
 		{{- range $_, $content := $model.result.Contents -}}
 			{{- template "_content_item" (Dict
 				"content" $content
@@ -177,6 +181,9 @@
 			}
 		}
 	};
+
+	let enterEditMode = null;
+	let setupEditFormGlobal = null;
 
 	const initPage = () => {
 		const list = document.querySelector("[data-role='contents-list']");
@@ -227,7 +234,7 @@
 				if (item.parentElement !== list) {
 					return;
 				}
-				const contentId = item.querySelector("[data-role='content-card']")?.dataset.contentId || "";
+				const contentId = item.dataset.contentId || "";
 				list.insertBefore(createGap("before", contentId, false), item);
 			});
 			list.appendChild(createGap("after", "", true));
@@ -261,7 +268,7 @@
 		}
 
 		const isTempContentId = (contentId) => contentId && contentId.startsWith("tmp");
-		const orderEndpoint = getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
+		const orderEndpoint = list.dataset.orderEndpoint || getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
 		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
 		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
 		const syncIndicator = document.querySelector("#contents-sync-indicator");
@@ -287,7 +294,7 @@
 			const payload = new URLSearchParams();
 			payload.set("csrf_token", csrfToken);
 			list.querySelectorAll("[data-role='content-item']").forEach((card) => {
-				const contentId = card.querySelector("[data-role='content-card']")?.dataset.contentId;
+				const contentId = card.dataset.contentId;
 				if (!contentId || isTempContentId(contentId)) {
 					return;
 				}
@@ -319,8 +326,11 @@
 			}, 300);
 		};
 
-		const closeAll = () => {
+		const closeAll = (keepItem = null) => {
 			getItems().forEach((item) => {
+				if (keepItem && item === keepItem) {
+					return;
+				}
 				const view = item.querySelector("[data-role='content-view']");
 				const edit = item.querySelector("[data-role='content-edit']");
 				const editButton = item.querySelector("[data-role='content-edit-button']");
@@ -329,7 +339,7 @@
 					view.classList.remove("hidden");
 				}
 				if (edit) {
-					edit.classList.add("hidden");
+					edit.remove();
 				}
 				if (editButton) {
 					editButton.classList.remove("hidden");
@@ -337,15 +347,12 @@
 			});
 		};
 
-		const openItem = (item) => {
-			closeAll();
+		enterEditMode = (item) => {
 			const view = item.querySelector("[data-role='content-view']");
-			const edit = item.querySelector("[data-role='content-edit']");
-			if (view && edit) {
+			if (view) {
 				view.classList.add("hidden");
-				edit.classList.remove("hidden");
-				item.classList.add("data-editing");
 			}
+			item.classList.add("data-editing");
 			setEditSpacing(true);
 			removeGaps();
 			getItems().forEach((other) => {
@@ -355,6 +362,20 @@
 				}
 				otherButton.classList.add("hidden");
 			});
+		};
+
+		const openItem = (item) => {
+			closeAll(item);
+			const edit = item.querySelector("[data-role='content-edit']");
+			if (!edit) {
+				item.dataset.pendingEdit = "true";
+				const editButton = item.querySelector("[data-role='content-edit-button']");
+				if (editButton) {
+					editButton.click();
+				}
+				return;
+			}
+			enterEditMode(item);
 		};
 
 		const removeItem = (item) => {
@@ -379,18 +400,11 @@
 			item.dataset.init = "true";
 
 			const editButton = item.querySelector("[data-role='content-edit-button']");
-			const cancelButton = item.querySelector("[data-role='content-edit-cancel']");
-			const deleteButton = item.querySelector("[data-role='content-delete']");
-			const deleteDialog = item.querySelector("[data-role='content-delete-dialog']");
-			const deleteConfirm = item.querySelector("[data-role='content-delete-confirm']");
-			const deleteCancel = item.querySelector("[data-role='content-delete-cancel']");
 			const view = item.querySelector("[data-role='content-view']");
-			const edit = item.querySelector("[data-role='content-edit']");
 			const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
 			const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
 			const viewBody = item.querySelector("[data-role='content-view-body']");
-			const form = item.querySelector("form");
 
 			const setCollapsed = (collapsed) => {
 				if (!viewBody || !collapsedSummary) {
@@ -421,27 +435,57 @@
 				});
 			}
 
-			if (editButton && view && edit) {
+			if (editButton) {
 				editButton.addEventListener("click", () => {
-					openItem(item);
+					if (item.querySelector("[data-role='content-edit']")) {
+						enterEditMode(item);
+						return;
+					}
+					item.dataset.pendingEdit = "true";
 				});
 			}
 
-			if (cancelButton && view && edit) {
+			const pendingEdit = item.dataset.pendingEdit === "true";
+			if (pendingEdit && item.querySelector("[data-role='content-edit']")) {
+				item.dataset.pendingEdit = "";
+				enterEditMode(item);
+			}
+
+
+			item.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
+				applyMultiSelectInit(el);
+			});
+
+			if (item.dataset.openEdit === "true") {
+				item.dataset.openEdit = "";
+				openItem(item);
+			}
+		};
+
+		const setupEditForm = (item) => {
+			const edit = item.querySelector("[data-role='content-edit']");
+			if (!edit || edit.dataset.init === "true") {
+				return;
+			}
+			edit.dataset.init = "true";
+			const cancelButton = edit.querySelector("[data-role='content-edit-cancel']");
+			const deleteButton = edit.querySelector("[data-role='content-delete']");
+			const deleteDialog = edit.querySelector("[data-role='content-delete-dialog']");
+			const deleteConfirm = edit.querySelector("[data-role='content-delete-confirm']");
+			const deleteCancel = edit.querySelector("[data-role='content-delete-cancel']");
+			const form = edit.querySelector("form");
+			const view = item.querySelector("[data-role='content-view']");
+
+			if (cancelButton && view) {
 				cancelButton.addEventListener("click", () => {
 					if (item.dataset.contentTemp === "true") {
 						removeItem(item);
 						return;
 					}
-					edit.classList.add("hidden");
+					edit.remove();
 					view.classList.remove("hidden");
 					item.classList.remove("data-editing");
-					getItems().forEach((other) => {
-						const otherButton = other.querySelector("[data-role='content-edit-button']");
-						if (otherButton) {
-							otherButton.classList.remove("hidden");
-						}
-					});
+					showEditButtonsIfIdle();
 					syncEditSpacing();
 					renderInsertGaps();
 				});
@@ -476,7 +520,7 @@
 					}
 					const payload = new URLSearchParams();
 					payload.set("csrf_token", csrfToken);
-					payload.set("content_id", item.querySelector("[data-role='content-card']")?.dataset.contentId || "");
+					payload.set("content_id", item.dataset.contentId || "");
 					fetch(deleteEndpoint, {
 						method: "POST",
 						headers: {
@@ -499,7 +543,7 @@
 				form.addEventListener("submit", () => {
 					form.querySelectorAll("input[name='content_order[]']").forEach((input) => input.remove());
 					getItems().forEach((card) => {
-						const contentId = card.querySelector("[data-role='content-card']")?.dataset.contentId;
+						const contentId = card.dataset.contentId;
 						if (!contentId) {
 							return;
 						}
@@ -511,16 +555,8 @@
 					});
 				});
 			}
-
-			item.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
-				applyMultiSelectInit(el);
-			});
-
-			if (item.dataset.openEdit === "true") {
-				item.dataset.openEdit = "";
-				openItem(item);
-			}
 		};
+		setupEditFormGlobal = setupEditForm;
 
 		const updateCollapseAllLabel = () => {
 			if (!collapseAllButton || !collapseAllLabel) {
@@ -575,7 +611,10 @@
 			}
 		}
 
-		getItems().forEach((item) => setupItem(item));
+		getItems().forEach((item) => {
+			setupItem(item);
+			setupEditForm(item);
+		});
 		renderInsertGaps();
 		syncEditSpacing();
 		showEditButtonsIfIdle();
@@ -679,7 +718,7 @@
 			const editContentId = params.get("edit_content");
 			if (editContentId) {
 				const targetItem = getItems().find((item) => {
-					return item.querySelector(`[data-role='content-card'][data-content-id='${editContentId}']`);
+					return item.dataset.contentId === editContentId;
 				});
 				if (targetItem) {
 					openItem(targetItem);
@@ -700,7 +739,18 @@
 
 	initWhenReady();
 
-	document.body.addEventListener("htmx:afterSwap", () => {
+	document.body.addEventListener("htmx:afterSwap", (event) => {
+		const target = event.detail?.target;
+			if (target && target.matches("[data-role='content-edit-container']")) {
+				const item = target.closest("[data-role='content-item']");
+				if (item && item.dataset.pendingEdit === "true" && enterEditMode) {
+					item.dataset.pendingEdit = "";
+					enterEditMode(item);
+					if (setupEditFormGlobal) {
+						setupEditFormGlobal(item);
+					}
+				}
+			}
 		initWhenReady();
 	});
 </script>
