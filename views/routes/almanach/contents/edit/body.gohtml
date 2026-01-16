@@ -725,6 +725,10 @@
 				if (!item) {
 					return;
 				}
+				if (item.classList.contains("data-editing")) {
+					event.preventDefault();
+					return;
+				}
 				draggedItem = item;
 				item.dataset.dragging = "true";
 				draggedItem.classList.add("opacity-60");
