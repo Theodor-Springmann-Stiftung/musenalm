@@ -56,7 +56,7 @@ func (a *Agent) SetURI(uri string) {
 }
 
 func (a *Agent) BiographicalData() string {
-	return a.GetString(AGENTS_BIOGRAPHICAL_DATA_FIELD)
+	return strings.TrimSpace(a.GetString(AGENTS_BIOGRAPHICAL_DATA_FIELD))
 }
 
 func (a *Agent) SetBiographicalData(biographicalData string) {

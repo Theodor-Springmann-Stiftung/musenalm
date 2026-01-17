@@ -137,7 +137,7 @@
 									class="inline-block {{ if $isPerson }}search-text{{ end }}">
 									{{- $agent.Name -}}
 								</a>
-								({{ $agent.BiographicalData -}})
+								{{- if $agent.BiographicalData -}} ({{ $agent.BiographicalData }}){{- end -}}
 							</div>
 						{{- end -}}
 					</div>

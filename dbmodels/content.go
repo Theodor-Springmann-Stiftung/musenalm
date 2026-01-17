@@ -142,7 +142,15 @@ func (c *Content) SetMusenalmType(musenalmType []string) {
 }
 
 func (c *Content) MusenalmPagination() string {
-	return c.GetString(MUSENALM_PAGINATION_FIELD)
+	value := c.GetString(MUSENALM_PAGINATION_FIELD)
+	if value != "" {
+		return value
+	}
+	values := c.GetStringSlice(MUSENALM_PAGINATION_FIELD)
+	if len(values) > 0 {
+		return values[0]
+	}
+	return ""
 }
 
 func (c *Content) SetMusenalmPagination(musenalmPagination string) {

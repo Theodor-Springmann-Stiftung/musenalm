@@ -220,9 +220,12 @@
 
 	let enterEditMode = null;
 	let setupEditFormGlobal = null;
+	let list = null;
+	let setHtmxIndicator = () => {};
+	let setHtmxIndicatorLabel = () => {};
 
 	const initPage = () => {
-		const list = document.querySelector("[data-role='contents-list']");
+		list = document.querySelector("[data-role='contents-list']");
 		if (!list) {
 			return;
 		}
@@ -320,13 +323,13 @@
 			}
 			syncIndicator.classList.toggle("hidden", !active);
 		};
-		const setHtmxIndicator = (active) => {
+		setHtmxIndicator = (active) => {
 			if (!htmxIndicator) {
 				return;
 			}
 			htmxIndicator.classList.toggle("hidden", !active);
 		};
-		const setHtmxIndicatorLabel = (label) => {
+		setHtmxIndicatorLabel = (label) => {
 			if (!htmxIndicator || !label) {
 				return;
 			}
@@ -514,21 +517,20 @@
 			const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
 			const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
-			const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+			const headerTitleText = item.querySelector("[data-role='content-header-title-text']");
 			const headerTitle = item.querySelector("[data-role='content-header-title']");
 			const viewBody = item.querySelector("[data-role='content-view-body']");
 			const header = item.querySelector("[data-content-header='true']");
 
 			const setCollapsed = (collapsed) => {
-				if (!viewBody || !collapsedSummary) {
+				if (!viewBody) {
 					return;
 				}
 				item.dataset.collapsed = collapsed ? "true" : "";
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
-				collapsedSummary.classList.toggle("hidden", !collapsed);
-				if (headerTitle) {
-					headerTitle.classList.toggle("hidden", collapsed);
+				if (headerTitleText) {
+					headerTitleText.classList.toggle("hidden", !collapsed);
 				}
 				if (header) {
 					header.classList.toggle("bg-stone-100", collapsed);
@@ -725,21 +727,20 @@
 					return;
 				}
 				const viewBody = item.querySelector("[data-role='content-view-body']");
-				const collapsedSummary = item.querySelector("[data-role='content-collapsed-summary']");
+				const headerTitleText = item.querySelector("[data-role='content-header-title-text']");
 				const headerTitle = item.querySelector("[data-role='content-header-title']");
 				const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
 				const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
 				const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
 				const header = item.querySelector("[data-content-header='true']");
-				if (!viewBody || !collapsedSummary) {
+				if (!viewBody) {
 					return;
 				}
 				item.dataset.collapsed = collapsed ? "true" : "";
 				item.classList.toggle("data-collapsed", collapsed);
 				viewBody.classList.toggle("hidden", collapsed);
-				collapsedSummary.classList.toggle("hidden", !collapsed);
-				if (headerTitle) {
-					headerTitle.classList.toggle("hidden", collapsed);
+				if (headerTitleText) {
+					headerTitleText.classList.toggle("hidden", !collapsed);
 				}
 				if (header) {
 					header.classList.toggle("bg-stone-100", collapsed);

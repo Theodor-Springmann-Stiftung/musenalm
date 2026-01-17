@@ -361,6 +361,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				"content_agents":    contentAgentsMap[renderContent.Id],
 				"open_edit":         false,
 				"is_new":            false,
+				"collapsed":         false,
 			}
 			var builder strings.Builder
 			if err := engine.Render(&builder, "/almanach/contents/item/", data, "fragment"); err != nil {

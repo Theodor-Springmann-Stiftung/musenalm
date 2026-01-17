@@ -11,17 +11,22 @@
 {{- $openEdit := index . "open_edit" -}}
 {{- $isNew := index . "is_new" -}}
 {{- $error := index . "error" -}}
+{{- $collapsed := index . "collapsed" -}}
 
 {{- $contentID := $content.Id -}}
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
 {{- $editContainerID := printf "content-%s-edit-container" $contentID -}}
+{{- $collapsedAttr := "true" -}}
+{{- if and (ne $collapsed nil) (eq $collapsed false) -}}
+	{{- $collapsedAttr = "false" -}}
+{{- end -}}
 
-<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}" data-collapsed="true">
+<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}" data-collapsed="{{ $collapsedAttr }}">
 	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-1">
 		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-visible">
-			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-1 cursor-pointer hover:bg-stone-200 transition-colors duration-75 flex-nowrap whitespace-nowrap" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
+			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-1 cursor-pointer hover:bg-stone-200/50 transition-colors duration-75 flex-nowrap whitespace-nowrap" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
 				<div class="flex items-center gap-2 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
 					<tool-tip position="top" class="!inline">
 						<div class="data-tip" data-role="content-collapse-tooltip">Einklappen</div>
@@ -43,6 +48,9 @@
 							</button>
 						</tool-tip>
 					</div>
+					{{- if $content.Extent -}}
+						<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0" data-role="content-page-pill">S. {{- $content.Extent -}}</span>
+					{{- end -}}
 					{{- if $content.MusenalmType -}}
 						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
@@ -51,23 +59,10 @@
 						</span>
 					{{- end -}}
 					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
-						{{- if $content.Extent -}}
-							<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm shrink-0">S. {{- $content.Extent -}}</span>
-						{{- end -}}
 						{{- if $content.PreferredTitle -}}
-							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden">{{- $content.PreferredTitle -}}</span>
+							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
 						{{- else if $content.TitleStmt -}}
-							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden">{{- $content.TitleStmt -}}</span>
-						{{- end -}}
-					</div>
-					<div class="hidden flex items-baseline gap-2 text-gray-800 min-w-0 overflow-hidden flex-1 flex-nowrap whitespace-nowrap" data-role="content-collapsed-summary">
-						{{- if $content.Extent -}}
-							<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0">S. {{- $content.Extent -}}</span>
-						{{- end -}}
-						{{- if $content.PreferredTitle -}}
-							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden">{{- $content.PreferredTitle -}}</span>
-						{{- else if $content.TitleStmt -}}
-							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden">{{- $content.TitleStmt -}}</span>
+							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
 						{{- end -}}
 					</div>
 				</div>
@@ -121,6 +116,44 @@
 				</div>
 			</dialog>
 			<div class="grid gap-2 grid-cols-[8rem_1fr] items-baseline px-3 py-2" data-role="content-view-body">
+				{{- if or $content.Extent $content.MusenalmPagination -}}
+					<div class="text-sm font-bold text-gray-700">Seite</div>
+					<div class="text-base">
+						{{ if $content.Extent }}{{ $content.Extent }}{{ end }}{{ if and $content.Extent $content.MusenalmPagination }}, {{ end }}{{ if $content.MusenalmPagination }}{{ $content.MusenalmPagination }}{{ end }}
+					</div>
+				{{- end -}}
+				{{- if $content.TitleStmt -}}
+					<div class="text-sm font-bold text-gray-700">Titel</div>
+					<div class="text-base italic">{{- $content.TitleStmt -}}</div>
+				{{- end -}}
+				{{- if $content.SubtitleStmt -}}
+					<div class="text-sm font-bold text-gray-700">Untertitel</div>
+					<div class="text-base italic">{{- $content.SubtitleStmt -}}</div>
+				{{- end -}}
+				{{- if $content.ParallelTitle -}}
+					<div class="text-sm font-bold text-gray-700">Paralleltitel</div>
+					<div class="text-base italic">{{- $content.ParallelTitle -}}</div>
+				{{- end -}}
+				{{- if $content.VariantTitle -}}
+					<div class="text-sm font-bold text-gray-700">Titelvarianten</div>
+					<div class="text-base italic">{{- $content.VariantTitle -}}</div>
+				{{- end -}}
+				{{- if $content.PlaceStmt -}}
+					<div class="text-sm font-bold text-gray-700">Ortsangabe</div>
+					<div class="text-base italic">{{- $content.PlaceStmt -}}</div>
+				{{- end -}}
+				{{- if gt (len $content.Language) 0 -}}
+					<div class="text-sm font-bold text-gray-700">Sprache</div>
+					<div class="text-base">
+						{{- range $i, $lang := $content.Language -}}{{- if $i }}, {{ end -}}{{- $lang -}}{{- end -}}
+					</div>
+				{{- end -}}
+				{{- if gt (len $content.ContentType) 0 -}}
+					<div class="text-sm font-bold text-gray-700">Beitragstyp</div>
+					<div class="text-base">
+						{{- range $i, $t := $content.ContentType -}}{{- if $i }}, {{ end -}}{{- $t -}}{{- end -}}
+					</div>
+				{{- end -}}
 				{{- if $content.IncipitStmt -}}
 					<div class="text-sm font-bold text-gray-700">Incipit</div>
 					<div class="text-base italic">{{ $content.IncipitStmt }}…</div>
@@ -128,6 +161,10 @@
 				{{- if $content.ResponsibilityStmt -}}
 					<div class="text-sm font-bold text-gray-700">Autorangabe</div>
 					<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
+				{{- end -}}
+				{{- if $content.Comment -}}
+					<div class="text-sm font-bold text-gray-700">Kommentar</div>
+					<div class="text-base italic">{{- $content.Comment -}}</div>
 				{{- end -}}
 				{{- if $contentAgents -}}
 					<div class="text-sm font-bold text-gray-700">Personen</div>
@@ -141,7 +178,7 @@
 											{{- $agent.Name -}}
 										</a>
 										{{- if $agent.BiographicalData -}}
-											<span>({{ $agent.BiographicalData }})</span>
+											<span> ({{ $agent.BiographicalData }})</span>
 										{{- end -}}
 									</div>
 								{{- end -}}
