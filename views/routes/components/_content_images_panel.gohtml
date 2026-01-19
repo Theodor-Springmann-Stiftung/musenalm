@@ -1,0 +1,48 @@
+{{- $content := index . "content" -}}
+{{- $entry := index . "entry" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $isNew := index . "is_new" -}}
+
+{{- if or $content.ImagePaths (not $isNew) -}}
+<div class="w-full md:w-56 lg:w-72 shrink-0" data-role="content-images-panel">
+	<div class="flex flex-wrap items-start gap-2">
+		{{- if $content.ImagePaths -}}
+			<content-images
+				data-images='[{{- range $i, $scan := $content.ImagePaths -}}{{- if $i }},{{ end -}}{{ printf "%q" $scan }}{{- end -}}]'
+				data-files='[{{- range $i, $scan := $content.Scans -}}{{- if $i }},{{ end -}}{{ printf "%q" $scan }}{{- end -}}]'
+				data-delete-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/scan/delete"
+				data-content-id="{{ $content.Id }}"
+				data-csrf-token="{{ $csrf }}">
+			</content-images>
+		{{- end -}}
+		{{- if not $isNew -}}
+			<form
+				class="flex"
+				method="POST"
+				action="/almanach/{{ $entry.MusenalmID }}/contents/upload"
+				hx-post="/almanach/{{ $entry.MusenalmID }}/contents/upload"
+				hx-trigger="change"
+				hx-target="closest [data-role='content-images-panel']"
+				hx-swap="outerHTML"
+				hx-encoding="multipart/form-data"
+				data-loading-label="Digitalisat wird hochgeladen">
+				<input type="hidden" name="csrf_token" value="{{ $csrf }}" />
+				<input type="hidden" name="content_id" value="{{ $content.Id }}" />
+				<label
+					for="content-{{ $content.Id }}-scan-upload"
+					class="flex h-28 w-28 items-center justify-center rounded-xs border-2 border-dashed border-slate-300 bg-stone-50 text-lg font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+					aria-label="Bilder hinzufuegen">
+					<i class="ri-upload-2-line"></i>
+				</label>
+				<input
+					id="content-{{ $content.Id }}-scan-upload"
+					type="file"
+					name="scans"
+					multiple
+					accept="image/*"
+					class="sr-only" />
+			</form>
+		{{- end -}}
+	</div>
+</div>
+{{- end -}}

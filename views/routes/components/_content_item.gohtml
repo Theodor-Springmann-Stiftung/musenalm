@@ -67,6 +67,12 @@
 					</div>
 				</div>
 				<div class="flex items-center gap-2 flex-nowrap whitespace-nowrap shrink-0">
+					<span
+						id="content-{{ $content.Id }}-images-count"
+						class="inline-flex items-center gap-1 text-sm font-semibold text-slate-600 mr-2.5 {{ if eq (len $content.Scans) 0 }}hidden{{ end }}">
+						<i class="ri-image-line"></i>
+						<span>{{ len $content.Scans }}</span>
+					</span>
 					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						{{- if eq $content.EditState "Edited" -}}Erfasst{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else -}}Unbekannt{{- end -}}
@@ -115,84 +121,92 @@
 					</div>
 				</div>
 			</dialog>
-			<div class="grid gap-2 grid-cols-[8rem_1fr] items-baseline px-3 py-2" data-role="content-view-body">
-				{{- if or $content.Extent $content.MusenalmPagination -}}
-					<div class="text-sm font-bold text-gray-700">Seite</div>
-					<div class="text-base">
-						{{ if $content.Extent }}{{ $content.Extent }}{{ end }}{{ if and $content.Extent $content.MusenalmPagination }}, {{ end }}{{ if $content.MusenalmPagination }}{{ $content.MusenalmPagination }}{{ end }}
-					</div>
-				{{- end -}}
-				{{- if $content.TitleStmt -}}
-					<div class="text-sm font-bold text-gray-700">Titel</div>
-					<div class="text-base italic">{{- $content.TitleStmt -}}</div>
-				{{- end -}}
-				{{- if $content.SubtitleStmt -}}
-					<div class="text-sm font-bold text-gray-700">Untertitel</div>
-					<div class="text-base italic">{{- $content.SubtitleStmt -}}</div>
-				{{- end -}}
-				{{- if $content.ParallelTitle -}}
-					<div class="text-sm font-bold text-gray-700">Paralleltitel</div>
-					<div class="text-base italic">{{- $content.ParallelTitle -}}</div>
-				{{- end -}}
-				{{- if $content.VariantTitle -}}
-					<div class="text-sm font-bold text-gray-700">Titelvarianten</div>
-					<div class="text-base italic">{{- $content.VariantTitle -}}</div>
-				{{- end -}}
-				{{- if $content.PlaceStmt -}}
-					<div class="text-sm font-bold text-gray-700">Ortsangabe</div>
-					<div class="text-base italic">{{- $content.PlaceStmt -}}</div>
-				{{- end -}}
-				{{- if gt (len $content.Language) 0 -}}
-					<div class="text-sm font-bold text-gray-700">Sprache</div>
-					<div class="text-base">
-						{{- range $i, $lang := $content.Language -}}{{- if $i }}, {{ end -}}{{- $lang -}}{{- end -}}
-					</div>
-				{{- end -}}
-				{{- if gt (len $content.ContentType) 0 -}}
-					<div class="text-sm font-bold text-gray-700">Beitragstyp</div>
-					<div class="text-base">
-						{{- range $i, $t := $content.ContentType -}}{{- if $i }}, {{ end -}}{{- $t -}}{{- end -}}
-					</div>
-				{{- end -}}
-				{{- if $content.IncipitStmt -}}
-					<div class="text-sm font-bold text-gray-700">Incipit</div>
-					<div class="text-base italic">{{ $content.IncipitStmt }}…</div>
-				{{- end -}}
-				{{- if $content.ResponsibilityStmt -}}
-					<div class="text-sm font-bold text-gray-700">Autorangabe</div>
-					<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
-				{{- end -}}
-				{{- if $content.Comment -}}
-					<div class="text-sm font-bold text-gray-700">Kommentar</div>
-					<div class="text-base italic">{{- $content.Comment -}}</div>
-				{{- end -}}
-				{{- if $contentAgents -}}
-					<div class="text-sm font-bold text-gray-700">Personen</div>
-					<div class="text-base">
-						<div class="flex flex-col">
-							{{- range $_, $rel := $contentAgents -}}
-								{{- $agent := index $agents $rel.Agent -}}
-								{{- if $agent -}}
-									<div class="font-sans w-max">
-										<a href="/person/{{- $agent.Id -}}" class="no-underline hover:text-slate-900">
-											{{- $agent.Name -}}
-										</a>
-										{{- if $agent.BiographicalData -}}
-											<span> ({{ $agent.BiographicalData }})</span>
-										{{- end -}}
-									</div>
-								{{- end -}}
-							{{- end -}}
+			<div class="flex flex-col gap-3 px-3 py-2 md:flex-row md:items-start" data-role="content-view-body">
+				<div class="grid flex-1 gap-2 grid-cols-[8rem_1fr] items-baseline">
+					{{- if or $content.Extent $content.MusenalmPagination -}}
+						<div class="text-sm font-bold text-gray-700">Seite</div>
+						<div class="text-base">
+							{{ if $content.Extent }}{{ $content.Extent }}{{ end }}{{ if and $content.Extent $content.MusenalmPagination }}, {{ end }}{{ if $content.MusenalmPagination }}{{ $content.MusenalmPagination }}{{ end }}
 						</div>
-					</div>
-				{{- end -}}
-				{{- if $content.Annotation -}}
-					{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
-					<div class="text-sm font-bold text-gray-700">Anmerkung</div>
-					<div class="text-base">
-						{{- Safe (LinksAnnotation (ReplaceSlashParen $content.Annotation) $link) -}}
-					</div>
-				{{- end -}}
+					{{- end -}}
+					{{- if $content.TitleStmt -}}
+						<div class="text-sm font-bold text-gray-700">Titel</div>
+						<div class="text-base italic">{{- $content.TitleStmt -}}</div>
+					{{- end -}}
+					{{- if $content.SubtitleStmt -}}
+						<div class="text-sm font-bold text-gray-700">Untertitel</div>
+						<div class="text-base italic">{{- $content.SubtitleStmt -}}</div>
+					{{- end -}}
+					{{- if $content.ParallelTitle -}}
+						<div class="text-sm font-bold text-gray-700">Paralleltitel</div>
+						<div class="text-base italic">{{- $content.ParallelTitle -}}</div>
+					{{- end -}}
+					{{- if $content.VariantTitle -}}
+						<div class="text-sm font-bold text-gray-700">Titelvarianten</div>
+						<div class="text-base italic">{{- $content.VariantTitle -}}</div>
+					{{- end -}}
+					{{- if $content.PlaceStmt -}}
+						<div class="text-sm font-bold text-gray-700">Ortsangabe</div>
+						<div class="text-base italic">{{- $content.PlaceStmt -}}</div>
+					{{- end -}}
+					{{- if gt (len $content.Language) 0 -}}
+						<div class="text-sm font-bold text-gray-700">Sprache</div>
+						<div class="text-base">
+							{{- range $i, $lang := $content.Language -}}{{- if $i }}, {{ end -}}{{- $lang -}}{{- end -}}
+						</div>
+					{{- end -}}
+					{{- if gt (len $content.ContentType) 0 -}}
+						<div class="text-sm font-bold text-gray-700">Beitragstyp</div>
+						<div class="text-base">
+							{{- range $i, $t := $content.ContentType -}}{{- if $i }}, {{ end -}}{{- $t -}}{{- end -}}
+						</div>
+					{{- end -}}
+					{{- if $content.IncipitStmt -}}
+						<div class="text-sm font-bold text-gray-700">Incipit</div>
+						<div class="text-base italic">{{ $content.IncipitStmt }}…</div>
+					{{- end -}}
+					{{- if $content.ResponsibilityStmt -}}
+						<div class="text-sm font-bold text-gray-700">Autorangabe</div>
+						<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
+					{{- end -}}
+					{{- if $content.Comment -}}
+						<div class="text-sm font-bold text-gray-700">Kommentar</div>
+						<div class="text-base italic">{{- $content.Comment -}}</div>
+					{{- end -}}
+					{{- if $contentAgents -}}
+						<div class="text-sm font-bold text-gray-700">Personen</div>
+						<div class="text-base">
+							<div class="flex flex-col">
+								{{- range $_, $rel := $contentAgents -}}
+									{{- $agent := index $agents $rel.Agent -}}
+									{{- if $agent -}}
+										<div class="font-sans w-max">
+											<a href="/person/{{- $agent.Id -}}" class="no-underline hover:text-slate-900">
+												{{- $agent.Name -}}
+											</a>
+											{{- if $agent.BiographicalData -}}
+												<span> ({{ $agent.BiographicalData }})</span>
+											{{- end -}}
+										</div>
+									{{- end -}}
+								{{- end -}}
+							</div>
+						</div>
+					{{- end -}}
+					{{- if $content.Annotation -}}
+						{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
+						<div class="text-sm font-bold text-gray-700">Anmerkung</div>
+						<div class="text-base">
+							{{- Safe (LinksAnnotation (ReplaceSlashParen $content.Annotation) $link) -}}
+						</div>
+					{{- end -}}
+				</div>
+				{{- template "_content_images_panel" (Dict
+					"content" $content
+					"entry" $entry
+					"csrf_token" $csrf
+					"is_new" $isNew
+				) -}}
 			</div>
 		</div>
 	</div>

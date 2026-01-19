@@ -1,0 +1,17 @@
+services:
+  musenalmstage:
+    build: .
+    expose:
+      - "8090"
+    volumes:
+      - musenalmstage:/app/data
+    networks:
+      - caddynet
+
+volumes:
+  musenalmstage:
+    external: true
+
+networks:
+  caddynet:
+    external: true

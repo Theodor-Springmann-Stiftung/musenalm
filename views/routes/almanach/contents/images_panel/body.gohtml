@@ -1,0 +1,11 @@
+{{- $content := index . "content" -}}
+{{- $entry := index . "entry" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $isNew := index . "is_new" -}}
+
+{{- template "_content_images_panel" (Dict
+	"content" $content
+	"entry" $entry
+	"csrf_token" $csrf
+	"is_new" $isNew
+) -}}

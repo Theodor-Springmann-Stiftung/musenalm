@@ -26,8 +26,11 @@ const (
 	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
 	URL_ALMANACH_CONTENTS_EDIT_FORM = "contents/edit/form"
 	URL_ALMANACH_CONTENTS_EDIT_EXTENT = "contents/edit/extent"
+	URL_ALMANACH_CONTENTS_UPLOAD    = "contents/upload"
+	URL_ALMANACH_CONTENTS_DELETE_SCAN = "contents/scan/delete"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT = "/almanach/contents/edit/"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM = "/almanach/contents/edit_form/"
+	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/almanach/contents/images_panel/"
 )
 
 func init() {
@@ -56,6 +59,8 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.POST(URL_ALMANACH_CONTENTS_INSERT, p.POSTInsert(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app))
+	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app))
+	rg.POST(URL_ALMANACH_CONTENTS_DELETE_SCAN, p.POSTDeleteScan(engine, app))
 	return nil
 }
 
@@ -558,6 +563,184 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
+}
+
+func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
+
+		if e.Request.MultipartForm == nil {
+			if err := e.Request.ParseMultipartForm(router.DefaultMaxMemory); err != nil {
+				return renderContentsImagesHTMXError(e, "Upload fehlgeschlagen.", isHTMX)
+			}
+		}
+
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return renderContentsImagesHTMXError(e, "Upload fehlgeschlagen.", isHTMX)
+		}
+
+		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
+		if contentID == "" || strings.HasPrefix(contentID, "tmp") {
+			return renderContentsImagesHTMXError(e, "Upload fehlgeschlagen.", isHTMX)
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		contents, err := dbmodels.Contents_IDs(app, []any{contentID})
+		if err != nil || len(contents) == 0 {
+			return renderContentsImagesHTMXError(e, "Beitrag nicht gefunden.", isHTMX)
+		}
+		content := contents[0]
+		if content.Entry() != entry.Id {
+			return renderContentsImagesHTMXError(e, "Beitrag nicht gefunden.", isHTMX)
+		}
+
+		files, err := e.FindUploadedFiles(dbmodels.SCAN_FIELD)
+		if err != nil || len(files) == 0 {
+			return renderContentsImagesHTMXError(e, "Bitte eine Datei auswaehlen.", isHTMX)
+		}
+
+		content.Set(dbmodels.SCAN_FIELD+"+", files)
+		if user := req.User(); user != nil {
+			content.SetEditor(user.Id)
+		}
+		if err := app.Save(content); err != nil {
+			app.Logger().Error("Failed to upload scans", "entry_id", entry.Id, "content_id", content.Id, "error", err)
+			return renderContentsImagesHTMXError(e, "Upload fehlgeschlagen.", isHTMX)
+		}
+
+		if !isHTMX {
+			redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+
+		if refreshed, err := dbmodels.Contents_IDs(app, []any{content.Id}); err == nil && len(refreshed) > 0 {
+			content = refreshed[0]
+		}
+
+		data := map[string]any{
+			"content":    content,
+			"entry":      entry,
+			"csrf_token": req.Session().Token,
+			"is_new":     false,
+		}
+		var builder strings.Builder
+		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, "fragment"); err != nil {
+			app.Logger().Error("Failed to render images panel", "entry_id", entry.Id, "content_id", content.Id, "error", err)
+			return e.String(http.StatusInternalServerError, "")
+		}
+
+		success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Digitalisat gespeichert.</div></div>`
+		countOOB := renderContentImagesCountOOB(content)
+		return e.HTML(http.StatusOK, builder.String()+success+countOOB)
+	}
+}
+
+func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
+
+		if err := e.Request.ParseForm(); err != nil {
+			return renderContentsImagesHTMXError(e, "Loeschen fehlgeschlagen.", isHTMX)
+		}
+
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return renderContentsImagesHTMXError(e, "Loeschen fehlgeschlagen.", isHTMX)
+		}
+
+		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
+		scan := strings.TrimSpace(e.Request.FormValue("scan"))
+		if contentID == "" || scan == "" {
+			return renderContentsImagesHTMXError(e, "Loeschen fehlgeschlagen.", isHTMX)
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		contents, err := dbmodels.Contents_IDs(app, []any{contentID})
+		if err != nil || len(contents) == 0 {
+			return renderContentsImagesHTMXError(e, "Beitrag nicht gefunden.", isHTMX)
+		}
+		content := contents[0]
+		if content.Entry() != entry.Id {
+			return renderContentsImagesHTMXError(e, "Beitrag nicht gefunden.", isHTMX)
+		}
+		if !slices.Contains(content.Scans(), scan) {
+			return renderContentsImagesHTMXError(e, "Datei nicht gefunden.", isHTMX)
+		}
+
+		content.Set(dbmodels.SCAN_FIELD+"-", scan)
+		if user := req.User(); user != nil {
+			content.SetEditor(user.Id)
+		}
+		if err := app.Save(content); err != nil {
+			app.Logger().Error("Failed to delete scan", "entry_id", entry.Id, "content_id", content.Id, "scan", scan, "error", err)
+			return renderContentsImagesHTMXError(e, "Loeschen fehlgeschlagen.", isHTMX)
+		}
+
+		if !isHTMX {
+			redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+
+		if refreshed, err := dbmodels.Contents_IDs(app, []any{content.Id}); err == nil && len(refreshed) > 0 {
+			content = refreshed[0]
+		}
+
+		data := map[string]any{
+			"content":    content,
+			"entry":      entry,
+			"csrf_token": req.Session().Token,
+			"is_new":     false,
+		}
+		var builder strings.Builder
+		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, "fragment"); err != nil {
+			app.Logger().Error("Failed to render images panel", "entry_id", entry.Id, "content_id", content.Id, "error", err)
+			return e.String(http.StatusInternalServerError, "")
+		}
+
+		success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Digitalisat geloescht.</div></div>`
+		countOOB := renderContentImagesCountOOB(content)
+		return e.HTML(http.StatusOK, builder.String()+success+countOOB)
+	}
+}
+
+func renderContentImagesCountOOB(content *dbmodels.Content) string {
+	if content == nil {
+		return ""
+	}
+	count := len(content.Scans())
+	hiddenClass := ""
+	if count == 0 {
+		hiddenClass = " hidden"
+	}
+	return fmt.Sprintf(
+		`<span hx-swap-oob="outerHTML" id="content-%s-images-count" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-600 mr-2.5%s"><i class="ri-image-line"></i><span>%d</span></span>`,
+		content.Id,
+		hiddenClass,
+		count,
+	)
+}
+
+func renderContentsImagesHTMXError(e *core.RequestEvent, message string, isHTMX bool) error {
+	if !isHTMX {
+		return e.String(http.StatusBadRequest, message)
+	}
+	e.Response.Header().Set("HX-Reswap", "none")
+	payload := fmt.Sprintf(
+		`<div hx-swap-oob="innerHTML:#user-message"><div class="text-red-800 text-sm mt-2 rounded-xs bg-red-200 p-2 font-bold border-red-700 shadow border mb-3"><i class="ri-error-warning-fill"></i> %s</div></div>`,
+		message,
+	)
+	return e.HTML(http.StatusBadRequest, payload)
 }
 
 func (p *AlmanachContentsEditPage) renderSaveError(
