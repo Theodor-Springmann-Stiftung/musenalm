@@ -25,6 +25,24 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 			return e.Next()
 		}
 
+		token := e.Request.URL.Query().Get("token")
+		if token != "" {
+			a, err := dbmodels.AccessTokens_Token(app, token)
+			if err != nil {
+				slog.Error("Failed to find access token", "token", token, "error", err)
+			} else {
+				if a.User() != "" {
+					u, err := dbmodels.Users_ID(app, a.User())
+					if err != nil {
+						slog.Error("Failed to find access token user", "user", a.User(), "error", err)
+					} else {
+						e.Set("access_token_user", u.Fixed())
+					}
+				}
+				e.Set("access_token", a.Fixed())
+			}
+		}
+
 		cookie, err := e.Request.Cookie(dbmodels.SESSION_COOKIE_NAME)
 		if err != nil {
 			return e.Next()
@@ -72,27 +90,6 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 
 		e.Set("user", user)
 		e.Set("session", session)
-
-		token := e.Request.URL.Query().Get("token")
-		if token != "" {
-			a, err := dbmodels.AccessTokens_Token(app, token)
-			if err != nil {
-				slog.Error("Failed to find access token", "token", token, "error", err)
-				return e.Next()
-			}
-
-			if a.User() != "" {
-				u, err := dbmodels.Users_ID(app, a.User())
-				if err != nil {
-					slog.Error("Failed to find access token user", "user", a.User(), "error", err)
-					return e.Next()
-				}
-
-				e.Set("access_token_user", u.Fixed())
-			}
-
-			e.Set("access_token", a.Fixed())
-		}
 
 		return e.Next()
 	}

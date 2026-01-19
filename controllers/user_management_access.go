@@ -71,7 +71,7 @@ func (p *UserManagementAccessPage) GET(engine *templating.Engine, app core.App) 
 		// TODO: check if access token exists, if not generate
 		data := make(map[string]any)
 		data["role"] = role
-		data["access_url"] = "https://musenalm.de" + path_access + "?token=" + access_token.Token()
+		data["access_url"] = e.Request.Host + path_access + "?token=" + access_token.Token()
 		data["relative_url"] = path_access + "?token=" + access_token.Token()
 		data["validUntil"] = access_token.Expires().Time().Local().Format("02.01.2006 15:04")
 
@@ -117,7 +117,7 @@ func (p *UserManagementAccessPage) POST(engine *templating.Engine, app core.App)
 
 		data := make(map[string]any)
 		data["role"] = role
-		data["access_url"] = "https://musenalm.de" + path_access + "?token=" + token.Token()
+		data["access_url"] = e.Request.Host + path_access + "?token=" + token.Token()
 		data["relative_url"] = path_access + "?token=" + token.Token()
 		data["validUntil"] = token.Expires().Time().Format("02.01.2006 15:04")
 		data["csrf_token"] = req.Session().Token

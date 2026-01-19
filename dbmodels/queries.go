@@ -187,13 +187,13 @@ func Images_KeyPrefix(app core.App, prefix string) ([]*Image, error) {
 }
 
 func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
-	t := HashStringSHA256(token)
-	return TableByField[*AccessToken](
+	ret, err := TableByField[AccessToken](
 		app,
 		ACCESS_TOKENS_TABLE,
 		ACCESS_TOKENS_TOKEN_FIELD,
-		t,
+		token,
 	)
+	return &ret, err
 }
 
 func Users_Email(app core.App, email string) (*User, error) {
