@@ -58,14 +58,23 @@
 {{- $searchparameters := false -}}
 {{- if gt (len .) 6 -}}
 	{{- $searchparameters = index . 6 -}}
+	{{- if or (eq (printf "%T" $searchparameters) "bool") (eq (printf "%T" $searchparameters) "<nil>") -}}
+		{{- $searchparameters = false -}}
+	{{- end -}}
+	{{- if $searchparameters -}}
+		{{- $isAlm = $searchparameters.AlmString -}}
+		{{- $isTitle = or $searchparameters.Title $searchparameters.TitleString -}}
+		{{- $isYear = or $searchparameters.Year $searchparameters.YearString -}}
+		{{- $isPerson = or $searchparameters.Persons $searchparameters.PersonsString -}}
+		{{- $isAnnotation = or $searchparameters.Annotations $searchparameters.AnnotationsString -}}
+		{{- $isIncipit = or $searchparameters.Incipit $searchparameters.IncipitString -}}
+		{{- $isEntry = or $searchparameters.Entry $searchparameters.EntryString -}}
+	{{- end -}}
+{{- end -}}
 
-	{{- $isAlm = $searchparameters.AlmString -}}
-	{{- $isTitle = or $searchparameters.Title $searchparameters.TitleString -}}
-	{{- $isYear = or $searchparameters.Year $searchparameters.YearString -}}
-	{{- $isPerson = or $searchparameters.Persons $searchparameters.PersonsString -}}
-	{{- $isAnnotation = or $searchparameters.Annotations $searchparameters.AnnotationsString -}}
-	{{- $isIncipit = or $searchparameters.Incipit $searchparameters.IncipitString -}}
-	{{- $isEntry = or $searchparameters.Entry $searchparameters.EntryString -}}
+{{- $request := false -}}
+{{- if gt (len .) 7 -}}
+	{{- $request = index . 7 -}}
 {{- end -}}
 
 
@@ -204,12 +213,19 @@
 					</div>
 				{{- end -}}
 			{{- end -}}
-			<div class="font-sans py-0.5 text-sm">
+			<div class="font-sans py-0.5 text-sm flex flex-col items-end gap-1">
 				<a
 					href="/beitrag/{{ $content.MusenalmID }}"
 					class="no-underline rounded bg-stone-100 px-1.5">
 					Link <i class="ri-links-line"></i>
 				</a>
+				{{- if and $request (IsAdminOrEditor $request.user) -}}
+					<a
+						href="/almanach/{{- $entry.MusenalmID -}}/contents/{{- $content.MusenalmID -}}/edit"
+						class="no-underline rounded bg-stone-100 px-1.5">
+						<i class="ri-edit-line"></i> Bearbeiten
+					</a>
+				{{- end -}}
 			</div>
 		</div>
 	{{- end -}}

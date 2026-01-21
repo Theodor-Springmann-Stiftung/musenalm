@@ -34,7 +34,15 @@
 </div>
 
 <div class="container-normal mt-12 flex flex-col font-serif">
-	<div class="font-sans mb-1"><i class="ri-article-line"></i> Einzelbeitrag</div>
+	<div class="font-sans mb-1 flex items-center gap-2">
+		<div><i class="ri-article-line"></i> Einzelbeitrag</div>
+		{{- if (IsAdminOrEditor $model.request.user) -}}
+			<div>
+				&middot;&nbsp;<i class="ri-edit-line"></i>
+				<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/{{- $model.result.Content.MusenalmID -}}/edit">Bearbeiten</a>
+			</div>
+		{{- end -}}
+	</div>
 	<h1 class="text-3xl font-bold">
 		{{ $model.result.Entry.PreferredTitle }},
 		{{ if $model.result.Content.Extent -}}

@@ -25,6 +25,9 @@ export class FabMenu extends HTMLElement {
 		let hasEntry = false,
 			entryId = "",
 			entryUpdated = "";
+		let hasContent = false,
+			contentId = "",
+			contentEntryId = "";
 		let hasPage = false,
 			pageKey = "";
 
@@ -56,6 +59,20 @@ export class FabMenu extends HTMLElement {
 			const updatedMeta = document.querySelector('meta[name="entity-updated"]');
 			if (updatedMeta) {
 				entryUpdated = updatedMeta.content;
+			}
+		}
+
+		// Content detail page: /beitrag/{id}
+		const contentMatch = path.match(/^\/beitrag\/([^\/]+)\/?$/);
+		if (contentMatch) {
+			hasContent = true;
+			contentId = contentMatch[1];
+			const entryLink = document.querySelector('#breadcrumbs a[href^="/almanach/"]');
+			if (entryLink) {
+				const match = entryLink.getAttribute("href")?.match(/^\/almanach\/([^\/#]+)/);
+				if (match) {
+					contentEntryId = match[1];
+				}
 			}
 		}
 
@@ -95,11 +112,11 @@ export class FabMenu extends HTMLElement {
 		}
 		const hasCsrf = csrfToken !== "";
 
-		this.hasContext = hasReihe || hasPerson || hasEntry || hasPage;
+		this.hasContext = hasReihe || hasPerson || hasEntry || hasContent || hasPage;
 
 		// Build half-open menu content
 		let halfOpenContent = "";
-		if (hasReihe) {
+		if (isAdminOrEditor && hasReihe) {
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihe
@@ -109,7 +126,7 @@ export class FabMenu extends HTMLElement {
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
 			`;
-		} else if (hasPerson) {
+		} else if (isAdminOrEditor && hasPerson) {
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Person
@@ -119,7 +136,7 @@ export class FabMenu extends HTMLElement {
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
 			`;
-		} else if (hasEntry) {
+		} else if (isAdminOrEditor && hasEntry) {
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Almanach
@@ -128,8 +145,34 @@ export class FabMenu extends HTMLElement {
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
+				<a href="/almanach/${entryId}/contents/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Beiträge bearbeiten</span>
+				</a>
+				<a href="/almanach/${entryId}/contents/new" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Neuer Beitrag</span>
+				</a>
 			`;
-		} else if (hasPage) {
+		} else if (isAdminOrEditor && hasContent && contentEntryId) {
+			halfOpenContent = `
+				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+					Beitrag
+				</div>
+				<a href="/almanach/${contentEntryId}/contents/${contentId}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Bearbeiten</span>
+				</a>
+				<a href="/almanach/${contentEntryId}/contents/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Beiträge bearbeiten</span>
+				</a>
+				<a href="/almanach/${contentEntryId}/contents/new" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Neuer Beitrag</span>
+				</a>
+			`;
+		} else if (isAdminOrEditor && hasPage) {
 			halfOpenContent = `
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Seite
