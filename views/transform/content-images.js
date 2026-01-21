@@ -57,6 +57,8 @@ export class ContentImages extends HTMLElement {
 		}
 		this.dataset.init = "true";
 
+		this._wireUpload();
+
 		const raw = this.getAttribute("data-images") || "[]";
 		const rawFiles = this.getAttribute("data-files") || "[]";
 		let images = [];
@@ -82,8 +84,62 @@ export class ContentImages extends HTMLElement {
 		this._render(normalized);
 	}
 
+	_wireUpload() {
+		const panel = this.closest("[data-role='content-images-panel']");
+		if (!panel) {
+			return;
+		}
+		const uploadInput = panel.querySelector("[data-role='content-images-upload-input']");
+		if (!uploadInput || uploadInput.dataset.bound === "true") {
+			return;
+		}
+		uploadInput.dataset.bound = "true";
+		uploadInput.addEventListener("change", () => {
+			this._uploadFiles(uploadInput, panel);
+		});
+	}
+
+	_uploadFiles(input, panel) {
+		const endpoint = input.getAttribute("data-upload-endpoint") || "";
+		const contentId = input.getAttribute("data-content-id") || "";
+		const csrfToken = input.getAttribute("data-csrf-token") || "";
+		const files = Array.from(input.files || []);
+		if (!endpoint || !contentId || !csrfToken || files.length === 0) {
+			return;
+		}
+		const payload = new FormData();
+		payload.append("csrf_token", csrfToken);
+		payload.append("content_id", contentId);
+		files.forEach((file) => payload.append("scans", file));
+		fetch(endpoint, {
+			method: "POST",
+			headers: {
+				"HX-Request": "true",
+			},
+			body: payload,
+		})
+			.then((response) => {
+				if (!response.ok) {
+					return null;
+				}
+				return response.text();
+			})
+			.then((html) => {
+				if (!html || !panel) {
+					return;
+				}
+				this._applyServerResponse(html, panel);
+			})
+			.catch(() => null)
+			.finally(() => {
+				input.value = "";
+			});
+	}
+
 	_render(images) {
-		this.classList.add("inline-flex");
+		this.classList.add("block");
+		this.style.display = "block";
+		this.style.width = "100%";
 		const list = this._ensureList();
 		list.innerHTML = "";
 
@@ -161,6 +217,11 @@ export class ContentImages extends HTMLElement {
 			list.appendChild(wrapper);
 		});
 
+		const uploadTile = this._findUploadTile();
+		if (uploadTile) {
+			list.appendChild(uploadTile);
+		}
+
 		const dialog = this._ensureDialog();
 		const fullImage = dialog.querySelector(`[data-role='${CONTENT_IMAGES_FULL_ROLE}']`);
 
@@ -185,10 +246,24 @@ export class ContentImages extends HTMLElement {
 		if (!list) {
 			list = document.createElement("div");
 			list.dataset.role = CONTENT_IMAGES_LIST_ROLE;
-			list.className = "inline-flex flex-wrap gap-2";
 			this.appendChild(list);
 		}
+		list.className = "grid gap-2";
+		list.style.gridTemplateColumns = "repeat(auto-fill, minmax(7rem, 1fr))";
+		list.style.width = "100%";
 		return list;
+	}
+
+	_findUploadTile() {
+		const panel = this.closest("[data-role='content-images-panel']");
+		if (!panel) {
+			return null;
+		}
+		const upload = panel.querySelector("[data-role='content-images-upload']");
+		if (!upload) {
+			return null;
+		}
+		return upload;
 	}
 
 	_ensureDialog() {
@@ -377,11 +452,35 @@ export class ContentImages extends HTMLElement {
 				if (!html || !panel) {
 					return;
 				}
-				panel.outerHTML = html;
+				this._applyServerResponse(html, panel);
 			})
 			.catch(() => null)
 			.finally(() => {
 				dialog.close();
 			});
+	}
+
+	_applyServerResponse(html, panel) {
+		const template = document.createElement("template");
+		template.innerHTML = html.trim();
+		const oobNodes = Array.from(template.content.querySelectorAll("[hx-swap-oob]"));
+		oobNodes.forEach((node) => {
+			const swapRaw = node.getAttribute("hx-swap-oob") || "";
+			const [swapTypeRaw, selector] = swapRaw.split(":");
+			const swapType = swapTypeRaw || "outerHTML";
+			const target = selector ? document.querySelector(selector) : (node.id ? document.getElementById(node.id) : null);
+			if (target) {
+				if (swapType === "innerHTML") {
+					target.innerHTML = node.innerHTML;
+				} else {
+					target.outerHTML = node.outerHTML;
+				}
+			}
+			node.remove();
+		});
+		const replacement = template.content.firstElementChild;
+		if (replacement) {
+			panel.replaceWith(replacement);
+		}
 	}
 }

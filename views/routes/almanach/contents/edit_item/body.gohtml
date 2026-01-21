@@ -209,6 +209,12 @@
 						data-initial-values='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
 					</multi-select-simple>
 				</div>
+				{{- template "_content_images_panel" (Dict
+					"content" $model.content
+					"entry" $model.result.Entry
+					"csrf_token" $model.csrf_token
+					"is_new" false
+				) -}}
 			</div>
 		</div>
 

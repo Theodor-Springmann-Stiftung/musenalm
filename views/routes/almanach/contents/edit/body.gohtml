@@ -223,7 +223,6 @@
 		{{- if $i }},{{ end }}
 		"{{ $content.Id }}": {
 			extent: "{{ $content.Extent }}",
-			pagination: "{{ $content.MusenalmPagination }}",
 			musenalmType: [{{- range $j, $t := $content.MusenalmType -}}{{- if $j }},{{ end }}"{{ $t }}"{{- end -}}],
 			preferredTitle: "{{ $content.PreferredTitle }}",
 			titleStmt: "{{ $content.TitleStmt }}",
@@ -296,7 +295,6 @@
 		// Field labels for display
 		const fieldLabels = {
 			extent: 'Seite',
-			pagination: 'Paginierung',
 			musenalmType: 'Typ',
 			titleStmt: 'Titel',
 			subtitleStmt: 'Untertitel',
@@ -309,6 +307,51 @@
 			comment: 'Kommentar',
 			agents: 'Personen',
 			annotation: 'Anmerkung'
+		};
+
+		const getMarkTargets = () => {
+			if (!list) {
+				return [];
+			}
+			const visibleItems = Array.from(list.querySelectorAll("[data-role='content-item']")).filter((item) => item.style.display !== "none");
+			const targets = [];
+			visibleItems.forEach((item) => {
+				targets.push(...item.querySelectorAll(".content-search-text"));
+			});
+			return targets;
+		};
+
+		const updateMarks = () => {
+			if (typeof Mark !== "function") {
+				return;
+			}
+			const terms = [];
+			const rawQuery = (filterInput.value || "").trim();
+			const rawPage = (filterPage?.value || "").trim();
+			const rawType = (filterType?.value || "").trim();
+			if (rawQuery) {
+				terms.push(rawQuery);
+			}
+			if (rawPage) {
+				terms.push(rawPage);
+			}
+			if (rawType) {
+				terms.push(rawType);
+			}
+			const targets = getMarkTargets();
+			if (targets.length === 0) {
+				return;
+			}
+			const markInstance = new Mark(targets);
+			markInstance.unmark({
+				done: () => {
+					if (terms.length > 0) {
+						markInstance.mark(terms, {
+							separateWordSearch: true,
+						});
+					}
+				},
+			});
 		};
 
 		const performFilter = () => {
@@ -401,8 +444,6 @@
 					};
 
 					// Check text search fields (excluding language, status, preferredTitle)
-					checkField('extent', contentData.extent, fieldLabels.extent);
-					checkField('pagination', contentData.pagination, fieldLabels.pagination);
 					checkArrayField('musenalmType', contentData.musenalmType, fieldLabels.musenalmType);
 					checkField('titleStmt', contentData.titleStmt, fieldLabels.titleStmt);
 					checkField('subtitleStmt', contentData.subtitleStmt, fieldLabels.subtitleStmt);
@@ -463,6 +504,8 @@
 					? `${totalCount} Einträge`
 					: `${visibleCount} von ${totalCount} Einträgen`;
 			}
+
+			updateMarks();
 		};
 
 		const debounceFilter = () => {
@@ -521,6 +564,15 @@
 				return;
 			}
 			syncIndicator.classList.toggle("hidden", !active);
+		};
+		const setDraggingState = (active) => {
+			if (active) {
+				document.body.dataset.dragging = "true";
+			} else {
+				delete document.body.dataset.dragging;
+			}
+			window.__toolTipDragging = active;
+			window.dispatchEvent(new CustomEvent("contentsdragging", { detail: { active } }));
 		};
 		// Shared delete dialog
 		const deleteDialog = document.getElementById("content-delete-dialog");
@@ -665,8 +717,59 @@
 		if (list.dataset.pageInit !== "true") {
 			list.dataset.pageInit = "true";
 			let draggedItem = null;
+			let pointerDrag = null;
 			let lastDragOverTime = 0;
 			const DRAG_THROTTLE_MS = 100;
+			const startPointerDrag = (event) => {
+				const handle = event.target.closest("[data-role='content-drag-handle']");
+				if (!handle || event.button !== 0) {
+					return;
+				}
+				const item = handle.closest("[data-role='content-item']");
+				if (!item) {
+					return;
+				}
+				event.preventDefault();
+				pointerDrag = {
+					item,
+					pointerId: event.pointerId,
+				};
+				item.dataset.dragging = "true";
+				item.classList.add("opacity-60");
+				setDraggingState(true);
+				if (handle.setPointerCapture) {
+					handle.setPointerCapture(event.pointerId);
+				}
+			};
+
+			const movePointerDrag = (event) => {
+				if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+					return;
+				}
+				const item = pointerDrag.item;
+				const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-role='content-item']");
+				if (!targetItem || targetItem === item) {
+					return;
+				}
+				const rect = targetItem.getBoundingClientRect();
+				const before = event.clientY - rect.top < rect.height / 2;
+				if (before) {
+					targetItem.before(item);
+				} else {
+					targetItem.after(item);
+				}
+			};
+
+			const endPointerDrag = (event) => {
+				if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+					return;
+				}
+				pointerDrag.item.classList.remove("opacity-60");
+				pointerDrag.item.dataset.dragging = "";
+				pointerDrag = null;
+				setDraggingState(false);
+				syncOrder();
+			};
 			list.addEventListener("click", (event) => {
 				const moveUp = event.target.closest("[data-role='content-move-up']");
 				const moveDown = event.target.closest("[data-role='content-move-down']");
@@ -699,6 +802,10 @@
 			});
 
 			list.addEventListener("dragstart", (event) => {
+				if (pointerDrag) {
+					event.preventDefault();
+					return;
+				}
 				if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
 					return;
 				}
@@ -717,6 +824,7 @@
 				draggedItem = item;
 				item.dataset.dragging = "true";
 				draggedItem.classList.add("opacity-60");
+				setDraggingState(true);
 				event.dataTransfer.effectAllowed = "move";
 				event.dataTransfer.setData("text/plain", "move");
 			});
@@ -745,8 +853,14 @@
 					draggedItem.dataset.dragging = "";
 				}
 				draggedItem = null;
+				setDraggingState(false);
 				syncOrder();
 			});
+
+			list.addEventListener("pointerdown", startPointerDrag);
+			list.addEventListener("pointermove", movePointerDrag);
+			list.addEventListener("pointerup", endPointerDrag);
+			list.addEventListener("pointercancel", endPointerDrag);
 		}
 	};
 

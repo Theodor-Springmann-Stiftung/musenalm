@@ -37,21 +37,25 @@
 						</tool-tip>
 					</div>
 					{{- if $content.Extent -}}
-						<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0" data-role="content-page-pill">S. {{- $content.Extent -}}</span>
+						<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0" data-role="content-page-pill">S. {{- $content.Extent -}}</span>
 					{{- end -}}
 					{{- if $content.MusenalmType -}}
 						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
-								<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-base font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
+								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-base font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
 							{{- end -}}
 						</span>
 					{{- end -}}
 					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
-						{{- if $content.PreferredTitle -}}
-							<span class="text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
-						{{- else if $content.TitleStmt -}}
-							<span class="text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
-						{{- end -}}
+						<a
+							href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
+							class="no-underline hover:text-slate-900 cursor-pointer">
+							{{- if $content.PreferredTitle -}}
+								<span class="content-search-text text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
+							{{- else if $content.TitleStmt -}}
+								<span class="content-search-text text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
+							{{- end -}}
+						</a>
 					</div>
 				</div>
 				<div class="flex items-center gap-2 flex-nowrap whitespace-nowrap shrink-0">
@@ -79,7 +83,7 @@
 					</button>
 				</div>
 			</div>
-			<div data-role="content-match-display" class="hidden px-2 py-1 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
+			<div data-role="content-match-display" class="content-search-text hidden px-2 py-1 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
 		</div>
 	</div>
 </div>

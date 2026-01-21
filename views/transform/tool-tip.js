@@ -3,6 +3,58 @@ export class ToolTip extends HTMLElement {
 		return ["position", "timeout"];
 	}
 
+	static _dragGuardInitialized = false;
+
+	static _setDragging(active) {
+		window.__toolTipDragging = active;
+		if (document.documentElement) {
+			document.documentElement.classList.toggle("dragging", active);
+		}
+		if (document.body) {
+			if (active) {
+				document.body.dataset.dragging = "true";
+			} else {
+				delete document.body.dataset.dragging;
+			}
+		}
+		if (active) {
+			document.querySelectorAll(".tooltip-box").forEach((box) => {
+				box.classList.remove("opacity-100");
+				box.classList.add("opacity-0");
+				box.classList.add("hidden");
+			});
+		}
+	}
+
+	static _ensureDragGuard() {
+		if (ToolTip._dragGuardInitialized) {
+			return;
+		}
+		ToolTip._dragGuardInitialized = true;
+		const start = (event) => {
+			const handle = event.target?.closest?.("[data-role='content-drag-handle']");
+			if (handle || event.type === "dragstart") {
+				ToolTip._setDragging(true);
+			}
+		};
+		const end = () => {
+			ToolTip._setDragging(false);
+		};
+		document.addEventListener("pointerdown", start, true);
+		document.addEventListener("mousedown", start, true);
+		document.addEventListener("dragstart", start, true);
+		document.addEventListener("pointerup", end, true);
+		document.addEventListener("mouseup", end, true);
+		document.addEventListener("pointercancel", end, true);
+		document.addEventListener("dragend", end, true);
+		document.addEventListener("drop", end, true);
+		window.addEventListener("blur", end);
+		window.addEventListener("contentsdragging", (event) => {
+			const active = Boolean(event.detail?.active);
+			ToolTip._setDragging(active);
+		});
+	}
+
 	constructor() {
 		super();
 		this._tooltipBox = null;
@@ -14,6 +66,7 @@ export class ToolTip extends HTMLElement {
 	}
 
 	connectedCallback() {
+		ToolTip._ensureDragGuard();
 		this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal");
 		this._dataTipElem = this.querySelector(".data-tip");
 		const tipContent = this._dataTipElem ? this._dataTipElem.innerHTML : "Tooltip";
@@ -25,6 +78,7 @@ export class ToolTip extends HTMLElement {
 		this._tooltipBox = document.createElement("div");
 		this._tooltipBox.innerHTML = tipContent;
 		this._tooltipBox.className = [
+			"tooltip-box",
 			"opacity-0",
 			"hidden",
 			"absolute",
@@ -78,7 +132,32 @@ export class ToolTip extends HTMLElement {
 		}
 	}
 
+	_forceHide() {
+		clearTimeout(this._hideTimeout);
+		clearTimeout(this._hiddenTimeout);
+		if (!this._tooltipBox) {
+			return;
+		}
+		this._tooltipBox.classList.remove("opacity-100");
+		this._tooltipBox.classList.add("opacity-0");
+		this._tooltipBox.classList.add("hidden");
+	}
+
+	_isDragging() {
+		if (window.__toolTipDragging) {
+			return true;
+		}
+		if (document.body?.dataset?.dragging === "true") {
+			return true;
+		}
+		return Boolean(document.querySelector("[data-dragging='true']"));
+	}
+
 	_showTooltip() {
+		if (this._isDragging()) {
+			this._forceHide();
+			return;
+		}
 		clearTimeout(this._hideTimeout);
 		clearTimeout(this._hiddenTimeout);
 		this._tooltipBox.classList.remove("hidden");

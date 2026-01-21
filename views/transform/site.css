@@ -66,6 +66,22 @@
 		@apply bg-stone-50;
 	}
 
+	body[data-dragging="true"] tool-tip {
+		pointer-events: none;
+	}
+
+	body[data-dragging="true"] .tooltip-box {
+		display: none !important;
+	}
+
+	html.dragging tool-tip {
+		pointer-events: none;
+	}
+
+	html.dragging .tooltip-box {
+		display: none !important;
+	}
+
 	* {
 		@apply normal-nums;
 	}
