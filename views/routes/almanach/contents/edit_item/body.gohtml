@@ -373,9 +373,20 @@
 			}
 			const imagesComponent = document.querySelector("content-images");
 			if (imagesComponent && typeof imagesComponent.getPendingFiles === "function") {
-				imagesComponent.getPendingFiles().forEach((file) => {
+				const pendingFiles = imagesComponent.getPendingFiles();
+				const pendingIds = typeof imagesComponent.getPendingIds === "function" ? imagesComponent.getPendingIds() : [];
+				const scanOrder = typeof imagesComponent.getScanOrder === "function" ? imagesComponent.getScanOrder() : [];
+				pendingFiles.forEach((file, index) => {
 					payload.append("scans", file);
+					if (pendingIds[index]) {
+						payload.append("scans_pending_ids[]", pendingIds[index]);
+					}
 				});
+				if (Array.isArray(scanOrder) && scanOrder.length > 0) {
+					scanOrder.forEach((token) => {
+						payload.append("scans_order[]", token);
+					});
+				}
 				if (typeof imagesComponent.getPendingDeletes === "function") {
 					imagesComponent.getPendingDeletes().forEach((fileName) => {
 						payload.append("scans_delete[]", fileName);

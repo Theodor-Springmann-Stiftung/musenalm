@@ -59,6 +59,9 @@ export class ContentImages extends HTMLElement {
 		this._pendingFiles = [];
 		this._pendingUrls = [];
 		this._pendingDeletes = new Set();
+		this._pendingIds = [];
+		this._pendingIdCounter = 0;
+		this._scanOrder = [];
 
 		this._wireUpload();
 
@@ -98,9 +101,31 @@ export class ContentImages extends HTMLElement {
 	}
 
 	_setPendingFiles(files) {
-		this._clearPendingPreviews();
-		this._pendingFiles = Array.isArray(files) ? files : [];
-		this._pendingUrls = this._pendingFiles.map((file) => URL.createObjectURL(file));
+		const incoming = Array.isArray(files) ? files : [];
+		if (incoming.length === 0) {
+			return;
+		}
+		if (!Array.isArray(this._pendingFiles)) {
+			this._pendingFiles = [];
+		}
+		if (!Array.isArray(this._pendingUrls)) {
+			this._pendingUrls = [];
+		}
+		if (!Array.isArray(this._pendingIds)) {
+			this._pendingIds = [];
+		}
+		const newIds = [];
+		incoming.forEach((file) => {
+			this._pendingFiles.push(file);
+			this._pendingUrls.push(URL.createObjectURL(file));
+			const id = `p${Date.now()}_${this._pendingIdCounter++}`;
+			this._pendingIds.push(id);
+			newIds.push(id);
+		});
+		if (!Array.isArray(this._scanOrder)) {
+			this._scanOrder = [];
+		}
+		this._scanOrder = this._scanOrder.concat(newIds.map((id) => `pending:${id}`));
 		this._render(this._currentImages || []);
 	}
 
@@ -123,10 +148,91 @@ export class ContentImages extends HTMLElement {
 		const csrfToken = this.getAttribute("data-csrf-token") || "";
 		const canDelete = deleteEndpoint && contentId && csrfToken;
 
-		images.forEach((image, index) => {
+		const imagesByName = new Map();
+		images.forEach((image) => {
+			if (image && image.name) {
+				imagesByName.set(image.name, image);
+			}
+		});
+
+		if (!Array.isArray(this._scanOrder) || this._scanOrder.length === 0) {
+			this._scanOrder = images.map((image) => `existing:${image.name}`);
+			this._scanOrder = this._scanOrder.concat(this._pendingIds.map((id) => `pending:${id}`));
+		}
+
+		const pendingById = new Map();
+		this._pendingIds.forEach((id, index) => {
+			pendingById.set(id, { url: this._pendingUrls[index] });
+		});
+
+		const order = [];
+		this._scanOrder.forEach((token) => {
+			if (token.startsWith("existing:")) {
+				const name = token.slice("existing:".length);
+				if (imagesByName.has(name)) {
+					order.push({ type: "existing", name, image: imagesByName.get(name) });
+				}
+				return;
+			}
+			if (token.startsWith("pending:")) {
+				const id = token.slice("pending:".length);
+				if (pendingById.has(id)) {
+					order.push({ type: "pending", id, url: pendingById.get(id).url });
+				}
+			}
+		});
+
+		order.forEach((item, index) => {
+			if (item.type === "pending") {
+				const wrapper = document.createElement("div");
+				wrapper.className = "group relative";
+				wrapper.dataset.role = "content-images-pending";
+				wrapper.dataset.scanKey = `pending:${item.id}`;
+				wrapper.draggable = true;
+				const button = document.createElement("button");
+				button.type = "button";
+				button.className = [
+					"rounded",
+					"border",
+					"border-dashed",
+					"border-slate-300",
+					"bg-stone-50",
+					"p-1",
+					"shadow-sm",
+				].join(" ");
+				button.dataset.imageUrl = item.url;
+				button.dataset.imageIndex = `pending-${index}`;
+				const img = document.createElement("img");
+				img.src = item.url;
+				img.alt = "Digitalisat (neu)";
+				img.loading = "lazy";
+				img.className = "h-28 w-28 object-cover opacity-70";
+				button.appendChild(img);
+				const badge = document.createElement("span");
+				badge.className = "absolute left-1 top-1 rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900";
+				badge.textContent = "Neu";
+				wrapper.appendChild(button);
+				wrapper.appendChild(badge);
+				const removeButton = document.createElement("button");
+				removeButton.type = "button";
+				removeButton.className = "absolute right-1 top-1 hidden rounded-full border border-red-200 bg-white/90 px-2 py-1 text-xs font-semibold text-red-700 shadow-sm transition group-hover:flex hover:text-red-900 hover:border-red-300";
+				removeButton.innerHTML = '<i class="ri-close-line mr-1"></i>Entfernen';
+				removeButton.addEventListener("click", (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					this._removePendingFileById(item.id);
+				});
+				wrapper.appendChild(removeButton);
+				list.appendChild(wrapper);
+				return;
+			}
+
+			const image = item.image;
 			const wrapper = document.createElement("div");
 			wrapper.className = "group relative";
 			wrapper.dataset.role = "content-images-item";
+			wrapper.dataset.scanKey = `existing:${item.name}`;
+			wrapper.draggable = true;
 			const isPendingDelete = this._pendingDeletes.has(image.name);
 			if (isPendingDelete) {
 				wrapper.classList.add("content-image-pending");
@@ -203,47 +309,6 @@ export class ContentImages extends HTMLElement {
 			list.appendChild(wrapper);
 		});
 
-		this._pendingUrls.forEach((url, index) => {
-			const wrapper = document.createElement("div");
-			wrapper.className = "group relative";
-			wrapper.dataset.role = "content-images-pending";
-			const button = document.createElement("button");
-			button.type = "button";
-			button.className = [
-				"rounded",
-				"border",
-				"border-dashed",
-				"border-slate-300",
-				"bg-stone-50",
-				"p-1",
-				"shadow-sm",
-			].join(" ");
-			button.dataset.imageUrl = url;
-			button.dataset.imageIndex = `pending-${index}`;
-			const img = document.createElement("img");
-			img.src = url;
-			img.alt = "Digitalisat (neu)";
-			img.loading = "lazy";
-			img.className = "h-28 w-28 object-cover opacity-70";
-			button.appendChild(img);
-			const badge = document.createElement("span");
-			badge.className = "absolute left-1 top-1 rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900";
-			badge.textContent = "Neu";
-			wrapper.appendChild(button);
-			wrapper.appendChild(badge);
-			const removeButton = document.createElement("button");
-			removeButton.type = "button";
-			removeButton.className = "absolute right-1 top-1 hidden rounded-full border border-red-200 bg-white/90 px-2 py-1 text-xs font-semibold text-red-700 shadow-sm transition group-hover:flex hover:text-red-900 hover:border-red-300";
-			removeButton.innerHTML = '<i class="ri-close-line mr-1"></i>Entfernen';
-			removeButton.addEventListener("click", (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				this._removePendingFile(index);
-			});
-			wrapper.appendChild(removeButton);
-			list.appendChild(wrapper);
-		});
-
 		if (uploadProxy && uploadProxy.parentElement !== list) {
 			list.appendChild(uploadProxy);
 		}
@@ -266,6 +331,8 @@ export class ContentImages extends HTMLElement {
 				dialog.setAttribute("open", "true");
 			}
 		});
+
+		this._wireDrag(list);
 	}
 
 	_ensureList() {
@@ -279,18 +346,6 @@ export class ContentImages extends HTMLElement {
 		list.style.gridTemplateColumns = "repeat(auto-fill, minmax(7rem, 1fr))";
 		list.style.width = "100%";
 		return list;
-	}
-
-	_findUploadTile() {
-		const panel = this.closest("[data-role='content-images-panel']");
-		if (!panel) {
-			return null;
-		}
-		const upload = panel.querySelector("[data-role='content-images-upload']");
-		if (!upload) {
-			return null;
-		}
-		return upload;
 	}
 
 	_ensureUploadProxy() {
@@ -329,8 +384,9 @@ export class ContentImages extends HTMLElement {
 		this._render(this._currentImages || []);
 	}
 
-	_removePendingFile(index) {
-		if (index < 0 || index >= this._pendingFiles.length) {
+	_removePendingFileById(id) {
+		const index = this._pendingIds.indexOf(id);
+		if (index < 0) {
 			return;
 		}
 		const url = this._pendingUrls[index];
@@ -339,6 +395,8 @@ export class ContentImages extends HTMLElement {
 		}
 		this._pendingFiles.splice(index, 1);
 		this._pendingUrls.splice(index, 1);
+		this._pendingIds.splice(index, 1);
+		this._scanOrder = this._scanOrder.filter((token) => token !== `pending:${id}`);
 		this._render(this._currentImages || []);
 	}
 
@@ -346,8 +404,19 @@ export class ContentImages extends HTMLElement {
 		return Array.isArray(this._pendingFiles) ? this._pendingFiles : [];
 	}
 
+	getPendingIds() {
+		return Array.isArray(this._pendingIds) ? this._pendingIds : [];
+	}
+
 	getPendingDeletes() {
 		return Array.from(this._pendingDeletes || []);
+	}
+
+	getScanOrder() {
+		if (!Array.isArray(this._scanOrder)) {
+			return [];
+		}
+		return this._scanOrder.slice();
 	}
 
 	_clearPendingPreviews() {
@@ -359,6 +428,63 @@ export class ContentImages extends HTMLElement {
 
 	disconnectedCallback() {
 		this._clearPendingPreviews();
+	}
+
+	_wireDrag(list) {
+		if (!list || list.dataset.dragInit === "true") {
+			return;
+		}
+		list.dataset.dragInit = "true";
+		let draggingKey = null;
+
+		list.addEventListener("dragstart", (event) => {
+			const item = event.target.closest("[data-role='content-images-item'], [data-role='content-images-pending']");
+			if (!item) {
+				event.preventDefault();
+				return;
+			}
+			draggingKey = item.dataset.scanKey || null;
+			item.classList.add("opacity-60");
+			event.dataTransfer.effectAllowed = "move";
+			event.dataTransfer.setData("text/plain", "move");
+		});
+
+		list.addEventListener("dragover", (event) => {
+			if (!draggingKey) {
+				return;
+			}
+			event.preventDefault();
+			const target = event.target.closest("[data-role='content-images-item'], [data-role='content-images-pending']");
+			if (!target || target.dataset.scanKey === draggingKey) {
+				return;
+			}
+			const rect = target.getBoundingClientRect();
+			const before = event.clientY - rect.top < rect.height / 2;
+			const dragged = list.querySelector(`[data-scan-key="${CSS.escape(draggingKey)}"]`);
+			if (!dragged) {
+				return;
+			}
+			if (before) {
+				target.before(dragged);
+			} else {
+				target.after(dragged);
+			}
+		});
+
+		list.addEventListener("dragend", () => {
+			const dragged = draggingKey ? list.querySelector(`[data-scan-key="${CSS.escape(draggingKey)}"]`) : null;
+			if (dragged) {
+				dragged.classList.remove("opacity-60");
+			}
+			draggingKey = null;
+			const newOrder = [];
+			list.querySelectorAll("[data-role='content-images-item'], [data-role='content-images-pending']").forEach((item) => {
+				if (item.dataset.scanKey) {
+					newOrder.push(item.dataset.scanKey);
+				}
+			});
+			this._scanOrder = newOrder;
+		});
 	}
 
 	_ensureDialog() {

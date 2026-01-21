@@ -17,6 +17,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
 const (
@@ -317,6 +318,8 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		uploadedScans, _ := e.FindUploadedFiles(dbmodels.SCAN_FIELD)
 		deleteScans := valuesForKey(e.Request.PostForm, "scans_delete")
+		scansOrder := valuesForKey(e.Request.PostForm, "scans_order")
+		pendingScanIDs := valuesForKey(e.Request.PostForm, "scans_pending_ids")
 		targetContentID := contentID
 		if targetContentID == "" && len(contentInputs) == 1 {
 			for id := range contentInputs {
@@ -403,7 +406,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 					}
 				}
 			}
-			if targetContentID != "" && (len(uploadedScans) > 0 || len(deleteScans) > 0) {
+			if targetContentID != "" && (len(uploadedScans) > 0 || len(deleteScans) > 0 || len(scansOrder) > 0) {
 				record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, targetContentID)
 				if err != nil {
 					return err
@@ -412,16 +415,74 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if content.Entry() != entry.Id {
 					return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
 				}
-				if len(uploadedScans) > 0 {
-					content.Set(dbmodels.SCAN_FIELD+"+", uploadedScans)
+				deleteSet := map[string]struct{}{}
+				for _, scan := range deleteScans {
+					scan = strings.TrimSpace(scan)
+					if scan == "" {
+						continue
+					}
+					deleteSet[scan] = struct{}{}
 				}
-				if len(deleteScans) > 0 {
-					for _, scan := range deleteScans {
-						scan = strings.TrimSpace(scan)
-						if scan == "" {
+				if len(scansOrder) > 0 || len(pendingScanIDs) > 0 {
+					pendingMap := map[string]*filesystem.File{}
+					for idx, id := range pendingScanIDs {
+						if idx >= len(uploadedScans) {
+							break
+						}
+						id = strings.TrimSpace(id)
+						if id == "" {
 							continue
 						}
-						content.Set(dbmodels.SCAN_FIELD+"-", scan)
+						pendingMap[id] = uploadedScans[idx]
+					}
+					ordered := make([]any, 0, len(scansOrder)+len(uploadedScans))
+					seenExisting := map[string]struct{}{}
+					for _, token := range scansOrder {
+						token = strings.TrimSpace(token)
+						if token == "" {
+							continue
+						}
+						if strings.HasPrefix(token, "pending:") {
+							id := strings.TrimPrefix(token, "pending:")
+							if file, ok := pendingMap[id]; ok {
+								ordered = append(ordered, file)
+							}
+							continue
+						}
+						if strings.HasPrefix(token, "existing:") {
+							name := strings.TrimPrefix(token, "existing:")
+							if name == "" {
+								continue
+							}
+							if _, deleted := deleteSet[name]; deleted {
+								continue
+							}
+							ordered = append(ordered, name)
+							seenExisting[name] = struct{}{}
+						}
+					}
+					for _, name := range content.Scans() {
+						if _, deleted := deleteSet[name]; deleted {
+							continue
+						}
+						if _, seen := seenExisting[name]; seen {
+							continue
+						}
+						ordered = append(ordered, name)
+					}
+					content.Set(dbmodels.SCAN_FIELD, ordered)
+				} else {
+					if len(uploadedScans) > 0 {
+						content.Set(dbmodels.SCAN_FIELD+"+", uploadedScans)
+					}
+					if len(deleteScans) > 0 {
+						for _, scan := range deleteScans {
+							scan = strings.TrimSpace(scan)
+							if scan == "" {
+								continue
+							}
+							content.Set(dbmodels.SCAN_FIELD+"-", scan)
+						}
 					}
 				}
 				if user != nil {
