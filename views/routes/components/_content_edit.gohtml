@@ -20,205 +20,138 @@
 {{- $agentsAddToggleID := printf "content-%s-agents-add-toggle" $contentID -}}
 {{- $agentsSectionID := printf "content-%s-agents-section" $contentID -}}
 
-<div class="border border-slate-200 bg-white rounded-xs" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
+<div class="bg-white" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
 	<input type="hidden" name="{{ $prefix }}numbering" class="content-numbering" value="{{- $content.Numbering -}}" />
 	<input type="hidden" name="{{ $prefix }}entries" value="{{ $entry.Id }}" />
-	<div class="border border-slate-200 border-b-0 bg-stone-100 rounded-xs rounded-b-none">
-		<div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-stone-200 px-3 py-2">
-			<div class="flex items-center gap-3">
-				<multi-select-simple
-					id="{{ $baseID }}-musenalm-type"
-					name="{{ $prefix }}musenalm_type[]"
-					show-create-button="false"
-					placeholder="Musenalm-Typen suchen..."
-					data-empty-text="Keine Typen verknüpft"
-					value='[{{- range $i, $t := $content.MusenalmType -}}{{- if $i }},{{ end -}}"{{ $t }}"{{- end -}}]'
-					data-initial-options='[{{- range $i, $t := $musenalmTypes -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q}" $t $t }}{{- end -}}]'
-					data-initial-values='[{{- range $i, $t := $content.MusenalmType -}}{{- if $i }},{{ end -}}{{ printf "%q" $t }}{{- end -}}]'>
-				</multi-select-simple>
+	<div class="flex flex-col gap-3">
+		<div class="inputwrapper">
+			<div class="inputlabelrow">
+				<label for="{{ $baseID }}-extent" class="inputlabel">Seite &amp; Paginierung</label>
 			</div>
-			<div class="flex items-center gap-2">
-				<select name="{{ $prefix }}edit_state" id="{{ $baseID }}-edit-state" class="inputselect font-bold status-select px-2 py-1 shadow-sm rounded-sm" data-status="{{ $content.EditState }}">
-					<option value="Unknown" {{ if eq $content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
-					<option value="ToDo" {{ if eq $content.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
-					<option value="Review" {{ if eq $content.EditState "Review" }}selected{{ end }}>Überprüfen</option>
-					<option value="Edited" {{ if eq $content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
-				</select>
-			</div>
-		</div>
-		<div class="px-3 py-2">
-			<div class="grid grid-cols-[8rem_1fr_1fr] gap-x-3 gap-y-2 items-baseline">
-				<label for="{{ $baseID }}-extent" class="text-sm font-bold text-gray-700">Seite &amp; Paginierung</label>
-				<textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea>
-				<select name="{{ $prefix }}musenalm_pagination" id="{{ $baseID }}-pagination" class="inputselect border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30">
+			<div class="grid grid-cols-[1fr_1px_20rem] gap-2 items-stretch">
+				<textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea>
+				<div class="bg-slate-400"></div>
+				<select name="{{ $prefix }}musenalm_pagination" id="{{ $baseID }}-pagination" class="inputselect">
 					{{- range $_, $p := $paginationValues -}}
 						<option value="{{- $p -}}" {{ if eq $content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
 					{{- end -}}
 				</select>
 			</div>
-
-			<div id="{{ $baseID }}-edit-fields" class="mt-3 flex flex-col gap-3"></div>
-			<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end mt-1">
-				<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
-					Felder hinzufügen</button>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq (len $content.Language) 0 }}hidden{{ end }}">
-					<label for="{{ $baseID }}-language" class="text-sm font-bold text-gray-700">Sprache</label>
-					<multi-select-simple
-						id="{{ $baseID }}-language"
-						name="{{ $prefix }}language[]"
-						show-create-button="false"
-						placeholder="Sprachen suchen..."
-						data-empty-text="Keine Sprachen verknüpft"
-						value='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
-						data-initial-values='[{{- range $i, $lang := $content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
-					</multi-select-simple>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.TitleStmt "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-title" class="text-sm font-bold text-gray-700">Titel</label>
-					<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.SubtitleStmt "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-subtitle" class="text-sm font-bold text-gray-700">Untertitel</label>
-					<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.IncipitStmt "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-incipit" class="text-sm font-bold text-gray-700">Incipit</label>
-					<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.ResponsibilityStmt "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-responsibility" class="text-sm font-bold text-gray-700">Autorangabe</label>
-					<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.ParallelTitle "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-parallel-title" class="text-sm font-bold text-gray-700">Paralleltitel</label>
-					<textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.VariantTitle "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-variant-title" class="text-sm font-bold text-gray-700">Titelvarianten</label>
-					<textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.PlaceStmt "" }}hidden{{ end }}">
-					<label for="{{ $baseID }}-place" class="text-sm font-bold text-gray-700">Ortsangabe</label>
-					<textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal border border-slate-300 rounded-xs px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/30" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-
-				<div class="grid grid-cols-[8rem_1fr_1.5rem] gap-x-3 gap-y-2 items-baseline {{ if eq $content.Annotation "" }}hidden{{ end }}">
-					<label for="{{ $annotationID }}" class="text-sm font-bold text-gray-700">Anmerkung</label>
-					<div class="border border-slate-300 rounded-xs bg-white px-2 py-1 focus-within:ring-2 focus-within:ring-slate-400/30">
-						<trix-toolbar id="{{ $annotationToolbar }}">
-							<div class="trix-toolbar-container">
-								<span class="trix-toolbar-group">
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="bold" data-trix-key="b" title="Fett">
-										<i class="ri-bold"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="italic" data-trix-key="i" title="Kursiv">
-										<i class="ri-italic"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="strike" title="Gestrichen">
-										<i class="ri-strikethrough"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link">
-										<i class="ri-links-line"></i>
-									</button>
-								</span>
-								<span class="trix-toolbar-group">
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="heading1" title="Überschrift">
-										<i class="ri-h-1"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="quote" title="Zitat">
-										<i class="ri-double-quotes-l"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="bullet" title="Liste">
-										<i class="ri-list-unordered"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-attribute="number" title="Aufzählung">
-										<i class="ri-list-ordered"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-action="decreaseNestingLevel" title="Einzug verkleinern">
-										<i class="ri-indent-decrease"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-action="increaseNestingLevel" title="Einzug vergrößern">
-										<i class="ri-indent-increase"></i>
-									</button>
-								</span>
-								<span class="trix-toolbar-group">
-									<button type="button" class="trix-toolbar-button" data-trix-action="undo" data-trix-key="z" title="Rückgängig">
-										<i class="ri-arrow-go-back-line"></i>
-									</button>
-									<button type="button" class="trix-toolbar-button" data-trix-action="redo" data-trix-key="shift+z" title="Wiederholen">
-										<i class="ri-arrow-go-forward-line"></i>
-									</button>
-								</span>
-							</div>
-							<div class="trix-dialogs" data-trix-dialogs>
-								<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
-									<div class="trix-dialog__link-fields flex flex-row">
-										<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="URL eingeben…" aria-label="URL" required data-trix-input>
-										<div class="trix-button-group flex-row">
-											<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
-											<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
-										</div>
-									</div>
-								</div>
-							</div>
-						</trix-toolbar>
-						<textarea hidden id="{{ $annotationID }}" name="{{ $annotationID }}" autocomplete="off">{{- $content.Annotation -}}</textarea>
-						<trix-editor input="{{ $annotationID }}" toolbar="{{ $annotationToolbar }}" class="min-h-[6rem]"></trix-editor>
-					</div>
-					<button class="dm-close-button text-gray-500">
-						<i class="ri-close-line"></i>
-					</button>
-				</div>
-			</div-manager>
 		</div>
-	</div>
-	<div class="mt-0">
-		<relations-editor data-prefix="{{ $agentsPrefix }}" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="{{ $agentsAddToggleID }}">
-			<div class="inputwrapper !border-none">
-				<div class="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-2 items-start px-3 py-2">
-					<div class="flex flex-col gap-1 text-sm text-gray-700 font-bold">
-						<div class="flex items-center gap-1">
-							<span>Personen &amp; Körperschaften</span>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ helpOr "contents" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
-								<i class="ri-question-line"></i>
-							</tool-tip>
-						</div>
+
+		<div id="{{ $baseID }}-edit-fields" class="mt-2 flex flex-col gap-2"></div>
+		<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end mt-1">
+			<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
+				Felder hinzufügen</button>
+
+			<div class="inputwrapper {{ if eq $content.TitleStmt "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-title" class="inputlabel menu-label">Titel</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
 					</div>
-					<div>
-						<div id="{{ $agentsSectionID }}" class="rel-section-container px-0 mt-0">
+				</div>
+				<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.SubtitleStmt "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-subtitle" class="inputlabel menu-label">Untertitel</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.IncipitStmt "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-incipit" class="inputlabel menu-label">Incipit</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.ResponsibilityStmt "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-responsibility" class="inputlabel menu-label">Autorangabe</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.ParallelTitle "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-parallel-title" class="inputlabel menu-label">Paralleltitel</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.VariantTitle "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-variant-title" class="inputlabel menu-label">Titelvarianten</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea>
+			</div>
+
+			<div class="inputwrapper {{ if eq $content.PlaceStmt "" }}hidden{{ end }}">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-place" class="inputlabel menu-label">Ortsangabe</label>
+					<div class="pr-2">
+						<button class="dm-close-button font-bold input-label">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+				<textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea>
+			</div>
+
+		</div-manager>
+		{{ template "_annotation_field" (Arr $content.Annotation "Anmerkung" $annotationID) }}
+	</div>
+	<div class="mt-3">
+		<relations-editor data-prefix="{{ $agentsPrefix }}" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="{{ $agentsAddToggleID }}">
+			<div class="inputwrapper">
+				<div class="inputlabelrow">
+					<div class="flex items-center gap-1">
+						<label class="inputlabel" for="{{ $agentsSectionID }}">Personen &amp; Körperschaften</label>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">{{ helpOr "contents" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
+							<i class="ri-question-line"></i>
+						</tool-tip>
+					</div>
+					<div class="flex items-center gap-3">
+						<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+							<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
+						</a>
+						<button type="button" id="{{ $agentsAddToggleID }}" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+							<i class="ri-link"></i> Person verlinken
+						</button>
+					</div>
+				</div>
+				<div id="{{ $agentsSectionID }}" class="rel-section-container">
 						{{- if and $contentAgentsRender (gt (len $contentAgentsRender) 0) -}}
 							{{- range $i, $r := $contentAgentsRender -}}
 								{{- $a := index $agents $r.Agent -}}
@@ -316,9 +249,9 @@
 						{{- else -}}
 							<div class="rel-empty-text">Keine Personen verknüpft.</div>
 						{{- end -}}
-						</div>
+				</div>
 
-						<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-0">
+				<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2">
 						{{- if and $contentAgentsNew (gt (len $contentAgentsNew) 0) -}}
 							{{- range $i, $r := $contentAgentsNew -}}
 								{{- $a := index $agents $r.Agent -}}
@@ -358,9 +291,9 @@
 								</div>
 							{{- end -}}
 						{{- end -}}
-						</div>
+				</div>
 
-						<div data-role="relation-add-panel" class="mt-2 px-0 hidden">
+				<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 							<div class="rel-row">
 								<div class="rel-grid">
 									<div class="min-w-0">
@@ -401,9 +334,9 @@
 								</div>
 								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden" data-error-empty="Bitte Akteur auswählen.">Bitte Akteur auswählen.</div>
 							</div>
-						</div>
+				</div>
 
-						<template data-role="relation-new-template">
+				<template data-role="relation-new-template">
 							<div data-rel-row class="rel-row">
 								<div class="rel-grid">
 									<div data-rel-strike class="relation-strike rel-name-col">
@@ -430,18 +363,7 @@
 								</div>
 								<input type="hidden" data-rel-input="id" />
 							</div>
-						</template>
-
-						<div class="mt-2 pb-2 flex justify-end gap-4">
-							<a href="/personen/new/" class="text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-								<i class="ri-add-line"></i> Neue Person
-							</a>
-							<button type="button" id="{{ $agentsAddToggleID }}" class="text-gray-700 hover:text-slate-950 no-underline text-left">
-								<i class="ri-link"></i> Person verlinken
-							</button>
-						</div>
-					</div>
-				</div>
+				</template>
 			</div>
 		</relations-editor>
 	</div>

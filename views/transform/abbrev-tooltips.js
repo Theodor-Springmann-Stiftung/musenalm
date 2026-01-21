@@ -7,7 +7,7 @@ export class AbbreviationTooltips extends HTMLElement {
 		return {
 			"#": "Hinweis auf weitere Informationen in der Anmerkung.",
 			$: "vermutlich",
-			"+++": "Inhalte aus mehreren Almanachen interpoliert",
+			"+++": "Beiträge aus mehreren Almanachen interpoliert",
 			B: "Blatt",
 			BB: "Blätter",
 			C: "Corrigenda",

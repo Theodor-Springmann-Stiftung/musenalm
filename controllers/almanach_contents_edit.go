@@ -16,20 +16,18 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/security"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
 const (
 	URL_ALMANACH_CONTENTS_EDIT      = "contents/edit"
-	URL_ALMANACH_CONTENTS_INSERT    = "contents/insert"
+	URL_ALMANACH_CONTENTS_ITEM_EDIT = "contents/{contentMusenalmId}/edit"
 	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
-	URL_ALMANACH_CONTENTS_EDIT_FORM = "contents/edit/form"
 	URL_ALMANACH_CONTENTS_EDIT_EXTENT = "contents/edit/extent"
 	URL_ALMANACH_CONTENTS_UPLOAD    = "contents/upload"
 	URL_ALMANACH_CONTENTS_DELETE_SCAN = "contents/scan/delete"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT = "/almanach/contents/edit/"
-	TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM = "/almanach/contents/edit_form/"
+	TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT = "/almanach/contents/edit_item/"
 	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/almanach/contents/images_panel/"
 )
 
@@ -54,9 +52,8 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg := router.Group(URL_ALMANACH)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app))
-	rg.GET(URL_ALMANACH_CONTENTS_EDIT_FORM, p.GETEditForm(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_INSERT, p.POSTInsert(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app))
@@ -90,27 +87,53 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 	}
 }
 
-func (p *AlmanachContentsEditPage) GETEditForm(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
-		req := templating.NewRequest(e)
-		contentID := strings.TrimSpace(e.Request.URL.Query().Get("content_id"))
-		if contentID == "" {
+		contentMusenalmID := strings.TrimSpace(e.Request.PathValue("contentMusenalmId"))
+		if contentMusenalmID == "" {
 			return e.String(http.StatusBadRequest, "")
 		}
 
-		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		req := templating.NewRequest(e)
+		data := make(map[string]any)
+		result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
 		if err != nil {
-			return engine.Response404(e, err, nil)
+			engine.Response404(e, err, nil)
 		}
 
-		contents, err := dbmodels.Contents_IDs(app, []any{contentID})
-		if err != nil || len(contents) == 0 {
+		content, err := dbmodels.Contents_MusenalmID(app, contentMusenalmID)
+		if err != nil || content == nil {
 			return e.String(http.StatusNotFound, "")
 		}
-		content := contents[0]
-		if content.Entry() != entry.Id {
+		if content.Entry() != result.Entry.Id {
 			return e.String(http.StatusNotFound, "")
+		}
+
+		contents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
+		if err == nil && len(contents) > 1 {
+			sort.Slice(contents, func(i, j int) bool {
+				if contents[i].Numbering() == contents[j].Numbering() {
+					return contents[i].Id < contents[j].Id
+				}
+				return contents[i].Numbering() < contents[j].Numbering()
+			})
+		}
+		var prevContent *dbmodels.Content
+		var nextContent *dbmodels.Content
+		if len(contents) > 0 {
+			for i, c := range contents {
+				if c.Id != content.Id {
+					continue
+				}
+				if i > 0 {
+					prevContent = contents[i-1]
+				}
+				if i < len(contents)-1 {
+					nextContent = contents[i+1]
+				}
+				break
+			}
 		}
 
 		agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
@@ -119,26 +142,24 @@ func (p *AlmanachContentsEditPage) GETEditForm(engine *templating.Engine, app co
 			contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
 		}
 
-		data := map[string]any{
-			"content":           content,
-			"content_id":        content.Id,
-			"entry":             entry,
-			"csrf_token":        req.Session().Token,
-			"content_types":     dbmodels.CONTENT_TYPE_VALUES,
-			"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
-			"pagination_values": paginationValuesSorted(),
-			"agent_relations":   dbmodels.AGENT_RELATIONS,
-			"agents":            agentsMap,
-			"content_agents":    contentAgentsMap[content.Id],
+		data["result"] = result
+		data["csrf_token"] = req.Session().Token
+		data["content"] = content
+		data["content_id"] = content.Id
+		data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
+		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
+		data["pagination_values"] = paginationValuesSorted()
+		data["agent_relations"] = dbmodels.AGENT_RELATIONS
+		data["agents"] = agentsMap
+		data["content_agents"] = contentAgentsMap[content.Id]
+		data["prev_content"] = prevContent
+		data["next_content"] = nextContent
+
+		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+			data["success"] = msg
 		}
 
-		var builder strings.Builder
-		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_EDIT_FORM, data, "fragment"); err != nil {
-			app.Logger().Error("Failed to render content edit form", "entry_id", entry.Id, "content_id", contentID, "error", err)
-			return e.String(http.StatusInternalServerError, "")
-		}
-
-		return e.HTML(http.StatusOK, builder.String())
+		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 	}
 }
 
@@ -166,14 +187,13 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
-		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
 
 		if err := e.Request.ParseForm(); err != nil {
-			return p.renderSaveError(engine, app, e, req, nil, nil, err.Error(), isHTMX)
+			return p.renderError(engine, app, e, err.Error())
 		}
 
 		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return p.renderSaveError(engine, app, e, req, nil, nil, err.Error(), isHTMX)
+			return p.renderError(engine, app, e, err.Error())
 		}
 
 		entry, err := dbmodels.Entries_MusenalmID(app, id)
@@ -183,7 +203,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		contents, err := dbmodels.Contents_Entry(app, entry.Id)
 		if err != nil {
-			return p.renderSaveError(engine, app, e, req, entry, nil, "Beiträge konnten nicht geladen werden.", isHTMX)
+			return p.renderError(engine, app, e, "Beiträge konnten nicht geladen werden.")
 		}
 
 		contentInputs := parseContentsForm(e.Request.PostForm)
@@ -193,7 +213,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		for contentID := range contentInputs {
 			payload := parseContentAgentRelations(e.Request.PostForm, contentID)
 			if err := validateContentAgentRelations(payload); err != nil {
-				return p.renderSaveError(engine, app, e, req, nil, nil, err.Error(), isHTMX)
+				return p.renderError(engine, app, e, err.Error())
 			}
 			relationsByContent[contentID] = payload
 		}
@@ -294,7 +314,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to save contents", "entry_id", entry.Id, "error", err)
-			return p.renderSaveError(engine, app, e, req, entry, contentInputs, err.Error(), isHTMX)
+			return p.renderError(engine, app, e, err.Error())
 		}
 
 		if len(updatedContents) == 0 {
@@ -322,117 +342,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		}
 
 		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
-		if isHTMX {
-			renderID := ""
-			for contentID := range contentInputs {
-				renderID = contentID
-				break
-			}
-			var renderContent *dbmodels.Content
-			if renderID != "" {
-				if existing, ok := existingByID[renderID]; ok {
-					renderContent = existing
-				} else if len(newContentIDs) > 0 && len(updatedContents) > 0 {
-					renderContent = updatedContents[len(updatedContents)-1]
-				}
-			}
-			if renderContent == nil && renderID != "" {
-				if refreshed, err := dbmodels.Contents_IDs(app, []any{renderID}); err == nil && len(refreshed) > 0 {
-					renderContent = refreshed[0]
-				}
-			}
-			if renderContent == nil {
-				e.Response.Header().Set("HX-Redirect", redirect)
-				return e.String(http.StatusOK, "")
-			}
-			if refreshed, err := dbmodels.Contents_IDs(app, []any{renderContent.Id}); err == nil && len(refreshed) > 0 {
-				renderContent = refreshed[0]
-			}
-			agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{renderContent})
-			if err != nil {
-				agentsMap = map[string]*dbmodels.Agent{}
-				contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
-			}
-			data := map[string]any{
-				"content":           renderContent,
-				"content_id":        renderContent.Id,
-				"entry":             entry,
-				"csrf_token":        req.Session().Token,
-				"content_types":     dbmodels.CONTENT_TYPE_VALUES,
-				"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
-				"pagination_values": paginationValuesSorted(),
-				"agent_relations":   dbmodels.AGENT_RELATIONS,
-				"agents":            agentsMap,
-				"content_agents":    contentAgentsMap[renderContent.Id],
-				"open_edit":         false,
-				"is_new":            false,
-				"collapsed":         false,
-			}
-			var builder strings.Builder
-			if err := engine.Render(&builder, "/almanach/contents/item/", data, "fragment"); err != nil {
-				app.Logger().Error("Failed to render content save", "entry_id", entry.Id, "content_id", renderContent.Id, "error", err)
-				e.Response.Header().Set("HX-Redirect", redirect)
-				return e.String(http.StatusOK, "")
-			}
-			return e.HTML(http.StatusOK, builder.String())
-		}
 		return e.Redirect(http.StatusSeeOther, redirect)
-	}
-}
-
-func (p *AlmanachContentsEditPage) POSTInsert(engine *templating.Engine, app core.App) HandleFunc {
-	return func(e *core.RequestEvent) error {
-		id := e.Request.PathValue("id")
-		req := templating.NewRequest(e)
-
-		if err := e.Request.ParseForm(); err != nil {
-			return p.renderError(engine, app, e, "Formulardaten ungültig.")
-		}
-
-		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return p.renderError(engine, app, e, err.Error())
-		}
-
-		entry, err := dbmodels.Entries_MusenalmID(app, id)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-
-		contentCollection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
-		if err != nil {
-			return p.renderError(engine, app, e, "Beitrag konnte nicht vorbereitet werden.")
-		}
-
-		record := core.NewRecord(contentCollection)
-		record.Id = "tmp" + security.PseudorandomString(8)
-		record.MarkAsNew()
-		newContent := dbmodels.NewContent(record)
-		newContent.SetEntry(entry.Id)
-		newContent.SetYear(entry.Year())
-		newContent.SetEditState("Edited")
-
-		data := map[string]any{
-			"content":           newContent,
-			"entry":             entry,
-			"csrf_token":        req.Session().Token,
-			"content_types":     dbmodels.CONTENT_TYPE_VALUES,
-			"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
-			"pagination_values": paginationValuesSorted(),
-			"agent_relations":   dbmodels.AGENT_RELATIONS,
-			"agents":            map[string]*dbmodels.Agent{},
-			"content_agents":    []*dbmodels.RContentsAgents{},
-			"open_edit":         true,
-			"is_new":            true,
-			"content_id":        record.Id,
-		}
-
-		var builder strings.Builder
-		if err := engine.Render(&builder, "/almanach/contents/insert/", data, "fragment"); err != nil {
-			app.Logger().Error("Failed to render content insert", "entry_id", entry.Id, "error", err)
-			return p.renderError(engine, app, e, "Beitrag konnte nicht vorbereitet werden.")
-		}
-
-		return e.HTML(http.StatusOK, builder.String())
 	}
 }
 
@@ -741,142 +651,6 @@ func renderContentsImagesHTMXError(e *core.RequestEvent, message string, isHTMX 
 		message,
 	)
 	return e.HTML(http.StatusBadRequest, payload)
-}
-
-func (p *AlmanachContentsEditPage) renderSaveError(
-	engine *templating.Engine,
-	app core.App,
-	e *core.RequestEvent,
-	req *templating.Request,
-	entry *dbmodels.Entry,
-	contentInputs map[string]map[string][]string,
-	message string,
-	isHTMX bool,
-) error {
-	if !isHTMX {
-		return p.renderError(engine, app, e, message)
-	}
-	if entry == nil {
-		id := e.Request.PathValue("id")
-		result, err := dbmodels.Entries_MusenalmID(app, id)
-		if err != nil {
-			return p.renderError(engine, app, e, message)
-		}
-		entry = result
-	}
-
-	contentID := ""
-	fields := map[string][]string{}
-	if contentInputs != nil {
-		for id, values := range contentInputs {
-			contentID = id
-			fields = values
-			break
-		}
-	}
-	if contentID == "" {
-		return p.renderError(engine, app, e, message)
-	}
-
-	content := (*dbmodels.Content)(nil)
-	contents, err := dbmodels.Contents_Entry(app, entry.Id)
-	if err == nil {
-		for _, existing := range contents {
-			if existing.Id == contentID {
-				content = existing
-				break
-			}
-		}
-	}
-	isNew := false
-	if content == nil {
-		contentCollection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
-		if err != nil {
-			return p.renderError(engine, app, e, message)
-		}
-		record := core.NewRecord(contentCollection)
-		record.Id = contentID
-		record.MarkAsNew()
-		content = dbmodels.NewContent(record)
-		content.SetEditState("Edited")
-		isNew = true
-	}
-
-	relationsPayload := parseContentAgentRelations(e.Request.PostForm, contentID)
-	if err := validateContentAgentRelations(relationsPayload); err != nil {
-		return p.renderError(engine, app, e, err.Error())
-	}
-
-	renderRelations := []contentAgentRender{}
-	renderNewRelations := []contentAgentRender{}
-	agentIDs := map[string]struct{}{}
-	for _, relation := range relationsPayload.Relations {
-		renderRelations = append(renderRelations, contentAgentRender{
-			Id:        relation.ID,
-			Agent:     relation.TargetID,
-			Type:      relation.Type,
-			Uncertain: relation.Uncertain,
-		})
-		if relation.TargetID != "" {
-			agentIDs[relation.TargetID] = struct{}{}
-		}
-	}
-	for _, relation := range relationsPayload.NewRelations {
-		renderNewRelations = append(renderNewRelations, contentAgentRender{
-			Agent:     relation.TargetID,
-			Type:      relation.Type,
-			Uncertain: relation.Uncertain,
-		})
-		if relation.TargetID != "" {
-			agentIDs[relation.TargetID] = struct{}{}
-		}
-	}
-
-	agentsMap := map[string]*dbmodels.Agent{}
-	if len(agentIDs) > 0 {
-		ids := make([]any, 0, len(agentIDs))
-		for id := range agentIDs {
-			ids = append(ids, id)
-		}
-		if agents, err := dbmodels.Agents_IDs(app, ids); err == nil {
-			for _, agent := range agents {
-				agentsMap[agent.Id] = agent
-			}
-		}
-	}
-
-	numbering := 0.0
-	if order := parseContentsOrder(e.Request.PostForm); len(order) > 0 {
-		if mapped, ok := buildContentOrderMap(order)[contentID]; ok {
-			numbering = mapped
-		}
-	}
-	applyContentFormDraft(content, entry, fields, numbering)
-
-	data := map[string]any{
-		"content":           content,
-		"content_id":        contentID,
-		"entry":             entry,
-		"csrf_token":        req.Session().Token,
-		"content_types":     dbmodels.CONTENT_TYPE_VALUES,
-		"musenalm_types":    dbmodels.MUSENALM_TYPE_VALUES,
-		"pagination_values": paginationValuesSorted(),
-		"agent_relations":   dbmodels.AGENT_RELATIONS,
-		"agents":            agentsMap,
-		"content_agents_render": renderRelations,
-		"content_agents_new":    renderNewRelations,
-		"open_edit":         true,
-		"is_new":            isNew,
-		"error":             message,
-	}
-
-	var builder strings.Builder
-	if err := engine.Render(&builder, "/almanach/contents/item/", data, "fragment"); err != nil {
-		app.Logger().Error("Failed to render content save error", "entry_id", entry.Id, "content_id", contentID, "error", err)
-		return p.renderError(engine, app, e, message)
-	}
-
-	return e.HTML(http.StatusOK, builder.String())
 }
 
 func parseContentsForm(form url.Values) map[string]map[string][]string {

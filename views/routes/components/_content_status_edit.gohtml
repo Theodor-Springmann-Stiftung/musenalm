@@ -1,0 +1,51 @@
+{{- $content := index . 0 -}}
+{{- $prefix := index . 1 -}}
+{{- $fieldId := index . 2 -}}
+
+<div class="flex flex-col gap-4">
+	<div class="inputwrapper bg-stone-50 !border-none">
+		<div class="inputlabelrow">
+			<div class="flex items-center gap-1">
+				<label for="{{ $fieldId }}" class="inputlabel">Status</label>
+				<tool-tip position="top" class="!inline">
+					<div class="data-tip">{{ help "contents" "edit_state" }}</div>
+					<i class="ri-question-line"></i>
+				</tool-tip>
+			</div>
+		</div>
+		<div class="relative">
+			<select name="{{ $prefix }}edit_state" id="{{ $fieldId }}" autocomplete="off" class="inputselect font-bold status-select py-2.5 pl-8" data-status="{{ $content.EditState }}">
+				<option value="Unknown" {{ if eq $content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+				<option value="ToDo" {{ if eq $content.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+				<option value="Review" {{ if eq $content.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+				<option value="Edited" {{ if eq $content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
+			</select>
+			<i class="status-icon absolute left-2 top-[calc(50%-1px)] -translate-y-1/2 pointer-events-none {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+		</div>
+	</div>
+
+	<div id="{{ $prefix }}edit_comment_section"></div>
+	<div-manager dm-target="{{ $prefix }}edit_comment_section">
+		<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
+			Bearbeitungsvermerk hinzufügen</button>
+
+		<div class="inputwrapper {{ if eq $content.Comment "" }}hidden{{ end }}">
+			<div class="inputlabelrow">
+				<div class="flex items-center gap-1">
+					<label for="{{ $prefix }}edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">{{ help "contents" "edit_comment" }}</div>
+						<i class="ri-question-line"></i>
+					</tool-tip>
+				</div>
+				<div class="pr-2">
+					<button class="dm-close-button font-bold input-label">
+						<i class="ri-close-line"></i>
+					</button>
+				</div>
+			</div>
+
+			<textarea name="{{ $prefix }}edit_comment" id="{{ $prefix }}edit_comment" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $content.Comment -}}</textarea>
+		</div>
+	</div-manager>
+</div>

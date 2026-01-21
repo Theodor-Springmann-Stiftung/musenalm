@@ -1,40 +1,28 @@
 {{- $content := index . "content" -}}
 {{- $entry := index . "entry" -}}
 {{- $csrf := index . "csrf_token" -}}
-{{- $contentTypes := index . "content_types" -}}
-{{- $musenalmTypes := index . "musenalm_types" -}}
-{{- $paginationValues := index . "pagination_values" -}}
 {{- $agents := index . "agents" -}}
 {{- $contentAgents := index . "content_agents" -}}
-{{- $agentRelations := index . "agent_relations" -}}
 {{- $overrideID := index . "content_id" -}}
-{{- $openEdit := index . "open_edit" -}}
-{{- $isNew := index . "is_new" -}}
-{{- $error := index . "error" -}}
-{{- $collapsed := index . "collapsed" -}}
-
 {{- $contentID := $content.Id -}}
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
-{{- $editContainerID := printf "content-%s-edit-container" $contentID -}}
-{{- $collapsedAttr := "true" -}}
-{{- if and (ne $collapsed nil) (eq $collapsed false) -}}
-	{{- $collapsedAttr = "false" -}}
-{{- end -}}
 
-<div data-role="content-item" class="relative {{ if $isNew }}data-new-content{{ end }} {{ if $openEdit }}data-editing{{ end }}" data-open-edit="{{ if $openEdit }}true{{ end }}" data-content-temp="{{ if $isNew }}true{{ end }}" data-content-id="{{ $contentID }}" data-collapsed="{{ $collapsedAttr }}">
-	<div data-role="content-view" class="{{ if $openEdit }}hidden{{ end }} mt-1">
-		<div class="border border-slate-200 bg-stone-100 rounded-xs overflow-visible">
-			<div class="flex items-center justify-between gap-4 border-b border-slate-200 bg-stone-100 px-3 py-1 cursor-pointer hover:bg-stone-200/50 transition-colors duration-75 flex-nowrap whitespace-nowrap" data-role="content-drag-handle" data-content-header="true" draggable="true" aria-label="Beitrag verschieben">
+<div data-role="content-item" class="relative odd:bg-stone-100" data-content-id="{{ $contentID }}">
+	<div data-role="content-view">
+		<div class="bg-transparent overflow-visible">
+			<div class="flex items-center justify-between gap-3 bg-transparent px-2 py-0 flex-nowrap whitespace-nowrap" data-content-header="true">
 				<div class="flex items-center gap-2 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
-					<tool-tip position="top" class="!inline">
-						<div class="data-tip" data-role="content-collapse-tooltip">Einklappen</div>
-						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300 {{ if $isNew }}hidden{{ end }}" data-role="content-collapse-toggle" aria-label="Beitrag einklappen" aria-expanded="true">
-							<i class="ri-arrow-up-s-line" data-role="content-collapse-icon"></i>
-						</button>
-					</tool-tip>
 					<div class="flex items-center gap-1">
+						<button
+							type="button"
+							class="text-slate-600 rounded-sm px-2 py-1 text-sm cursor-grab"
+							data-role="content-drag-handle"
+							draggable="true"
+							aria-label="Beitrag verschieben">
+							<i class="ri-draggable"></i>
+						</button>
 						<tool-tip position="top" class="!inline">
 							<div class="data-tip">Nach oben verschieben</div>
 							<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
@@ -54,15 +42,15 @@
 					{{- if $content.MusenalmType -}}
 						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
-								<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
+								<span class="bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-base font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
 							{{- end -}}
 						</span>
 					{{- end -}}
 					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
 						{{- if $content.PreferredTitle -}}
-							<span class="text-sm font-semibold truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
+							<span class="text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
 						{{- else if $content.TitleStmt -}}
-							<span class="text-sm font-semibold italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
+							<span class="text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
 						{{- end -}}
 					</div>
 				</div>
@@ -75,22 +63,15 @@
 					</span>
 					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-						{{- if eq $content.EditState "Edited" -}}Erfasst{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else -}}Unbekannt{{- end -}}
 					</span>
 					<tool-tip position="top" class="!inline">
 						<div class="data-tip">Bearbeiten</div>
-						<button
-							type="button"
-							class="resetbutton w-9 h-9 flex items-center justify-center hover:bg-stone-300 rounded-sm"
-							data-role="content-edit-button"
-							data-loading-label="Eintrag wird geladen"
-							hx-boost="false"
-							hx-get="/almanach/{{ $entry.MusenalmID }}/contents/edit/form?content_id={{ $contentID }}"
-							hx-target="#{{ $editContainerID }}"
-							hx-swap="innerHTML">
+						<a
+							href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
+							class="resetbutton w-9 h-9 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
+							aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-2-line"></i>
-							<span class="sr-only">Bearbeiten</span>
-						</button>
+						</a>
 					</tool-tip>
 					<tool-tip position="top" class="!inline">
 						<div class="data-tip">Löschen</div>
@@ -111,7 +92,7 @@
 						<div class="text-sm font-bold text-gray-900 mt-1">{{ $content.TitleStmt }}</div>
 					{{- end -}}
 					<p class="text-sm text-gray-700 mt-2">
-						Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Inhalte werden entfernt.
+						Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Beiträge werden entfernt.
 					</p>
 					<div class="flex items-center justify-end gap-3 mt-4">
 						<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel-view">Abbrechen</button>
@@ -121,7 +102,7 @@
 					</div>
 				</div>
 			</dialog>
-			<div class="flex flex-col gap-3 px-3 py-2 md:flex-row md:items-start" data-role="content-view-body">
+			<div class="hidden flex flex-col gap-1 px-2 py-0.5 md:flex-row md:items-start" data-role="content-view-body">
 				<div class="grid flex-1 gap-2 grid-cols-[8rem_1fr] items-baseline">
 					{{- if or $content.Extent $content.MusenalmPagination -}}
 						<div class="text-sm font-bold text-gray-700">Seite</div>
@@ -205,26 +186,9 @@
 					"content" $content
 					"entry" $entry
 					"csrf_token" $csrf
-					"is_new" $isNew
+					"is_new" false
 				) -}}
 			</div>
 		</div>
-	</div>
-	<div data-role="content-edit-container" id="{{ $editContainerID }}">
-		{{- if $openEdit -}}
-			{{- template "_content_edit_form" (Dict
-				"content" $content
-				"content_id" $contentID
-				"entry" $entry
-				"csrf_token" $csrf
-				"content_types" $contentTypes
-				"musenalm_types" $musenalmTypes
-				"pagination_values" $paginationValues
-				"agents" $agents
-				"content_agents" $contentAgents
-				"agent_relations" $agentRelations
-				"error" $error
-			) -}}
-		{{- end -}}
 	</div>
 </div>

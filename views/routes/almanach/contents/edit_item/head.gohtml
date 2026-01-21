@@ -1,0 +1,10 @@
+{{ $model := . }}
+<title>
+{{- if $model.content -}}
+	Beitrag bearbeiten: {{ if $model.content.PreferredTitle }}{{ $model.content.PreferredTitle }}{{ else if $model.content.TitleStmt }}{{ $model.content.TitleStmt }}{{ else }}Beitrag{{ end }} - Musenalm
+{{- else if $model.result -}}
+	Beitrag bearbeiten: {{ $model.result.Entry.PreferredTitle }} - Musenalm
+{{- else -}}
+	Beitrag bearbeiten - Musenalm
+{{- end -}}
+</title>

@@ -542,11 +542,11 @@
 	}
 
 	.content .fields {
-		@apply grid grid-cols-10 gap-y-0.5 w-full gap-x-4;
+		@apply grid grid-cols-10 gap-y-0 w-full gap-x-3;
 	}
 
 	.content .fieldlabel {
-		@apply col-span-1 font-bold whitespace-nowrap grow-0 shrink-0 font-sans text-sm align-baseline mt-1 text-right;
+		@apply col-span-1 font-bold whitespace-nowrap grow-0 shrink-0 font-sans text-sm align-baseline mt-0 text-right;
 	}
 
 	.content .fieldvalue {

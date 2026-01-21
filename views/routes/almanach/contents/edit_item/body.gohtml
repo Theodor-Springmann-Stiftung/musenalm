@@ -1,0 +1,341 @@
+{{ $model := . }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+		<div class="mb-1">
+			<i class="ri-file-list-3-line"></i> Beiträge
+		</div>
+		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+			{{- if $model.result -}}
+				{{- $model.result.Entry.PreferredTitle -}}<br>
+				<span class="text-base font-semibold text-slate-700">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
+			{{- else -}}
+				Beiträge bearbeiten
+			{{- end -}}
+		</h1>
+			{{- if $model.result -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/beitrag/{{ $model.content.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div class="flex flex-row">
+						{{- if $model.prev_content -}}
+							<div>
+								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
+							{{ $model.content.MusenalmID }}
+						</div>
+						{{- if $model.next_content -}}
+							<div>
+								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/{{ $model.content.MusenalmID }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-loop-left-line"></i> Reset
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-arrow-left-line"></i> Zurück zur Liste
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
+							<i class="ri-edit-2-line"></i> Almanach
+						</a>
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+		{{- if $model.result -}}
+		<div class="flex flex-row" id="contents-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if $model.prev_content -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">
+									{{- if $model.prev_content.PreferredTitle -}}
+										{{- $model.prev_content.PreferredTitle -}}
+									{{- else if $model.prev_content.TitleStmt -}}
+										{{- $model.prev_content.TitleStmt -}}
+									{{- else -}}
+										Beitrag Nr. {{ $model.prev_content.MusenalmID }}
+									{{- end -}}
+								</div>
+								<a
+									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						{{ $model.content.MusenalmID }}
+						</span>
+						{{- if $model.next_content -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">
+									{{- if $model.next_content.PreferredTitle -}}
+										{{- $model.next_content.PreferredTitle -}}
+									{{- else if $model.next_content.TitleStmt -}}
+										{{- $model.next_content.TitleStmt -}}
+									{{- else -}}
+										Beitrag Nr. {{ $model.next_content.MusenalmID }}
+									{{- end -}}
+								</div>
+								<a
+									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="">{{ $model.content.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit">
+							<span>{{ GermanDate $model.result.Entry.Updated }}</span>,
+							<span>{{ GermanTime $model.result.Entry.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}">
+							<i class="ri-user-line mr-1"></i>
+							<span>{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{- end -}}
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_usermessage" $model }}
+	<form
+		autocomplete="off"
+		class="w-full dbform"
+		method="POST"
+		action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+
+		<div class="flex gap-8">
+			<div class="flex-1 flex flex-col gap-4">
+				{{- template "_content_edit" (Dict
+					"content" $model.content
+					"content_id" $model.content_id
+					"entry" $model.result.Entry
+					"content_types" $model.content_types
+					"musenalm_types" $model.musenalm_types
+					"pagination_values" $model.pagination_values
+					"agents" $model.agents
+					"content_agents" $model.content_agents
+					"agent_relations" $model.agent_relations
+				) -}}
+			</div>
+
+			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+				{{- $prefix := printf "content_%s_" $model.content_id -}}
+				{{- $fieldId := printf "content-%s-edit-state" $model.content_id -}}
+				{{ template "_content_status_edit" (Arr $model.content $prefix $fieldId) }}
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<div class="flex items-center gap-1">
+							<label for="content-{{ $model.content_id }}-musenalm-type" class="inputlabel">Beitragstyp(en)</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ helpOr "contents" "musenalm_type" "Musenalm-Typen des Beitrags." }}</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
+					</div>
+					<div class="px-2 py-2">
+						<multi-select-simple
+							id="content-{{ $model.content_id }}-musenalm-type"
+							name="content_{{ $model.content_id }}_musenalm_type[]"
+							show-create-button="false"
+							placeholder="Musenalm-Typen suchen..."
+							data-empty-text="Keine Typen verknüpft"
+							value='[{{- range $i, $t := $model.content.MusenalmType -}}{{- if $i }},{{ end -}}"{{ $t }}"{{- end -}}]'
+							data-initial-options='[{{- range $i, $t := $model.musenalm_types -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q}" $t $t }}{{- end -}}]'
+							data-initial-values='[{{- range $i, $t := $model.content.MusenalmType -}}{{- if $i }},{{ end -}}{{ printf "%q" $t }}{{- end -}}]'>
+						</multi-select-simple>
+					</div>
+				</div>
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<label for="content-{{ $model.content_id }}-language" class="inputlabel">Sprache</label>
+					</div>
+					<multi-select-simple
+						id="content-{{ $model.content_id }}-language"
+						name="content_{{ $model.content_id }}_language[]"
+						show-create-button="false"
+						placeholder="Sprachen suchen..."
+						data-empty-text="Keine Sprachen verknüpft"
+						value='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
+						data-initial-values='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
+					</multi-select-simple>
+				</div>
+			</div>
+		</div>
+
+		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
+			<p class="text-sm text-gray-600" aria-live="polite"></p>
+			<div class="flex items-center gap-3 self-end flex-wrap">
+				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-arrow-left-line"></i>
+					<span>Zurück</span>
+				</a>
+				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
+					<i class="ri-delete-bin-line"></i>
+					<span>Eintrag loeschen</span>
+				</button>
+				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+			</div>
+		</div>
+		<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[22rem]">
+				<div class="text-base font-bold text-gray-900">Eintrag loeschen?</div>
+				{{- if $model.content.TitleStmt -}}
+					<div class="text-sm font-bold text-gray-900 mt-1">{{ $model.content.TitleStmt }}</div>
+				{{- end -}}
+				<p class="text-sm text-gray-700 mt-2">
+					Der Eintrag wird dauerhaft geloescht. Verknuepfungen, Exemplare und Beitraege werden entfernt.
+				</p>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+					<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
+						Loeschen
+					</button>
+				</div>
+			</div>
+		</dialog>
+	</form>
+</div>
+</edit-page>
+
+<script>
+(() => {
+	const applyMultiSelectInit = (el) => {
+		if (!el) return;
+		const optionsRaw = el.getAttribute("data-initial-options") || "[]";
+		const valuesRaw = el.getAttribute("data-initial-values") || "[]";
+		let options = [];
+		let values = [];
+		try {
+			options = JSON.parse(optionsRaw);
+			values = JSON.parse(valuesRaw);
+		} catch {
+			return;
+		}
+		if (options.length && typeof el.setOptions === "function") {
+			el.setOptions(options);
+		}
+		if (values.length) {
+			el.value = values;
+			if (typeof el.captureInitialSelection === "function") {
+				el.captureInitialSelection();
+			}
+		}
+	};
+
+	const deleteButton = document.querySelector("[data-role='content-delete']");
+	const deleteDialog = document.querySelector("[data-role='content-delete-dialog']");
+	const deleteConfirm = document.querySelector("[data-role='content-delete-confirm']");
+	const deleteCancel = document.querySelector("[data-role='content-delete-cancel']");
+	const csrfToken = "{{ $model.csrf_token }}";
+	const contentId = "{{ $model.content_id }}";
+	const deleteEndpoint = "/almanach/{{ $model.result.Entry.MusenalmID }}/contents/delete";
+
+	const initMultiSelects = () => {
+		document.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
+			applyMultiSelectInit(el);
+		});
+	};
+	if (window.customElements?.whenDefined) {
+		window.customElements.whenDefined("multi-select-simple").then(() => {
+			requestAnimationFrame(initMultiSelects);
+		});
+	} else {
+		initMultiSelects();
+	}
+
+	if (!deleteButton || !deleteDialog || !deleteConfirm || !deleteCancel) {
+		return;
+	}
+
+	deleteButton.addEventListener("click", () => {
+		if (deleteDialog.showModal) {
+			deleteDialog.showModal();
+		} else {
+			deleteDialog.setAttribute("open", "true");
+		}
+	});
+
+	deleteCancel.addEventListener("click", () => {
+		deleteDialog.close();
+	});
+
+	deleteDialog.addEventListener("cancel", (event) => {
+		event.preventDefault();
+		deleteDialog.close();
+	});
+
+	deleteConfirm.addEventListener("click", () => {
+		const payload = new URLSearchParams();
+		payload.set("csrf_token", csrfToken);
+		payload.set("content_id", contentId);
+		fetch(deleteEndpoint, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: payload.toString(),
+		}).then((response) => {
+			if (response.ok) {
+				window.location.assign("/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit");
+				return;
+			}
+			deleteDialog.close();
+		}).catch(() => {
+			deleteDialog.close();
+		});
+	});
+})();
+</script>

@@ -5,13 +5,13 @@
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
-			<i class="ri-file-list-3-line"></i> Inhalte
+			<i class="ri-file-list-3-line"></i> Beiträge
 		</div>
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.result -}}
 				{{- $model.result.Entry.PreferredTitle -}}
 			{{- else -}}
-				Inhalte bearbeiten
+				Beiträge bearbeiten
 			{{- end -}}
 		</h1>
 			{{- if $model.result -}}
@@ -127,10 +127,6 @@
 		<i class="ri-loader-4-line spinning mr-2"></i>
 		Reihenfolge wird gespeichert
 	</div>
-	<div id="contents-htmx-indicator" class="fixed right-6 bottom-16 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
-		<i class="ri-loader-4-line spinning mr-2"></i>
-		<span data-role="contents-htmx-label">Eintrag wird geladen</span>
-	</div>
 	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
 	<div class="flex items-center gap-3 px-4">
 		<form
@@ -150,30 +146,10 @@
 				Speichern
 			</button>
 		</form>
-		<div class="flex items-center gap-2">
-			<button type="button" class="resetbutton w-auto px-3 py-2 flex items-center gap-2" data-role="contents-collapse-all" data-state="expanded">
-				<i class="ri-arrow-up-s-line" data-role="contents-collapse-all-icon"></i>
-				<span data-role="contents-collapse-all-label">Alle Eintraege einklappen</span>
-			</button>
-			<button
-				type="button"
-				class="resetbutton w-auto px-3 py-2 flex items-center gap-2"
-				data-role="contents-create"
-				data-loading-label="Eintrag wird geladen"
-				hx-post="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
-				hx-target="[data-role='contents-list']"
-				hx-swap="beforeend"
-				hx-include="[data-role='csrf-token']"
-				hx-vals='{"position":"after","content_id":""}'>
-				<i class="ri-add-line"></i>
-				<span>Eintrag anlegen</span>
-			</button>
-		</div>
 	</div>
-	<div class="flex flex-col gap-0.5"
+	<div class="mt-3 px-4 text-lg font-bold text-gray-800">Inhalt</div>
+	<div class="flex flex-col gap-0 mt-2"
 		data-role="contents-list"
-		data-insert-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/insert"
-		data-edit-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/form"
 		data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
 		{{- range $_, $content := $model.result.Contents -}}
 			{{- template "_content_item" (Dict
@@ -195,34 +171,7 @@
 </edit-page>
 
 <script type="module">
-	const applyMultiSelectInit = (el) => {
-		if (!el) return;
-		const optionsRaw = el.getAttribute("data-initial-options") || "[]";
-		const valuesRaw = el.getAttribute("data-initial-values") || "[]";
-		let options = [];
-		let values = [];
-		try {
-			options = JSON.parse(optionsRaw);
-			values = JSON.parse(valuesRaw);
-		} catch {
-			return;
-		}
-		if (options.length && typeof el.setOptions === "function") {
-			el.setOptions(options);
-		}
-		if (values.length) {
-			el.value = values;
-			if (typeof el.captureInitialSelection === "function") {
-				el.captureInitialSelection();
-			}
-		}
-	};
-
-	let enterEditMode = null;
-	let setupEditFormGlobal = null;
 	let list = null;
-	let setHtmxIndicator = () => {};
-	let setHtmxIndicatorLabel = () => {};
 
 	const initPage = () => {
 		list = document.querySelector("[data-role='contents-list']");
@@ -231,88 +180,14 @@
 		}
 
 		const getItems = () => Array.from(list.querySelectorAll("[data-role='content-item']"));
-		const collapseAllButton = document.querySelector("[data-role='contents-collapse-all']");
-		const collapseAllLabel = document.querySelector("[data-role='contents-collapse-all-label']");
-		const collapseAllIcon = document.querySelector("[data-role='contents-collapse-all-icon']");
-		const removeGaps = () => {
-			list.querySelectorAll("[data-role='content-gap']").forEach((gap) => gap.remove());
-		};
-		const renderInsertGaps = () => {
-			removeGaps();
-			const insertEndpoint = list.dataset.insertEndpoint || "";
-			const items = getItems();
-			if (!insertEndpoint) {
-				return;
-			}
-			if (list.querySelector("[data-role='content-item'].data-editing")) {
-				return;
-			}
-			const createGap = (position, contentId, label) => {
-				const gap = document.createElement("div");
-				gap.className = "relative group h-6 -my-2.5";
-				gap.dataset.role = "content-gap";
-				const line = document.createElement("div");
-				line.className = "pointer-events-none absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-slate-300 opacity-0 transition-opacity duration-150 group-hover:opacity-100";
-				const button = document.createElement("button");
-				button.type = "button";
-				button.className = "absolute left-1/2 top-1/2 z-[10000] -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded-full border border-slate-300 bg-stone-100 text-slate-700 px-3 py-2 text-base shadow-sm";
-				button.dataset.loadingLabel = "Eintrag wird geladen";
-				button.setAttribute("aria-label", "Beitrag einfügen");
-				button.setAttribute("hx-post", insertEndpoint);
-				button.setAttribute("hx-target", "closest [data-role='content-gap']");
-				button.setAttribute("hx-swap", "beforebegin");
-				button.setAttribute("hx-include", "[data-role='csrf-token']");
-				button.setAttribute("hx-vals", JSON.stringify({ position, content_id: contentId }));
-				button.innerHTML = label ? '<i class="ri-add-line"></i><span>Neuer Beitrag</span>' : '<i class="ri-add-line"></i>';
-				gap.appendChild(line);
-				gap.appendChild(button);
-				gap.appendChild(document.createElement("div")).className = "h-1";
-				return gap;
-			};
-
-			items.forEach((item) => {
-				if (item.parentElement !== list) {
-					return;
-				}
-				const contentId = item.dataset.contentId || "";
-				list.insertBefore(createGap("before", contentId, false), item);
-			});
-			list.appendChild(createGap("after", "", true));
-			if (window.htmx?.process) {
-				list.querySelectorAll("[data-role='content-gap']").forEach((gap) => {
-					window.htmx.process(gap);
-				});
-			}
-		};
-		const setEditSpacing = (active) => {
-			list.style.rowGap = active ? "0.5rem" : "";
-			list.style.paddingTop = active ? "0.25rem" : "";
-			list.style.paddingBottom = active ? "0.25rem" : "";
-		};
-		const syncEditSpacing = () => {
-			setEditSpacing(!!list.querySelector("[data-role='content-item'].data-editing"));
-		};
-		const showEditButtonsIfIdle = () => {
-			if (list.querySelector("[data-role='content-item'].data-editing")) {
-				return;
-			}
-			getItems().forEach((item) => {
-				const editButton = item.querySelector("[data-role='content-edit-button']");
-				if (editButton) {
-					editButton.classList.remove("hidden");
-				}
-			});
-		};
 		if (getItems().length === 0) {
 			return;
 		}
 
-		const isTempContentId = (contentId) => contentId && contentId.startsWith("tmp");
 		const orderEndpoint = list.dataset.orderEndpoint || getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
 		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
 		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
 		const syncIndicator = document.querySelector("#contents-sync-indicator");
-		const htmxIndicator = document.querySelector("#contents-htmx-indicator");
 		let orderSyncTimer = null;
 		let isOrderSyncing = false;
 		let pendingOrderSync = false;
@@ -323,29 +198,8 @@
 			}
 			syncIndicator.classList.toggle("hidden", !active);
 		};
-		setHtmxIndicator = (active) => {
-			if (!htmxIndicator) {
-				return;
-			}
-			htmxIndicator.classList.toggle("hidden", !active);
-		};
-		setHtmxIndicatorLabel = (label) => {
-			if (!htmxIndicator || !label) {
-				return;
-			}
-			const labelEl = htmxIndicator.querySelector("[data-role='contents-htmx-label']");
-			if (labelEl) {
-				labelEl.textContent = label;
-			}
-		};
-
 		const deleteContent = (item, dialog) => {
 			if (!item) {
-				return;
-			}
-			if (item.dataset.contentTemp === "true") {
-				dialog?.close();
-				removeItem(item);
 				return;
 			}
 			const contentId = item.dataset.contentId || "";
@@ -396,7 +250,7 @@
 			payload.set("csrf_token", csrfToken);
 			list.querySelectorAll("[data-role='content-item']").forEach((card) => {
 				const contentId = card.dataset.contentId;
-				if (!contentId || isTempContentId(contentId)) {
+				if (!contentId) {
 					return;
 				}
 				payload.append("content_order[]", contentId);
@@ -427,79 +281,8 @@
 			}, 300);
 		};
 
-		const closeAll = (keepItem = null) => {
-			getItems().forEach((item) => {
-				if (keepItem && item === keepItem) {
-					return;
-				}
-				const view = item.querySelector("[data-role='content-view']");
-				const edit = item.querySelector("[data-role='content-edit']");
-				const editButton = item.querySelector("[data-role='content-edit-button']");
-				item.classList.remove("data-editing");
-				if (view) {
-					view.classList.remove("hidden");
-				}
-				if (edit) {
-					edit.remove();
-				}
-				if (editButton) {
-					editButton.classList.remove("hidden");
-				}
-			});
-		};
-		const preserveScroll = (action) => {
-			const top = window.scrollY;
-			const left = window.scrollX;
-			action();
-			requestAnimationFrame(() => {
-				window.scrollTo(left, top);
-			});
-		};
-
-		enterEditMode = (item) => {
-			const view = item.querySelector("[data-role='content-view']");
-			if (view) {
-				view.classList.add("hidden");
-			}
-			item.classList.add("data-editing");
-			setEditSpacing(true);
-			removeGaps();
-			getItems().forEach((other) => {
-				const otherButton = other.querySelector("[data-role='content-edit-button']");
-				if (!otherButton || other === item) {
-					return;
-				}
-				otherButton.classList.add("hidden");
-			});
-		};
-
-		const openItem = (item) => {
-			closeAll(item);
-			const edit = item.querySelector("[data-role='content-edit']");
-			if (!edit) {
-				item.dataset.pendingEdit = "true";
-				const editButton = item.querySelector("[data-role='content-edit-button']");
-				if (editButton) {
-					editButton.click();
-				}
-				return;
-			}
-			enterEditMode(item);
-		};
-
 		const removeItem = (item) => {
-			const gap = item.previousElementSibling;
-			if (gap && gap.matches("[data-role='content-gap']")) {
-				gap.remove();
-			}
 			item.remove();
-			renderInsertGaps();
-			getItems().forEach((other) => {
-				const otherButton = other.querySelector("[data-role='content-edit-button']");
-				if (otherButton) {
-					otherButton.classList.remove("hidden");
-				}
-			});
 		};
 
 		const setupItem = (item) => {
@@ -508,87 +291,12 @@
 			}
 			item.dataset.init = "true";
 
-			const editButton = item.querySelector("[data-role='content-edit-button']");
 			const deleteButtonView = item.querySelector("[data-role='content-delete-view']");
 			const deleteDialogView = item.querySelector("[data-role='content-delete-dialog-view']");
 			const deleteConfirmView = item.querySelector("[data-role='content-delete-confirm-view']");
 			const deleteCancelView = item.querySelector("[data-role='content-delete-cancel-view']");
 			const view = item.querySelector("[data-role='content-view']");
-			const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
-			const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
-			const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
-			const headerTitleText = item.querySelector("[data-role='content-header-title-text']");
-			const headerTitle = item.querySelector("[data-role='content-header-title']");
 			const viewBody = item.querySelector("[data-role='content-view-body']");
-			const header = item.querySelector("[data-content-header='true']");
-
-			const setCollapsed = (collapsed) => {
-				if (!viewBody) {
-					return;
-				}
-				item.dataset.collapsed = collapsed ? "true" : "";
-				item.classList.toggle("data-collapsed", collapsed);
-				viewBody.classList.toggle("hidden", collapsed);
-				if (headerTitleText) {
-					headerTitleText.classList.toggle("hidden", !collapsed);
-				}
-				if (header) {
-					header.classList.toggle("bg-stone-100", collapsed);
-					header.classList.toggle("bg-stone-200", !collapsed);
-				}
-				if (collapseButton) {
-					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
-					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
-				}
-				if (collapseTooltip) {
-					collapseTooltip.textContent = collapsed ? "Ausklappen" : "Einklappen";
-				}
-				if (collapseIcon) {
-					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
-					collapseIcon.classList.toggle("ri-arrow-down-s-line", collapsed);
-				}
-			};
-
-			if (collapseButton) {
-				setCollapsed(item.dataset.collapsed === "true");
-				collapseButton.addEventListener("click", () => {
-					if (item.classList.contains("data-editing") || item.dataset.contentTemp === "true") {
-						return;
-					}
-					preserveScroll(() => {
-						setCollapsed(item.dataset.collapsed !== "true");
-						updateCollapseAllLabel();
-					});
-				});
-			}
-
-			if (header) {
-				header.addEventListener("click", (event) => {
-					if (item.dataset.dragging === "true") {
-						return;
-					}
-					if (item.classList.contains("data-editing") || item.dataset.contentTemp === "true") {
-						return;
-					}
-					if (event.target.closest("button, a, select, input, textarea")) {
-						return;
-					}
-					preserveScroll(() => {
-						setCollapsed(item.dataset.collapsed !== "true");
-						updateCollapseAllLabel();
-					});
-				});
-			}
-
-			if (editButton) {
-				editButton.addEventListener("click", () => {
-					if (item.querySelector("[data-role='content-edit']")) {
-						enterEditMode(item);
-						return;
-					}
-					item.dataset.pendingEdit = "true";
-				});
-			}
 
 			if (deleteButtonView && deleteDialogView) {
 				deleteButtonView.addEventListener("click", () => {
@@ -615,187 +323,15 @@
 					deleteContent(item, deleteDialogView);
 				});
 			}
-
-			const pendingEdit = item.dataset.pendingEdit === "true";
-			if (pendingEdit && item.querySelector("[data-role='content-edit']")) {
-				item.dataset.pendingEdit = "";
-				enterEditMode(item);
-			}
-
-
-			item.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
-				applyMultiSelectInit(el);
-			});
-
-			if (item.dataset.openEdit === "true") {
-				item.dataset.openEdit = "";
-				openItem(item);
-			}
 		};
-
-		const setupEditForm = (item) => {
-			const edit = item.querySelector("[data-role='content-edit']");
-			if (!edit || edit.dataset.init === "true") {
-				return;
-			}
-			edit.dataset.init = "true";
-			const cancelButton = edit.querySelector("[data-role='content-edit-cancel']");
-			const deleteButton = edit.querySelector("[data-role='content-delete']");
-			const deleteDialog = edit.querySelector("[data-role='content-delete-dialog']");
-			const deleteConfirm = edit.querySelector("[data-role='content-delete-confirm']");
-			const deleteCancel = edit.querySelector("[data-role='content-delete-cancel']");
-			const form = edit.querySelector("form");
-			const view = item.querySelector("[data-role='content-view']");
-
-			if (cancelButton && view) {
-				cancelButton.addEventListener("click", () => {
-					if (item.dataset.contentTemp === "true") {
-						removeItem(item);
-						return;
-					}
-					edit.remove();
-					view.classList.remove("hidden");
-					item.classList.remove("data-editing");
-					showEditButtonsIfIdle();
-					syncEditSpacing();
-					renderInsertGaps();
-				});
-			}
-
-			if (deleteButton && deleteDialog) {
-				deleteButton.addEventListener("click", () => {
-					if (deleteDialog.showModal) {
-						deleteDialog.showModal();
-					} else {
-						deleteDialog.setAttribute("open", "true");
-					}
-				});
-			}
-
-			if (deleteCancel && deleteDialog) {
-				deleteCancel.addEventListener("click", () => {
-					deleteDialog.close();
-				});
-				deleteDialog.addEventListener("cancel", (event) => {
-					event.preventDefault();
-					deleteDialog.close();
-				});
-			}
-
-			if (deleteConfirm) {
-				deleteConfirm.addEventListener("click", () => {
-					deleteContent(item, deleteDialog);
-				});
-			}
-
-			if (form) {
-				form.addEventListener("submit", () => {
-					form.querySelectorAll("input[name='content_order[]']").forEach((input) => input.remove());
-					getItems().forEach((card) => {
-						const contentId = card.dataset.contentId;
-						if (!contentId) {
-							return;
-						}
-						const input = document.createElement("input");
-						input.type = "hidden";
-						input.name = "content_order[]";
-						input.value = contentId;
-						form.appendChild(input);
-					});
-				});
-			}
-		};
-		setupEditFormGlobal = setupEditForm;
-
-		const updateCollapseAllLabel = () => {
-			if (!collapseAllButton || !collapseAllLabel) {
-				return;
-			}
-			const items = getItems().filter((item) => item.dataset.contentTemp !== "true");
-			const allCollapsed = items.length > 0 && items.every((item) => item.dataset.collapsed === "true");
-			collapseAllButton.dataset.state = allCollapsed ? "collapsed" : "expanded";
-			collapseAllLabel.textContent = allCollapsed ? "Alle Eintraege ausklappen" : "Alle Eintraege einklappen";
-			if (collapseAllIcon) {
-				collapseAllIcon.classList.toggle("ri-arrow-up-s-line", !allCollapsed);
-				collapseAllIcon.classList.toggle("ri-arrow-down-s-line", allCollapsed);
-			}
-		};
-
-		const setAllCollapsed = (collapsed) => {
-			getItems().forEach((item) => {
-				if (item.dataset.contentTemp === "true" || item.classList.contains("data-editing")) {
-					return;
-				}
-				const viewBody = item.querySelector("[data-role='content-view-body']");
-				const headerTitleText = item.querySelector("[data-role='content-header-title-text']");
-				const headerTitle = item.querySelector("[data-role='content-header-title']");
-				const collapseButton = item.querySelector("[data-role='content-collapse-toggle']");
-				const collapseIcon = item.querySelector("[data-role='content-collapse-icon']");
-				const collapseTooltip = item.querySelector("[data-role='content-collapse-tooltip']");
-				const header = item.querySelector("[data-content-header='true']");
-				if (!viewBody) {
-					return;
-				}
-				item.dataset.collapsed = collapsed ? "true" : "";
-				item.classList.toggle("data-collapsed", collapsed);
-				viewBody.classList.toggle("hidden", collapsed);
-				if (headerTitleText) {
-					headerTitleText.classList.toggle("hidden", !collapsed);
-				}
-				if (header) {
-					header.classList.toggle("bg-stone-100", collapsed);
-					header.classList.toggle("bg-stone-200", !collapsed);
-				}
-				if (collapseButton) {
-					collapseButton.setAttribute("aria-expanded", (!collapsed).toString());
-					collapseButton.setAttribute("aria-label", collapsed ? "Beitrag ausklappen" : "Beitrag einklappen");
-				}
-				if (collapseTooltip) {
-					collapseTooltip.textContent = collapsed ? "Ausklappen" : "Einklappen";
-				}
-				if (collapseIcon) {
-					collapseIcon.classList.toggle("ri-arrow-up-s-line", !collapsed);
-					collapseIcon.classList.toggle("ri-arrow-down-s-line", collapsed);
-				}
-			});
-			updateCollapseAllLabel();
-		};
-
-		if (collapseAllButton) {
-			updateCollapseAllLabel();
-			if (collapseAllButton.dataset.init !== "true") {
-				collapseAllButton.dataset.init = "true";
-				collapseAllButton.addEventListener("click", () => {
-					const shouldCollapse = collapseAllButton.dataset.state !== "collapsed";
-					setAllCollapsed(shouldCollapse);
-				});
-			}
-		}
 
 		getItems().forEach((item) => {
 			setupItem(item);
-			setupEditForm(item);
 		});
-		renderInsertGaps();
-		syncEditSpacing();
-		showEditButtonsIfIdle();
-		if (!list.dataset.collapseInit) {
-			list.dataset.collapseInit = "true";
-			setAllCollapsed(true);
-		}
-		updateCollapseAllLabel();
 
 		if (list.dataset.pageInit !== "true") {
 			list.dataset.pageInit = "true";
 			let draggedItem = null;
-			const createButton = document.querySelector("[data-role='contents-create']");
-			if (createButton) {
-				createButton.addEventListener("click", () => {
-					requestAnimationFrame(() => {
-						window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
-					});
-				});
-			}
 			list.addEventListener("click", (event) => {
 				const moveUp = event.target.closest("[data-role='content-move-up']");
 				const moveDown = event.target.closest("[data-role='content-move-down']");
@@ -825,13 +361,9 @@
 					}
 				}
 				syncOrder();
-				renderInsertGaps();
 			});
 
 			list.addEventListener("dragstart", (event) => {
-				if (event.target.closest("[data-role='content-edit-button']")) {
-					return;
-				}
 				if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
 					return;
 				}
@@ -847,17 +379,9 @@
 				if (!item) {
 					return;
 				}
-				if (item.classList.contains("data-editing")) {
-					event.preventDefault();
-					return;
-				}
 				draggedItem = item;
 				item.dataset.dragging = "true";
 				draggedItem.classList.add("opacity-60");
-				list.style.rowGap = "0.5rem";
-				list.style.paddingTop = "0.25rem";
-				list.style.paddingBottom = "0.25rem";
-				removeGaps();
 				event.dataTransfer.effectAllowed = "move";
 				event.dataTransfer.setData("text/plain", "move");
 			});
@@ -886,89 +410,10 @@
 					draggedItem.dataset.dragging = "";
 				}
 				draggedItem = null;
-				list.style.rowGap = "";
-				list.style.paddingTop = "";
-				list.style.paddingBottom = "";
 				syncOrder();
-				renderInsertGaps();
 			});
-
-			const params = new URLSearchParams(window.location.search);
-			const editContentId = params.get("edit_content");
-			if (editContentId) {
-				const targetItem = getItems().find((item) => {
-					return item.dataset.contentId === editContentId;
-				});
-				if (targetItem) {
-					openItem(targetItem);
-				}
-			}
 		}
 	};
 
-	const initWhenReady = () => {
-		if (window.customElements?.whenDefined) {
-			window.customElements.whenDefined("multi-select-simple").then(() => {
-				requestAnimationFrame(initPage);
-			});
-		} else {
-			initPage();
-		}
-	};
-
-	initWhenReady();
-
-	document.body.addEventListener("htmx:afterSwap", (event) => {
-		const target = event.detail?.target;
-		if (target && target.matches("[data-role='content-edit-container']")) {
-			const item = target.closest("[data-role='content-item']");
-			if (item && item.dataset.pendingEdit === "true" && enterEditMode) {
-				item.dataset.pendingEdit = "";
-				enterEditMode(item);
-				if (setupEditFormGlobal) {
-					setupEditFormGlobal(item);
-				}
-			}
-			target.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
-				applyMultiSelectInit(el);
-			});
-		}
-		initWhenReady();
-	});
-
-	document.body.addEventListener("htmx:beforeRequest", (event) => {
-		const elt = event.detail?.elt;
-		if (!elt || !list) {
-			return;
-		}
-		if (elt.closest("[data-role='contents-list']")) {
-			const label = elt.getAttribute("data-loading-label");
-			if (label) {
-				setHtmxIndicatorLabel(label);
-			} else {
-				setHtmxIndicatorLabel("Eintrag wird geladen");
-			}
-			setHtmxIndicator(true);
-		}
-	});
-
-	document.body.addEventListener("htmx:afterRequest", (event) => {
-		const elt = event.detail?.elt;
-		if (!elt || !list) {
-			return;
-		}
-		if (elt.closest("[data-role='contents-list']")) {
-			setHtmxIndicator(false);
-		}
-	});
-
-	document.body.addEventListener("htmx:responseError", (event) => {
-		const elt = event.detail?.elt;
-		if (!elt || !list) {
-			return;
-		}
-		if (elt.closest("[data-role='contents-list']")) {
-			setHtmxIndicator(false);
-		}
-	});
+	initPage();
 </script>
