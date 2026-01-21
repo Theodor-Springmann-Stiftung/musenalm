@@ -150,6 +150,8 @@
 		autocomplete="off"
 		class="w-full dbform"
 		method="POST"
+		enctype="multipart/form-data"
+		hx-boost="false"
 		action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 
@@ -343,5 +345,65 @@
 			deleteDialog.close();
 		});
 	});
+
+	const form = document.querySelector("form.dbform");
+	const uploadInput = document.querySelector("[data-role='content-images-upload-input']");
+	const userMessage = document.getElementById("user-message");
+	if (form && uploadInput && userMessage) {
+		form.addEventListener("submit", async (event) => {
+			event.stopImmediatePropagation();
+			const files = Array.from(uploadInput.files || []);
+			if (files.length > 0) {
+				const hasInvalid = files.some((file) => !file.type || !file.type.startsWith("image/"));
+				if (hasInvalid) {
+					event.preventDefault();
+					userMessage.innerHTML = `
+						<div class="text-red-800 text-sm mt-2 rounded-xs bg-red-200 p-2 font-bold border-red-700 shadow border mb-3">
+							<i class="ri-error-warning-fill"></i> Bitte nur Bilddateien auswählen.
+						</div>
+					`;
+					return;
+				}
+			}
+
+			event.preventDefault();
+			const payload = new FormData(form);
+			if (payload.has("scans")) {
+				payload.delete("scans");
+			}
+			const imagesComponent = document.querySelector("content-images");
+			if (imagesComponent && typeof imagesComponent.getPendingFiles === "function") {
+				imagesComponent.getPendingFiles().forEach((file) => {
+					payload.append("scans", file);
+				});
+				if (typeof imagesComponent.getPendingDeletes === "function") {
+					imagesComponent.getPendingDeletes().forEach((fileName) => {
+						payload.append("scans_delete[]", fileName);
+					});
+				}
+			}
+			const response = await fetch(form.action, {
+				method: form.method || "POST",
+				body: payload,
+				credentials: "same-origin",
+			});
+			if (response.redirected && response.url) {
+				window.location.assign(response.url);
+				return;
+			}
+			if (!response.ok) {
+				return;
+			}
+			const html = await response.text();
+			if (!html) {
+				return;
+			}
+			const doc = new DOMParser().parseFromString(html, "text/html");
+			const nextMessage = doc.getElementById("user-message");
+			if (nextMessage) {
+				userMessage.innerHTML = nextMessage.innerHTML;
+			}
+		});
+	}
 })();
 </script>

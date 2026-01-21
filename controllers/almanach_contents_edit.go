@@ -183,17 +183,98 @@ func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app co
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
+func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, app core.App, e *core.RequestEvent, contentID string, message string) error {
+	id := e.Request.PathValue("id")
+	req := templating.NewRequest(e)
+	data := make(map[string]any)
+	result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+	if err != nil {
+		return engine.Response404(e, err, nil)
+	}
+
+	contents, err := dbmodels.Contents_IDs(app, []any{contentID})
+	if err != nil || len(contents) == 0 {
+		return p.renderError(engine, app, e, message)
+	}
+	content := contents[0]
+	if content.Entry() != result.Entry.Id {
+		return p.renderError(engine, app, e, message)
+	}
+
+	entryContents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
+	if err == nil && len(entryContents) > 1 {
+		sort.Slice(entryContents, func(i, j int) bool {
+			if entryContents[i].Numbering() == entryContents[j].Numbering() {
+				return entryContents[i].Id < entryContents[j].Id
+			}
+			return entryContents[i].Numbering() < entryContents[j].Numbering()
+		})
+	}
+	var prevContent *dbmodels.Content
+	var nextContent *dbmodels.Content
+	if len(entryContents) > 0 {
+		for i, c := range entryContents {
+			if c.Id != content.Id {
+				continue
+			}
+			if i > 0 {
+				prevContent = entryContents[i-1]
+			}
+			if i < len(entryContents)-1 {
+				nextContent = entryContents[i+1]
+			}
+			break
+		}
+	}
+
+	agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
+	if err != nil {
+		agentsMap = map[string]*dbmodels.Agent{}
+		contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
+	}
+
+	data["result"] = result
+	data["csrf_token"] = req.Session().Token
+	data["content"] = content
+	data["content_id"] = content.Id
+	data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
+	data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
+	data["pagination_values"] = paginationValuesSorted()
+	data["agent_relations"] = dbmodels.AGENT_RELATIONS
+	data["agents"] = agentsMap
+	data["content_agents"] = contentAgentsMap[content.Id]
+	data["prev_content"] = prevContent
+	data["next_content"] = nextContent
+	data["error"] = message
+
+	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+}
+
 func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
 
-		if err := e.Request.ParseForm(); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+		if e.Request.MultipartForm == nil {
+			if err := e.Request.ParseMultipartForm(router.DefaultMaxMemory); err != nil {
+				if e.Request.MultipartForm == nil {
+					if err := e.Request.ParseForm(); err != nil {
+						return p.renderError(engine, app, e, err.Error())
+					}
+				}
+			}
+		}
+
+		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
+		renderError := func(message string) error {
+			if contentID != "" {
+				return p.renderItemError(engine, app, e, contentID, message)
+			}
+			return p.renderError(engine, app, e, message)
 		}
 
 		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+			return renderError(err.Error())
 		}
 
 		entry, err := dbmodels.Entries_MusenalmID(app, id)
@@ -232,6 +313,19 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			sort.Slice(newContentIDs, func(i, j int) bool {
 				return orderMap[newContentIDs[i]] < orderMap[newContentIDs[j]]
 			})
+		}
+
+		uploadedScans, _ := e.FindUploadedFiles(dbmodels.SCAN_FIELD)
+		deleteScans := valuesForKey(e.Request.PostForm, "scans_delete")
+		targetContentID := contentID
+		if targetContentID == "" && len(contentInputs) == 1 {
+			for id := range contentInputs {
+				targetContentID = id
+				break
+			}
+		}
+		if contentID == "" {
+			contentID = targetContentID
 		}
 
 		var updatedContents []*dbmodels.Content
@@ -309,12 +403,40 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 					}
 				}
 			}
+			if targetContentID != "" && (len(uploadedScans) > 0 || len(deleteScans) > 0) {
+				record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, targetContentID)
+				if err != nil {
+					return err
+				}
+				content := dbmodels.NewContent(record)
+				if content.Entry() != entry.Id {
+					return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
+				}
+				if len(uploadedScans) > 0 {
+					content.Set(dbmodels.SCAN_FIELD+"+", uploadedScans)
+				}
+				if len(deleteScans) > 0 {
+					for _, scan := range deleteScans {
+						scan = strings.TrimSpace(scan)
+						if scan == "" {
+							continue
+						}
+						content.Set(dbmodels.SCAN_FIELD+"-", scan)
+					}
+				}
+				if user != nil {
+					content.SetEditor(user.Id)
+				}
+				if err := tx.Save(content); err != nil {
+					return err
+				}
+			}
 			updatedContents = append(updatedContents, contents...)
 			updatedContents = append(updatedContents, created...)
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to save contents", "entry_id", entry.Id, "error", err)
-			return p.renderError(engine, app, e, err.Error())
+			return renderError(err.Error())
 		}
 
 		if len(updatedContents) == 0 {

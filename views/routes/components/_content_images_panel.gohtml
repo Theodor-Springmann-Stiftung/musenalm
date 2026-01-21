@@ -4,8 +4,11 @@
 {{- $isNew := index . "is_new" -}}
 
 {{- if or $content.ImagePaths (not $isNew) -}}
-<div class="w-full" data-role="content-images-panel">
-	<div class="flex flex-col items-start gap-2">
+<div class="w-full inputwrapper" data-role="content-images-panel">
+	<div class="inputlabelrow">
+		<label class="inputlabel">Scans</label>
+	</div>
+	<div class="flex flex-col items-start gap-2 p-2">
 		<content-images
 			class="w-full"
 			data-images='[{{- range $i, $scan := $content.ImagePaths -}}{{- if $i }},{{ end -}}{{ printf "%q" $scan }}{{- end -}}]'
@@ -15,7 +18,8 @@
 			data-csrf-token="{{ $csrf }}">
 		</content-images>
 		{{- if not $isNew -}}
-			<div class="flex" data-role="content-images-upload">
+			<div class="hidden" data-role="content-images-upload">
+				<input type="hidden" name="content_id" value="{{ $content.Id }}" />
 				<label
 					for="content-{{ $content.Id }}-scan-upload"
 					class="flex h-28 w-28 items-center justify-center rounded-xs border-2 border-dashed border-slate-300 bg-stone-50 text-lg font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
@@ -30,7 +34,6 @@
 					accept="image/*"
 					class="sr-only"
 					data-role="content-images-upload-input"
-					data-upload-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/upload"
 					data-content-id="{{ $content.Id }}"
 					data-csrf-token="{{ $csrf }}" />
 			</div>

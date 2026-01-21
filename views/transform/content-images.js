@@ -56,6 +56,9 @@ export class ContentImages extends HTMLElement {
 			return;
 		}
 		this.dataset.init = "true";
+		this._pendingFiles = [];
+		this._pendingUrls = [];
+		this._pendingDeletes = new Set();
 
 		this._wireUpload();
 
@@ -76,11 +79,6 @@ export class ContentImages extends HTMLElement {
 
 		const normalized = normalizeImages(images, files);
 
-		if (!Array.isArray(normalized) || normalized.length === 0) {
-			this.classList.add("hidden");
-			return;
-		}
-
 		this._render(normalized);
 	}
 
@@ -95,53 +93,30 @@ export class ContentImages extends HTMLElement {
 		}
 		uploadInput.dataset.bound = "true";
 		uploadInput.addEventListener("change", () => {
-			this._uploadFiles(uploadInput, panel);
+			this._setPendingFiles(Array.from(uploadInput.files || []));
 		});
 	}
 
-	_uploadFiles(input, panel) {
-		const endpoint = input.getAttribute("data-upload-endpoint") || "";
-		const contentId = input.getAttribute("data-content-id") || "";
-		const csrfToken = input.getAttribute("data-csrf-token") || "";
-		const files = Array.from(input.files || []);
-		if (!endpoint || !contentId || !csrfToken || files.length === 0) {
-			return;
-		}
-		const payload = new FormData();
-		payload.append("csrf_token", csrfToken);
-		payload.append("content_id", contentId);
-		files.forEach((file) => payload.append("scans", file));
-		fetch(endpoint, {
-			method: "POST",
-			headers: {
-				"HX-Request": "true",
-			},
-			body: payload,
-		})
-			.then((response) => {
-				if (!response.ok) {
-					return null;
-				}
-				return response.text();
-			})
-			.then((html) => {
-				if (!html || !panel) {
-					return;
-				}
-				this._applyServerResponse(html, panel);
-			})
-			.catch(() => null)
-			.finally(() => {
-				input.value = "";
-			});
+	_setPendingFiles(files) {
+		this._clearPendingPreviews();
+		this._pendingFiles = Array.isArray(files) ? files : [];
+		this._pendingUrls = this._pendingFiles.map((file) => URL.createObjectURL(file));
+		this._render(this._currentImages || []);
 	}
 
 	_render(images) {
+		this._currentImages = images;
 		this.classList.add("block");
 		this.style.display = "block";
 		this.style.width = "100%";
 		const list = this._ensureList();
-		list.innerHTML = "";
+		const uploadProxy = this._ensureUploadProxy();
+		if (uploadProxy && uploadProxy.parentElement === list) {
+			uploadProxy.remove();
+		}
+		list.querySelectorAll("[data-role='content-images-item'], [data-role='content-images-pending']").forEach((node) => {
+			node.remove();
+		});
 
 		const deleteEndpoint = this.getAttribute("data-delete-endpoint") || "";
 		const contentId = this.getAttribute("data-content-id") || "";
@@ -151,9 +126,15 @@ export class ContentImages extends HTMLElement {
 		images.forEach((image, index) => {
 			const wrapper = document.createElement("div");
 			wrapper.className = "group relative";
+			wrapper.dataset.role = "content-images-item";
+			const isPendingDelete = this._pendingDeletes.has(image.name);
+			if (isPendingDelete) {
+				wrapper.classList.add("content-image-pending");
+			}
 			const button = document.createElement("button");
 			button.type = "button";
 			button.className = [
+				"relative",
 				"rounded",
 				"border",
 				"border-slate-200",
@@ -166,6 +147,10 @@ export class ContentImages extends HTMLElement {
 			].join(" ");
 			button.dataset.imageUrl = image.url;
 			button.dataset.imageIndex = String(index);
+			if (isPendingDelete) {
+				button.setAttribute("aria-disabled", "true");
+				button.classList.add("content-image-pending-button");
+			}
 
 			const img = document.createElement("img");
 			img.src = buildThumbUrl(image.url, THUMB_PARAM);
@@ -184,32 +169,33 @@ export class ContentImages extends HTMLElement {
 					"right-1",
 					"top-1",
 					"hidden",
-					"h-8",
-					"w-8",
 					"rounded-full",
 					"border",
 					"border-red-200",
 					"bg-white/90",
-					"flex",
-					"items-center",
-					"justify-center",
+					"px-2",
+					"py-1",
+					"text-xs",
+					"font-semibold",
 					"text-red-700",
+					"z-20",
 					"shadow-sm",
 					"transition",
 					"group-hover:flex",
 					"hover:text-red-900",
 					"hover:border-red-300",
 				].join(" ");
-				deleteButton.innerHTML = '<i class="ri-delete-bin-line"></i>';
+				if (isPendingDelete) {
+					deleteButton.classList.remove("border-red-200", "text-red-700");
+					deleteButton.classList.add("border-amber-300", "bg-amber-100", "text-amber-900", "hover:border-amber-400", "hover:text-amber-950");
+					deleteButton.innerHTML = '<i class="ri-arrow-go-back-line mr-1"></i>Rueckgaengig';
+				} else {
+					deleteButton.innerHTML = '<i class="ri-delete-bin-line mr-1"></i>Entfernen';
+				}
 				deleteButton.addEventListener("click", (event) => {
 					event.preventDefault();
 					event.stopPropagation();
-					this._openDeleteDialog({
-						endpoint: deleteEndpoint,
-						contentId,
-						csrfToken,
-						fileName: image.name,
-					});
+					this._togglePendingDelete(image.name);
 				});
 				wrapper.appendChild(deleteButton);
 			}
@@ -217,9 +203,49 @@ export class ContentImages extends HTMLElement {
 			list.appendChild(wrapper);
 		});
 
-		const uploadTile = this._findUploadTile();
-		if (uploadTile) {
-			list.appendChild(uploadTile);
+		this._pendingUrls.forEach((url, index) => {
+			const wrapper = document.createElement("div");
+			wrapper.className = "group relative";
+			wrapper.dataset.role = "content-images-pending";
+			const button = document.createElement("button");
+			button.type = "button";
+			button.className = [
+				"rounded",
+				"border",
+				"border-dashed",
+				"border-slate-300",
+				"bg-stone-50",
+				"p-1",
+				"shadow-sm",
+			].join(" ");
+			button.dataset.imageUrl = url;
+			button.dataset.imageIndex = `pending-${index}`;
+			const img = document.createElement("img");
+			img.src = url;
+			img.alt = "Digitalisat (neu)";
+			img.loading = "lazy";
+			img.className = "h-28 w-28 object-cover opacity-70";
+			button.appendChild(img);
+			const badge = document.createElement("span");
+			badge.className = "absolute left-1 top-1 rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900";
+			badge.textContent = "Neu";
+			wrapper.appendChild(button);
+			wrapper.appendChild(badge);
+			const removeButton = document.createElement("button");
+			removeButton.type = "button";
+			removeButton.className = "absolute right-1 top-1 hidden rounded-full border border-red-200 bg-white/90 px-2 py-1 text-xs font-semibold text-red-700 shadow-sm transition group-hover:flex hover:text-red-900 hover:border-red-300";
+			removeButton.innerHTML = '<i class="ri-close-line mr-1"></i>Entfernen';
+			removeButton.addEventListener("click", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				this._removePendingFile(index);
+			});
+			wrapper.appendChild(removeButton);
+			list.appendChild(wrapper);
+		});
+
+		if (uploadProxy && uploadProxy.parentElement !== list) {
+			list.appendChild(uploadProxy);
 		}
 
 		const dialog = this._ensureDialog();
@@ -231,7 +257,8 @@ export class ContentImages extends HTMLElement {
 				return;
 			}
 			const url = target.dataset.imageUrl || "";
-			fullImage.src = buildFullUrl(url);
+			const fullUrl = url.startsWith("blob:") ? url : buildFullUrl(url);
+			fullImage.src = fullUrl;
 			fullImage.alt = "Digitalisat";
 			if (dialog.showModal) {
 				dialog.showModal();
@@ -264,6 +291,74 @@ export class ContentImages extends HTMLElement {
 			return null;
 		}
 		return upload;
+	}
+
+	_ensureUploadProxy() {
+		const panel = this.closest("[data-role='content-images-panel']");
+		if (!panel) {
+			return null;
+		}
+		const uploadInput = panel.querySelector("[data-role='content-images-upload-input']");
+		if (!uploadInput) {
+			return null;
+		}
+		let proxy = panel.querySelector("[data-role='content-images-upload-proxy']");
+		if (!proxy) {
+			proxy = document.createElement("button");
+			proxy.type = "button";
+			proxy.dataset.role = "content-images-upload-proxy";
+			proxy.className = "flex h-28 w-28 items-center justify-center rounded-xs border-2 border-dashed border-slate-300 bg-stone-50 text-lg font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800";
+			proxy.setAttribute("aria-label", "Bilder hinzufuegen");
+			proxy.innerHTML = '<i class="ri-upload-2-line"></i>';
+			proxy.addEventListener("click", () => {
+				uploadInput.click();
+			});
+		}
+		return proxy;
+	}
+
+	_togglePendingDelete(fileName) {
+		if (!fileName) {
+			return;
+		}
+		if (this._pendingDeletes.has(fileName)) {
+			this._pendingDeletes.delete(fileName);
+		} else {
+			this._pendingDeletes.add(fileName);
+		}
+		this._render(this._currentImages || []);
+	}
+
+	_removePendingFile(index) {
+		if (index < 0 || index >= this._pendingFiles.length) {
+			return;
+		}
+		const url = this._pendingUrls[index];
+		if (url) {
+			URL.revokeObjectURL(url);
+		}
+		this._pendingFiles.splice(index, 1);
+		this._pendingUrls.splice(index, 1);
+		this._render(this._currentImages || []);
+	}
+
+	getPendingFiles() {
+		return Array.isArray(this._pendingFiles) ? this._pendingFiles : [];
+	}
+
+	getPendingDeletes() {
+		return Array.from(this._pendingDeletes || []);
+	}
+
+	_clearPendingPreviews() {
+		if (Array.isArray(this._pendingUrls)) {
+			this._pendingUrls.forEach((url) => URL.revokeObjectURL(url));
+		}
+		this._pendingUrls = [];
+	}
+
+	disconnectedCallback() {
+		this._clearPendingPreviews();
 	}
 
 	_ensureDialog() {
