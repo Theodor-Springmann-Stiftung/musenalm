@@ -142,15 +142,15 @@
 				class="min-w-[10rem] w-full max-w-none flex-1 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
 				placeholder="z. B. 12 Bl., 3 Taf."
 				value="{{- $model.result.Entry.Extent -}}" />
-			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-100 px-3 py-1.5 text-base font-semibold text-gray-700 hover:bg-stone-200">
-				Speichern
+			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-50 px-3 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-stone-100">
+				Struktur speichern
 			</button>
 		</form>
 	</div>
 	<div class="px-4 text-xl font-bold text-gray-800 mt-3">Inhalt</div>
 	<div class="px-4 py-2 flex flex-wrap items-center gap-3">
-		<label for="content-filter" class="text-sm font-bold text-gray-700 whitespace-nowrap">
-			<i class="ri-search-line"></i> Filtern
+		<label for="content-filter" class="text-base font-bold text-gray-700 whitespace-nowrap">
+			<i class="ri-search-line"></i> Filter
 		</label>
 		<input
 			id="content-filter"
@@ -185,33 +185,37 @@
 			<span>Neuer Beitrag</span>
 		</button>
 	</div>
-	<div class="flex flex-col gap-0 mt-2"
-		data-role="contents-list"
-		data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
-		{{- range $_, $content := $model.result.Contents -}}
-			{{- template "_content_item" (Dict
-				"content" $content
-				"entry" $model.result.Entry
-				"csrf_token" $model.csrf_token
-				"content_types" $model.content_types
-				"musenalm_types" $model.musenalm_types
-				"pagination_values" $model.pagination_values
-				"agents" $model.result.Agents
-				"content_agents" (index $model.result.ContentsAgents $content.Id)
-				"agent_relations" $model.agent_relations
-				"open_edit" false
-				"is_new" false
-			) -}}
-		{{- end -}}
-	</div>
-	<div class="px-4 py-2 mt-2 flex items-center">
-		<button
-			type="button"
-			class="content-action-button"
-			onclick="window.location.assign('/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
-			<i class="ri-add-line"></i>
-			<span>Neuer Beitrag</span>
-		</button>
+	<div class="mx-4 mt-2 rounded-md border border-slate-200 bg-white flex flex-col overflow-hidden" data-role="contents-panel">
+		<div class="flex-1 min-h-0 overflow-y-auto">
+			<div class="flex flex-col gap-0"
+				data-role="contents-list"
+				data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+				{{- range $_, $content := $model.result.Contents -}}
+					{{- template "_content_item" (Dict
+						"content" $content
+						"entry" $model.result.Entry
+						"csrf_token" $model.csrf_token
+						"content_types" $model.content_types
+						"musenalm_types" $model.musenalm_types
+						"pagination_values" $model.pagination_values
+						"agents" $model.result.Agents
+						"content_agents" (index $model.result.ContentsAgents $content.Id)
+						"agent_relations" $model.agent_relations
+						"open_edit" false
+						"is_new" false
+					) -}}
+				{{- end -}}
+			</div>
+		</div>
+		<div class="px-3 py-2 border-t border-slate-200 bg-stone-50 flex items-center">
+			<button
+				type="button"
+				class="content-action-button"
+				onclick="window.location.assign('/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
+				<i class="ri-add-line"></i>
+				<span>Neuer Beitrag</span>
+			</button>
+		</div>
 	</div>
 </div>
 
@@ -290,6 +294,8 @@
 		const list = document.querySelector("[data-role='contents-list']");
 
 		if (!filterInput || !list) return;
+		if (filterInput.dataset.init === "true") return;
+		filterInput.dataset.init = "true";
 
 		// Populate type select from search index
 		if (filterType && window.contentsSearchIndex) {
@@ -574,6 +580,11 @@
 		let orderSyncTimer = null;
 		let isOrderSyncing = false;
 		let pendingOrderSync = false;
+		if (list.__contentsDragController) {
+			list.__contentsDragController.abort();
+		}
+		list.__contentsDragController = new AbortController();
+		const { signal: dragSignal } = list.__contentsDragController;
 
 		const setSyncIndicator = (active) => {
 			if (!syncIndicator) {
@@ -638,7 +649,8 @@
 		};
 
 		// Setup shared delete dialog events
-		if (deleteDialog) {
+		if (deleteDialog && deleteDialog.dataset.init !== "true") {
+			deleteDialog.dataset.init = "true";
 			deleteCancelBtn?.addEventListener("click", () => deleteDialog.close());
 			deleteDialog.addEventListener("cancel", (e) => {
 				e.preventDefault();
@@ -730,156 +742,165 @@
 			setupItem(item);
 		});
 
-		if (list.dataset.pageInit !== "true") {
-			list.dataset.pageInit = "true";
-			let draggedItem = null;
-			let pointerDrag = null;
-			let lastDragOverTime = 0;
-			const DRAG_THROTTLE_MS = 100;
-			const startPointerDrag = (event) => {
-				const handle = event.target.closest("[data-role='content-drag-handle']");
-				if (!handle || event.button !== 0) {
-					return;
-				}
-				const item = handle.closest("[data-role='content-item']");
-				if (!item) {
-					return;
-				}
-				event.preventDefault();
-				pointerDrag = {
-					item,
-					pointerId: event.pointerId,
-				};
-				item.dataset.dragging = "true";
-				item.classList.add("opacity-60");
-				setDraggingState(true);
-				if (handle.setPointerCapture) {
-					handle.setPointerCapture(event.pointerId);
-				}
+		list.dataset.pageInit = "true";
+		let draggedItem = null;
+		let pointerDrag = null;
+		let lastDragOverTime = 0;
+		const DRAG_THROTTLE_MS = 100;
+		const startPointerDrag = (event) => {
+			const handle = event.target.closest("[data-role='content-drag-handle']");
+			if (!handle || event.button !== 0) {
+				return;
+			}
+			const item = handle.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			event.preventDefault();
+			pointerDrag = {
+				item,
+				pointerId: event.pointerId,
 			};
+			item.dataset.dragging = "true";
+			item.classList.add("opacity-60");
+			setDraggingState(true);
+			if (handle.setPointerCapture) {
+				handle.setPointerCapture(event.pointerId);
+			}
+		};
 
-			const movePointerDrag = (event) => {
-				if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
-					return;
-				}
-				const item = pointerDrag.item;
-				const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-role='content-item']");
-				if (!targetItem || targetItem === item) {
-					return;
-				}
-				const rect = targetItem.getBoundingClientRect();
-				const before = event.clientY - rect.top < rect.height / 2;
-				if (before) {
-					targetItem.before(item);
-				} else {
-					targetItem.after(item);
-				}
-			};
+		const movePointerDrag = (event) => {
+			if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+				return;
+			}
+			const now = Date.now();
+			if (now - lastDragOverTime < DRAG_THROTTLE_MS) {
+				return;
+			}
+			lastDragOverTime = now;
+			const item = pointerDrag.item;
+			const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-role='content-item']");
+			if (!targetItem || targetItem === item) {
+				return;
+			}
+			const rect = targetItem.getBoundingClientRect();
+			const before = event.clientY - rect.top < rect.height / 2;
+			if (before) {
+				targetItem.before(item);
+			} else {
+				targetItem.after(item);
+			}
+		};
 
-			const endPointerDrag = (event) => {
-				if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
-					return;
+		const endPointerDrag = (event) => {
+			if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+				return;
+			}
+			pointerDrag.item.classList.remove("opacity-60");
+			pointerDrag.item.dataset.dragging = "";
+			pointerDrag = null;
+			setDraggingState(false);
+			syncOrder();
+		};
+		list.addEventListener("click", (event) => {
+			const moveUp = event.target.closest("[data-role='content-move-up']");
+			const moveDown = event.target.closest("[data-role='content-move-down']");
+			if (!moveUp && !moveDown) {
+				return;
+			}
+			event.preventDefault();
+			const item = event.target.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			if (moveUp) {
+				let prev = item.previousElementSibling;
+				while (prev && !prev.matches("[data-role='content-item']")) {
+					prev = prev.previousElementSibling;
 				}
-				pointerDrag.item.classList.remove("opacity-60");
-				pointerDrag.item.dataset.dragging = "";
-				pointerDrag = null;
-				setDraggingState(false);
-				syncOrder();
-			};
-			list.addEventListener("click", (event) => {
-				const moveUp = event.target.closest("[data-role='content-move-up']");
-				const moveDown = event.target.closest("[data-role='content-move-down']");
-				if (!moveUp && !moveDown) {
-					return;
+				if (prev) {
+					prev.before(item);
 				}
+			} else {
+				let next = item.nextElementSibling;
+				while (next && !next.matches("[data-role='content-item']")) {
+					next = next.nextElementSibling;
+				}
+				if (next) {
+					next.after(item);
+				}
+			}
+			syncOrder();
+		}, { signal: dragSignal });
+
+		list.addEventListener("dragstart", (event) => {
+			if (pointerDrag) {
 				event.preventDefault();
-				const item = event.target.closest("[data-role='content-item']");
-				if (!item) {
-					return;
-				}
-				if (moveUp) {
-					let prev = item.previousElementSibling;
-					while (prev && !prev.matches("[data-role='content-item']")) {
-						prev = prev.previousElementSibling;
-					}
-					if (prev) {
-						prev.before(item);
-					}
-				} else {
-					let next = item.nextElementSibling;
-					while (next && !next.matches("[data-role='content-item']")) {
-						next = next.nextElementSibling;
-					}
-					if (next) {
-						next.after(item);
-					}
-				}
-				syncOrder();
-			});
-
-			list.addEventListener("dragstart", (event) => {
-				if (pointerDrag) {
-					event.preventDefault();
-					return;
-				}
-				if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
-					return;
-				}
-				if (event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
-					return;
-				}
-				const handle = event.target.closest("[data-role='content-drag-handle']");
-				if (!handle) {
-					event.preventDefault();
-					return;
-				}
-				const item = handle.closest("[data-role='content-item']");
-				if (!item) {
-					return;
-				}
-				draggedItem = item;
-				item.dataset.dragging = "true";
-				draggedItem.classList.add("opacity-60");
-				setDraggingState(true);
-				event.dataTransfer.effectAllowed = "move";
-				event.dataTransfer.setData("text/plain", "move");
-			});
-
-			list.addEventListener("dragover", (event) => {
-				if (!draggedItem) {
-					return;
-				}
+				return;
+			}
+			if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
+				return;
+			}
+			if (event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
+				return;
+			}
+			const handle = event.target.closest("[data-role='content-drag-handle']");
+			if (!handle) {
 				event.preventDefault();
-				const targetItem = event.target.closest("[data-role='content-item']");
-				if (!targetItem || targetItem === draggedItem) {
-					return;
-				}
-				const rect = targetItem.getBoundingClientRect();
-				const before = event.clientY - rect.top < rect.height / 2;
-				if (before) {
-					targetItem.before(draggedItem);
-				} else {
-					targetItem.after(draggedItem);
-				}
-			});
+				return;
+			}
+			const item = handle.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			draggedItem = item;
+			item.dataset.dragging = "true";
+			draggedItem.classList.add("opacity-60");
+			setDraggingState(true);
+			event.dataTransfer.effectAllowed = "move";
+			event.dataTransfer.setData("text/plain", "move");
+		}, { signal: dragSignal });
 
-			list.addEventListener("dragend", () => {
-				if (draggedItem) {
-					draggedItem.classList.remove("opacity-60");
-					draggedItem.dataset.dragging = "";
-				}
-				draggedItem = null;
-				setDraggingState(false);
-				syncOrder();
-			});
+		list.addEventListener("dragover", (event) => {
+			if (!draggedItem) {
+				return;
+			}
+			event.preventDefault();
+			const targetItem = event.target.closest("[data-role='content-item']");
+			if (!targetItem || targetItem === draggedItem) {
+				return;
+			}
+			const rect = targetItem.getBoundingClientRect();
+			const before = event.clientY - rect.top < rect.height / 2;
+			if (before) {
+				targetItem.before(draggedItem);
+			} else {
+				targetItem.after(draggedItem);
+			}
+		}, { signal: dragSignal });
 
-			list.addEventListener("pointerdown", startPointerDrag);
-			list.addEventListener("pointermove", movePointerDrag);
-			list.addEventListener("pointerup", endPointerDrag);
-			list.addEventListener("pointercancel", endPointerDrag);
-		}
+		list.addEventListener("dragend", () => {
+			if (draggedItem) {
+				draggedItem.classList.remove("opacity-60");
+				draggedItem.dataset.dragging = "";
+			}
+			draggedItem = null;
+			setDraggingState(false);
+			syncOrder();
+		}, { signal: dragSignal });
+
+		list.addEventListener("pointerdown", startPointerDrag, { signal: dragSignal });
+		list.addEventListener("pointermove", movePointerDrag, { signal: dragSignal });
+		list.addEventListener("pointerup", endPointerDrag, { signal: dragSignal });
+		list.addEventListener("pointercancel", endPointerDrag, { signal: dragSignal });
 	};
 
 	initFilter();
 	initPage();
+	window.addEventListener("pageshow", (event) => {
+		if (event.persisted) {
+			initFilter();
+			initPage();
+		}
+	});
 </script>

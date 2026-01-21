@@ -135,7 +135,7 @@
 	}
 
 	.content-action-button {
-		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
+		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-base font-semibold text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
 	}
 
 	.dbform div-menu {
