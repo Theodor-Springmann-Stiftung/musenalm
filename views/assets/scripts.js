@@ -5881,7 +5881,9 @@ const ft = class ft extends HTMLElement {
       "transition-all",
       "duration-200",
       "font-sans"
-    ].join(" "), this.appendChild(this._tooltipBox), this._updatePosition(), this.addEventListener("mouseenter", () => this._showTooltip()), this.addEventListener("mouseleave", () => this._hideTooltip()), this._dataTipElem && (this._observer = new MutationObserver(() => {
+    ].join(" "), this.appendChild(this._tooltipBox), this._updatePosition(), this.addEventListener("mouseenter", () => this._showTooltip()), this.addEventListener("mouseleave", () => this._hideTooltip()), this.addEventListener("pointerdown", () => this._forceHide()), this.addEventListener("mousedown", () => this._forceHide()), this.addEventListener("click", () => this._forceHide()), this.addEventListener("keydown", (e) => {
+      (e.key === "Enter" || e.key === " ") && this._forceHide();
+    }), this._dataTipElem && (this._observer = new MutationObserver(() => {
       this._tooltipBox && (this._tooltipBox.innerHTML = this._dataTipElem.innerHTML);
     }), this._observer.observe(this._dataTipElem, {
       childList: !0,

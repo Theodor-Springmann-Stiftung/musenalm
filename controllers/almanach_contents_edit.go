@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -22,6 +23,7 @@ import (
 
 const (
 	URL_ALMANACH_CONTENTS_EDIT      = "contents/edit"
+	URL_ALMANACH_CONTENTS_NEW       = "contents/new"
 	URL_ALMANACH_CONTENTS_ITEM_EDIT = "contents/{contentMusenalmId}/edit"
 	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
 	URL_ALMANACH_CONTENTS_EDIT_EXTENT = "contents/edit/extent"
@@ -53,6 +55,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg := router.Group(URL_ALMANACH)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
@@ -159,6 +162,43 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
 			data["success"] = msg
 		}
+
+		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+	}
+}
+
+func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+		data := make(map[string]any)
+		result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+		if err != nil {
+			engine.Response404(e, err, nil)
+		}
+
+		contentCollection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+		record := core.NewRecord(contentCollection)
+		tempID := fmt.Sprintf("tmp-%d", time.Now().UnixNano())
+		record.Id = tempID
+		content := dbmodels.NewContent(record)
+		content.SetEntry(result.Entry.Id)
+		content.SetEditState("Edited")
+
+		data["result"] = result
+		data["csrf_token"] = req.Session().Token
+		data["content"] = content
+		data["content_id"] = content.Id
+		data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
+		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
+		data["pagination_values"] = paginationValuesSorted()
+		data["agent_relations"] = dbmodels.AGENT_RELATIONS
+		data["agents"] = map[string]*dbmodels.Agent{}
+		data["content_agents"] = []*dbmodels.RContentsAgents{}
+		data["is_new"] = true
 
 		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 	}
@@ -331,6 +371,8 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			contentID = targetContentID
 		}
 
+		tempToCreated := map[string]string{}
+		var createdContents []*dbmodels.Content
 		var updatedContents []*dbmodels.Content
 		if err := app.RunInTransaction(func(tx core.App) error {
 			if len(orderMap) > 0 {
@@ -381,6 +423,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if err := tx.Save(content); err != nil {
 					return err
 				}
+				tempToCreated[tempID] = content.Id
 				if relations, ok := relationsByContent[tempID]; ok {
 					if err := applyContentAgentRelations(tx, content, relations); err != nil {
 						return err
@@ -406,8 +449,12 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 					}
 				}
 			}
-			if targetContentID != "" && (len(uploadedScans) > 0 || len(deleteScans) > 0 || len(scansOrder) > 0) {
-				record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, targetContentID)
+			effectiveContentID := targetContentID
+			if mappedID, ok := tempToCreated[effectiveContentID]; ok {
+				effectiveContentID = mappedID
+			}
+			if effectiveContentID != "" && (len(uploadedScans) > 0 || len(deleteScans) > 0 || len(scansOrder) > 0) {
+				record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, effectiveContentID)
 				if err != nil {
 					return err
 				}
@@ -492,6 +539,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 					return err
 				}
 			}
+			createdContents = append(createdContents, created...)
 			updatedContents = append(updatedContents, contents...)
 			updatedContents = append(updatedContents, created...)
 			return nil
@@ -507,8 +555,19 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		if shouldUpdateFTS {
 			touched := updatedContents
 			if len(contentInputs) > 0 {
+				tempToCreated := map[string]string{}
+				for idx, tempID := range newContentIDs {
+					if idx >= len(createdContents) {
+						break
+					}
+					tempToCreated[tempID] = createdContents[idx].Id
+				}
 				touchedIDs := map[string]struct{}{}
 				for id := range contentInputs {
+					if createdID, ok := tempToCreated[id]; ok {
+						touchedIDs[createdID] = struct{}{}
+						continue
+					}
 					touchedIDs[id] = struct{}{}
 				}
 				filtered := make([]*dbmodels.Content, 0, len(touchedIDs))
@@ -644,9 +703,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			_ = dbmodels.DeleteFTS5Content(app, contentID)
 		}(contentID)
 
-		if len(remaining) > 0 {
-			go updateContentsFTS5(app, entry, remaining)
-		}
+		// Only delete the FTS5 record for the removed content.
 
 		if isHTMX {
 			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag geloescht.</div></div>`

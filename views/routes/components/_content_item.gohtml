@@ -23,18 +23,12 @@
 							aria-label="Beitrag verschieben">
 							<i class="ri-draggable"></i>
 						</button>
-						<tool-tip position="top" class="!inline">
-							<div class="data-tip">Nach oben verschieben</div>
-							<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
-								<i class="ri-arrow-up-line"></i>
-							</button>
-						</tool-tip>
-						<tool-tip position="top" class="!inline">
-							<div class="data-tip">Nach unten verschieben</div>
-							<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
-								<i class="ri-arrow-down-line"></i>
-							</button>
-						</tool-tip>
+						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
+							<i class="ri-arrow-up-line"></i>
+						</button>
+						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
+							<i class="ri-arrow-down-line"></i>
+						</button>
 					</div>
 					{{- if $content.Extent -}}
 						<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0" data-role="content-page-pill">S. {{- $content.Extent -}}</span>

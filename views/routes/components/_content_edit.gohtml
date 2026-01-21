@@ -39,22 +39,31 @@
 			</div>
 		</div>
 
+		<div class="inputwrapper">
+			<div class="inputlabelrow">
+				<label for="{{ $baseID }}-title" class="inputlabel">Titel</label>
+			</div>
+			<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
+		</div>
+
+		<div class="inputwrapper">
+			<div class="inputlabelrow">
+				<label for="{{ $baseID }}-incipit" class="inputlabel">Incipit</label>
+			</div>
+			<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
+		</div>
+
+		<div class="inputwrapper">
+			<div class="inputlabelrow">
+				<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
+			</div>
+			<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+		</div>
+
 		<div id="{{ $baseID }}-edit-fields" class="mt-2 flex flex-col gap-2"></div>
 		<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end mt-1">
 			<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
 				Felder hinzufügen</button>
-
-			<div class="inputwrapper {{ if eq $content.TitleStmt "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-title" class="inputlabel menu-label">Titel</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
-			</div>
 
 			<div class="inputwrapper {{ if eq $content.SubtitleStmt "" }}hidden{{ end }}">
 				<div class="inputlabelrow">
@@ -68,29 +77,7 @@
 				<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
 			</div>
 
-			<div class="inputwrapper {{ if eq $content.IncipitStmt "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-incipit" class="inputlabel menu-label">Incipit</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
-			</div>
-
-			<div class="inputwrapper {{ if eq $content.ResponsibilityStmt "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-responsibility" class="inputlabel menu-label">Autorangabe</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
-			</div>
+			
 
 			<div class="inputwrapper {{ if eq $content.ParallelTitle "" }}hidden{{ end }}">
 				<div class="inputlabelrow">

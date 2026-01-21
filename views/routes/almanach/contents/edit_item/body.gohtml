@@ -10,13 +10,18 @@
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.result -}}
 				{{- $model.result.Entry.PreferredTitle -}}<br>
-				<span class="text-base font-semibold text-slate-700">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
+				{{- if $model.is_new -}}
+					<span class="text-base font-semibold text-slate-700">Neuer Beitrag</span>
+				{{- else -}}
+					<span class="text-base font-semibold text-slate-700">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
+				{{- end -}}
 			{{- else -}}
 				Beiträge bearbeiten
 			{{- end -}}
 		</h1>
 			{{- if $model.result -}}
 				<div class="flex flex-row gap-x-3">
+					{{- if not $model.is_new -}}
 					<div>
 						<a
 							href="/beitrag/{{ $model.content.MusenalmID }}"
@@ -51,6 +56,7 @@
 						</a>
 					</div>
 					&middot;
+					{{- end -}}
 					<div>
 						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
 							<i class="ri-arrow-left-line"></i> Zurück zur Liste
@@ -73,6 +79,7 @@
 						<i class="ri-navigation-line"></i> Navigation
 					</div>
 					<div class="flex items-center gap-3">
+						{{- if not $model.is_new -}}
 						{{- if $model.prev_content -}}
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">
@@ -111,6 +118,9 @@
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
 							</tool-tip>
+						{{- end -}}
+						{{- else -}}
+						<span class="text-gray-800 font-bold no-underline">Neu</span>
 						{{- end -}}
 					</div>
 				</div>
@@ -154,6 +164,7 @@
 		hx-boost="false"
 		action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="content_id" value="{{ $model.content_id }}" />
 
 		<div class="flex gap-8">
 			<div class="flex-1 flex flex-col gap-4">
@@ -227,10 +238,12 @@
 					<i class="ri-arrow-left-line"></i>
 					<span>Zurück</span>
 				</a>
-				<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
-					<i class="ri-delete-bin-line"></i>
-					<span>Eintrag loeschen</span>
-				</button>
+				{{- if not $model.is_new -}}
+					<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
+						<i class="ri-delete-bin-line"></i>
+						<span>Eintrag loeschen</span>
+					</button>
+				{{- end -}}
 				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-save-line"></i>
 					<span>Speichern</span>
@@ -304,59 +317,58 @@
 		initMultiSelects();
 	}
 
-	if (!deleteButton || !deleteDialog || !deleteConfirm || !deleteCancel) {
-		return;
-	}
-
-	deleteButton.addEventListener("click", () => {
-		if (deleteDialog.showModal) {
-			deleteDialog.showModal();
-		} else {
-			deleteDialog.setAttribute("open", "true");
-		}
-	});
-
-	deleteCancel.addEventListener("click", () => {
-		deleteDialog.close();
-	});
-
-	deleteDialog.addEventListener("cancel", (event) => {
-		event.preventDefault();
-		deleteDialog.close();
-	});
-
-	deleteConfirm.addEventListener("click", () => {
-		const payload = new URLSearchParams();
-		payload.set("csrf_token", csrfToken);
-		payload.set("content_id", contentId);
-		fetch(deleteEndpoint, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-			},
-			body: payload.toString(),
-		}).then((response) => {
-			if (response.ok) {
-				window.location.assign("/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit");
-				return;
+	if (deleteButton && deleteDialog && deleteConfirm && deleteCancel) {
+		deleteButton.addEventListener("click", () => {
+			if (deleteDialog.showModal) {
+				deleteDialog.showModal();
+			} else {
+				deleteDialog.setAttribute("open", "true");
 			}
-			deleteDialog.close();
-		}).catch(() => {
+		});
+
+		deleteCancel.addEventListener("click", () => {
 			deleteDialog.close();
 		});
-	});
+
+		deleteDialog.addEventListener("cancel", (event) => {
+			event.preventDefault();
+			deleteDialog.close();
+		});
+
+		deleteConfirm.addEventListener("click", () => {
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			payload.set("content_id", contentId);
+			fetch(deleteEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+				body: payload.toString(),
+			}).then((response) => {
+				if (response.ok) {
+					window.location.assign("/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit");
+					return;
+				}
+				deleteDialog.close();
+			}).catch(() => {
+				deleteDialog.close();
+			});
+		});
+	}
 
 	const form = document.querySelector("form.dbform");
 	const uploadInput = document.querySelector("[data-role='content-images-upload-input']");
 	const userMessage = document.getElementById("user-message");
 	if (form && uploadInput && userMessage) {
 		form.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			event.stopPropagation();
 			event.stopImmediatePropagation();
 			const files = Array.from(uploadInput.files || []);
 			if (files.length > 0) {
 				const hasInvalid = files.some((file) => !file.type || !file.type.startsWith("image/"));
 				if (hasInvalid) {
-					event.preventDefault();
 					userMessage.innerHTML = `
 						<div class="text-red-800 text-sm mt-2 rounded-xs bg-red-200 p-2 font-bold border-red-700 shadow border mb-3">
 							<i class="ri-error-warning-fill"></i> Bitte nur Bilddateien auswählen.
@@ -366,7 +378,6 @@
 				}
 			}
 
-			event.preventDefault();
 			const payload = new FormData(form);
 			if (payload.has("scans")) {
 				payload.delete("scans");
@@ -402,9 +413,6 @@
 				window.location.assign(response.url);
 				return;
 			}
-			if (!response.ok) {
-				return;
-			}
 			const html = await response.text();
 			if (!html) {
 				return;
@@ -413,8 +421,14 @@
 			const nextMessage = doc.getElementById("user-message");
 			if (nextMessage) {
 				userMessage.innerHTML = nextMessage.innerHTML;
+			} else if (!response.ok) {
+				userMessage.innerHTML = `
+					<div class="text-red-800 text-sm mt-2 rounded-xs bg-red-200 p-2 font-bold border-red-700 shadow border mb-3">
+						<i class="ri-error-warning-fill"></i> Speichern fehlgeschlagen.
+					</div>
+				`;
 			}
-		});
+		}, true);
 	}
 })();
 </script>

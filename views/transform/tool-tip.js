@@ -102,6 +102,14 @@ export class ToolTip extends HTMLElement {
 
 		this.addEventListener("mouseenter", () => this._showTooltip());
 		this.addEventListener("mouseleave", () => this._hideTooltip());
+		this.addEventListener("pointerdown", () => this._forceHide());
+		this.addEventListener("mousedown", () => this._forceHide());
+		this.addEventListener("click", () => this._forceHide());
+		this.addEventListener("keydown", (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				this._forceHide();
+			}
+		});
 
 		if (this._dataTipElem) {
 			this._observer = new MutationObserver(() => {
