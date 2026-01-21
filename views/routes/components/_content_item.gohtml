@@ -64,27 +64,22 @@
 					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
 						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 					</span>
-					<tool-tip position="top" class="!inline">
-						<div class="data-tip">Bearbeiten</div>
-						<a
-							href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
-							class="resetbutton w-9 h-9 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
-							aria-label="Beitrag bearbeiten">
-							<i class="ri-edit-2-line"></i>
-						</a>
-					</tool-tip>
-					<tool-tip position="top" class="!inline">
-						<div class="data-tip">Löschen</div>
-						<button
-							type="button"
-							class="resetbutton w-9 h-9 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
-							data-role="content-delete-view"
-							aria-label="Beitrag löschen">
-							<i class="ri-delete-bin-line"></i>
-						</button>
-					</tool-tip>
+					<a
+						href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
+						class="resetbutton w-9 h-9 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
+						aria-label="Beitrag bearbeiten">
+						<i class="ri-edit-2-line"></i>
+					</a>
+					<button
+						type="button"
+						class="resetbutton w-9 h-9 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
+						data-role="content-delete-view"
+						aria-label="Beitrag löschen">
+						<i class="ri-delete-bin-line"></i>
+					</button>
 				</div>
 			</div>
+			<div data-role="content-match-display" class="hidden px-2 py-1 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
 			<dialog data-role="content-delete-dialog-view" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
 				<div class="p-5 w-[22rem]">
 					<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
@@ -102,93 +97,6 @@
 					</div>
 				</div>
 			</dialog>
-			<div class="hidden flex flex-col gap-1 px-2 py-0.5 md:flex-row md:items-start" data-role="content-view-body">
-				<div class="grid flex-1 gap-2 grid-cols-[8rem_1fr] items-baseline">
-					{{- if or $content.Extent $content.MusenalmPagination -}}
-						<div class="text-sm font-bold text-gray-700">Seite</div>
-						<div class="text-base">
-							{{ if $content.Extent }}{{ $content.Extent }}{{ end }}{{ if and $content.Extent $content.MusenalmPagination }}, {{ end }}{{ if $content.MusenalmPagination }}{{ $content.MusenalmPagination }}{{ end }}
-						</div>
-					{{- end -}}
-					{{- if $content.TitleStmt -}}
-						<div class="text-sm font-bold text-gray-700">Titel</div>
-						<div class="text-base italic">{{- $content.TitleStmt -}}</div>
-					{{- end -}}
-					{{- if $content.SubtitleStmt -}}
-						<div class="text-sm font-bold text-gray-700">Untertitel</div>
-						<div class="text-base italic">{{- $content.SubtitleStmt -}}</div>
-					{{- end -}}
-					{{- if $content.ParallelTitle -}}
-						<div class="text-sm font-bold text-gray-700">Paralleltitel</div>
-						<div class="text-base italic">{{- $content.ParallelTitle -}}</div>
-					{{- end -}}
-					{{- if $content.VariantTitle -}}
-						<div class="text-sm font-bold text-gray-700">Titelvarianten</div>
-						<div class="text-base italic">{{- $content.VariantTitle -}}</div>
-					{{- end -}}
-					{{- if $content.PlaceStmt -}}
-						<div class="text-sm font-bold text-gray-700">Ortsangabe</div>
-						<div class="text-base italic">{{- $content.PlaceStmt -}}</div>
-					{{- end -}}
-					{{- if gt (len $content.Language) 0 -}}
-						<div class="text-sm font-bold text-gray-700">Sprache</div>
-						<div class="text-base">
-							{{- range $i, $lang := $content.Language -}}{{- if $i }}, {{ end -}}{{- $lang -}}{{- end -}}
-						</div>
-					{{- end -}}
-					{{- if gt (len $content.ContentType) 0 -}}
-						<div class="text-sm font-bold text-gray-700">Beitragstyp</div>
-						<div class="text-base">
-							{{- range $i, $t := $content.ContentType -}}{{- if $i }}, {{ end -}}{{- $t -}}{{- end -}}
-						</div>
-					{{- end -}}
-					{{- if $content.IncipitStmt -}}
-						<div class="text-sm font-bold text-gray-700">Incipit</div>
-						<div class="text-base italic">{{ $content.IncipitStmt }}…</div>
-					{{- end -}}
-					{{- if $content.ResponsibilityStmt -}}
-						<div class="text-sm font-bold text-gray-700">Autorangabe</div>
-						<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
-					{{- end -}}
-					{{- if $content.Comment -}}
-						<div class="text-sm font-bold text-gray-700">Kommentar</div>
-						<div class="text-base italic">{{- $content.Comment -}}</div>
-					{{- end -}}
-					{{- if $contentAgents -}}
-						<div class="text-sm font-bold text-gray-700">Personen</div>
-						<div class="text-base">
-							<div class="flex flex-col">
-								{{- range $_, $rel := $contentAgents -}}
-									{{- $agent := index $agents $rel.Agent -}}
-									{{- if $agent -}}
-										<div class="font-sans w-max">
-											<a href="/person/{{- $agent.Id -}}" class="no-underline hover:text-slate-900">
-												{{- $agent.Name -}}
-											</a>
-											{{- if $agent.BiographicalData -}}
-												<span> ({{ $agent.BiographicalData }})</span>
-											{{- end -}}
-										</div>
-									{{- end -}}
-								{{- end -}}
-							</div>
-						</div>
-					{{- end -}}
-					{{- if $content.Annotation -}}
-						{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
-						<div class="text-sm font-bold text-gray-700">Anmerkung</div>
-						<div class="text-base">
-							{{- Safe (LinksAnnotation (ReplaceSlashParen $content.Annotation) $link) -}}
-						</div>
-					{{- end -}}
-				</div>
-				{{- template "_content_images_panel" (Dict
-					"content" $content
-					"entry" $entry
-					"csrf_token" $csrf
-					"is_new" false
-				) -}}
-			</div>
 		</div>
 	</div>
 </div>

@@ -134,20 +134,50 @@
 			action="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/extent"
 			class="extent-inline flex-1 grid grid-cols-[max-content_minmax(12rem,1fr)_max-content] items-center gap-2">
 			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-			<label for="contents-extent" class="text-sm font-bold text-gray-700">Struktur</label>
+			<label for="contents-extent" class="text-base font-bold text-gray-700">Struktur</label>
 			<input
 				id="contents-extent"
 				name="extent"
 				type="text"
-				class="min-w-[10rem] w-full max-w-none flex-1 border border-slate-300 rounded-xs bg-white px-2 py-1 text-sm leading-5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				class="min-w-[10rem] w-full max-w-none flex-1 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
 				placeholder="z. B. 12 Bl., 3 Taf."
 				value="{{- $model.result.Entry.Extent -}}" />
-			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-100 px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-stone-200">
+			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-100 px-3 py-1.5 text-base font-semibold text-gray-700 hover:bg-stone-200">
 				Speichern
 			</button>
 		</form>
 	</div>
-	<div class="mt-3 px-4 text-lg font-bold text-gray-800">Inhalt</div>
+	<div class="px-4 text-xl font-bold text-gray-800 mt-3">Inhalt</div>
+	<div class="px-4 py-2 flex flex-wrap items-center gap-3">
+		<label for="content-filter" class="text-sm font-bold text-gray-700 whitespace-nowrap">
+			<i class="ri-search-line"></i> Filtern
+		</label>
+		<input
+			id="content-filter"
+			type="text"
+			autocomplete="off"
+			class="flex-1 min-w-48 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+			placeholder="Suche nach Titel, Person, Anmerkung..."
+			data-role="content-filter-input"
+		/>
+		<input
+			id="content-filter-page"
+			type="text"
+			autocomplete="off"
+			class="w-28 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+			placeholder="Seite"
+			data-role="content-filter-page"
+		/>
+		<select
+			id="content-filter-type"
+			class="border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+			data-role="content-filter-type">
+			<option value="">Alle Typen</option>
+		</select>
+		<span id="content-filter-count" class="text-sm text-gray-600 whitespace-nowrap ml-auto" data-role="content-filter-count">
+			{{ len $model.result.Contents }} Einträge
+		</span>
+	</div>
 	<div class="flex flex-col gap-0 mt-2"
 		data-role="contents-list"
 		data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
@@ -170,8 +200,286 @@
 </div>
 </edit-page>
 
+<script>
+	// Search index: object keyed by content ID with all searchable fields
+	window.contentsSearchIndex = {
+		{{- range $i, $content := $model.result.Contents -}}
+		{{- if $i }},{{ end }}
+		"{{ $content.Id }}": {
+			extent: "{{ $content.Extent }}",
+			pagination: "{{ $content.MusenalmPagination }}",
+			musenalmType: [{{- range $j, $t := $content.MusenalmType -}}{{- if $j }},{{ end }}"{{ $t }}"{{- end -}}],
+			preferredTitle: "{{ $content.PreferredTitle }}",
+			titleStmt: "{{ $content.TitleStmt }}",
+			status: "{{ $content.EditState }}",
+			subtitleStmt: "{{ $content.SubtitleStmt }}",
+			incipitStmt: "{{ $content.IncipitStmt }}",
+			responsibilityStmt: "{{ $content.ResponsibilityStmt }}",
+			parallelTitle: "{{ $content.ParallelTitle }}",
+			variantTitle: "{{ $content.VariantTitle }}",
+			placeStmt: "{{ $content.PlaceStmt }}",
+			language: [{{- range $j, $lang := $content.Language -}}{{- if $j }},{{ end }}"{{ $lang }}"{{- end -}}],
+			contentType: [{{- range $j, $ct := $content.ContentType -}}{{- if $j }},{{ end }}"{{ $ct }}"{{- end -}}],
+			comment: "{{ $content.Comment }}",
+			agents: [
+				{{- $contentAgents := index $model.result.ContentsAgents $content.Id -}}
+				{{- range $j, $rel := $contentAgents -}}
+					{{- $agent := index $model.result.Agents $rel.Agent -}}
+					{{- if $agent -}}
+						{{- if $j }},{{ end }}{name: "{{ $agent.Name }}", bio: "{{ $agent.BiographicalData }}"}
+					{{- end -}}
+				{{- end -}}
+			],
+			annotation: {{ SafeJS $content.Annotation }}
+		}
+		{{- end -}}
+	};
+</script>
+
 <script type="module">
 	let list = null;
+
+	// Normalize function for accent-insensitive matching
+	const normalizeText = (text) => {
+		if (!text) return '';
+		return text
+			.toString()
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+			.trim();
+	};
+
+	// Filter functionality
+	const initFilter = () => {
+		const filterInput = document.querySelector("[data-role='content-filter-input']");
+		const filterPage = document.querySelector("[data-role='content-filter-page']");
+		const filterType = document.querySelector("[data-role='content-filter-type']");
+		const filterCount = document.querySelector("[data-role='content-filter-count']");
+		const list = document.querySelector("[data-role='contents-list']");
+
+		if (!filterInput || !list) return;
+
+		// Populate type select from search index
+		if (filterType && window.contentsSearchIndex) {
+			const types = new Set();
+			Object.values(window.contentsSearchIndex).forEach(content => {
+				(content.musenalmType || []).forEach(t => types.add(t));
+			});
+			Array.from(types).sort().forEach(type => {
+				const option = document.createElement('option');
+				option.value = type;
+				option.textContent = type;
+				filterType.appendChild(option);
+			});
+		}
+
+		let filterTimeout = null;
+		const totalCount = list.querySelectorAll("[data-role='content-item']").length;
+
+		// Field labels for display
+		const fieldLabels = {
+			extent: 'Seite',
+			pagination: 'Paginierung',
+			musenalmType: 'Typ',
+			titleStmt: 'Titel',
+			subtitleStmt: 'Untertitel',
+			incipitStmt: 'Incipit',
+			responsibilityStmt: 'Autorangabe',
+			parallelTitle: 'Paralleltitel',
+			variantTitle: 'Titelvarianten',
+			placeStmt: 'Ortsangabe',
+			contentType: 'Beitragstyp',
+			comment: 'Kommentar',
+			agents: 'Personen',
+			annotation: 'Anmerkung'
+		};
+
+		const performFilter = () => {
+			const query = normalizeText(filterInput.value);
+			const pageQuery = normalizeText(filterPage?.value || '');
+			const typeQuery = filterType?.value || '';
+			const items = list.querySelectorAll("[data-role='content-item']");
+			let visibleCount = 0;
+
+			const hasAnyFilter = query || pageQuery || typeQuery;
+
+			if (!hasAnyFilter) {
+				list.removeAttribute('data-filtering');
+				items.forEach(item => {
+					item.style.display = '';
+					const matchDisplay = item.querySelector('[data-role="content-match-display"]');
+					if (matchDisplay) {
+						matchDisplay.classList.add('hidden');
+						matchDisplay.innerHTML = '';
+					}
+				});
+				visibleCount = totalCount;
+			} else {
+				list.setAttribute('data-filtering', 'true');
+				items.forEach(item => {
+					const contentId = item.dataset.contentId;
+					const contentData = window.contentsSearchIndex[contentId];
+					const matchDisplay = item.querySelector('[data-role="content-match-display"]');
+
+					if (!contentData) {
+						item.style.display = 'none';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						return;
+					}
+
+					// Check type filter (exact match)
+					if (typeQuery && !(contentData.musenalmType || []).includes(typeQuery)) {
+						item.style.display = 'none';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						return;
+					}
+
+					// Check page filter (substring match on extent)
+					if (pageQuery) {
+						const extentMatch = normalizeText(contentData.extent || '').includes(pageQuery);
+						if (!extentMatch) {
+							item.style.display = 'none';
+							if (matchDisplay) {
+								matchDisplay.classList.add('hidden');
+								matchDisplay.innerHTML = '';
+							}
+							return;
+						}
+					}
+
+					// If only type/page filters are active (no text query), show item without match display
+					if (!query) {
+						item.style.display = '';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						visibleCount++;
+						return;
+					}
+
+					// Check each field individually and collect matches for text query
+					const matchedFields = [];
+
+					const checkField = (key, value, label) => {
+						if (!value) return;
+						const normalizedValue = normalizeText(String(value));
+						if (normalizedValue.includes(query)) {
+							matchedFields.push({ label, value: String(value) });
+						}
+					};
+
+					const checkArrayField = (key, values, label) => {
+						if (!values || !values.length) return;
+						const matchingValues = values.filter(v => normalizeText(String(v)).includes(query));
+						if (matchingValues.length > 0) {
+							matchedFields.push({ label, value: matchingValues.join(', ') });
+						}
+					};
+
+					// Check text search fields (excluding language, status, preferredTitle)
+					checkField('extent', contentData.extent, fieldLabels.extent);
+					checkField('pagination', contentData.pagination, fieldLabels.pagination);
+					checkArrayField('musenalmType', contentData.musenalmType, fieldLabels.musenalmType);
+					checkField('titleStmt', contentData.titleStmt, fieldLabels.titleStmt);
+					checkField('subtitleStmt', contentData.subtitleStmt, fieldLabels.subtitleStmt);
+					checkField('incipitStmt', contentData.incipitStmt, fieldLabels.incipitStmt);
+					checkField('responsibilityStmt', contentData.responsibilityStmt, fieldLabels.responsibilityStmt);
+					checkField('parallelTitle', contentData.parallelTitle, fieldLabels.parallelTitle);
+					checkField('variantTitle', contentData.variantTitle, fieldLabels.variantTitle);
+					checkField('placeStmt', contentData.placeStmt, fieldLabels.placeStmt);
+					checkArrayField('contentType', contentData.contentType, fieldLabels.contentType);
+					checkField('comment', contentData.comment, fieldLabels.comment);
+
+					// Check agents
+					if (contentData.agents && contentData.agents.length > 0) {
+						const matchingAgents = contentData.agents.filter(a => {
+							const agentText = normalizeText(`${a.name} ${a.bio}`);
+							return agentText.includes(query);
+						});
+						if (matchingAgents.length > 0) {
+							matchedFields.push({
+								label: fieldLabels.agents,
+								value: matchingAgents.map(a => a.bio ? `${a.name} (${a.bio})` : a.name).join(', ')
+							});
+						}
+					}
+
+					// Check annotation (strip HTML for display)
+					if (contentData.annotation) {
+						const plainAnnotation = contentData.annotation.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+						if (normalizeText(plainAnnotation).includes(query)) {
+							const displayValue = plainAnnotation.length > 100
+								? plainAnnotation.substring(0, 100) + '…'
+								: plainAnnotation;
+							matchedFields.push({ label: fieldLabels.annotation, value: displayValue });
+						}
+					}
+
+					const hasMatch = matchedFields.length > 0;
+					item.style.display = hasMatch ? '' : 'none';
+
+					if (matchDisplay) {
+						if (hasMatch) {
+							matchDisplay.classList.remove('hidden');
+							matchDisplay.innerHTML = matchedFields
+								.map(f => `<span class="inline-block mr-3"><strong>${f.label}:</strong> ${f.value}</span>`)
+								.join('');
+						} else {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+					}
+
+					if (hasMatch) visibleCount++;
+				});
+			}
+
+			if (filterCount) {
+				filterCount.textContent = !hasAnyFilter
+					? `${totalCount} Einträge`
+					: `${visibleCount} von ${totalCount} Einträgen`;
+			}
+		};
+
+		const debounceFilter = () => {
+			if (filterTimeout) clearTimeout(filterTimeout);
+			filterTimeout = setTimeout(performFilter, 150);
+		};
+
+		filterInput.addEventListener('input', debounceFilter);
+		filterPage?.addEventListener('input', debounceFilter);
+		filterType?.addEventListener('change', performFilter);
+
+		// Clear all filters on Escape
+		const clearFilters = () => {
+			filterInput.value = '';
+			if (filterPage) filterPage.value = '';
+			if (filterType) filterType.value = '';
+			performFilter();
+		};
+
+		filterInput.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				clearFilters();
+				filterInput.blur();
+			}
+		});
+
+		filterPage?.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				clearFilters();
+				filterPage.blur();
+			}
+		});
+	};
 
 	const initPage = () => {
 		list = document.querySelector("[data-role='contents-list']");
@@ -249,6 +557,9 @@
 			const payload = new URLSearchParams();
 			payload.set("csrf_token", csrfToken);
 			list.querySelectorAll("[data-role='content-item']").forEach((card) => {
+				// Skip filtered-out items during reorder
+				if (card.style.display === 'none') return;
+
 				const contentId = card.dataset.contentId;
 				if (!contentId) {
 					return;
@@ -415,5 +726,6 @@
 		}
 	};
 
+	initFilter();
 	initPage();
 </script>

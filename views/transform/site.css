@@ -605,4 +605,29 @@
 			transform: rotate(360deg);
 		} /* Pause at the final position */
 	}
+
+	/* Filter input focus state */
+	[data-role='content-filter-input']:focus {
+		border-color: rgb(148 163 184);
+		box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+	}
+
+	/* Ensure filtered items are truly hidden (no height) */
+	[data-role='content-item'][style*='display: none'] {
+		display: none !important;
+	}
+
+	/* Smooth transition for filter count */
+	[data-role='content-filter-count'] {
+		transition: opacity 0.2s ease;
+	}
+
+	/* Hide drag controls when filtering */
+	[data-role='contents-list'][data-filtering] [data-role='content-drag-handle'],
+	[data-role='contents-list'][data-filtering] [data-role='content-move-up'],
+	[data-role='contents-list'][data-filtering] [data-role='content-move-down'],
+	[data-role='contents-list'][data-filtering] tool-tip:has([data-role='content-move-up']),
+	[data-role='contents-list'][data-filtering] tool-tip:has([data-role='content-move-down']) {
+		display: none;
+	}
 }
