@@ -198,6 +198,22 @@
 		{{- end -}}
 	</div>
 </div>
+
+<dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+	<div class="p-5 w-[22rem]">
+		<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
+		<div id="content-delete-dialog-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+		<p class="text-sm text-gray-700 mt-2">
+			Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Beiträge werden entfernt.
+		</p>
+		<div class="flex items-center justify-end gap-3 mt-4">
+			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+			<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
+				Löschen
+			</button>
+		</div>
+	</div>
+</dialog>
 </edit-page>
 
 <script>
@@ -506,7 +522,14 @@
 			}
 			syncIndicator.classList.toggle("hidden", !active);
 		};
-		const deleteContent = (item, dialog) => {
+		// Shared delete dialog
+		const deleteDialog = document.getElementById("content-delete-dialog");
+		const deleteDialogTitle = document.getElementById("content-delete-dialog-title");
+		const deleteConfirmBtn = deleteDialog?.querySelector("[data-role='content-delete-confirm']");
+		const deleteCancelBtn = deleteDialog?.querySelector("[data-role='content-delete-cancel']");
+		let itemToDelete = null;
+
+		const deleteContent = (item) => {
 			if (!item) {
 				return;
 			}
@@ -523,7 +546,7 @@
 						content_id: contentId,
 					},
 				});
-				dialog?.close();
+				deleteDialog?.close();
 				return;
 			}
 			const payload = new URLSearchParams();
@@ -542,9 +565,24 @@
 				})
 				.catch(() => null)
 				.finally(() => {
-					dialog?.close();
+					deleteDialog?.close();
 				});
 		};
+
+		// Setup shared delete dialog events
+		if (deleteDialog) {
+			deleteCancelBtn?.addEventListener("click", () => deleteDialog.close());
+			deleteDialog.addEventListener("cancel", (e) => {
+				e.preventDefault();
+				deleteDialog.close();
+			});
+			deleteConfirmBtn?.addEventListener("click", () => {
+				if (itemToDelete) {
+					deleteContent(itemToDelete);
+					itemToDelete = null;
+				}
+			});
+		}
 
 		const performOrderSync = () => {
 			if (!list || !orderEndpoint || !csrfToken || isOrderSyncing) {
@@ -603,35 +641,19 @@
 			item.dataset.init = "true";
 
 			const deleteButtonView = item.querySelector("[data-role='content-delete-view']");
-			const deleteDialogView = item.querySelector("[data-role='content-delete-dialog-view']");
-			const deleteConfirmView = item.querySelector("[data-role='content-delete-confirm-view']");
-			const deleteCancelView = item.querySelector("[data-role='content-delete-cancel-view']");
-			const view = item.querySelector("[data-role='content-view']");
-			const viewBody = item.querySelector("[data-role='content-view-body']");
 
-			if (deleteButtonView && deleteDialogView) {
+			if (deleteButtonView && deleteDialog) {
 				deleteButtonView.addEventListener("click", () => {
-					if (deleteDialogView.showModal) {
-						deleteDialogView.showModal();
-					} else {
-						deleteDialogView.setAttribute("open", "true");
+					itemToDelete = item;
+					// Get title from search index for the dialog
+					const contentId = item.dataset.contentId;
+					const contentData = window.contentsSearchIndex?.[contentId];
+					const title = contentData?.titleStmt || contentData?.preferredTitle || '';
+					if (deleteDialogTitle) {
+						deleteDialogTitle.textContent = title;
+						deleteDialogTitle.style.display = title ? '' : 'none';
 					}
-				});
-			}
-
-			if (deleteCancelView && deleteDialogView) {
-				deleteCancelView.addEventListener("click", () => {
-					deleteDialogView.close();
-				});
-				deleteDialogView.addEventListener("cancel", (event) => {
-					event.preventDefault();
-					deleteDialogView.close();
-				});
-			}
-
-			if (deleteConfirmView) {
-				deleteConfirmView.addEventListener("click", () => {
-					deleteContent(item, deleteDialogView);
+					deleteDialog.showModal();
 				});
 			}
 		};
@@ -643,6 +665,8 @@
 		if (list.dataset.pageInit !== "true") {
 			list.dataset.pageInit = "true";
 			let draggedItem = null;
+			let lastDragOverTime = 0;
+			const DRAG_THROTTLE_MS = 100;
 			list.addEventListener("click", (event) => {
 				const moveUp = event.target.closest("[data-role='content-move-up']");
 				const moveDown = event.target.closest("[data-role='content-move-down']");
