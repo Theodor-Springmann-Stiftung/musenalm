@@ -510,7 +510,7 @@
 	}
 
 	#entrydata .entryrow {
-		@apply flex flex-row gap-x-3.5 items-start py-0.5;
+		@apply flex flex-row gap-x-3.5 items-baseline py-0.5;
 	}
 
 	#entrydata {
@@ -576,7 +576,7 @@
 	}
 
 	.content .fields {
-		@apply grid grid-cols-10 gap-y-0 w-full gap-x-3;
+		@apply grid grid-cols-10 gap-y-0 w-full gap-x-3 items-baseline;
 	}
 
 	.content .fieldlabel {

@@ -125,11 +125,15 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 		}
 		var prevContent *dbmodels.Content
 		var nextContent *dbmodels.Content
+		contentIndex := 0
+		contentTotal := 0
 		if len(contents) > 0 {
+			contentTotal = len(contents)
 			for i, c := range contents {
 				if c.Id != content.Id {
 					continue
 				}
+				contentIndex = i + 1
 				if i > 0 {
 					prevContent = contents[i-1]
 				}
@@ -158,6 +162,8 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 		data["content_agents"] = contentAgentsMap[content.Id]
 		data["prev_content"] = prevContent
 		data["next_content"] = nextContent
+		data["content_index"] = contentIndex
+		data["content_total"] = contentTotal
 
 		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
 			data["success"] = msg
@@ -253,11 +259,15 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	}
 	var prevContent *dbmodels.Content
 	var nextContent *dbmodels.Content
+	contentIndex := 0
+	contentTotal := 0
 	if len(entryContents) > 0 {
+		contentTotal = len(entryContents)
 		for i, c := range entryContents {
 			if c.Id != content.Id {
 				continue
 			}
+			contentIndex = i + 1
 			if i > 0 {
 				prevContent = entryContents[i-1]
 			}
@@ -286,6 +296,8 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	data["content_agents"] = contentAgentsMap[content.Id]
 	data["prev_content"] = prevContent
 	data["next_content"] = nextContent
+	data["content_index"] = contentIndex
+	data["content_total"] = contentTotal
 	data["error"] = message
 
 	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
@@ -555,13 +567,6 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		if shouldUpdateFTS {
 			touched := updatedContents
 			if len(contentInputs) > 0 {
-				tempToCreated := map[string]string{}
-				for idx, tempID := range newContentIDs {
-					if idx >= len(createdContents) {
-						break
-					}
-					tempToCreated[tempID] = createdContents[idx].Id
-				}
 				touchedIDs := map[string]struct{}{}
 				for id := range contentInputs {
 					if createdID, ok := tempToCreated[id]; ok {
@@ -583,7 +588,20 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			go updateContentsFTS5(app, entry, touched)
 		}
 
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
+		savedMessage := url.QueryEscape("Änderungen gespeichert.")
+		if contentID != "" {
+			effectiveContentID := contentID
+			if mappedID, ok := tempToCreated[effectiveContentID]; ok {
+				effectiveContentID = mappedID
+			}
+			if effectiveContentID != "" {
+				if resolved, err := dbmodels.Contents_IDs(app, []any{effectiveContentID}); err == nil && len(resolved) > 0 {
+					redirect := fmt.Sprintf("/almanach/%s/contents/%d/edit?saved_message=%s", id, resolved[0].MusenalmID(), savedMessage)
+					return e.Redirect(http.StatusSeeOther, redirect)
+				}
+			}
+		}
+		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, savedMessage)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

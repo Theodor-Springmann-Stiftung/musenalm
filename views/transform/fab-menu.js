@@ -22,6 +22,8 @@ export class FabMenu extends HTMLElement {
 			reiheUpdated = "";
 		let hasPerson = false,
 			personId = "";
+		let hasReihenList = false;
+		let hasPersonenList = false;
 		let hasEntry = false,
 			entryId = "",
 			entryUpdated = "";
@@ -98,10 +100,13 @@ export class FabMenu extends HTMLElement {
 			} else if (path === "/" || path === "/index/") {
 				hasPage = true;
 				pageKey = "index";
-			} else if (path === "/reihen" || path === "/reihen/") {
-				hasPage = true;
-				pageKey = "reihen";
 			}
+		}
+		if (path === "/reihen" || path === "/reihen/") {
+			hasReihenList = true;
+		}
+		if (path === "/personen" || path === "/personen/") {
+			hasPersonenList = true;
 		}
 
 		// Try to find CSRF token from page forms
@@ -112,7 +117,7 @@ export class FabMenu extends HTMLElement {
 		}
 		const hasCsrf = csrfToken !== "";
 
-		this.hasContext = hasReihe || hasPerson || hasEntry || hasContent || hasPage;
+		this.hasContext = hasReihe || hasPerson || hasEntry || hasContent || hasPage || hasReihenList || hasPersonenList;
 
 		// Build half-open menu content
 		let halfOpenContent = "";
@@ -170,6 +175,26 @@ export class FabMenu extends HTMLElement {
 				<a href="/almanach/${contentEntryId}/contents/new" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Beitrag</span>
+				</a>
+			`;
+		} else if (isAdminOrEditor && hasReihenList) {
+			halfOpenContent = `
+				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+					Reihen
+				</div>
+				<a href="/reihen/new/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Neue Reihe</span>
+				</a>
+			`;
+		} else if (isAdminOrEditor && hasPersonenList) {
+			halfOpenContent = `
+				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+					Personen
+				</div>
+				<a href="/personen/new/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Neue Person</span>
 				</a>
 			`;
 		} else if (isAdminOrEditor && hasPage) {

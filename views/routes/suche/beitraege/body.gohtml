@@ -232,7 +232,7 @@
 							{{- range $i, $c := $contents -}}
 								{{- $rels := index $model.result.ContentsAgents $c.Id -}}
 								{{- template "_content" Arr $c $e $rels $model.result.Agents  false true
-									$model.parameters
+									$model.parameters $model.request
 								-}}
 							{{- end -}}
 						</div>

@@ -49,6 +49,10 @@
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
 							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-left-s-line"></i>
+							</span>
 						{{- end -}}
 						<span class="text-gray-800 font-bold no-underline">
 						A&thinsp;-&thinsp;Z
@@ -62,23 +66,27 @@
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
 							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-right-s-line"></i>
+							</span>
 						{{- end -}}
 					</div>
 				</div>
 			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-10">
+			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
 				<div class="">
 					<div class="font-bold text-sm">
 						<i class="ri-database-2-line"></i> Datenbank-ID
 					</div>
-					<div class="">{{ $place.Id }}</div>
+					<div class="whitespace-nowrap tabular-nums">{{ $place.Id }}</div>
 				</div>
 			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-4">
+			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
 				<div class="">
 					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
 					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit" id="place-updated-stamp">
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums" id="place-updated-stamp">
 							<span id="place-updated-date">{{ GermanDate $place.Updated }}</span>,
 							<span id="place-updated-time">{{ GermanTime $place.Updated }}</span>h
 						</div>

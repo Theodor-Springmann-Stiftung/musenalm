@@ -5,7 +5,7 @@
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
-			<i class="ri-file-list-3-line"></i> Beiträge
+			<i class="ri-file-list-3-line"></i> Beitrag
 		</div>
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.result -}}
@@ -13,7 +13,7 @@
 				{{- if $model.is_new -}}
 					<span class="text-base font-semibold text-slate-700">Neuer Beitrag</span>
 				{{- else -}}
-					<span class="text-base font-semibold text-slate-700">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
+					<span class="mt-1 mb-1 block text-base font-semibold text-slate-900">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
 				{{- end -}}
 			{{- else -}}
 				Beiträge bearbeiten
@@ -59,7 +59,7 @@
 					{{- end -}}
 					<div>
 						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-							<i class="ri-arrow-left-line"></i> Zurück zur Liste
+							<i class="ri-arrow-left-line"></i> Liste
 						</a>
 					</div>
 					&middot;
@@ -97,9 +97,13 @@
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
 							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-left-s-line"></i>
+							</span>
 						{{- end -}}
-						<span class="text-gray-800 font-bold no-underline">
-						{{ $model.content.MusenalmID }}
+						<span class="text-gray-800 font-bold no-underline tabular-nums whitespace-nowrap">
+							<span class="inline-block w-[2.5ch] text-right">{{ $model.content_index }}</span>&thinsp;/&thinsp;<span class="inline-block w-[2.5ch] text-left">{{ $model.content_total }}</span>
 						</span>
 						{{- if $model.next_content -}}
 							<tool-tip position="top" class="!inline">
@@ -118,6 +122,10 @@
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
 							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-right-s-line"></i>
+							</span>
 						{{- end -}}
 						{{- else -}}
 						<span class="text-gray-800 font-bold no-underline">Neu</span>
@@ -125,19 +133,19 @@
 					</div>
 				</div>
 			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-10">
+			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
 				<div class="">
 					<div class="font-bold text-sm">
 						<i class="ri-database-2-line"></i> Datenbank-ID
 					</div>
-					<div class="">{{ $model.content.Id }}</div>
+					<div class="whitespace-nowrap tabular-nums">{{ $model.content.Id }}</div>
 				</div>
 			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-4">
+			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
 				<div class="">
 					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
 					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit">
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums">
 							<span>{{ GermanDate $model.result.Entry.Updated }}</span>,
 							<span>{{ GermanTime $model.result.Entry.Updated }}</span>h
 						</div>
@@ -194,13 +202,18 @@
 								<i class="ri-question-line"></i>
 							</tool-tip>
 						</div>
+						<button type="button" id="content-{{ $model.content_id }}-musenalm-type-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+							<i class="ri-link"></i> Typ verlinken
+						</button>
 					</div>
 					<div class="px-2 py-2">
 						<multi-select-simple
 							id="content-{{ $model.content_id }}-musenalm-type"
 							name="content_{{ $model.content_id }}_musenalm_type[]"
+							data-external-toggle-id="content-{{ $model.content_id }}-musenalm-type-toggle"
 							show-create-button="false"
 							placeholder="Musenalm-Typen suchen..."
+							data-toggle-label='<i class="ri-add-circle-line"></i>'
 							data-empty-text="Keine Typen verknüpft"
 							value='[{{- range $i, $t := $model.content.MusenalmType -}}{{- if $i }},{{ end -}}"{{ $t }}"{{- end -}}]'
 							data-initial-options='[{{- range $i, $t := $model.musenalm_types -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q}" $t $t }}{{- end -}}]'
@@ -211,16 +224,23 @@
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
 						<label for="content-{{ $model.content_id }}-language" class="inputlabel">Sprache</label>
+						<button type="button" id="content-{{ $model.content_id }}-language-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
+							<i class="ri-link"></i> Sprache verlinken
+						</button>
 					</div>
-					<multi-select-simple
-						id="content-{{ $model.content_id }}-language"
-						name="content_{{ $model.content_id }}_language[]"
-						show-create-button="false"
-						placeholder="Sprachen suchen..."
-						data-empty-text="Keine Sprachen verknüpft"
-						value='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
-						data-initial-values='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
-					</multi-select-simple>
+					<div class="px-2 py-2">
+						<multi-select-simple
+							id="content-{{ $model.content_id }}-language"
+							name="content_{{ $model.content_id }}_language[]"
+							data-external-toggle-id="content-{{ $model.content_id }}-language-toggle"
+							show-create-button="false"
+							placeholder="Sprachen suchen..."
+							data-toggle-label='<i class="ri-add-circle-line"></i>'
+							data-empty-text="Keine Sprachen verknüpft"
+							value='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'
+							data-initial-values='[{{- range $i, $lang := $model.content.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
+						</multi-select-simple>
+					</div>
 				</div>
 				{{- template "_content_images_panel" (Dict
 					"content" $model.content
@@ -236,7 +256,11 @@
 			<div class="flex items-center gap-3 self-end flex-wrap">
 				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-arrow-left-line"></i>
-					<span>Zurück</span>
+					<span>Liste</span>
+				</a>
+				<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<i class="ri-add-line"></i>
+					<span>Neuer Beitrag</span>
 				</a>
 				{{- if not $model.is_new -}}
 					<button type="button" class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900" data-role="content-delete">
