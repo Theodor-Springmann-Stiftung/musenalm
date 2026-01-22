@@ -139,12 +139,17 @@ func (p *ReiheEditPage) GET(engine *templating.Engine, app core.App) HandleFunc 
 	}
 }
 
-func (p *ReiheEditPage) renderError(engine *templating.Engine, app core.App, e *core.RequestEvent, message string) error {
+func (p *ReiheEditPage) renderError(engine *templating.Engine, app core.App, e *core.RequestEvent, message string, formdata *reiheEditForm) error {
 	id := e.Request.PathValue("id")
 	data := make(map[string]any)
 	result, err := NewReiheEditResult(app, id)
 	if err != nil {
 		return engine.Response404(e, err, data)
+	}
+	if formdata != nil && result != nil && result.Series != nil {
+		title := strings.TrimSpace(formdata.Title)
+		status := strings.TrimSpace(formdata.Status)
+		applySeriesForm(result.Series, *formdata, title, status, nil)
 	}
 	data["result"] = result
 	data["error"] = message
@@ -377,11 +382,11 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 
 		formdata := reiheEditForm{}
 		if err := e.BindBody(&formdata); err != nil {
-			return p.renderError(engine, app, e, "Formulardaten ungültig.")
+			return p.renderError(engine, app, e, "Formulardaten ungültig.", nil)
 		}
 
 		if err := req.CheckCSRF(formdata.CSRFToken); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+			return p.renderError(engine, app, e, err.Error(), &formdata)
 		}
 
 		series, err := dbmodels.Series_MusenalmID(app, id)
@@ -392,21 +397,21 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 		if formdata.LastEdited != "" {
 			lastEdited, err := types.ParseDateTime(formdata.LastEdited)
 			if err != nil {
-				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.")
+				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 			}
 			if !series.Updated().Time().Equal(lastEdited.Time()) {
-				return p.renderError(engine, app, e, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden.")
+				return p.renderError(engine, app, e, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden.", &formdata)
 			}
 		}
 
 		title := strings.TrimSpace(formdata.Title)
 		if title == "" {
-			return p.renderError(engine, app, e, "Reihentitel ist erforderlich.")
+			return p.renderError(engine, app, e, "Reihentitel ist erforderlich.", &formdata)
 		}
 
 		status := strings.TrimSpace(formdata.Status)
 		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderError(engine, app, e, "Ungültiger Status.")
+			return p.renderError(engine, app, e, "Ungültiger Status.", &formdata)
 		}
 
 		// Capture old title (entries depend on series title)
@@ -418,7 +423,7 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			return tx.Save(series)
 		}); err != nil {
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)
-			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
+			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.", &formdata)
 		}
 
 		// Check if title changed (entries store series title)

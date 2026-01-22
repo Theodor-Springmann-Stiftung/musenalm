@@ -130,12 +130,17 @@ func (p *PersonEditPage) GET(engine *templating.Engine, app core.App) HandleFunc
 	}
 }
 
-func (p *PersonEditPage) renderError(engine *templating.Engine, app core.App, e *core.RequestEvent, message string) error {
+func (p *PersonEditPage) renderError(engine *templating.Engine, app core.App, e *core.RequestEvent, message string, formdata *personEditForm) error {
 	id := e.Request.PathValue("id")
 	data := make(map[string]any)
 	result, err := NewPersonEditResult(app, id)
 	if err != nil {
 		return engine.Response404(e, err, data)
+	}
+	if formdata != nil && result != nil && result.Agent != nil {
+		name := strings.TrimSpace(formdata.Name)
+		status := strings.TrimSpace(formdata.Status)
+		applyPersonForm(result.Agent, *formdata, name, status, nil)
 	}
 	data["result"] = result
 	data["error"] = message
@@ -277,11 +282,11 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 
 		formdata := personEditForm{}
 		if err := e.BindBody(&formdata); err != nil {
-			return p.renderError(engine, app, e, "Formulardaten ungültig.")
+			return p.renderError(engine, app, e, "Formulardaten ungültig.", nil)
 		}
 
 		if err := req.CheckCSRF(formdata.CSRFToken); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+			return p.renderError(engine, app, e, err.Error(), &formdata)
 		}
 
 		agent, err := dbmodels.Agents_ID(app, id)
@@ -292,21 +297,21 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 		if formdata.LastEdited != "" {
 			lastEdited, err := types.ParseDateTime(formdata.LastEdited)
 			if err != nil {
-				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.")
+				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 			}
 			if !agent.Updated().Time().Equal(lastEdited.Time()) {
-				return p.renderError(engine, app, e, "Die Person wurde inzwischen geändert. Bitte Seite neu laden.")
+				return p.renderError(engine, app, e, "Die Person wurde inzwischen geändert. Bitte Seite neu laden.", &formdata)
 			}
 		}
 
 		name := strings.TrimSpace(formdata.Name)
 		if name == "" {
-			return p.renderError(engine, app, e, "Name ist erforderlich.")
+			return p.renderError(engine, app, e, "Name ist erforderlich.", &formdata)
 		}
 
 		status := strings.TrimSpace(formdata.Status)
 		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderError(engine, app, e, "Ungültiger Status.")
+			return p.renderError(engine, app, e, "Ungültiger Status.", &formdata)
 		}
 
 		// Capture old name (entries and contents depend on agent name)
@@ -318,7 +323,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 			return tx.Save(agent)
 		}); err != nil {
 			app.Logger().Error("Failed to save agent", "agent_id", agent.Id, "error", err)
-			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.")
+			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.", &formdata)
 		}
 
 		// Check if name changed (entries and contents store agent name)
