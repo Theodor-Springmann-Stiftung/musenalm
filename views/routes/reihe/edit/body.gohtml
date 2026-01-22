@@ -132,11 +132,19 @@
 							</tool-tip>
 						</div>
 					</div>
-					<textarea name="title" id="title" class="inputinput no-enter" autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/series/search" data-duplicate-result-key="series" data-duplicate-current-id="{{ if not $model.is_new }}{{ $series.Id }}{{ end }}">{{- $series.Title -}}</textarea>
-					<div class="duplicate-warning hidden" data-duplicate-warning-for="title">
-						<i class="ri-information-line"></i>
-						<span data-duplicate-count></span>
-					</div>
+					<lookup-field
+						id="series-title-field"
+						name="title"
+						data-multiline="true"
+						data-no-enter="true"
+						data-required="true"
+						data-autocomplete="false"
+						data-valid-fn="lookupRequiredText"
+						data-dup-endpoint="/api/series/search"
+						data-dup-result-key="series"
+						data-dup-current-id="{{ if not $model.is_new }}{{ $series.Id }}{{ end }}"
+						value="{{- $series.Title -}}">
+					</lookup-field>
 				</div>
 				<div class="flex flex-row gap-3">
 					<div class="inputwrapper grow">

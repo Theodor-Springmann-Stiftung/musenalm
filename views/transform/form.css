@@ -166,6 +166,42 @@
 		@apply inline-flex items-center px-1 text-gray-500;
 	}
 
+	.save-feedback {
+		@apply text-sm font-semibold px-3 py-2 rounded-xs border bg-stone-50 text-gray-700;
+	}
+
+	.save-feedback-error {
+		@apply bg-red-50 border-red-200 text-red-800;
+	}
+
+	.save-feedback-success {
+		@apply bg-green-50 border-green-200 text-green-800;
+	}
+
+	.lf-warn-icon {
+		@apply ml-1 mr-2;
+	}
+
+	.lf-link-button {
+		@apply ml-1 mr-2;
+	}
+
+	.lf-clear-button {
+		@apply ml-1 mr-2;
+	}
+
+	.lf-dup-warning {
+		@apply mt-0 mb-1 pl-3;
+	}
+
+	.preferred-series-select .ssr-clear-button {
+		@apply text-sm ml-1 mr-2;
+	}
+
+	.preferred-series-select .ssr-wrapper > .flex {
+		@apply gap-3;
+	}
+
 	.dbform div-menu {
 		@apply relative inline-block;
 	}

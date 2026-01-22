@@ -12,31 +12,28 @@
 <div data-role="content-item" class="relative odd:bg-stone-100" data-content-id="{{ $contentID }}">
 	<div data-role="content-view">
 		<div class="bg-transparent overflow-visible">
-			<div class="flex items-center justify-between gap-3 bg-transparent px-2 py-0 flex-nowrap whitespace-nowrap" data-content-header="true">
-				<div class="flex items-center gap-2 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
+			<div class="flex items-center justify-between gap-2 bg-transparent px-2 py-0.5 flex-nowrap whitespace-nowrap" data-content-header="true">
+				<div class="flex items-center gap-1.5 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
 					<div class="flex items-center gap-1">
 						<button
 							type="button"
-							class="text-slate-600 rounded-sm px-2 py-1 text-sm cursor-grab"
+							class="text-slate-600 rounded-sm px-1 py-0.5 text-xs cursor-grab"
 							data-role="content-drag-handle"
 							draggable="true"
 							aria-label="Beitrag verschieben">
-							<i class="ri-draggable"></i>
+							<i class="ri-draggable text-xs"></i>
 						</button>
-						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
-							<i class="ri-arrow-up-line"></i>
+						<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
+							<i class="ri-arrow-up-line text-xs"></i>
 						</button>
-						<button type="button" class="text-slate-600 rounded-sm px-2 py-1 text-sm transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
-							<i class="ri-arrow-down-line"></i>
+						<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
+							<i class="ri-arrow-down-line text-xs"></i>
 						</button>
 					</div>
-					{{- if $content.Extent -}}
-						<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-sm font-semibold shadow-sm shrink-0" data-role="content-page-pill">S. {{- $content.Extent -}}</span>
-					{{- end -}}
 					{{- if $content.MusenalmType -}}
 						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
-								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-base font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
+								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
 							{{- end -}}
 						</span>
 					{{- end -}}
@@ -52,28 +49,42 @@
 						</a>
 					</div>
 				</div>
-				<div class="flex items-center gap-2 flex-nowrap whitespace-nowrap shrink-0">
-					<span
-						id="content-{{ $content.Id }}-images-count"
-						class="inline-flex items-center gap-1 text-sm font-semibold text-slate-600 mr-2.5 {{ if eq (len $content.Scans) 0 }}hidden{{ end }}">
-						<i class="ri-image-line"></i>
-						<span>{{ len $content.Scans }}</span>
-					</span>
-					<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
-						<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+				<div class="flex items-center gap-1.5 flex-nowrap whitespace-nowrap shrink-0">
+					{{- $scans := $content.ImagePaths -}}
+					{{- if $scans -}}
+						<span class="inline-flex items-center gap-1 mr-2.5">
+							{{- range $i, $scan := $scans -}}
+								{{- if lt $i 3 -}}
+									<popup-image data-image-url="{{- $scan -}}" class="inline-flex items-center">
+										<img
+											src="{{- $scan -}}"
+											alt="Scan Vorschau"
+											class="h-5 w-5 rounded-full object-cover border border-slate-500 shadow-sm" />
+									</popup-image>
+								{{- end -}}
+							{{- end -}}
+						</span>
+					{{- end -}}
+					{{- if or $content.Extent (not $scans) -}}
+						<span class="content-search-text {{ if $content.Extent }}bg-blue-900 text-white shadow-sm{{ else }}bg-transparent text-transparent shadow-none{{ end }} px-1.5 py-0.5 rounded-xs text-xs font-semibold shrink-0 inline-flex items-center justify-end min-w-[5ch]" data-role="content-page-pill">
+							{{- if $content.Extent -}}S.&thinsp;{{- $content.Extent -}}{{- else -}}&nbsp;&nbsp;&nbsp;{{- end -}}
+						</span>
+					{{- end -}}
+					<span class="status-badge text-xs shadow-sm ml-2" data-status="{{ $content.EditState }}">
+						<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 					</span>
 					<a
 						href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
-						class="resetbutton w-9 h-9 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
+						class="resetbutton w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
 						aria-label="Beitrag bearbeiten">
-						<i class="ri-edit-2-line"></i>
+						<i class="ri-edit-2-line text-sm"></i>
 					</a>
 					<button
 						type="button"
-						class="resetbutton w-9 h-9 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
+						class="resetbutton w-8 h-8 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
 						data-role="content-delete-view"
 						aria-label="Beitrag löschen">
-						<i class="ri-delete-bin-line"></i>
+						<i class="ri-delete-bin-line text-sm"></i>
 					</button>
 				</div>
 			</div>

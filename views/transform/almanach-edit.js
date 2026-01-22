@@ -15,6 +15,8 @@ export class AlmanachEditPage extends HTMLElement {
 		this._saveEndpoint = "";
 		this._deleteEndpoint = "";
 		this._isSaving = false;
+		this._preferredSeriesRelationId = "";
+		this._preferredSeriesSeriesId = "";
 		this._handleSaveClick = this._handleSaveClick.bind(this);
 		this._handleResetClick = this._handleResetClick.bind(this);
 		this._handleDeleteClick = this._handleDeleteClick.bind(this);
@@ -27,6 +29,7 @@ export class AlmanachEditPage extends HTMLElement {
 		setTimeout(() => {
 			this._initForm();
 			this._initPlaces();
+			this._initPreferredSeries();
 			this._initSaveHandling();
 			this._initStatusSelect();
 		}, 0);
@@ -170,6 +173,16 @@ export class AlmanachEditPage extends HTMLElement {
 			this._deleteDialog.addEventListener("cancel", this._handleDeleteCancelClick);
 		}
 	}
+
+	_initPreferredSeries() {
+		const preferredSelect = this.querySelector("#preferred-series-field");
+		if (!preferredSelect) {
+			return;
+		}
+		this._preferredSeriesRelationId = preferredSelect.getAttribute("data-preferred-relation-id") || "";
+		this._preferredSeriesSeriesId = preferredSelect.getAttribute("data-preferred-series-id") || "";
+	}
+
 
 	_teardownSaveHandling() {
 		if (this._saveButton) {
@@ -383,6 +396,54 @@ export class AlmanachEditPage extends HTMLElement {
 			targetField: "series",
 		});
 		const newSeriesRelations = this._collectNewRelations("entries_series");
+		const preferredSeriesId = this._readValue(formData, "preferred_series_id");
+		if (!preferredSeriesId) {
+			throw new Error("Reihentitel ist erforderlich.");
+		}
+
+		const applyPreferred = (relation) => {
+			relation.type = PREFERRED_SERIES_RELATION;
+			relation.uncertain = false;
+		};
+
+		let preferredApplied = false;
+		seriesRelations.forEach((relation) => {
+			if (relation.target_id === preferredSeriesId) {
+				applyPreferred(relation);
+				preferredApplied = true;
+			}
+		});
+		newSeriesRelations.forEach((relation) => {
+			if (relation.target_id === preferredSeriesId) {
+				applyPreferred(relation);
+				preferredApplied = true;
+			}
+		});
+		if (!preferredApplied) {
+			if (this._preferredSeriesRelationId && this._preferredSeriesSeriesId === preferredSeriesId) {
+				seriesRelations.push({
+					id: this._preferredSeriesRelationId,
+					target_id: preferredSeriesId,
+					type: PREFERRED_SERIES_RELATION,
+					uncertain: false,
+				});
+			} else {
+				newSeriesRelations.push({
+					target_id: preferredSeriesId,
+					type: PREFERRED_SERIES_RELATION,
+					uncertain: false,
+				});
+			}
+		}
+
+		if (
+			this._preferredSeriesRelationId &&
+			this._preferredSeriesSeriesId &&
+			this._preferredSeriesSeriesId !== preferredSeriesId &&
+			!deletedSeriesRelationIds.includes(this._preferredSeriesRelationId)
+		) {
+			deletedSeriesRelationIds.push(this._preferredSeriesRelationId);
+		}
 		const preferredCount = [...seriesRelations, ...newSeriesRelations].filter(
 			(relation) => relation.type === PREFERRED_SERIES_RELATION,
 		).length;
@@ -572,7 +633,8 @@ export class AlmanachEditPage extends HTMLElement {
 			return;
 		}
 		this._statusEl.textContent = "";
-		this._statusEl.classList.remove("text-red-700", "text-green-700");
+		this._statusEl.classList.remove("text-red-700", "text-green-700", "save-feedback-error", "save-feedback-success");
+		this._statusEl.classList.add("hidden");
 	}
 
 	_showStatus(message, type) {
@@ -581,10 +643,11 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 		this._clearStatus();
 		this._statusEl.textContent = message;
+		this._statusEl.classList.remove("hidden");
 		if (type === "success") {
-			this._statusEl.classList.add("text-green-700");
+			this._statusEl.classList.add("text-green-700", "save-feedback-success");
 		} else if (type === "error") {
-			this._statusEl.classList.add("text-red-700");
+			this._statusEl.classList.add("text-red-700", "save-feedback-error");
 		}
 	}
 

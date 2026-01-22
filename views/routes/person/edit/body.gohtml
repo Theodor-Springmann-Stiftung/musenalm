@@ -132,11 +132,19 @@
 							</tool-tip>
 						</div>
 					</div>
-					<textarea name="name" id="name" class="inputinput no-enter" autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/agents/search" data-duplicate-result-key="agents" data-duplicate-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}">{{- $agent.Name -}}</textarea>
-					<div class="duplicate-warning hidden" data-duplicate-warning-for="name">
-						<i class="ri-information-line"></i>
-						<span data-duplicate-count></span>
-					</div>
+					<lookup-field
+						id="person-name-field"
+						name="name"
+						data-multiline="true"
+						data-no-enter="true"
+						data-required="true"
+						data-autocomplete="false"
+						data-valid-fn="lookupRequiredText"
+						data-dup-endpoint="/api/agents/search"
+						data-dup-result-key="agents"
+						data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
+						value="{{- $agent.Name -}}">
+					</lookup-field>
 				</div>
 				<div class="inputwrapper">
 					<div class="inputlabelrow">

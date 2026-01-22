@@ -17,6 +17,22 @@ type AlmanachResult struct {
 }
 -->
 
+{{- $preferredSeriesTitle := "" -}}
+{{- $preferredSeriesId := "" -}}
+{{- $preferredSeriesMusenalmID := "" -}}
+{{- $preferredRelationId := "" -}}
+{{- if and $model.result $model.result.Series -}}
+	{{- range $i, $s := $model.result.Series -}}
+		{{- $rel := index $model.result.EntriesSeries $s.Id -}}
+		{{- if and $rel (eq $rel.Type "Bevorzugter Reihentitel") -}}
+			{{- $preferredSeriesTitle = $s.Title -}}
+			{{- $preferredSeriesId = $s.Id -}}
+			{{- $preferredSeriesMusenalmID = $s.MusenalmID -}}
+			{{- $preferredRelationId = $rel.Id -}}
+		{{- end -}}
+	{{- end -}}
+{{- end -}}
+
 <almanach-edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
 
@@ -187,18 +203,62 @@ type AlmanachResult struct {
 			<div class="inputwrapper">
 				<div class="inputlabelrow">
 					<div class="flex items-center gap-1">
-						<label for="preferred_title" class="inputlabel">Kurztitel</label>
+						<label for="preferred-title-field-input" class="inputlabel">Kurztitel</label>
 						<tool-tip position="top" class="!inline">
 							<div class="data-tip">{{ help "entries" "preferred_title" }}</div>
 							<i class="ri-question-line"></i>
 						</tool-tip>
 					</div>
 				</div>
-				<textarea name="preferred_title" id="preferred_title" class="inputinput no-enter" placeholder="" required autocomplete="off" rows="1" data-duplicate-check data-duplicate-endpoint="/api/entries/search" data-duplicate-result-key="entries" data-duplicate-current-id="{{ if not $model.is_new }}{{ $model.result.Entry.Id }}{{ end }}">{{- $model.result.Entry.PreferredTitle -}}</textarea>
-				<div class="duplicate-warning hidden" data-duplicate-warning-for="preferred_title">
-					<i class="ri-information-line"></i>
-					<span data-duplicate-count></span>
+				<lookup-field
+					id="preferred-title-field"
+					name="preferred_title"
+					data-multiline="true"
+					data-no-enter="true"
+					data-required="true"
+					data-autocomplete="false"
+					data-valid-fn="lookupRequiredText"
+					data-dup-endpoint="/api/entries/search"
+					data-dup-result-key="entries"
+					data-dup-current-id="{{ if not $model.is_new }}{{ $model.result.Entry.Id }}{{ end }}"
+					value="{{- $model.result.Entry.PreferredTitle -}}">
+				</lookup-field>
+			</div>
+
+			<div class="inputwrapper">
+				<div class="inputlabelrow">
+					<div class="flex items-center gap-1">
+						<label for="preferred-series-field-input" class="inputlabel">Reihentitel</label>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">{{ helpOr "entries" "series" "Bevorzugter Reihentitel für diesen Almanach." }}</div>
+							<i class="ri-question-line"></i>
+						</tool-tip>
+					</div>
+					<div class="flex items-center gap-3 ml-auto pr-2">
+						<a href="/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+							<i class="ri-add-line"></i> Neue Reihe anlegen
+						</a>
+					</div>
 				</div>
+				<lookup-field
+					id="preferred-series-field"
+					name="preferred_series_id"
+					data-value-name="preferred_series_id"
+					data-text-name=""
+					data-valid-fn="lookupRequiredId"
+					data-endpoint="/api/series/search"
+					data-result-key="series"
+					data-minchars="1"
+					data-limit="15"
+					data-link-fn="lookupSeriesLink"
+					data-value-fn="lookupSeriesValue"
+					data-required="true"
+					data-initial-id="{{ $preferredSeriesId }}"
+					data-initial-name="{{ $preferredSeriesTitle }}"
+					data-initial-musenalm-id="{{ $preferredSeriesMusenalmID }}"
+					data-preferred-relation-id="{{ $preferredRelationId }}"
+					data-preferred-series-id="{{ $preferredSeriesId }}">
+				</lookup-field>
 			</div>
 
 			<div class="mt-3">
@@ -438,7 +498,7 @@ type AlmanachResult struct {
 							{{- if $model.result.Series -}}
 								{{- range $i, $s := $model.result.Series -}}
 									{{- $rel := index $model.result.EntriesSeries $s.Id -}}
-									{{- if $rel -}}
+								{{- if and $rel (ne $rel.Type "Bevorzugter Reihentitel") -}}
 										<div data-rel-row class="entries-series-row rel-row">
 											<div class="rel-grid">
 												<div data-rel-strike class="relation-strike rel-name-col">
@@ -452,7 +512,9 @@ type AlmanachResult struct {
 												<div data-rel-strike class="relation-strike">
 													<select name="entries_series_type[{{ $rel.Id }}]" id="entries_series_type_{{ $rel.Id }}" autocomplete="off" class="inputselect font-bold w-full">
 														{{- range $t := $model.series_relations -}}
-															<option value="{{- $t -}}" {{ if eq $rel.Type $t }}selected{{ end }}>{{- $t -}}</option>
+															{{- if ne $t "Bevorzugter Reihentitel" -}}
+																<option value="{{- $t -}}" {{ if eq $rel.Type $t }}selected{{ end }}>{{- $t -}}</option>
+															{{- end -}}
 														{{- end -}}
 													</select>
 												</div>
@@ -505,7 +567,9 @@ type AlmanachResult struct {
 										<label for="entries_series_new_type" class="sr-only">Beziehung</label>
 										<select data-role="relation-type-select" name="entries_series_new_type" id="entries_series_new_type" autocomplete="off" class="inputselect font-bold w-full">
 											{{- range $t := $model.series_relations -}}
-												<option value="{{- $t -}}">{{- $t -}}</option>
+												{{- if ne $t "Bevorzugter Reihentitel" -}}
+													<option value="{{- $t -}}">{{- $t -}}</option>
+												{{- end -}}
 											{{- end -}}
 										</select>
 									</div>
@@ -1142,9 +1206,9 @@ type AlmanachResult struct {
 		</div>
 		<!-- End Right Column -->
 		</div>
-		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
-			<p id="almanach-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
-			<div class="flex items-center gap-3 self-end flex-wrap">
+		<div class="w-full flex flex-col gap-3 mt-6 items-end">
+			<p id="almanach-save-feedback" class="save-feedback hidden text-right" aria-live="polite"></p>
+			<div class="flex items-center gap-3 flex-wrap justify-end">
 				<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
 					<i class="ri-close-line"></i>
 					<span>Abbrechen</span>

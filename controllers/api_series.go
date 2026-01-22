@@ -64,9 +64,10 @@ func (p *SeriesAPI) searchHandler(app core.App) HandleFunc {
 			}
 			seen[series.Id] = true
 			response = append(response, map[string]string{
-				"id":     series.Id,
-				"name":   series.Title(),
-				"detail": series.Pseudonyms(),
+				"id":          series.Id,
+				"name":        series.Title(),
+				"detail":      series.Pseudonyms(),
+				"musenalm_id": strconv.Itoa(series.MusenalmID()),
 			})
 			if limit > 0 && len(response) >= limit {
 				break

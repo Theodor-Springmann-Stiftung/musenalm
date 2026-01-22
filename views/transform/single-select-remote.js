@@ -26,6 +26,11 @@ export class SingleSelectRemote extends HTMLElement {
 		this._fetchTimeout = null;
 		this._fetchController = null;
 		this._listVisible = false;
+		this._linkBase = "";
+		this._linkTarget = "_blank";
+		this._linkButton = null;
+		this._showWarningIcon = false;
+		this._linkField = "id";
 		this._boundHandleInput = this._handleInput.bind(this);
 		this._boundHandleFocus = this._handleFocus.bind(this);
 		this._boundHandleKeyDown = this._handleKeyDown.bind(this);
@@ -34,7 +39,19 @@ export class SingleSelectRemote extends HTMLElement {
 	}
 
 	static get observedAttributes() {
-		return ["data-endpoint", "data-result-key", "data-minchars", "data-limit", "placeholder", "name"];
+		return [
+			"data-endpoint",
+			"data-result-key",
+			"data-minchars",
+			"data-limit",
+			"placeholder",
+			"name",
+			"data-link-base",
+			"data-link-target",
+			"data-link-field",
+			"data-initial-link-id",
+			"data-show-warning-icon",
+		];
 	}
 
 	connectedCallback() {
@@ -49,6 +66,13 @@ export class SingleSelectRemote extends HTMLElement {
 		this._minChars = this._parsePositiveInt(this.getAttribute("data-minchars"), SSR_DEFAULT_MIN_CHARS);
 		this._limit = this._parsePositiveInt(this.getAttribute("data-limit"), SSR_DEFAULT_LIMIT);
 		this._placeholder = this.getAttribute("placeholder") || "Search...";
+		const initialId = this.getAttribute("data-initial-id") || "";
+		const initialName = this.getAttribute("data-initial-name") || "";
+		const initialLinkId = this.getAttribute("data-initial-link-id") || "";
+		this._linkBase = this.getAttribute("data-link-base") || "";
+		this._linkTarget = this.getAttribute("data-link-target") || "_blank";
+		this._linkField = this.getAttribute("data-link-field") || "id";
+		this._showWarningIcon = this.getAttribute("data-show-warning-icon") === "true";
 
 		if (this._input) {
 			this._input.placeholder = this._placeholder;
@@ -57,9 +81,20 @@ export class SingleSelectRemote extends HTMLElement {
 			this._input.addEventListener("keydown", this._boundHandleKeyDown);
 		}
 
+		this._linkButton = this.querySelector("[data-role='ssr-open-link']");
+
 		if (this._clearButton) {
 			this._clearButton.addEventListener("click", this._boundHandleClear);
 		}
+
+		if (initialId && initialName) {
+			this._selected = { id: initialId, name: initialName, linkId: initialLinkId };
+			if (this._input) {
+				this._input.value = initialName;
+			}
+			this._syncHiddenInput();
+		}
+		this._updateLinkButton();
 
 		document.addEventListener("click", this._boundHandleClickOutside);
 	}
@@ -89,6 +124,10 @@ export class SingleSelectRemote extends HTMLElement {
 			if (this._input) this._input.placeholder = this._placeholder;
 		}
 		if (name === "name" && this._hiddenInput) this._hiddenInput.name = newValue || "";
+		if (name === "data-link-base") this._linkBase = newValue || "";
+		if (name === "data-link-target") this._linkTarget = newValue || "_blank";
+		if (name === "data-link-field") this._linkField = newValue || "id";
+		if (name === "data-show-warning-icon") this._showWarningIcon = newValue === "true";
 	}
 
 	_handleInput(event) {
@@ -154,6 +193,7 @@ export class SingleSelectRemote extends HTMLElement {
 		this._options = [];
 		if (this._input) this._input.value = "";
 		this._syncHiddenInput();
+		this._updateLinkButton();
 		this._renderOptions();
 		this._hideList();
 		this.dispatchEvent(new CustomEvent("ssrchange", { bubbles: true, detail: { item: null } }));
@@ -208,9 +248,14 @@ export class SingleSelectRemote extends HTMLElement {
 
 			this._options = filteredItems;
 			this._highlightedIndex = this._options.length > 0 ? 0 : -1;
+			this._maybeAutoSelectExactMatch(query);
 			this._renderOptions();
 			if (this._options.length > 0) {
-				this._showList();
+				if (this._options.length === 1 && this._isExactMatch(query, this._options[0]?.name || "")) {
+					this._hideList();
+				} else {
+					this._showList();
+				}
 			} else {
 				this._hideList();
 			}
@@ -218,6 +263,30 @@ export class SingleSelectRemote extends HTMLElement {
 			if (err?.name === "AbortError") {
 				return;
 			}
+		}
+	}
+
+	_isExactMatch(query, name) {
+		const lhs = (query || "").trim().toLowerCase();
+		const rhs = (name || "").trim().toLowerCase();
+		return lhs !== "" && lhs === rhs;
+	}
+
+	_maybeAutoSelectExactMatch(query) {
+		if (!query) {
+			return;
+		}
+		const match = this._options.find((item) => this._isExactMatch(query, item?.name || ""));
+		if (!match) {
+			return;
+		}
+		const prevId = this._selected?.id || "";
+		this._selected = match;
+		this._syncHiddenInput();
+		this._updateLinkButton();
+		if (match.id !== prevId) {
+			this.dispatchEvent(new CustomEvent("ssrchange", { bubbles: true, detail: { item: match } }));
+			this.dispatchEvent(new Event("change", { bubbles: true }));
 		}
 	}
 
@@ -309,6 +378,7 @@ export class SingleSelectRemote extends HTMLElement {
 			this._input.value = item.name || "";
 		}
 		this._syncHiddenInput();
+		this._updateLinkButton();
 		this._hideList();
 		this.dispatchEvent(new CustomEvent("ssrchange", { bubbles: true, detail: { item } }));
 		this.dispatchEvent(new Event("change", { bubbles: true }));
@@ -359,6 +429,14 @@ export class SingleSelectRemote extends HTMLElement {
 						spellcheck="false"
 						placeholder="${this._placeholder}"
 					/>
+					<a
+						class="ssr-open-link hidden text-sm text-gray-600 hover:text-gray-900 no-underline"
+						data-role="ssr-open-link"
+						aria-label="Auswahl öffnen"
+						target="${this._linkTarget}"
+						rel="noreferrer">
+						<i data-role="ssr-open-link-icon" class="ri-external-link-line"></i>
+					</a>
 					<button type="button" class="${SSR_CLEAR_BUTTON_CLASS} text-sm text-gray-600 hover:text-gray-900">
 						<i class="ri-close-line"></i>
 					</button>
@@ -367,5 +445,35 @@ export class SingleSelectRemote extends HTMLElement {
 				<div class="${SSR_LIST_CLASS} absolute left-0 right-0 mt-1 border border-stone-200 rounded-xs bg-white shadow-sm z-10 hidden max-h-64 overflow-auto"></div>
 			</div>
 		`;
+	}
+
+	_updateLinkButton() {
+		if (!this._linkButton) {
+			return;
+		}
+		const linkValue = this._selected?.[this._linkField] || this._selected?.linkId || this._selected?.id;
+		const icon = this._linkButton.querySelector("[data-role='ssr-open-link-icon']");
+		if (!linkValue || !this._linkBase) {
+			if (this._showWarningIcon) {
+				this._linkButton.classList.remove("hidden");
+				this._linkButton.removeAttribute("href");
+				this._linkButton.classList.add("ssr-open-link-warning");
+				this._linkButton.setAttribute("aria-label", "Auswahl fehlt");
+				if (icon) {
+					icon.className = "ri-error-warning-line";
+				}
+			} else {
+				this._linkButton.classList.add("hidden");
+				this._linkButton.removeAttribute("href");
+			}
+			return;
+		}
+		this._linkButton.classList.remove("hidden");
+		this._linkButton.classList.remove("ssr-open-link-warning");
+		this._linkButton.setAttribute("href", `${this._linkBase}${linkValue}`);
+		this._linkButton.setAttribute("aria-label", "Auswahl öffnen");
+		if (icon) {
+			icon.className = "ri-external-link-line";
+		}
 	}
 }
