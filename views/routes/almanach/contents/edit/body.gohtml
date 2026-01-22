@@ -165,61 +165,32 @@
 			{{ len $model.result.Contents }} Einträge
 		</span>
 	</div>
-	<hr class="mx-4 mt-2 mb-1 border-slate-300" />
-	<div class="px-4 py-2 flex flex-wrap items-center gap-3">
-		<input
-			id="content-filter"
-			type="text"
-			autocomplete="off"
-			class="flex-1 min-w-48 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-			placeholder="Suche nach Titel, Person, Anmerkung..."
-			data-role="content-filter-input"
-		/>
-		<input
-			id="content-filter-page"
-			type="text"
-			autocomplete="off"
-			class="w-28 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-			placeholder="Seite"
-			data-role="content-filter-page"
-		/>
-		<select
-			id="content-filter-type"
-			class="border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-			data-role="content-filter-type">
-			<option value="">Alle Typen</option>
-		</select>
-		<button
-			type="button"
-			class="content-action-button"
-			onclick="window.location.assign('/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
-			<i class="ri-add-line"></i>
-			<span>Neuer Beitrag</span>
-		</button>
-	</div>
-	<div class="mx-4 mt-2 rounded-md border border-slate-300 bg-white flex flex-col overflow-hidden p-1" data-role="contents-panel">
-		<div class="flex-1 min-h-0 overflow-y-scroll">
-			<div class="flex flex-col gap-0"
-				data-role="contents-list"
-				data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
-				{{- range $_, $content := $model.result.Contents -}}
-					{{- template "_content_item" (Dict
-						"content" $content
-						"entry" $model.result.Entry
-						"csrf_token" $model.csrf_token
-						"content_types" $model.content_types
-						"musenalm_types" $model.musenalm_types
-						"pagination_values" $model.pagination_values
-						"agents" $model.result.Agents
-						"content_agents" (index $model.result.ContentsAgents $content.Id)
-						"agent_relations" $model.agent_relations
-						"open_edit" false
-						"is_new" false
-					) -}}
-				{{- end -}}
-			</div>
-		</div>
-		<div class="px-3 py-2 border-t border-slate-200 bg-stone-50 flex items-center">
+	{{- $hasContents := gt (len $model.result.Contents) 0 -}}
+	{{- if $hasContents -}}
+		<hr class="mx-4 mt-2 mb-1 border-slate-300" />
+		<div class="px-4 py-2 flex flex-wrap items-center gap-3">
+			<input
+				id="content-filter"
+				type="text"
+				autocomplete="off"
+				class="flex-1 min-w-48 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="Suche nach Titel, Person, Anmerkung..."
+				data-role="content-filter-input"
+			/>
+			<input
+				id="content-filter-page"
+				type="text"
+				autocomplete="off"
+				class="w-28 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="Seite"
+				data-role="content-filter-page"
+			/>
+			<select
+				id="content-filter-type"
+				class="border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				data-role="content-filter-type">
+				<option value="">Alle Typen</option>
+			</select>
 			<button
 				type="button"
 				class="content-action-button"
@@ -228,7 +199,55 @@
 				<span>Neuer Beitrag</span>
 			</button>
 		</div>
-	</div>
+		<div class="mx-4 mt-2 rounded-md border border-slate-300 bg-white flex flex-col overflow-hidden p-1" data-role="contents-panel">
+			<div class="flex-1 min-h-0 overflow-y-scroll">
+				<div class="flex flex-col gap-0"
+					data-role="contents-list"
+					data-order-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+					{{- range $_, $content := $model.result.Contents -}}
+						{{- template "_content_item" (Dict
+							"content" $content
+							"entry" $model.result.Entry
+							"csrf_token" $model.csrf_token
+							"content_types" $model.content_types
+							"musenalm_types" $model.musenalm_types
+							"pagination_values" $model.pagination_values
+							"agents" $model.result.Agents
+							"content_agents" (index $model.result.ContentsAgents $content.Id)
+							"agent_relations" $model.agent_relations
+							"open_edit" false
+							"is_new" false
+						) -}}
+					{{- end -}}
+				</div>
+			</div>
+			<div class="px-3 py-2 border-t border-slate-200 bg-stone-50 flex items-center">
+				<button
+					type="button"
+					class="content-action-button"
+					onclick="window.location.assign('/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
+					<i class="ri-add-line"></i>
+					<span>Neuer Beitrag</span>
+				</button>
+			</div>
+		</div>
+	{{- else -}}
+		<div class="mx-4 mt-2">
+			<div class="min-h-[18rem] flex items-center justify-center text-center px-6 py-12">
+				<div class="text-lg text-gray-700 font-semibold flex flex-col items-center gap-4">
+					<i class="ri-information-line text-3xl text-gray-600"></i>
+					<span>Keine Beiträge verzeichnet.</span>
+					<button
+						type="button"
+						class="content-action-button"
+						onclick="window.location.assign('/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
+						<i class="ri-add-line"></i>
+						<span>Neuen Beitrag anlegen</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	{{- end -}}
 </div>
 
 <dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
