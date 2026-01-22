@@ -24,7 +24,20 @@ type AlmanachResult struct {
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
-			<i class="ri-book-line"></i> Almanach
+			<div class="header-tabs">
+				<span class="header-tab header-tab-active">
+					<i class="ri-book-line"></i> Almanach
+				</span>
+				{{- if not $model.is_new -}}
+					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
+						<i class="ri-file-list-3-line"></i> Beiträge
+					</a>
+				{{- else -}}
+					<span class="header-tab header-tab-disabled">
+						<i class="ri-file-list-3-line"></i> Beiträge
+					</span>
+				{{- end -}}
+			</div>
 		</div>
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.is_new -}}
@@ -72,13 +85,6 @@ type AlmanachResult struct {
 							<i class="ri-loop-left-line"></i> Reset
 						</a>
 					</div>
-					&middot;
-					<div>
-						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700
-						no-underline hover:text-slate-950 block ">
-							<i class="ri-file-list-3-line"></i> Beiträge
-						</a>
-					</div>
 				</div>
 			{{- end -}}
 		</div>
@@ -89,7 +95,7 @@ type AlmanachResult struct {
 					<div class="font-bold text-sm">
 						<i class="ri-navigation-line"></i> Navigation
 					</div>
-					<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2">
 						{{- if $model.result.PrevByTitle -}}
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>

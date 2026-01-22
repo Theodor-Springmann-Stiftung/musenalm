@@ -5,7 +5,26 @@
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
-			<i class="ri-file-list-3-line"></i> Beitrag
+			<div class="header-tabs">
+				{{- if $model.result -}}
+					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="header-tab">
+						<i class="ri-book-line"></i> Almanach
+					</a>
+				{{- else -}}
+					<span class="header-tab header-tab-disabled">
+						<i class="ri-book-line"></i> Almanach
+					</span>
+				{{- end -}}
+				<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
+					<i class="ri-file-list-3-line"></i> Beiträge
+				</a>
+				<span class="header-tab-sep" aria-hidden="true">
+					<i class="ri-arrow-right-s-line"></i>
+				</span>
+				<span class="header-tab header-tab-active" aria-current="page">
+					<i class="ri-file-text-line"></i> Einzelbeitrag
+				</span>
+			</div>
 		</div>
 		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
 			{{- if $model.result -}}
@@ -55,19 +74,7 @@
 							<i class="ri-loop-left-line"></i> Reset
 						</a>
 					</div>
-					&middot;
 					{{- end -}}
-					<div>
-						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-							<i class="ri-arrow-left-line"></i> Liste
-						</a>
-					</div>
-					&middot;
-					<div>
-						<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-							<i class="ri-edit-2-line"></i> Almanach
-						</a>
-					</div>
 				</div>
 			{{- end -}}
 		</div>
@@ -78,7 +85,7 @@
 					<div class="font-bold text-sm">
 						<i class="ri-navigation-line"></i> Navigation
 					</div>
-					<div class="flex items-center gap-3">
+					<div class="flex items-center gap-2">
 						{{- if not $model.is_new -}}
 						{{- if $model.prev_content -}}
 							<tool-tip position="top" class="!inline">

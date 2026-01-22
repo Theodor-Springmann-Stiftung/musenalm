@@ -138,6 +138,34 @@
 		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-base font-semibold text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
 	}
 
+	.header-tabs {
+		@apply inline-flex items-center gap-1 rounded-md bg-stone-200 p-1 shadow-inner mb-1.5;
+	}
+
+	.header-tab {
+		@apply inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-semibold text-gray-700 no-underline transition-all duration-100;
+	}
+
+	.header-tab:hover {
+		@apply bg-stone-300 text-slate-900;
+	}
+
+	.header-tab-active {
+		@apply bg-white text-slate-900 shadow-sm pointer-events-none;
+	}
+
+	.header-tab-active:hover {
+		@apply bg-white text-slate-900;
+	}
+
+	.header-tab-disabled {
+		@apply opacity-50 cursor-default;
+	}
+
+	.header-tab-sep {
+		@apply inline-flex items-center px-1 text-gray-500;
+	}
+
 	.dbform div-menu {
 		@apply relative inline-block;
 	}
