@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -45,6 +46,7 @@ func (p *AgentsAPI) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 func (p *AgentsAPI) searchHandler(app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		query := strings.TrimSpace(e.Request.URL.Query().Get("q"))
+		queryLower := strings.ToLower(query)
 		limit := parseAgentsLimit(e.Request.URL.Query().Get("limit"))
 
 		results, err := dbmodels.TitleSearchAgents(app, query)
@@ -52,6 +54,35 @@ func (p *AgentsAPI) searchHandler(app core.App) HandleFunc {
 			app.Logger().Error("agent search failed", "query", query, "limit", limit, "error", err)
 			return e.JSON(http.StatusInternalServerError, map[string]any{
 				"error": "failed to search agents",
+			})
+		}
+
+		if queryLower != "" {
+			sort.SliceStable(results, func(i, j int) bool {
+				ai := results[i]
+				aj := results[j]
+				if ai == nil && aj == nil {
+					return false
+				}
+				if ai == nil {
+					return false
+				}
+				if aj == nil {
+					return true
+				}
+				aiName := strings.ToLower(ai.Name())
+				ajName := strings.ToLower(aj.Name())
+				aiExact := aiName == queryLower
+				ajExact := ajName == queryLower
+				if aiExact != ajExact {
+					return aiExact && !ajExact
+				}
+				aiPrefix := strings.HasPrefix(aiName, queryLower)
+				ajPrefix := strings.HasPrefix(ajName, queryLower)
+				if aiPrefix == ajPrefix {
+					return false
+				}
+				return aiPrefix && !ajPrefix
 			})
 		}
 

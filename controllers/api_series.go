@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -45,6 +46,7 @@ func (p *SeriesAPI) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 func (p *SeriesAPI) searchHandler(app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		query := strings.TrimSpace(e.Request.URL.Query().Get("q"))
+		queryLower := strings.ToLower(query)
 		limit := parseSeriesLimit(e.Request.URL.Query().Get("limit"))
 
 		primary, alt, err := dbmodels.BasicSearchSeries(app, query)
@@ -56,6 +58,34 @@ func (p *SeriesAPI) searchHandler(app core.App) HandleFunc {
 		}
 
 		results := append(primary, alt...)
+		if queryLower != "" {
+			sort.SliceStable(results, func(i, j int) bool {
+				ai := results[i]
+				aj := results[j]
+				if ai == nil && aj == nil {
+					return false
+				}
+				if ai == nil {
+					return false
+				}
+				if aj == nil {
+					return true
+				}
+				aiTitle := strings.ToLower(ai.Title())
+				ajTitle := strings.ToLower(aj.Title())
+				aiExact := aiTitle == queryLower
+				ajExact := ajTitle == queryLower
+				if aiExact != ajExact {
+					return aiExact && !ajExact
+				}
+				aiPrefix := strings.HasPrefix(aiTitle, queryLower)
+				ajPrefix := strings.HasPrefix(ajTitle, queryLower)
+				if aiPrefix == ajPrefix {
+					return false
+				}
+				return aiPrefix && !ajPrefix
+			})
+		}
 		seen := map[string]bool{}
 		response := make([]map[string]string, 0, len(results))
 		for _, series := range results {
