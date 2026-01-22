@@ -139,11 +139,11 @@
 	}
 
 	.header-tabs {
-		@apply inline-flex items-center gap-1 rounded-md bg-stone-200 p-1 shadow-inner mb-1.5;
+		@apply inline-flex items-center gap-1 rounded-sm bg-stone-200/70 px-0.5 py-0.5 mb-1.5;
 	}
 
 	.header-tab {
-		@apply inline-flex items-center gap-1 rounded-md px-3 py-1 text-sm font-semibold text-gray-700 no-underline transition-all duration-100;
+		@apply inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-sm font-semibold text-gray-700 no-underline transition-all duration-100;
 	}
 
 	.header-tab:hover {
@@ -151,7 +151,7 @@
 	}
 
 	.header-tab-active {
-		@apply bg-white text-slate-900 shadow-sm pointer-events-none;
+		@apply bg-white text-slate-900 pointer-events-none;
 	}
 
 	.header-tab-active:hover {
