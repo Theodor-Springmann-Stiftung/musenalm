@@ -78,26 +78,40 @@ export class FabMenu extends HTMLElement {
 			}
 		}
 
+		const knownPageKeys = new Set([
+			"kontakt",
+			"danksagungen",
+			"literatur",
+			"einleitung",
+			"benutzerhinweise",
+			"lesekabinett",
+			"reihen",
+			"index",
+		]);
+		const normalizedPath = path.replace(/\/+$/, "") || "/";
+		const matchesPageKeyPath = (key) => {
+			if (!key || !knownPageKeys.has(key)) {
+				return false;
+			}
+			if (key === "index") {
+				return normalizedPath === "/" || normalizedPath === "/index";
+			}
+			return normalizedPath === `/${key}` || normalizedPath === `/redaktion/${key}`;
+		};
+
 		// Page views use page editor keys via meta tag or URL mapping
 		const pageKeyMeta = document.querySelector('meta[name="page-key"]');
-		if (pageKeyMeta && pageKeyMeta.content) {
+		const metaPageKey = pageKeyMeta?.content?.trim();
+		if (metaPageKey && matchesPageKeyPath(metaPageKey)) {
 			hasPage = true;
-			pageKey = pageKeyMeta.content;
+			pageKey = metaPageKey;
 		} else {
-			const textPageMatch = path.match(/^\/redaktion\/([^\/]+)\/?$/);
+			const textPageMatch = normalizedPath.match(/^\/redaktion\/([^\/]+)$/);
 			const textPageKey = textPageMatch ? textPageMatch[1] : "";
-			const knownPageKeys = new Set([
-				"kontakt",
-				"danksagungen",
-				"literatur",
-				"einleitung",
-				"benutzerhinweise",
-				"lesekabinett",
-			]);
 			if (textPageKey && knownPageKeys.has(textPageKey)) {
 				hasPage = true;
 				pageKey = textPageKey;
-			} else if (path === "/" || path === "/index/") {
+			} else if (normalizedPath === "/" || normalizedPath === "/index") {
 				hasPage = true;
 				pageKey = "index";
 			}
