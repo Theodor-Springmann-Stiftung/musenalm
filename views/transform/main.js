@@ -324,6 +324,168 @@ function DisconnectNoEnters(textarea) {
 	textarea.removeEventListener("keydown", NoEnters);
 }
 
+function InitGlobalHtmxNotice() {
+	if (!window.htmx) {
+		return;
+	}
+	const ensureNotice = () => {
+		let noticeEl = document.getElementById("global-notice");
+		if (!noticeEl) {
+			noticeEl = document.createElement("div");
+			noticeEl.id = "global-notice";
+			noticeEl.className = "global-notice hidden";
+			noticeEl.setAttribute("role", "status");
+			noticeEl.setAttribute("aria-live", "polite");
+			noticeEl.setAttribute("aria-atomic", "true");
+			noticeEl.dataset.state = "";
+			noticeEl.innerHTML = `
+				<div class="global-notice-inner">
+					<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+					<span data-role="global-notice-text">Laden&#8230;</span>
+				</div>
+			`;
+			document.body?.appendChild(noticeEl);
+		}
+		return noticeEl;
+	};
+	let notice = ensureNotice();
+	let textEl = notice ? notice.querySelector("[data-role='global-notice-text']") : null;
+	let pending = 0;
+	let errorTimeout = null;
+
+	const setNoticeState = (state, message) => {
+		notice = ensureNotice();
+		if (notice && !textEl) {
+			textEl = notice.querySelector("[data-role='global-notice-text']");
+		}
+		if (textEl && message) {
+			textEl.textContent = message;
+		}
+		if (notice && state) {
+			notice.dataset.state = state;
+		} else if (notice) {
+			notice.removeAttribute("data-state");
+		}
+	};
+
+	const showNotice = (state, message) => {
+		notice = ensureNotice();
+		if (!notice) {
+			return;
+		}
+		setNoticeState(state, message);
+		notice.classList.remove("hidden");
+	};
+
+	const hideNotice = () => {
+		notice = ensureNotice();
+		if (!notice) {
+			return;
+		}
+		notice.classList.add("hidden");
+		notice.removeAttribute("data-state");
+	};
+
+	const setBodyBusy = (busy) => {
+		const root = document.documentElement;
+		if (busy) {
+			if (root) {
+				root.dataset.htmxBusy = "true";
+			}
+			if (document.body) {
+				document.body.dataset.htmxBusy = "true";
+			}
+		} else {
+			if (root) {
+				delete root.dataset.htmxBusy;
+			}
+			if (document.body) {
+				delete document.body.dataset.htmxBusy;
+			}
+		}
+	};
+
+	const markElementBusy = (element, busy) => {
+		if (!element || !(element instanceof HTMLElement)) {
+			return;
+		}
+		if (busy) {
+			element.dataset.htmxBusy = "true";
+			element.setAttribute("aria-busy", "true");
+			if (element instanceof HTMLButtonElement && !element.disabled) {
+				element.dataset.htmxDisabled = "true";
+				element.disabled = true;
+			}
+		} else if (element.dataset.htmxBusy === "true") {
+			delete element.dataset.htmxBusy;
+			element.removeAttribute("aria-busy");
+			if (element instanceof HTMLButtonElement && element.dataset.htmxDisabled === "true") {
+				element.disabled = false;
+				delete element.dataset.htmxDisabled;
+			}
+		}
+	};
+
+	const clearErrorTimeout = () => {
+		if (errorTimeout) {
+			clearTimeout(errorTimeout);
+			errorTimeout = null;
+		}
+	};
+
+	document.addEventListener("htmx:beforeRequest", (event) => {
+		pending += 1;
+		clearErrorTimeout();
+		setBodyBusy(true);
+		showNotice("loading", "Laden...");
+		markElementBusy(event.detail?.elt, true);
+	});
+
+	document.addEventListener("htmx:afterRequest", (event) => {
+		markElementBusy(event.detail?.elt, false);
+		pending = Math.max(0, pending - 1);
+		if (pending === 0) {
+			setBodyBusy(false);
+			if (notice.dataset.state !== "error") {
+				hideNotice();
+			}
+		}
+	});
+
+	document.addEventListener("htmx:responseError", () => {
+		setBodyBusy(false);
+		showNotice("error", "Laden fehlgeschlagen.");
+		clearErrorTimeout();
+		errorTimeout = setTimeout(() => {
+			if (pending === 0) {
+				hideNotice();
+			} else {
+				showNotice("loading", "Laden...");
+			}
+		}, 2000);
+	});
+
+	document.addEventListener("htmx:sendError", () => {
+		setBodyBusy(false);
+		showNotice("error", "Verbindung fehlgeschlagen.");
+		clearErrorTimeout();
+		errorTimeout = setTimeout(() => {
+			if (pending === 0) {
+				hideNotice();
+			} else {
+				showNotice("loading", "Laden...");
+			}
+		}, 2000);
+	});
+
+	document.addEventListener("htmx:afterSwap", () => {
+		notice = ensureNotice();
+		if (notice && !textEl) {
+			textEl = notice.querySelector("[data-role='global-notice-text']");
+		}
+	});
+}
+
 function MutateObserve(mutations, observer) {
 	const needsJSResize = !supportsFieldSizing();
 
@@ -476,5 +638,6 @@ window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 window.TextareaAutoResize = TextareaAutoResize;
+InitGlobalHtmxNotice();
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor, EditPage, FabMenu, LookupField };

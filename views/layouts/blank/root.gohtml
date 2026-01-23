@@ -9,6 +9,7 @@
 	</head>
 
 	<body class="w-full min-h-full" id="body" hx-ext="response-targets" hx-boost="true">
+		{{ template "_global_notice" . }}
 		<div class="pb-12">
 			{{ block "body" . }}
 				<!-- Default app body... -->

@@ -624,6 +624,30 @@
 		@apply !inline-block;
 	}
 
+	.global-notice {
+		@apply fixed right-6 bottom-6 z-50 hidden;
+	}
+
+	.global-notice-inner {
+		@apply flex items-center gap-2 rounded-md border border-slate-200 bg-white/95 px-3 py-2 text-sm font-semibold text-gray-700 shadow-lg backdrop-blur;
+	}
+
+	.global-notice[data-state="error"] .global-notice-inner {
+		@apply border-red-200 bg-red-50 text-red-800;
+	}
+
+	html[data-htmx-busy="true"] .global-notice,
+	body[data-htmx-busy="true"] .global-notice {
+		@apply block;
+	}
+
+	html[data-htmx-busy="true"],
+	body[data-htmx-busy="true"],
+	[data-htmx-busy="true"] {
+		pointer-events: none;
+		opacity: 0.6;
+	}
+
 	.tab-list-head[aria-pressed="true"] {
 		@apply !text-slate-900 bg-stone-50;
 	}

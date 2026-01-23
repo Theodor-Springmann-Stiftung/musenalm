@@ -14,7 +14,7 @@ TODO:
 BUGS:
 - Schriftgröße Edit-Screens
 - doppelte Einträge Reihen-Liste, Endpoint /reihen (siehe Abendstunden)
-- Neuer ort anlegen führ manachmal auf DB-ID
+- Neuer Ort anlegen führ manachmal auf DB-ID
 
 Features:
 - Extra-DB für FTS5: ist eigentlich nichtTeil der Haupt-DB, sondern nur Suchindex

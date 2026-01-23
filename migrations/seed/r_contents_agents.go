@@ -41,7 +41,7 @@ func RecordsFromRelationInhalteAkteure(
 
 		switch relation.Relation {
 		case "1":
-			record.SetType("Schöpfer")
+			record.SetType("Autor:in")
 			cat := content.MusenalmType()
 			ber := agent.Profession()
 			probt := 0
@@ -100,7 +100,7 @@ func RecordsFromRelationInhalteAkteure(
 				break
 			}
 
-			record.SetType("Schöpfer")
+			record.SetType("Autor:in")
 		case "2":
 			record.SetType("Autor:in")
 		case "3":

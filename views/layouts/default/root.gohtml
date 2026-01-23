@@ -11,6 +11,7 @@
 
 	<body id="body" class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
 		<div class="flex flex-col min-h-screen w-full">
+			{{ template "_global_notice" . }}
 			<header class="container-normal pb-0" id="header">
 				{{ block "_menu" . }}
 					<!-- Default app menu... -->

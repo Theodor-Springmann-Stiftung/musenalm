@@ -402,13 +402,11 @@ var USER_ROLES = []string{
 }
 
 var AGENT_RELATIONS = []string{
-	"Schöpfer",
 	"Autor:in",
 	"Herausgeber:in",
 	"Verlag",
 	"Druck",
 	"Vertrieb",
-	"Stecher:in",
 	"Zeichner:in",
 	"Komponist:in",
 	"Künstler:in",

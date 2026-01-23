@@ -495,10 +495,12 @@ type AlmanachResult struct {
 								</div>
 							</div>
 							<div id="series-section" class="rel-section-container">
+							{{- $hasNonPreferredSeries := false -}}
 							{{- if $model.result.Series -}}
 								{{- range $i, $s := $model.result.Series -}}
 									{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 								{{- if and $rel (ne $rel.Type "Bevorzugter Reihentitel") -}}
+										{{- $hasNonPreferredSeries = true -}}
 										<div data-rel-row class="entries-series-row rel-row">
 											<div class="rel-grid">
 												<div data-rel-strike class="relation-strike rel-name-col">
@@ -542,7 +544,8 @@ type AlmanachResult struct {
 										</div>
 									{{- end -}}
 								{{- end -}}
-							{{- else -}}
+							{{- end -}}
+							{{- if not $hasNonPreferredSeries -}}
 								<div class="rel-empty-text">Keine Reihen verknüpft.</div>
 							{{- end -}}
 							</div>
@@ -716,7 +719,7 @@ type AlmanachResult struct {
 										<label for="entries_agents_new_type" class="sr-only">Beziehung</label>
 										<select data-role="relation-type-select" name="entries_agents_new_type" id="entries_agents_new_type" autocomplete="off" class="inputselect font-bold w-full">
 											{{- range $t := $model.agent_relations -}}
-												<option value="{{- $t -}}">{{- $t -}}</option>
+												<option value="{{- $t -}}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{- $t -}}</option>
 											{{- end -}}
 										</select>
 									</div>
