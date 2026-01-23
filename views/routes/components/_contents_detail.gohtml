@@ -1,0 +1,58 @@
+{{- $content := index . "content" -}}
+{{- $entry := index . "entry" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $contentTypes := index . "content_types" -}}
+{{- $musenalmTypes := index . "musenalm_types" -}}
+{{- $paginationValues := index . "pagination_values" -}}
+{{- $agents := index . "agents" -}}
+{{- $contentAgents := index . "content_agents" -}}
+{{- $agentRelations := index . "agent_relations" -}}
+{{- $editMode := index . "edit_mode" -}}
+
+{{- $displayTitle := $content.PreferredTitle -}}
+{{- if not $displayTitle -}}
+	{{- $displayTitle = $content.TitleStmt -}}
+{{- end -}}
+{{- if not $displayTitle -}}
+	{{- $displayTitle = (printf "Beitrag %d" $content.MusenalmID) -}}
+{{- end -}}
+
+<div class="mt-4" data-role="contents-detail-panel" data-edit-mode="{{ if $editMode }}1{{ else }}0{{ end }}" data-content-id="{{ $content.Id }}">
+	<div class="flex items-center justify-between gap-3 rounded-xs border border-slate-200 bg-stone-50 px-3 py-2">
+		<div class="text-sm font-semibold text-gray-800">
+			<span class="text-gray-500">{{ if $editMode }}Bearbeiten:{{ else }}Details:{{ end }}</span>
+			<span>{{ $displayTitle }}</span>
+		</div>
+		<button type="button" class="resetbutton w-auto px-3 py-1.5 text-sm" data-role="contents-detail-close">
+			<i class="ri-close-line"></i>
+			<span>Schliessen</span>
+		</button>
+	</div>
+	<div class="mt-2" data-role="contents-detail-body">
+		{{- if $editMode -}}
+			{{- template "_content_edit_form" (Dict
+				"content" $content
+				"content_id" $content.Id
+				"entry" $entry
+				"csrf_token" $csrf
+				"content_types" $contentTypes
+				"musenalm_types" $musenalmTypes
+				"pagination_values" $paginationValues
+				"agents" $agents
+				"content_agents" $contentAgents
+				"agent_relations" $agentRelations
+				"detail_target" "[data-role='contents-detail-target']"
+				"detail_mode" true
+			) -}}
+		{{- else -}}
+			{{- template "_content_view_body" (Dict
+				"content" $content
+				"entry" $entry
+				"csrf_token" $csrf
+				"agents" $agents
+				"content_agents" $contentAgents
+				"is_new" false
+			) -}}
+		{{- end -}}
+	</div>
+</div>

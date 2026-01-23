@@ -1,0 +1,32 @@
+{{- $entry := index . "entry" -}}
+{{- $contents := index . "contents" -}}
+{{- $csrf := index . "csrf_token" -}}
+{{- $contentTypes := index . "content_types" -}}
+{{- $musenalmTypes := index . "musenalm_types" -}}
+{{- $paginationValues := index . "pagination_values" -}}
+{{- $agents := index . "agents" -}}
+{{- $contentAgents := index . "content_agents" -}}
+{{- $agentRelations := index . "agent_relations" -}}
+
+<div class="flex flex-col gap-0.5"
+	data-role="contents-list"
+	data-insert-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/insert"
+	data-edit-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/edit/form"
+	data-detail-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/detail"
+	data-order-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/edit">
+	{{- range $_, $content := $contents -}}
+		{{- template "_content_item" (Dict
+			"content" $content
+			"entry" $entry
+			"csrf_token" $csrf
+			"content_types" $contentTypes
+			"musenalm_types" $musenalmTypes
+			"pagination_values" $paginationValues
+			"agents" $agents
+			"content_agents" (index $contentAgents $content.Id)
+			"agent_relations" $agentRelations
+			"open_edit" false
+			"is_new" false
+		) -}}
+	{{- end -}}
+</div>
