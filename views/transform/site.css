@@ -641,9 +641,16 @@
 		@apply block;
 	}
 
-	html[data-htmx-busy="true"],
-	body[data-htmx-busy="true"],
-	[data-htmx-busy="true"] {
+	html[data-htmx-busy="true"]::before {
+		content: "";
+		position: fixed;
+		inset: 0;
+		background: rgba(15, 23, 42, 0.18);
+		z-index: 40;
+		pointer-events: auto;
+	}
+
+	[data-htmx-busy="true"]:not(html):not(body) {
 		pointer-events: none;
 		opacity: 0.6;
 	}
