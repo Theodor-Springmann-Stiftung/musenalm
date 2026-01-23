@@ -248,6 +248,7 @@
 				<p
 					id="person-save-feedback"
 					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+					{{ if $model.success }}data-autohide="true"{{ end }}
 					aria-live="polite">
 					{{- if $model.error -}}
 						{{ $model.error }}

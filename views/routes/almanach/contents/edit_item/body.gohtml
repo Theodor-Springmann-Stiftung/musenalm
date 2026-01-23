@@ -257,6 +257,7 @@
 				<p
 					id="user-message"
 					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+					{{ if $model.success }}data-autohide="true"{{ end }}
 					aria-live="polite">
 					{{- if $model.error -}}
 						{{ $model.error }}
@@ -433,7 +434,7 @@
 			event.preventDefault();
 			event.stopPropagation();
 			event.stopImmediatePropagation();
-			const submitter = event.submitter;
+			const submitter = event.submitter || document.activeElement;
 			const files = Array.from(uploadInput.files || []);
 			if (files.length > 0) {
 				const hasInvalid = files.some((file) => !file.type || !file.type.startsWith("image/"));
@@ -488,25 +489,29 @@
 				return;
 			}
 			const doc = new DOMParser().parseFromString(html, "text/html");
+			const nextMessage = doc.getElementById("user-message");
+			const liveMessage = document.getElementById("user-message");
+			const isErrorMessage = nextMessage && nextMessage.classList.contains("save-feedback-error");
+			if (nextMessage && liveMessage) {
+				liveMessage.className = nextMessage.className;
+				liveMessage.textContent = nextMessage.textContent || "";
+				if (!liveMessage.textContent.trim()) {
+					liveMessage.classList.add("hidden");
+				}
+			}
+			if (isErrorMessage || !response.ok) {
+				if (!nextMessage && !response.ok) {
+					showUserMessage("Speichern fehlgeschlagen.", "error");
+				}
+				return;
+			}
+
 			const nextForm = doc.querySelector("form.dbform");
 			if (nextForm) {
 				form.replaceWith(nextForm);
 				initMultiSelects();
 				attachFormHandlers();
 				return;
-			}
-			const nextMessage = doc.getElementById("user-message");
-			if (nextMessage) {
-				const liveMessage = document.getElementById("user-message");
-				if (liveMessage) {
-					liveMessage.className = nextMessage.className;
-					liveMessage.textContent = nextMessage.textContent || "";
-					if (!liveMessage.textContent.trim()) {
-						liveMessage.classList.add("hidden");
-					}
-				}
-			} else if (!response.ok) {
-				showUserMessage("Speichern fehlgeschlagen.", "error");
 			}
 		}, true);
 	};

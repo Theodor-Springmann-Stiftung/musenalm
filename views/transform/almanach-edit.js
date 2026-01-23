@@ -248,6 +248,7 @@ export class AlmanachEditPage extends HTMLElement {
 		try {
 			const response = await fetch(this._saveEndpoint, {
 				method: "POST",
+				credentials: "same-origin",
 				headers: {
 					"Content-Type": "application/json",
 					Accept: "application/json",
@@ -296,6 +297,7 @@ export class AlmanachEditPage extends HTMLElement {
 		try {
 			const response = await fetch(this._saveEndpoint, {
 				method: "POST",
+				credentials: "same-origin",
 				headers: {
 					"Content-Type": "application/json",
 					Accept: "application/json",
@@ -684,6 +686,7 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 		this._statusEl.textContent = "";
 		this._statusEl.classList.remove("text-red-700", "text-green-700", "save-feedback-error", "save-feedback-success");
+		this._statusEl.classList.remove("is-hidden");
 		this._statusEl.classList.add("hidden");
 	}
 
@@ -694,10 +697,28 @@ export class AlmanachEditPage extends HTMLElement {
 		this._clearStatus();
 		this._statusEl.textContent = message;
 		this._statusEl.classList.remove("hidden");
+		this._statusEl.classList.remove("is-hidden");
 		if (type === "success") {
 			this._statusEl.classList.add("text-green-700", "save-feedback-success");
 		} else if (type === "error") {
 			this._statusEl.classList.add("text-red-700", "save-feedback-error");
+		}
+		if (type === "success") {
+			const el = this._statusEl;
+			if (el) {
+				if (el.dataset.autohideScheduled === "true") {
+					return;
+				}
+				el.dataset.autohideScheduled = "true";
+				setTimeout(() => {
+					el.classList.add("is-hiding");
+					setTimeout(() => {
+						el.classList.add("is-hidden");
+						el.classList.remove("is-hiding");
+						delete el.dataset.autohideScheduled;
+					}, 320);
+				}, 4000);
+			}
 		}
 	}
 
@@ -711,6 +732,7 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 
 		const response = await fetch(targetUrl.toString(), {
+			credentials: "same-origin",
 			headers: {
 				"X-Requested-With": "fetch",
 			},

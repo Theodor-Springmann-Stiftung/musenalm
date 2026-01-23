@@ -205,7 +205,12 @@
 	}
 
 	.save-feedback {
-		@apply text-sm font-semibold px-3 py-2 rounded-xs border bg-stone-50 text-gray-700;
+		@apply text-sm font-semibold px-3 py-2 rounded-md border bg-stone-50 text-gray-700 transition-all duration-300 relative overflow-hidden;
+		transform-origin: center left;
+	}
+
+	.save-feedback.hidden {
+		@apply opacity-0 pointer-events-none;
 	}
 
 	.save-feedback-error {
@@ -214,6 +219,37 @@
 
 	.save-feedback-success {
 		@apply bg-green-50 border-green-200 text-green-800;
+	}
+
+	.save-feedback.is-hiding {
+		@apply opacity-0;
+		transform: translateY(4px) scale(0.98);
+	}
+
+	.save-feedback[data-autohide="true"]::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 2px;
+		background: currentColor;
+		opacity: 0.35;
+		transform-origin: left center;
+		animation: save-feedback-timer 2s linear forwards;
+	}
+
+	@keyframes save-feedback-timer {
+		from {
+			transform: scaleX(1);
+		}
+		to {
+			transform: scaleX(0);
+		}
+	}
+
+	.save-feedback.is-hidden {
+		@apply opacity-0 pointer-events-none;
 	}
 
 	.lf-warn-icon {

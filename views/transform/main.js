@@ -644,6 +644,48 @@ function InitStickyActionBars() {
 	document.addEventListener("htmx:afterSwap", update);
 }
 
+function InitTimedMessages() {
+	const duration = 2000;
+	const hide = (el) => {
+		if (!el || el.classList.contains("hidden") || el.classList.contains("is-hidden")) {
+			return;
+		}
+		requestAnimationFrame(() => {
+			el.classList.add("is-hiding");
+		});
+		setTimeout(() => {
+			el.classList.add("is-hidden");
+			el.classList.remove("is-hiding");
+			delete el.dataset.autohideScheduled;
+		}, 320);
+	};
+
+	const schedule = (root) => {
+		const scope = root || document;
+		scope.querySelectorAll("[data-autohide='true']").forEach((el) => {
+			if (el.dataset.autohideScheduled === "true") {
+				return;
+			}
+			el.dataset.autohideScheduled = "true";
+			setTimeout(() => hide(el), duration);
+		});
+	};
+
+	schedule(document);
+	document.addEventListener("htmx:afterSwap", (event) => {
+		schedule(event.target);
+	});
+	const observer = new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			for (const node of mutation.addedNodes) {
+				if (node.nodeType !== Node.ELEMENT_NODE) continue;
+				schedule(node);
+			}
+		}
+	});
+	observer.observe(document.body, { childList: true, subtree: true });
+}
+
 document.addEventListener("keydown", (event) => {
 	if (event.key !== "Enter") {
 		return;
@@ -664,7 +706,9 @@ window.PathPlusQuery = PathPlusQuery;
 window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 window.TextareaAutoResize = TextareaAutoResize;
+window.InitTimedMessages = InitTimedMessages;
 InitGlobalHtmxNotice();
 InitStickyActionBars();
+InitTimedMessages();
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor, EditPage, FabMenu, LookupField };
