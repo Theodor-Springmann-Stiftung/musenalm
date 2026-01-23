@@ -131,7 +131,7 @@ func (p *ReiheEditPage) GET(engine *templating.Engine, app core.App) HandleFunc 
 		req := templating.NewRequest(e)
 		data["csrf_token"] = req.Session().Token
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 
@@ -353,6 +353,7 @@ func preferredSeriesEntries(app core.App, seriesID string) ([]*dbmodels.Entry, e
 type reiheEditForm struct {
 	CSRFToken  string `form:"csrf_token"`
 	LastEdited string `form:"last_edited"`
+	SaveAction string `form:"save_action"`
 	Title      string `form:"title"`
 	Pseudonyms string `form:"pseudonyms"`
 	Annotation string `form:"annotation"`
@@ -448,7 +449,12 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			}
 		}(app, series.Id, titleChanged)
 
-		redirect := fmt.Sprintf("/reihe/%s/", id)
+		if strings.TrimSpace(formdata.SaveAction) == "view" {
+			redirect := fmt.Sprintf("/reihe/%s/", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+		setFlashSuccess(e, "Änderungen gespeichert.")
+		redirect := fmt.Sprintf("/reihe/%s/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

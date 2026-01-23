@@ -67,7 +67,7 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 		data["series_relations"] = dbmodels.SERIES_RELATIONS
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 
@@ -225,6 +225,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 			updatedInfo["user"] = user.Name
 		}
 
+		setFlashSuccess(e, "Änderungen gespeichert.")
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
 			"message":  "Änderungen gespeichert.",

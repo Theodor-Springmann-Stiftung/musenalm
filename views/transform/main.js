@@ -616,6 +616,32 @@ function FormLoad(form) {
 		// Update on change
 		checkbox.addEventListener("change", updateHiddenInput);
 	});
+
+}
+
+function InitStickyActionBars() {
+	if (InitStickyActionBars._initialized) {
+		return;
+	}
+	InitStickyActionBars._initialized = true;
+
+	const update = () => {
+		const bars = document.querySelectorAll(".form-action-bar");
+		if (!bars.length) {
+			return;
+		}
+		const viewportBottom = window.innerHeight || document.documentElement.clientHeight;
+		bars.forEach((bar) => {
+			const rect = bar.getBoundingClientRect();
+			const stuck = rect.bottom >= viewportBottom - 1;
+			bar.classList.toggle("is-stuck", stuck);
+		});
+	};
+
+	update();
+	window.addEventListener("scroll", update, { passive: true });
+	window.addEventListener("resize", update);
+	document.addEventListener("htmx:afterSwap", update);
 }
 
 document.addEventListener("keydown", (event) => {
@@ -639,5 +665,6 @@ window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 window.TextareaAutoResize = TextareaAutoResize;
 InitGlobalHtmxNotice();
+InitStickyActionBars();
 
 export { FilterList, ScrollButton, AbbreviationTooltips, MultiSelectSimple, MultiSelectRole, ToolTip, PopupImage, TabList, FilterPill, ImageReel, IntLink, ItemsEditor, SingleSelectRemote, AlmanachEditPage, RelationsEditor, EditPage, FabMenu, LookupField };

@@ -81,7 +81,7 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 		data["pagination_values"] = paginationValuesSorted()
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 		data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
@@ -165,7 +165,7 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 		data["content_index"] = contentIndex
 		data["content_total"] = contentTotal
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 
@@ -588,7 +588,8 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			go updateContentsFTS5(app, entry, touched)
 		}
 
-		savedMessage := url.QueryEscape("Änderungen gespeichert.")
+		saveAction := strings.TrimSpace(e.Request.FormValue("save_action"))
+		savedMessage := "Änderungen gespeichert."
 		if contentID != "" {
 			effectiveContentID := contentID
 			if mappedID, ok := tempToCreated[effectiveContentID]; ok {
@@ -596,12 +597,18 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			}
 			if effectiveContentID != "" {
 				if resolved, err := dbmodels.Contents_IDs(app, []any{effectiveContentID}); err == nil && len(resolved) > 0 {
-					redirect := fmt.Sprintf("/almanach/%s/contents/%d/edit?saved_message=%s", id, resolved[0].MusenalmID(), savedMessage)
+					if saveAction == "view" {
+						redirect := fmt.Sprintf("/beitrag/%d", resolved[0].MusenalmID())
+						return e.Redirect(http.StatusSeeOther, redirect)
+					}
+					setFlashSuccess(e, savedMessage)
+					redirect := fmt.Sprintf("/almanach/%s/contents/%d/edit", id, resolved[0].MusenalmID())
 					return e.Redirect(http.StatusSeeOther, redirect)
 				}
 			}
 		}
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, savedMessage)
+		setFlashSuccess(e, savedMessage)
+		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -641,7 +648,8 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 			}
 		}(app, entry)
 
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit?saved_message=%s", id, url.QueryEscape("Struktur/Umfang gespeichert."))
+		setFlashSuccess(e, "Struktur/Umfang gespeichert.")
+		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

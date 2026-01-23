@@ -26,11 +26,6 @@
 						</a>
 					</div>
 					&middot;
-					<div>
-						<a href="/person/{{ $agent.Id }}/edit" class="text-gray-700 no-underline hover:text-slate-950 block">
-							<i class="ri-loop-left-line"></i> Reset
-						</a>
-					</div>
 				</div>
 			{{- end -}}
 		</div>
@@ -107,10 +102,10 @@
 </div>
 
 <div class="container-normal mx-auto mt-4 !px-0">
-	{{ template "_usermessage" $model }}
+	{{/* usermessage moved into action bar */}}
 	<form
 		autocomplete="off"
-		class="w-full dbform"
+		class="w-full dbform form-with-action-bar"
 		id="changepersonform"
 		method="POST"
 		action="{{ if $model.is_new }}/personen/new/{{ else }}/person/{{ $agent.Id }}/edit{{ end }}"
@@ -248,30 +243,54 @@
 			</div>
 		</div>
 
-		<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
-			<p id="person-save-feedback" class="text-sm text-gray-600" aria-live="polite"></p>
-			<div class="flex items-center gap-3 self-end flex-wrap">
-				<a href="{{ if $model.is_new }}/personen/{{ else }}/person/{{ $agent.Id }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
-					<i class="ri-close-line"></i>
-					<span>Abbrechen</span>
-				</a>
-				{{- if not $model.is_new -}}
-					<a href="/person/{{ $agent.Id }}/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
-						<i class="ri-loop-left-line"></i>
-						<span>Reset</span>
+		<div class="form-action-bar">
+			<div class="form-action-bar-inner">
+				<p
+					id="person-save-feedback"
+					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+					aria-live="polite">
+					{{- if $model.error -}}
+						{{ $model.error }}
+					{{- else if $model.success -}}
+						{{ $model.success }}
+					{{- end -}}
+				</p>
+				<div class="form-action-bar-actions">
+					<a href="{{ if $model.is_new }}/personen/{{ else }}/person/{{ $agent.Id }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-close-line"></i>
+						<span>Abbrechen</span>
 					</a>
-					<button
-						type="button"
-						class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
-						data-role="edit-delete">
-						<i class="ri-delete-bin-line"></i>
-						<span>Person löschen</span>
-					</button>
-				{{- end -}}
-				<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
-					<i class="ri-save-line"></i>
-					<span>Speichern</span>
-				</button>
+					{{- if not $model.is_new -}}
+						<button
+							type="button"
+							class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+							data-role="edit-delete">
+							<i class="ri-delete-bin-line"></i>
+							<span>Person löschen</span>
+						</button>
+					{{- end -}}
+					{{- if not $model.is_new -}}
+						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
+							<i class="ri-save-line"></i>
+							<span>Speichern</span>
+						</button>
+						<button
+							type="submit"
+							name="save_action"
+							value="view"
+							class="submitbutton flex items-center gap-2 justify-center"
+							>
+							<i class="ri-eye-line"></i>
+							<span>Speichern &amp; Anzeigen</span>
+						</button>
+					{{- end -}}
+					{{- if $model.is_new -}}
+						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
+							<i class="ri-save-line"></i>
+							<span>Speichern</span>
+						</button>
+					{{- end -}}
+				</div>
 			</div>
 		</div>
 		{{- if not $model.is_new -}}

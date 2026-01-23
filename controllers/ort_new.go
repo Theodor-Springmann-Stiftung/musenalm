@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 
@@ -143,7 +142,8 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			}
 		}(app, createdPlace.Id)
 
-		redirect := fmt.Sprintf("/ort/%s/edit?saved_message=%s", createdPlace.Id, url.QueryEscape("Änderungen gespeichert."))
+		setFlashSuccess(e, "Änderungen gespeichert.")
+		redirect := fmt.Sprintf("/ort/%s/edit", createdPlace.Id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

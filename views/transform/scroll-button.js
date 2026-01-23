@@ -11,7 +11,7 @@ export class ScrollButton extends HTMLElement {
           <button
             class="
               scroll-to-top
-              fixed bottom-5 right-5
+              fixed bottom-12 right-8 z-50
               hidden
               bg-gray-800 text-white
               p-2

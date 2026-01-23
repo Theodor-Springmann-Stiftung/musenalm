@@ -18,6 +18,7 @@ export class AlmanachEditPage extends HTMLElement {
 		this._preferredSeriesRelationId = "";
 		this._preferredSeriesSeriesId = "";
 		this._handleSaveClick = this._handleSaveClick.bind(this);
+		this._handleSaveViewClick = this._handleSaveViewClick.bind(this);
 		this._handleResetClick = this._handleResetClick.bind(this);
 		this._handleDeleteClick = this._handleDeleteClick.bind(this);
 		this._handleDeleteConfirmClick = this._handleDeleteConfirmClick.bind(this);
@@ -145,6 +146,7 @@ export class AlmanachEditPage extends HTMLElement {
 		this._teardownSaveHandling();
 		this._form = this.querySelector("#changealmanachform");
 		this._saveButton = this.querySelector("[data-role='almanach-save']");
+		this._saveViewButton = this.querySelector("[data-role='almanach-save-view']");
 		this._resetButton = this.querySelector("[data-role='almanach-reset']");
 		this._deleteButton = this.querySelector("[data-role='almanach-delete']");
 		this._deleteDialog = this.querySelector("[data-role='almanach-delete-dialog']");
@@ -157,6 +159,9 @@ export class AlmanachEditPage extends HTMLElement {
 		this._saveEndpoint = this._form.getAttribute("data-save-endpoint") || this._deriveSaveEndpoint();
 		this._deleteEndpoint = this._form.getAttribute("data-delete-endpoint") || "";
 		this._saveButton.addEventListener("click", this._handleSaveClick);
+		if (this._saveViewButton) {
+			this._saveViewButton.addEventListener("click", this._handleSaveViewClick);
+		}
 		if (this._resetButton) {
 			this._resetButton.addEventListener("click", this._handleResetClick);
 		}
@@ -188,6 +193,9 @@ export class AlmanachEditPage extends HTMLElement {
 		if (this._saveButton) {
 			this._saveButton.removeEventListener("click", this._handleSaveClick);
 		}
+		if (this._saveViewButton) {
+			this._saveViewButton.removeEventListener("click", this._handleSaveViewClick);
+		}
 		if (this._resetButton) {
 			this._resetButton.removeEventListener("click", this._handleResetClick);
 		}
@@ -204,6 +212,7 @@ export class AlmanachEditPage extends HTMLElement {
 			this._deleteDialog.removeEventListener("cancel", this._handleDeleteCancelClick);
 		}
 		this._saveButton = null;
+		this._saveViewButton = null;
 		this._resetButton = null;
 		this._deleteButton = null;
 		this._deleteDialog = null;
@@ -258,13 +267,54 @@ export class AlmanachEditPage extends HTMLElement {
 				throw new Error(message);
 			}
 
-			if (data?.redirect) {
-				window.location.assign(data.redirect);
-				return;
+			await this._reloadForm(data?.message || "Änderungen gespeichert.");
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : "Speichern fehlgeschlagen.", "error");
+		} finally {
+			this._setSavingState(false);
+		}
+	}
+
+	async _handleSaveViewClick(event) {
+		event.preventDefault();
+		if (this._isSaving) {
+			return;
+		}
+		const redirectUrl = this._saveViewButton?.getAttribute("data-redirect-url");
+		if (!redirectUrl) {
+			return;
+		}
+		this._clearStatus();
+		let payload;
+		try {
+			payload = this._buildPayload();
+		} catch (error) {
+			this._showStatus(error instanceof Error ? error.message : String(error), "error");
+			return;
+		}
+		this._setSavingState(true);
+		try {
+			const response = await fetch(this._saveEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (!response.ok) {
+				let message = `Speichern fehlgeschlagen (${response.status}).`;
+				try {
+					const data = await response.clone().json();
+					message = data?.error || message;
+				} catch {
+					// ignore parsing error
+				}
+				throw new Error(message);
 			}
 
-			await this._reloadForm(data?.message || "Änderungen gespeichert.");
-			this._clearStatus();
+			window.location.assign(redirectUrl);
 		} catch (error) {
 			this._showStatus(error instanceof Error ? error.message : "Speichern fehlgeschlagen.", "error");
 		} finally {

@@ -122,7 +122,7 @@ func (p *PersonEditPage) GET(engine *templating.Engine, app core.App) HandleFunc
 		req := templating.NewRequest(e)
 		data["csrf_token"] = req.Session().Token
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 
@@ -240,6 +240,7 @@ func agentContentsDetails(app core.App, agentID string) ([]*dbmodels.Content, ma
 type personEditForm struct {
 	CSRFToken        string `form:"csrf_token"`
 	LastEdited       string `form:"last_edited"`
+	SaveAction       string `form:"save_action"`
 	Name             string `form:"name"`
 	Pseudonyms       string `form:"pseudonyms"`
 	BiographicalData string `form:"biographical_data"`
@@ -348,7 +349,12 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 			}
 		}(app, agent.Id, nameChanged)
 
-		redirect := fmt.Sprintf("/person/%s", id)
+		if strings.TrimSpace(formdata.SaveAction) == "view" {
+			redirect := fmt.Sprintf("/person/%s", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+		setFlashSuccess(e, "Änderungen gespeichert.")
+		redirect := fmt.Sprintf("/person/%s/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

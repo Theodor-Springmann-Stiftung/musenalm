@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 
@@ -110,7 +109,7 @@ func (p *OrtEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 		req := templating.NewRequest(e)
 		data["csrf_token"] = req.Session().Token
 
-		if msg := e.Request.URL.Query().Get("saved_message"); msg != "" {
+		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
 
@@ -142,6 +141,7 @@ func (p *OrtEditPage) renderError(engine *templating.Engine, app core.App, e *co
 type ortEditForm struct {
 	CSRFToken  string `form:"csrf_token"`
 	LastEdited string `form:"last_edited"`
+	SaveAction string `form:"save_action"`
 	Name       string `form:"name"`
 	Pseudonyms string `form:"pseudonyms"`
 	Annotation string `form:"annotation"`
@@ -237,7 +237,16 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			}
 		}(app, place.Id, nameChanged)
 
-		redirect := fmt.Sprintf("/ort/%s/edit?saved_message=%s", id, url.QueryEscape("Änderungen gespeichert."))
+		if strings.TrimSpace(formdata.SaveAction) == "view" {
+			redirect := fmt.Sprintf("/reihen/?place=%s", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+		if strings.TrimSpace(formdata.SaveAction) == "view" {
+			redirect := fmt.Sprintf("/ort/%s", id)
+			return e.Redirect(http.StatusSeeOther, redirect)
+		}
+		setFlashSuccess(e, "Änderungen gespeichert.")
+		redirect := fmt.Sprintf("/ort/%s/edit", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
