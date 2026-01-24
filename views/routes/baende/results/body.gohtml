@@ -1,0 +1,20 @@
+{{ $model := . }}
+
+<div id="baenderesults">
+	<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap" hx-swap-oob="true">
+		{{ len $model.result.Entries }} Bände
+	</div>
+	{{ template "_baende_table" $model }}
+
+	{{ if $model.search }}
+		<script type="module">
+			let elements = document.querySelectorAll('.baende-text');
+			let mark_instance = new Mark(elements);
+			setTimeout(() => {
+				mark_instance.mark('{{ $model.search }}', {
+					"seperateWordSearch": true,
+				});
+			}, 200);
+		</script>
+	{{ end }}
+</div>
