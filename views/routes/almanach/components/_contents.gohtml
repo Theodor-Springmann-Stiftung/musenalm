@@ -35,7 +35,7 @@
 					<div class="flex flex-row items-center justify-center ml-2.5">
 						<div class="block bg-stone-200 text-sm px-3 py-0.5 rounded mt-1">
 							<i class="ri-arrow-left-long-line"></i>
-							<a href="./" hx-target="#almanachcontents" hx-select="#almanachcontents" hx-swap="outerHTML show:none" hx-indicator="body"> Alle Beiträge anzeigen </a>
+							<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/" hx-target="#almanachcontents" hx-select="#almanachcontents" hx-swap="outerHTML show:none" hx-indicator="body"> Alle Beiträge anzeigen </a>
 						</div>
 					</div>
 				{{- end -}}

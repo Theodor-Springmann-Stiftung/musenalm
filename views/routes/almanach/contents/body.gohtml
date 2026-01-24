@@ -1,0 +1,7 @@
+{{ $model := . }}
+
+{{- if $model.result.Contents | len -}}
+	{{ template "_contents" $model }}
+{{- else -}}
+	<div id="almanachcontents"></div>
+{{- end -}}
