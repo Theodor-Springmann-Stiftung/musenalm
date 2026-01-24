@@ -1,0 +1,20 @@
+<div class="band-text border-b border-stone-200 py-2">
+    <div class="flex justify-between">
+        <a href="/beitrag/{{ .entry.MusenalmID }}" class="text-lg font-semibold hover:underline">{{ .entry.PreferredTitle }}</a>
+        <div class="text-sm text-stone-600">{{ .entry.Year }}</div>
+    </div>
+    <div class="text-sm text-stone-700">{{ .entry.ResponsibilityStmt }}</div>
+    <div class="text-sm text-stone-700">{{ .entry.PublicationStmt }}</div>
+
+    {{ $rels := index .model.result.EntriesSeries .entry.Id }}
+    {{ if $rels }}
+        <div class="text-sm mt-1">
+            <strong>Reihe:</strong>
+            {{ range $i, $rel := $rels }}
+                {{ if $i }}, {{ end }}
+                {{ $series := index $.model.result.Series $rel.Series }}
+                <a href="/reihe/{{ $series.MusenalmID }}" class="hover:underline">{{ $series.Title }}</a>
+            {{ end }}
+        </div>
+    {{ end }}
+</div>

@@ -1,0 +1,9 @@
+<div class="w-full">
+	<div class="flex flex-wrap justify-between font-sans text-sm tracking-wide">
+	{{ range .letters }}
+		<a href="/baende/?letter={{ . }}"
+			class="px-1.5 py-0.5"
+			:class="{ 'bg-stone-300' : '{{ . }}' == '{{ $.letter }}' }">{{ . }}</a>
+	{{ end }}
+	</div>
+</div>

@@ -1,75 +1,100 @@
 {{ $model := . }}
 
-<div x-data="{ search : '{{ $model.search }}' }" class="container-normal font-serif mt-10">
-	<div id="baendeheading" class="headingcontainer pb-6">
-		<div class="flex flex-wrap items-end justify-between gap-4">
-			<h1 class="heading">Bände A–Z</h1>
-			<div class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative font-sans text-lg">
-				<div class="pb-0">
-					<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
-				</div>
-				<div class="pb-0 border-b-4 border-zinc-300 grow">
-					<form
-						method="GET"
-						action="/baende/"
-						hx-get="/baende/results/"
-						hx-indicator="body"
-						hx-push-url="false"
-						hx-swap="outerHTML"
-						hx-target="#baenderesults"
-						role="search"
-						aria-label="Bändesuche">
-						{{- if $model.letter -}}
-							<input type="hidden" name="letter" value="{{- $model.letter -}}" />
+<div x-data="{ search : '{{ $model.search }}' }" class="container-normal font-sans mt-10">
+	<div id="pageheading" class="headingcontainer">
+		<h1 class="heading">Bände A–Z</h1>
+
+		<div class="mt-2">
+			<div class="flex flex-wrap flex-row border-b px-3 border-zinc-300 items-end justify-between min-h-14 gap-y-4">
+				<!-- Left side group: Count and Alphabet -->
+				<div class="flex items-end gap-x-6">
+					<div id="alphabet" class="alphabet flex flex-row items-end text-xl">
+						{{- range $_, $ch := $model.letters -}}
+							<a
+								href="/baende/?letter={{ $ch }}"
+								:class="search ? 'inactive pointer-events-none' : ''"
+								class="odd:bg-stone-100 even:bg-zinc-100 mr-1 border-zinc-300 border-x border-t [&>a[aria-current='page']]:font-bold px-2 py-0.5 no-underline transition-all duration-75"
+								{{ if and (not $model.search) (eq $model.letter $ch) }}aria-current="page"{{ end }}>
+								{{ $ch }}
+							</a>
 						{{- end -}}
-						<input
-							class="px-1.5 font-serif placeholder:italic w-full text-lg"
-							type="search"
-							name="search"
-							value="{{ $model.search }}"
-							placeholder="Signatur oder Suchbegriff"
-							x-model="search"
-							@input.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-							@search.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-							autocomplete="off" />
-						<button x-show="false">Suchen</button>
-					</form>
+						<i class="ml-2 ri-hourglass-2-fill request-indicator spinning"></i>
+					</div>
+				</div>
+
+				<!-- Right side group: Search and Spalten menu -->
+				<div class="flex items-end gap-4">
+					<div class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative font-sans text-lg items-center">
+						<div>
+							<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
+						</div>
+						<div class="border-b-4 border-zinc-300 grow">
+							<form
+								method="GET"
+								action="/baende/"
+								hx-get="/baende/results/"
+								hx-indicator="body"
+								hx-push-url="false"
+								hx-swap="outerHTML"
+								hx-target="#baenderesults"
+								role="search"
+								aria-label="Bändesuche">
+								{{- if $model.letter -}}
+									<input type="hidden" name="letter" value="{{- $model.letter -}}" />
+								{{- end -}}
+								<input
+									class="px-2 py-0.5 font-sans placeholder:italic w-full text-lg"
+									type="search"
+									name="search"
+									value="{{ $model.search }}"
+									placeholder="Signatur oder Suchbegriff"
+									x-model="search"
+									@input.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+									@search.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+									autocomplete="off" />
+								<button x-show="false">Suchen</button>
+							</form>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="mt-4 flex items-end gap-2">
-			<div id="alphabet" class="flex flex-wrap gap-1.5 font-sans text-lg">
-				{{- range $_, $ch := $model.letters -}}
-					<a
-						href="/baende/?letter={{ $ch }}"
-						:class="search ? 'inactive pointer-events-none' : ''"
-						class="odd:bg-stone-100 even:bg-zinc-100 px-2 py-0.5 rounded text-lg font-semibold text-slate-700 transition-all duration-150 no-underline"
-						{{ if and (not $model.search) (eq $model.letter $ch) }}aria-current="page"{{ end }}>
-						{{ $ch }}
-					</a>
-				{{- end -}}
-			</div>
-			<i class="ml-2 pb-1 ri-hourglass-2-fill request-indicator spinning"></i>
-		</div>
 	</div>
 
-	<div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-		<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
-			{{ len $model.result.Entries }} Bände
-		</div>
-		<details class="font-sans text-sm" data-role="baende-column-toggle">
-			<summary class="cursor-pointer text-gray-700 hover:text-slate-900">Spalten ein-/ausblenden</summary>
-			<div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-700">
-				<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
-				<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
-				<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
-				<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
-				<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
-			</div>
-		</details>
-	</div>
 
-	<div id="baenderesults" class="mt-4">
+
+	<div class="flex justify-between mt-10">
+		<div class="relative" x-data="{ open: false }">
+			<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open">
+				<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+					Spalten
+					<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+				</summary>
+				<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+					<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
+						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
+						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
+						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
+						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
+					</div>
+				</div>
+			</details>
+		</div>
+		<div class="flex items-center gap-3">
+            <div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+                {{ len $model.result.Entries }} Bände
+            </div>
+            <button
+                type="button"
+                class="content-action-button"
+                onclick="window.location.assign('/almanach/new')">
+                <i class="ri-add-line"></i>
+                <span>Neuer Band</span>
+            </button>
+        </div>
+	</div>
+	<div id="baenderesults" class="mt-2">
 		{{ template "_baende_table" $model }}
 	</div>
 </div>

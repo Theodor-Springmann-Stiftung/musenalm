@@ -7,7 +7,7 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -219,7 +219,8 @@ func searchBaendeEntries(app core.App, search string) ([]*dbmodels.Entry, error)
 
 	entries, err := searchBaendeEntriesFTS(app, query)
 	if err != nil {
-		return searchBaendeEntriesLike(app, query)
+		app.Logger().Error("FTS search failed", "error", err)
+		return nil, err
 	}
 	return entries, nil
 }
@@ -282,115 +283,7 @@ func searchBaendeEntriesFTS(app core.App, query string) ([]*dbmodels.Entry, erro
 	return entries, nil
 }
 
-func searchBaendeEntriesLike(app core.App, query string) ([]*dbmodels.Entry, error) {
-	trimmed := strings.TrimSpace(query)
-	if trimmed == "" {
-		return []*dbmodels.Entry{}, nil
-	}
-	terms := []string{trimmed}
-	normalized := datatypes.NormalizeString(trimmed)
-	normalized = strings.Join(strings.Fields(normalized), " ")
-	if normalized != "" && normalized != trimmed {
-		terms = append(terms, normalized)
-	}
-	collapsed := strings.ReplaceAll(trimmed, "/", "")
-	if collapsed != "" && collapsed != trimmed && collapsed != normalized {
-		terms = append(terms, collapsed)
-	}
 
-	entryFields := []string{
-		dbmodels.PREFERRED_TITLE_FIELD,
-		dbmodels.VARIANT_TITLE_FIELD,
-		dbmodels.PARALLEL_TITLE_FIELD,
-		dbmodels.TITLE_STMT_FIELD,
-		dbmodels.SUBTITLE_STMT_FIELD,
-		dbmodels.INCIPIT_STMT_FIELD,
-		dbmodels.RESPONSIBILITY_STMT_FIELD,
-		dbmodels.PUBLICATION_STMT_FIELD,
-		dbmodels.PLACE_STMT_FIELD,
-		dbmodels.EDITION_FIELD,
-		dbmodels.YEAR_FIELD,
-		dbmodels.EXTENT_FIELD,
-		dbmodels.DIMENSIONS_FIELD,
-		dbmodels.REFERENCES_FIELD,
-		dbmodels.ANNOTATION_FIELD,
-		dbmodels.COMMENT_FIELD,
-		dbmodels.MUSENALMID_FIELD,
-	}
-
-	entryConditions := []dbx.Expression{}
-	for _, term := range terms {
-		for _, field := range entryFields {
-			entryConditions = append(entryConditions, dbx.Like(field, term).Match(true, true))
-		}
-	}
-
-	entries := []*dbmodels.Entry{}
-	if len(entryConditions) > 0 {
-		if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
-			Where(dbx.Or(entryConditions...)).
-			All(&entries); err != nil {
-			return nil, err
-		}
-	}
-
-	entryIDs := map[string]struct{}{}
-	for _, entry := range entries {
-		entryIDs[entry.Id] = struct{}{}
-	}
-
-	itemFields := []string{
-		dbmodels.ITEMS_IDENTIFIER_FIELD,
-		dbmodels.ITEMS_MEDIA_FIELD,
-		dbmodels.ITEMS_LOCATION_FIELD,
-		dbmodels.ITEMS_OWNER_FIELD,
-		dbmodels.ITEMS_CONDITION_FIELD,
-		dbmodels.URI_FIELD,
-		dbmodels.ANNOTATION_FIELD,
-		dbmodels.COMMENT_FIELD,
-	}
-	itemConditions := []dbx.Expression{}
-	for _, term := range terms {
-		for _, field := range itemFields {
-			itemConditions = append(itemConditions, dbx.Like(field, term).Match(true, true))
-		}
-	}
-
-	if len(itemConditions) > 0 {
-		items := []*dbmodels.Item{}
-		if err := app.RecordQuery(dbmodels.ITEMS_TABLE).
-			Where(dbx.Or(itemConditions...)).
-			All(&items); err != nil {
-			return nil, err
-		}
-		itemEntryIDs := []any{}
-		for _, item := range items {
-			if item == nil {
-				continue
-			}
-			if entryID := item.Entry(); entryID != "" {
-				if _, exists := entryIDs[entryID]; !exists {
-					entryIDs[entryID] = struct{}{}
-					itemEntryIDs = append(itemEntryIDs, entryID)
-				}
-			}
-		}
-		if len(itemEntryIDs) > 0 {
-			itemEntries, err := dbmodels.Entries_IDs(app, itemEntryIDs)
-			if err != nil {
-				return nil, err
-			}
-			entries = append(entries, itemEntries...)
-		}
-	}
-
-	if len(entries) == 0 {
-		return entries, nil
-	}
-
-	dbmodels.Sort_Entries_Title_Year(entries)
-	return entries, nil
-}
 
 func searchBaendeEntriesQuick(app core.App, query string) ([]*dbmodels.Entry, error) {
 	trimmed := strings.TrimSpace(query)
