@@ -29,7 +29,6 @@
 							<i class="ri-eye-line"></i> Orte
 						</a>
 					</div>
-					&middot;
 				</div>
 			{{- end -}}
 		</div>
@@ -45,7 +44,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.Prev.Name }}</div>
 								<a
-									href="/ort/{{ $model.result.Prev.Id }}/edit/"
+									href="/ort/{{ $model.result.Prev.Id }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
@@ -62,7 +61,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.Next.Name }}</div>
 								<a
-									href="/ort/{{ $model.result.Next.Id }}/edit/"
+									href="/ort/{{ $model.result.Next.Id }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>

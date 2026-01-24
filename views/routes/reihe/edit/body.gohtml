@@ -25,7 +25,6 @@
 							<i class="ri-eye-line"></i> Anschauen
 						</a>
 					</div>
-					&middot;
 				</div>
 			{{- end -}}
 		</div>
@@ -41,7 +40,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.Prev.Title }}</div>
 								<a
-									href="/reihe/{{ $model.result.Prev.MusenalmID }}/edit/"
+									href="/reihe/{{ $model.result.Prev.MusenalmID }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
@@ -58,7 +57,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.Next.Title }}</div>
 								<a
-									href="/reihe/{{ $model.result.Next.MusenalmID }}/edit/"
+									href="/reihe/{{ $model.result.Next.MusenalmID }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>

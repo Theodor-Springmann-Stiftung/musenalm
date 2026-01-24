@@ -32,7 +32,7 @@
 								</div>
 							{{- end -}}
 							{{- if (IsAdminOrEditor $model.request.user) -}}
-								<a href="/ort/{{ $place.Id }}/edit/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
+								<a href="/ort/{{ $place.Id }}/edit" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-edit-line"></i> Bearbeiten
 								</a>
 							{{- end -}}

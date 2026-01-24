@@ -69,79 +69,17 @@
 		{{ end }}
 
 
-		<!-- INFO: 3. Treffer -->
-		<div id="searchcontent" class="font-serif">
-			{{ if and .search $model.result.IDSeries }}
-				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := $model.result.IDSeries }}
-						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries
-						true false false $model.request) }}
-					{{ end }}
-				</div>
-			{{ end }}
-
-			{{ if $model.result.Series }}
-				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := $model.result.Series }}
-						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries false false
-							false $model.request)
-						}}
-					{{ end }}
-				</div>
-			{{ end }}
-
-			{{ if and .search $model.result.AltSeries }}
-				{{ if $model.result.IDSeries }}
-					<div class="border-b text-sm font-sans text-right pb-0.5">
-						Treffer in Almanach-Nummer &uarr;
-					</div>
-				{{ end }}
-
-				{{ if $model.result.Series }}
-					<div class="border-b text-sm font-sans text-right pb-0.5">
-						Treffer in Reihentiteln &uarr;
-					</div>
-				{{ end }}
-
-				{{ if not (or $model.result.Series $model.result.IDSeries) }}
-					<div class="border-b text-sm font-sans text-right pb-0.5">
-						Keine Treffer im Reihentitel
-						<i class="ri-forbid-line inline-bloc -mr-0.5"></i>
-					</div>
-				{{ end }}
-				<div class="border-t mb-1.5 text-sm font-sans text-right pt-0.5">
-					Treffer in allen Feldern (inkl. Anmerkungen &amp; Verweise) &darr;
-				</div>
-				<div class="mb-1 max-w-[60rem] hyphens-auto">
-					{{ range $id, $r := $model.result.AltSeries }}
-						{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries
-						false true true $model.request) }}
-					{{ end }}
-				</div>
-			{{ end }}
-			{{ if not (or $model.result.Series $model.result.AltSeries $model.result.IDSeries) }}
-				<div class="mt-8">
-					Keine Reihen
-					{{ if .search }}für {{ .search }}{{ end }}
-					gefunden.
-				</div>
-			{{ end }}
-
-			{{ if $model.search }}
-				<script type="module">
-				let elements = document.querySelectorAll('.reihen-text');
-				let mark_instance = new Mark(elements);
-				// INFO: we wait a little bit before marking, to settle everything
-					setTimeout(() => {
-						mark_instance.mark('{{ $model.search }}', {
-							"seperateWordSearch": true,
-						});
-					}, 200);
-				</script>
-			{{ end }}
-
-
-			<!-- INFO: Ende 3. Treffer -->
+		<div
+			id="reihenresults"
+			hx-get="/reihen/results/{{- if $model.request.query -}}?{{- $model.request.query -}}{{- end -}}"
+			hx-trigger="load"
+			hx-target="this"
+			hx-swap="outerHTML"
+			hx-history="false"
+			hx-indicator="body">
+			<div id="searchcontent" class="font-serif">
+				<div class="flex justify-center text-sm text-stone-600">Reihen laden…</div>
+			</div>
 		</div>
 
 		<!-- INFO: Ende 2. Breite Anzeige -->

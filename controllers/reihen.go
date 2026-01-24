@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	URL_REIHEN   = "/reihen/"
-	PARAM_LETTER = "letter"
-	PARAM_SEARCH = "search"
-	PARAM_PERSON = "agent"
-	PARAM_PLACE  = "place"
-	PARAM_YEAR   = "year"
-	PARAM_HIDDEN = "hidden"
+	URL_REIHEN         = "/reihen/"
+	URL_REIHEN_RESULTS = "/reihen/results/"
+	PARAM_LETTER       = "letter"
+	PARAM_SEARCH       = "search"
+	PARAM_PERSON       = "agent"
+	PARAM_PLACE        = "place"
+	PARAM_YEAR         = "year"
+	PARAM_HIDDEN       = "hidden"
 )
 
 func init() {
@@ -42,54 +43,87 @@ type ReihenPage struct {
 
 func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	router.GET(URL_REIHEN, func(e *core.RequestEvent) error {
-		search := e.Request.URL.Query().Get(PARAM_SEARCH)
-		if search != "" {
-			return p.SearchRequest(app, engine, e)
-		}
-		person := e.Request.URL.Query().Get(PARAM_PERSON)
-		if person != "" {
-			return p.PersonRequest(app, engine, e)
-		}
-		place := e.Request.URL.Query().Get(PARAM_PLACE)
-		if place != "" {
-			return p.PlaceRequest(app, engine, e)
-		}
-		year := e.Request.URL.Query().Get(PARAM_YEAR)
-		if year != "" {
-			return p.YearRequest(app, engine, e)
-		}
-
-		return p.LetterRequest(app, engine, e)
-	})
+	router.GET(URL_REIHEN, p.handlePage(engine, app))
+	router.GET(URL_REIHEN_RESULTS, p.handleResults(engine, app))
 
 	return nil
 }
 
-func (p *ReihenPage) YearRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	year := e.Request.URL.Query().Get(PARAM_YEAR)
-	data := make(map[string]any)
-	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
-	data[PARAM_YEAR] = year
-
-	y, err := strconv.Atoi(year)
-	if err != nil {
-		return engine.Response404(e, err, data)
+func (p *ReihenPage) handlePage(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		data, err := p.buildResultData(app, e)
+		if err != nil {
+			return engine.Response404(e, err, data)
+		}
+		data["common"] = NewCommonReihenData(app)
+		return engine.Response200(e, URL_REIHEN, data)
 	}
-
-	result, err := NewSeriesResult_Year(app, y)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-
-	data["result"] = result
-	return p.Get(e, engine, data)
 }
 
-func (p *ReihenPage) LetterRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	letter := e.Request.URL.Query().Get(PARAM_LETTER)
-	data := map[string]interface{}{}
+func (p *ReihenPage) handleResults(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		data, err := p.buildResultData(app, e)
+		if err != nil {
+			return engine.Response404(e, err, data)
+		}
+		return engine.Response200(e, URL_REIHEN_RESULTS, data, "fragment")
+	}
+}
+
+// TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
+func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[string]any, error) {
+	data := map[string]any{}
 	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
+
+	search := e.Request.URL.Query().Get(PARAM_SEARCH)
+	if search != "" {
+		data[PARAM_SEARCH] = search
+		result, err := NewSeriesResult_Search(app, search)
+		if err != nil {
+			return data, err
+		}
+		data["result"] = result
+		return data, nil
+	}
+
+	person := e.Request.URL.Query().Get(PARAM_PERSON)
+	if person != "" {
+		data[PARAM_PERSON] = person
+		result, err := NewSeriesResult_Agent(app, person)
+		if err != nil {
+			return data, err
+		}
+		data["result"] = result
+		return data, nil
+	}
+
+	place := e.Request.URL.Query().Get(PARAM_PLACE)
+	if place != "" {
+		data[PARAM_PLACE] = place
+		result, err := NewSeriesResult_Place(app, place)
+		if err != nil {
+			return data, err
+		}
+		data["result"] = result
+		return data, nil
+	}
+
+	year := e.Request.URL.Query().Get(PARAM_YEAR)
+	if year != "" {
+		data[PARAM_YEAR] = year
+		y, err := strconv.Atoi(year)
+		if err != nil {
+			return data, err
+		}
+		result, err := NewSeriesResult_Year(app, y)
+		if err != nil {
+			return data, err
+		}
+		data["result"] = result
+		return data, nil
+	}
+
+	letter := e.Request.URL.Query().Get(PARAM_LETTER)
 	if letter == "" {
 		data["startpage"] = true
 		letter = "A"
@@ -98,61 +132,11 @@ func (p *ReihenPage) LetterRequest(app core.App, engine *templating.Engine, e *c
 
 	result, err := NewSeriesListResult_Letter(app, letter)
 	if err != nil {
-		return engine.Response404(e, err, data)
+		return data, err
 	}
 
 	data["result"] = result
-	return p.Get(e, engine, data)
-}
-
-func (p *ReihenPage) PersonRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	person := e.Request.URL.Query().Get(PARAM_PERSON)
-	data := map[string]interface{}{}
-	data[PARAM_PERSON] = person
-	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
-
-	result, err := NewSeriesResult_Agent(app, person)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-
-	data["result"] = result
-	return p.Get(e, engine, data)
-}
-
-func (p *ReihenPage) PlaceRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	place := e.Request.URL.Query().Get(PARAM_PLACE)
-	data := map[string]interface{}{}
-	data[PARAM_PLACE] = place
-	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
-
-	result, err := NewSeriesResult_Place(app, place)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-
-	data["result"] = result
-	return p.Get(e, engine, data)
-}
-
-// TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
-func (p *ReihenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
-	search := e.Request.URL.Query().Get(PARAM_SEARCH)
-	data := map[string]interface{}{}
-	data[PARAM_SEARCH] = search
-
-	result, err := NewSeriesResult_Search(app, search)
-	if err != nil {
-		return engine.Response404(e, err, data)
-	}
-
-	data["result"] = result
-	return p.Get(e, engine, data)
-}
-
-func (p *ReihenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {
-	data["common"] = NewCommonReihenData(request.App)
-	return engine.Response200(request, URL_REIHEN, data)
+	return data, nil
 }
 
 type CommonReihenData struct {

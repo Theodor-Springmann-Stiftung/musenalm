@@ -32,21 +32,26 @@
 			<div class="pb-0 border-b-4 border-zinc-300 grow">
 				<form
 					method="GET"
-					hx-boost="false"
+					action="/reihen/"
+					hx-get="/reihen/results/"
+					hx-indicator="body"
+					hx-push-url="false"
+					hx-swap="outerHTML"
+					hx-target="#reihenresults"
 					x-target="searchcontent"
 					role="search"
 					aria-label="Reihentitelsuche">
 					{{- if $model.letter -}}
-						<input type="hidden" name="letter" value="{{- $model.letter -}}" />
+						<input type="hidden" name="letter" value="{{- $model.letter -}}" :disabled="search" />
 					{{- end -}}
 					{{- if and $model.result $model.result.Agent -}}
-						<input type="hidden" name="agent" value="{{- $model.result.Agent.Id -}}" />
+						<input type="hidden" name="agent" value="{{- $model.result.Agent.Id -}}" :disabled="search" />
 					{{- end -}}
 					{{- if and $model.result $model.result.Place -}}
-						<input type="hidden" name="place" value="{{- $model.result.Place.Id -}}" />
+						<input type="hidden" name="place" value="{{- $model.result.Place.Id -}}" :disabled="search" />
 					{{- end -}}
 					{{- if $model.year -}}
-						<input type="hidden" name="year" value="{{- $model.year -}}" />
+						<input type="hidden" name="year" value="{{- $model.year -}}" :disabled="search" />
 					{{- end -}}
 					<input
 						class="px-1.5 font-serif placeholder:italic w-full"
