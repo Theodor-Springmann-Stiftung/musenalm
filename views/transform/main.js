@@ -352,6 +352,7 @@ function InitGlobalHtmxNotice() {
 	let textEl = notice ? notice.querySelector("[data-role='global-notice-text']") : null;
 	let pending = 0;
 	let errorTimeout = null;
+	let loadingHideTimeout = null;
 
 	const setNoticeState = (state, message) => {
 		notice = ensureNotice();
@@ -433,9 +434,17 @@ function InitGlobalHtmxNotice() {
 		}
 	};
 
+	const clearLoadingHideTimeout = () => {
+		if (loadingHideTimeout) {
+			clearTimeout(loadingHideTimeout);
+			loadingHideTimeout = null;
+		}
+	};
+
 	document.addEventListener("htmx:beforeRequest", (event) => {
 		pending += 1;
 		clearErrorTimeout();
+		clearLoadingHideTimeout();
 		setBodyBusy(true);
 		showNotice("loading", "Lädt");
 		markElementBusy(event.detail?.elt, true);
@@ -447,7 +456,13 @@ function InitGlobalHtmxNotice() {
 		if (pending === 0) {
 			setBodyBusy(false);
 			if (notice.dataset.state !== "error") {
-				hideNotice();
+				clearLoadingHideTimeout();
+				loadingHideTimeout = setTimeout(() => {
+					loadingHideTimeout = null;
+					if (pending === 0 && notice.dataset.state !== "error") {
+						hideNotice();
+					}
+				}, 250);
 			}
 		}
 	});
@@ -456,6 +471,7 @@ function InitGlobalHtmxNotice() {
 		setBodyBusy(false);
 		showNotice("error", "Laden fehlgeschlagen.");
 		clearErrorTimeout();
+		clearLoadingHideTimeout();
 		errorTimeout = setTimeout(() => {
 			if (pending === 0) {
 				hideNotice();
@@ -469,6 +485,7 @@ function InitGlobalHtmxNotice() {
 		setBodyBusy(false);
 		showNotice("error", "Verbindung fehlgeschlagen.");
 		clearErrorTimeout();
+		clearLoadingHideTimeout();
 		errorTimeout = setTimeout(() => {
 			if (pending === 0) {
 				hideNotice();
