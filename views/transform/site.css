@@ -641,14 +641,16 @@
 		@apply block;
 	}
 
+	/* Overlay disabled for now.
 	html[data-htmx-busy="true"]::before {
 		content: "";
 		position: fixed;
 		inset: 0;
-		background: rgba(15, 23, 42, 0.18);
+		background: rgba(15, 23, 42, 0.08);
 		z-index: 40;
 		pointer-events: auto;
 	}
+	*/
 
 	[data-htmx-busy="true"]:not(html):not(body) {
 		pointer-events: none;

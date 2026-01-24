@@ -8914,7 +8914,7 @@ class rc extends HTMLElement {
 				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Person
 				</div>
-				<a href="/person/${h}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/person/${h}/edit/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
@@ -10006,7 +10006,7 @@ function Kc() {
     return h || (h = document.createElement("div"), h.id = "global-notice", h.className = "global-notice hidden", h.setAttribute("role", "status"), h.setAttribute("aria-live", "polite"), h.setAttribute("aria-atomic", "true"), h.dataset.state = "", h.innerHTML = `
 				<div class="global-notice-inner">
 					<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-					<span data-role="global-notice-text">Laden&#8230;</span>
+					<span data-role="global-notice-text">Lädt</span>
 				</div>
 			`, document.body?.appendChild(h)), h;
   };
@@ -10026,16 +10026,16 @@ function Kc() {
     n && (clearTimeout(n), n = null);
   };
   document.addEventListener("htmx:beforeRequest", (h) => {
-    i += 1, u(), l(!0), a("loading", "Laden..."), c(h.detail?.elt, !0);
+    i += 1, u(), l(!0), a("loading", "Lädt"), c(h.detail?.elt, !0);
   }), document.addEventListener("htmx:afterRequest", (h) => {
     c(h.detail?.elt, !1), i = Math.max(0, i - 1), i === 0 && (l(!1), t.dataset.state !== "error" && o());
   }), document.addEventListener("htmx:responseError", () => {
     l(!1), a("error", "Laden fehlgeschlagen."), u(), n = setTimeout(() => {
-      i === 0 ? o() : a("loading", "Laden...");
+      i === 0 ? o() : a("loading", "Lädt");
     }, 2e3);
   }), document.addEventListener("htmx:sendError", () => {
     l(!1), a("error", "Verbindung fehlgeschlagen."), u(), n = setTimeout(() => {
-      i === 0 ? o() : a("loading", "Laden...");
+      i === 0 ? o() : a("loading", "Lädt");
     }, 2e3);
   }), document.addEventListener("htmx:afterSwap", () => {
     t = s(), t && !e && (e = t.querySelector("[data-role='global-notice-text']"));

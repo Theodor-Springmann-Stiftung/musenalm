@@ -341,7 +341,7 @@ function InitGlobalHtmxNotice() {
 			noticeEl.innerHTML = `
 				<div class="global-notice-inner">
 					<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-					<span data-role="global-notice-text">Laden&#8230;</span>
+					<span data-role="global-notice-text">Lädt</span>
 				</div>
 			`;
 			document.body?.appendChild(noticeEl);
@@ -437,7 +437,7 @@ function InitGlobalHtmxNotice() {
 		pending += 1;
 		clearErrorTimeout();
 		setBodyBusy(true);
-		showNotice("loading", "Laden...");
+		showNotice("loading", "Lädt");
 		markElementBusy(event.detail?.elt, true);
 	});
 
@@ -460,7 +460,7 @@ function InitGlobalHtmxNotice() {
 			if (pending === 0) {
 				hideNotice();
 			} else {
-				showNotice("loading", "Laden...");
+				showNotice("loading", "Lädt");
 			}
 		}, 2000);
 	});
@@ -473,7 +473,7 @@ function InitGlobalHtmxNotice() {
 			if (pending === 0) {
 				hideNotice();
 			} else {
-				showNotice("loading", "Laden...");
+				showNotice("loading", "Lädt");
 			}
 		}, 2000);
 	});

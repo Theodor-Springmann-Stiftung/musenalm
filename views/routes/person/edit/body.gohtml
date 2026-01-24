@@ -108,7 +108,7 @@
 		class="w-full dbform form-with-action-bar"
 		id="changepersonform"
 		method="POST"
-		action="{{ if $model.is_new }}/personen/new/{{ else }}/person/{{ $agent.Id }}/edit{{ end }}"
+		action="{{ if $model.is_new }}/personen/new/{{ else }}/person/{{ $agent.Id }}/edit/{{ end }}"
 		{{- if not $model.is_new -}}
 		data-delete-endpoint="/person/{{ $agent.Id }}/edit/delete"
 		{{- end -}}>

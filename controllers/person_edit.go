@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	URL_PERSON_EDIT      = "edit"
-	TEMPLATE_PERSON_EDIT = "/person/edit/"
+	URL_PERSON_EDIT       = "edit"
+	URL_PERSON_EDIT_SLASH = "edit/"
+	TEMPLATE_PERSON_EDIT  = "/person/edit/"
 )
 
 func init() {
@@ -42,7 +43,9 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	rg := router.Group("/person/{id}/")
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
+	rg.GET(URL_PERSON_EDIT_SLASH, p.GET(engine, app))
 	rg.POST(URL_PERSON_EDIT, p.POST(engine, app))
+	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app))
 	rg.POST(URL_PERSON_EDIT+"/delete", p.POSTDelete(engine, app))
 	return nil
 }
@@ -354,7 +357,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")
-		redirect := fmt.Sprintf("/person/%s/edit", id)
+		redirect := fmt.Sprintf("/person/%s/edit/", id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
