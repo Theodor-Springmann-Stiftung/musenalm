@@ -29,7 +29,7 @@
 					<tool-tip position="top" class="!inline">
 						<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
 						<a
-							href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}"
+							href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/"
 							class="text-gray-700 hover:text-slate-950 no-underline">
 							<i class="ri-arrow-left-s-line"></i>
 						</a>
@@ -42,7 +42,7 @@
 					<tool-tip position="top" class="!inline">
 						<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
 						<a
-							href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}"
+							href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}/"
 							class="text-gray-700 hover:text-slate-950 no-underline">
 							<i class="ri-arrow-right-s-line"></i>
 						</a>
@@ -53,11 +53,11 @@
 			{{- if (IsAdminOrEditor $model.request.user) -}}
 				<div>
 					<i class="ri-edit-line"></i>
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit">Bearbeiten</a>
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/">Bearbeiten</a>
 				</div>
 				<div>
 					<i class="ri-file-edit-line"></i>
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">Beiträge bearbeiten</a>
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/">Beiträge bearbeiten</a>
 				</div>
 			{{- end -}}
 		</div>

@@ -39,7 +39,7 @@
 					{{- end -}}
 					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
 						<a
-							href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
+							href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
 							class="no-underline hover:text-slate-900 cursor-pointer">
 							{{- if $content.PreferredTitle -}}
 								<span class="content-search-text text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
@@ -74,7 +74,7 @@
 						<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 					</span>
 					<a
-						href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit"
+						href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
 						class="resetbutton w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
 						aria-label="Beitrag bearbeiten">
 						<i class="ri-edit-2-line text-sm"></i>
