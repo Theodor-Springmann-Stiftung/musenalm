@@ -34,6 +34,9 @@ func RecordsFromInhalte(
 	for i := 0; i < len(inhalte.Inhalte); i++ {
 		record := dbmodels.NewContent(core.NewRecord(collection))
 		inhalt := inhalte.Inhalte[i]
+		if shouldSkipDummyContent(inhalt, images) {
+			continue
+		}
 		band, ok := entries[inhalt.Band]
 		if !ok {
 			app.Logger().Error("Band not found", "band", inhalt.Band)

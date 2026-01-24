@@ -15,6 +15,7 @@ func RecordsFromRelationBändeReihen(
 	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.REntriesSeries, error) {
 	records := make([]*dbmodels.REntriesSeries, 0, len(relations.Relationen))
+	seen := make(map[string]int)
 	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))
 	if err != nil {
 		app.Logger().Error("Error finding collection", "error", err, "collection", dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE))
@@ -62,10 +63,30 @@ func RecordsFromRelationBändeReihen(
 		ser := record.Series()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
-			entry.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+			appendEntryComment(entry, "Unvollständige Relation Band–Reihe; bitte prüfen.")
 			_ = app.Save(entry)
 		}
 
+		key := entry.Id + "|" + series.Id
+		if idx, ok := seen[key]; ok {
+			existing := records[idx]
+			if existing.Type() == "Bevorzugter Reihentitel" {
+				appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
+				_ = app.Save(entry)
+				continue
+			}
+			if record.Type() == "Bevorzugter Reihentitel" {
+				records[idx] = record
+				appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
+				_ = app.Save(entry)
+				continue
+			}
+			appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
+			_ = app.Save(entry)
+			continue
+		}
+
+		seen[key] = len(records)
 		records = append(records, record)
 	}
 

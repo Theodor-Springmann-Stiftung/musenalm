@@ -54,7 +54,7 @@ func RecordsFromRelationBändeAkteure(
 		ser := record.Agent()
 
 		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
-			entry.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+			appendEntryComment(entry, "Unvollständige Relation Band–Akteur; bitte prüfen.")
 			_ = app.Save(entry)
 		}
 		records = append(records, record)

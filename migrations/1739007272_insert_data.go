@@ -86,7 +86,8 @@ func init() {
 
 		wg.Wait()
 
-		entries, err := seed.RecordsFromBände(app, *adb, placesmap)
+		contentCounts := seed.ContentCountsAfterFilter(adb.Inhalte)
+		entries, err := seed.RecordsFromBände(app, *adb, placesmap, contentCounts)
 		if err != nil {
 			panic(err)
 		}

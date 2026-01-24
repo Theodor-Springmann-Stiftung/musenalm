@@ -78,7 +78,7 @@ func ItemsFromBändeAndBIBLIO(
 				message = appendMessage(e.NotizÄusseres, message)
 				message = appendMessage(e.NotizInhalt, message)
 				message = appendMessage(e.Anmerkungen, message)
-				exem.SetAnnotation(message)
+				exem.SetAnnotation(formatItemAnnotation(message))
 			}
 
 			records = append(records, exem)
@@ -100,7 +100,7 @@ func ItemsFromBändeAndBIBLIO(
 					message = appendMessage(e.Anmerkungen, message)
 				}
 			}
-			exem.SetAnnotation(message)
+			exem.SetAnnotation(formatItemAnnotation(message))
 
 			if exem.Identifier() != "" {
 				records = append(records, exem)
@@ -143,4 +143,11 @@ func appendMessage(message string, toAppend string) string {
 		message += notiza
 	}
 	return message
+}
+
+func formatItemAnnotation(message string) string {
+	if message == "" {
+		return message
+	}
+	return strings.ReplaceAll(message, "/)", "<br>")
 }

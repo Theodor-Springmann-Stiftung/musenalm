@@ -112,6 +112,26 @@
 		@apply text-base;
 	}
 
+	.status-icon[data-status="Edited"] {
+		color: var(--color-green-900);
+	}
+
+	.status-icon[data-status="Seen"] {
+		color: var(--color-blue-900);
+	}
+
+	.status-icon[data-status="Review"] {
+		color: var(--color-orange-900);
+	}
+
+	.status-icon[data-status="ToDo"] {
+		color: var(--color-red-900);
+	}
+
+	.status-icon[data-status="Unknown"] {
+		color: var(--color-gray-900);
+	}
+
 	/* Comment content styling in view mode */
 	.comment-content {
 		@apply italic;
@@ -135,19 +155,18 @@
 	}
 
 	.form-with-action-bar {
-		@apply pb-0;
+		@apply pb-24;
+		padding-bottom: calc(6rem + env(safe-area-inset-bottom));
 	}
 
 	.form-action-bar {
-		@apply sticky bottom-0 z-30 border-t border-transparent bg-stone-50;
-		box-shadow: none;
-		width: calc(100% + 120px);
-		margin-left: -60px;
-		margin-right: -60px;
+		@apply fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-stone-50;
+		box-shadow: 0 -1px 6px rgba(15, 23, 42, 0.08);
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 
 	.form-action-bar-inner {
-		@apply w-full max-w-(--breakpoint-xl) mx-auto px-8 py-3 flex items-center justify-between gap-4 flex-wrap;
+		@apply w-full px-20 py-3 flex items-center justify-between gap-4 flex-wrap;
 	}
 
 	.form-action-bar-actions {
@@ -164,12 +183,8 @@
 	}
 
 	.form-action-bar.is-stuck {
-		@apply border-t border-l border-r border-transparent;
+		@apply border-t border-slate-200;
 		background-color: rgb(250 250 249);
-		border-color: rgba(15, 23, 42, 0.06);
-		box-shadow: 0 -1px 6px rgba(15, 23, 42, 0.06);
-		border-top-left-radius: 6px;
-		border-top-right-radius: 6px;
 	}
 
 	.content-action-button {

@@ -17,6 +17,7 @@ func RecordsFromBände(
 	adb xmlmodels.AccessDB,
 	// INFO: this is a string map, bc it's not by ID but by place name
 	places map[string]*dbmodels.Place,
+	contentCounts map[int]int,
 ) ([]*dbmodels.Entry, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
 	records := make([]*dbmodels.Entry, 0, len(adb.Bände.Bände))
@@ -64,14 +65,26 @@ func RecordsFromBände(
 			record.SetYear(band.Jahr)
 		}
 
-		if band.Erfasst {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
-		} else if band.Gesichtet {
+		contentCount := contentCounts[band.ID]
+		hasAutopsieFromData := entryHasAutopsieFromData(band)
+		if band.Erfasst && contentCount == 0 {
 			record.SetEditState(dbmodels.EDITORSTATE_VALUES[2])
-		} else if band.BiblioID != 0 {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
+		} else if band.Erfasst {
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+		} else if band.Gesichtet || hasAutopsieFromData {
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[2])
 		} else {
 			record.SetEditState(dbmodels.EDITORSTATE_VALUES[0])
+		}
+
+		if band.BiblioID != 0 && !band.Erfasst && !(band.Gesichtet || hasAutopsieFromData) {
+			appendEntryComment(record, "Weder erfasst noch autopsiert, obwohl eine Biblio-ID vergeben wurde; bitte überprüfen.")
+		}
+		if band.BiblioID == 0 && len(band.Status.Value) > 0 && !band.Erfasst && !(band.Gesichtet || hasAutopsieFromData) {
+			appendEntryComment(record, "Band ist als vorhanden markiert aber nicht autospiert.")
+		}
+		if band.BiblioID == 0 && len(band.Status.Value) == 0 && (band.Erfasst || band.Gesichtet || hasAutopsieFromData) {
+			appendEntryComment(record, "Quelle für autopsiert oder Erfassung fehlt.")
 		}
 
 		handlePreferredTitleEntry(record, band, rmap, relmap)
@@ -93,7 +106,7 @@ func handlePreferredTitleEntry(
 	rels := rrelmap[band.ID]
 	if len(rels) == 0 {
 		record.SetPreferredTitle(NormalizeString(band.ReihentitelALT))
-		record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+		appendEntryComment(record, "Kein Reihentitel-Bezug; Reihentitel ALT verwendet.")
 		return
 	}
 
@@ -116,6 +129,19 @@ func handlePreferredTitleEntry(
 	})
 
 	record.SetPreferredTitle(NormalizeString(rmap[rels[0].Reihe].Titel) + jahr)
+}
+
+func entryHasAutopsieFromData(band xmlmodels.Band) bool {
+	title := strings.TrimSpace(NormalizeString(band.Titelangabe))
+	if title == "" {
+		return false
+	}
+
+	responsibility := strings.TrimSpace(NormalizeString(band.Verantwortlichkeitsangabe))
+	place := strings.TrimSpace(NormalizeString(band.Ortsangabe))
+	notes := strings.TrimSpace(NormalizeString(band.Anmerkungen))
+
+	return responsibility != "" || place != "" || notes != ""
 }
 
 func handleOrte(
