@@ -13,6 +13,7 @@ const (
 	T_INDEX_TEXTE  = "texte"
 
 	P_REIHEN_NAME      = "reihen"
+	P_BAENDE_NAME      = "baende"
 	P_ORTE_NAME        = "orte"
 	P_ABKUERZUNGEN_NAME = "abkuerzungen"
 	P_DANK_NAME        = "danksagungen"

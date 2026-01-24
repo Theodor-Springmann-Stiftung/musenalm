@@ -1,0 +1,483 @@
+{{ $model := . }}
+
+<div class="container-normal font-serif mt-10">
+	<div class="flex items-baseline justify-between gap-4 mb-2">
+		<h1 class="heading">Bände A–Z</h1>
+		<div class="text-sm font-sans text-gray-600 whitespace-nowrap">
+			{{ len $model.result.Entries }} Bände
+		</div>
+	</div>
+
+	<div class="flex flex-wrap gap-1.5 font-sans text-sm mb-4">
+		{{- range $_, $ch := $model.letters -}}
+			<a
+				href="/baende/?letter={{ $ch }}"
+				class="px-2 py-0.5 rounded {{ if eq $model.letter $ch }}bg-slate-700 text-white{{ else }}bg-stone-100 text-slate-700 hover:bg-stone-200{{ end }} no-underline">
+				{{ $ch }}
+			</a>
+		{{- end -}}
+	</div>
+
+	<details class="font-sans text-sm mb-3">
+		<summary class="cursor-pointer text-gray-700 hover:text-slate-900">Spalten ein-/ausblenden</summary>
+		<div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-700" data-role="baende-column-toggle">
+			<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
+			<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
+			<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
+			<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
+			<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
+		</div>
+	</details>
+
+	<div class="overflow-x-auto">
+		<table class="min-w-full text-sm font-sans">
+			<thead class="text-left text-gray-600 border-b">
+				<tr>
+					<th class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]"></th>
+					<th class="py-2 pr-4 whitespace-nowrap w-[44rem]">Titel</th>
+					<th class="py-2 pr-4 whitespace-nowrap col-appearance w-[18rem]">Erscheinung</th>
+					<th class="py-2 pr-4 whitespace-nowrap col-year hidden">Jahr</th>
+					<th class="py-2 pr-4 whitespace-nowrap col-language hidden">Sprachen</th>
+					<th class="py-2 pr-4 whitespace-nowrap col-extent w-[18rem]">Umfang / Maße</th>
+					<th class="py-2 pr-4 whitespace-nowrap col-signatures">Signaturen</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{- range $_, $entry := $model.result.Entries -}}
+					<tr class="border-b align-top cursor-pointer transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100" data-role="baende-row" data-entry-id="{{ $entry.MusenalmID }}">
+						<td class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]">
+							<div class="flex flex-col gap-1">
+								<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">Alm {{ $entry.MusenalmID }}</span>
+								{{- if $entry.References -}}
+									<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 max-w-[10rem] whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
+								{{- end -}}
+								<div class="flex flex-wrap items-center gap-1.5 pt-1">
+									<tool-tip position="top" class="inline">
+										<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+											<i class="ri-eye-line"></i>
+										</a>
+										<div class="data-tip">Ansehen</div>
+									</tool-tip>
+									{{- if (IsAdminOrEditor $model.request.user) -}}
+										<tool-tip position="top" class="inline">
+											<a href="/almanach/{{ $entry.MusenalmID }}/edit" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+												<i class="ri-edit-line"></i>
+											</a>
+											<div class="data-tip">Bearbeiten</div>
+										</tool-tip>
+										<form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="return confirm('Band wirklich löschen?');">
+											<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+											<tool-tip position="top" class="inline">
+												<button type="submit" class="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+													<i class="ri-delete-bin-line"></i>
+												</button>
+												<div class="data-tip">Löschen</div>
+											</tool-tip>
+										</form>
+									{{- end -}}
+								</div>
+							</div>
+						</td>
+						<td class="py-2 pr-4">
+							<div class="font-semibold text-slate-900 text-base leading-snug">
+								{{- if $entry.PreferredTitle -}}
+									{{ $entry.PreferredTitle }}
+								{{- else if ne $entry.Year 0 -}}
+									{{ $entry.Year }}
+								{{- else -}}
+									[o.J.]
+								{{- end -}}
+								<tool-tip position="top" class="inline">
+									<i class="status-icon ml-1 align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+									<div class="data-tip">
+										{{- if eq $entry.EditState "Unknown" -}}
+											Gesucht
+										{{- else if eq $entry.EditState "ToDo" -}}
+											Zu erledigen
+										{{- else if eq $entry.EditState "Review" -}}
+											Überprüfen
+										{{- else if eq $entry.EditState "Seen" -}}
+											Autopsiert
+										{{- else if eq $entry.EditState "Edited" -}}
+											Vollständig Erfasst
+										{{- else -}}
+											{{ $entry.EditState }}
+										{{- end -}}
+									</div>
+								</tool-tip>
+							</div>
+							{{- if $entry.TitleStmt -}}
+								<div class="text-gray-700 text-base mt-1 leading-snug">
+									{{ $entry.TitleStmt }}
+								</div>
+							{{- end -}}
+							{{- if or $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
+								<div class="flex flex-col gap-1 text-sm text-gray-700 mt-1">
+									{{- if $entry.SubtitleStmt -}}
+										<div><span class="font-semibold text-gray-500">Untertitel:</span> {{ $entry.SubtitleStmt }}</div>
+									{{- end -}}
+									{{- if $entry.VariantTitle -}}
+										<div><span class="font-semibold text-gray-500">Varianten:</span> {{ $entry.VariantTitle }}</div>
+									{{- end -}}
+									{{- if $entry.ParallelTitle -}}
+										<div><span class="font-semibold text-gray-500">Parallel:</span> {{ $entry.ParallelTitle }}</div>
+									{{- end -}}
+									{{- if $entry.IncipitStmt -}}
+										<div><span class="font-semibold text-gray-500">Incipit:</span> {{ $entry.IncipitStmt }}</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</td>
+						<td class="py-2 pr-4 col-appearance">
+							{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
+								<div class="flex flex-col gap-2 text-sm text-gray-700">
+									{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
+										<div>
+											<div class="text-xs font-semibold text-gray-500">Herausgaberangabe</div>
+											<div>{{ $entry.ResponsibilityStmt }}</div>
+										</div>
+									{{- end -}}
+									{{- if $entry.PublicationStmt -}}
+										<div>
+											<div class="text-xs font-semibold text-gray-500">Publikationsangabe</div>
+											<div>{{ $entry.PublicationStmt }}</div>
+										</div>
+									{{- end -}}
+									{{- if $entry.PlaceStmt -}}
+										<div>
+											<div class="text-xs font-semibold text-gray-500">Ortsangabe</div>
+											<div>{{ $entry.PlaceStmt }}</div>
+										</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</td>
+						<td class="py-2 pr-4 whitespace-nowrap col-year hidden">
+							{{- if ne $entry.Year 0 -}}
+								{{ $entry.Year }}
+							{{- end -}}
+						</td>
+						<td class="py-2 pr-4 col-language hidden">
+							{{- if $entry.Language -}}
+								{{- range $i, $lang := $entry.Language -}}
+									{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}
+								{{- end -}}
+							{{- end -}}
+						</td>
+						<td class="py-2 pr-4 col-extent">
+							{{- if or $entry.Extent $entry.Dimensions -}}
+								<div class="flex flex-col gap-1 text-sm text-gray-700">
+									{{- if $entry.Extent -}}
+										<div><span class="font-semibold text-gray-500 block">Struktur</span>{{ $entry.Extent }}</div>
+									{{- end -}}
+									{{- if $entry.Dimensions -}}
+										<div><span class="font-semibold text-gray-500">Maße:</span> {{ $entry.Dimensions }}</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</td>
+						<td class="py-2 pr-4 col-signatures">
+							{{- $items := index $model.result.Items $entry.Id -}}
+							{{- if $items -}}
+								<div class="flex flex-col gap-2 text-sm text-gray-700">
+									{{- range $_, $item := $items -}}
+										<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-xs">
+											{{- if $item.Identifier -}}
+												<div class="px-2 py-1 font-semibold text-slate-900 text-center">{{ $item.Identifier }}</div>
+											{{- end -}}
+											{{- if $item.Media -}}
+												<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug">
+													{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}
+												</div>
+											{{- end -}}
+										</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</td>
+					</tr>
+					<tr class="hidden bg-stone-50/60 border-b last:border-b-0" data-role="baende-details" data-entry-id="{{ $entry.MusenalmID }}">
+						<td class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem] align-top">
+							<div class="flex flex-col gap-1 pt-1">
+								<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">Alm {{ $entry.MusenalmID }}</span>
+								{{- if $entry.References -}}
+									<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 max-w-[10rem] whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
+								{{- end -}}
+								<div class="flex flex-wrap items-center gap-1.5 pt-2">
+									<tool-tip position="top" class="inline">
+										<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+											<i class="ri-eye-line"></i>
+										</a>
+										<div class="data-tip">Ansehen</div>
+									</tool-tip>
+									{{- if (IsAdminOrEditor $model.request.user) -}}
+										<tool-tip position="top" class="inline">
+											<a href="/almanach/{{ $entry.MusenalmID }}/edit" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+												<i class="ri-edit-line"></i>
+											</a>
+											<div class="data-tip">Bearbeiten</div>
+										</tool-tip>
+										<form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="return confirm('Band wirklich löschen?');">
+											<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+											<tool-tip position="top" class="inline">
+												<button type="submit" class="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+													<i class="ri-delete-bin-line"></i>
+												</button>
+												<div class="data-tip">Löschen</div>
+											</tool-tip>
+										</form>
+									{{- end -}}
+									<tool-tip position="top" class="inline">
+										<button type="button" class="inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900" data-role="baende-collapse" data-entry-id="{{ $entry.MusenalmID }}">
+											<i class="ri-arrow-up-s-line"></i>
+										</button>
+										<div class="data-tip">Zuklappen</div>
+									</tool-tip>
+								</div>
+							</div>
+						</td>
+						<td class="py-2 pr-4 pl-2" colspan="5">
+							<div class="rounded-md border border-slate-200 bg-white shadow-sm p-3 text-base">
+								<div class="flex items-start justify-between gap-4 mb-3">
+								<div class="font-serif text-base font-semibold text-slate-900 inline-flex items-center">
+									{{- if $entry.PreferredTitle -}}
+										{{ $entry.PreferredTitle }}
+									{{- else if ne $entry.Year 0 -}}
+										{{ $entry.Year }}
+									{{- else -}}
+										[o.J.]
+									{{- end -}}
+									<tool-tip position="top" class="inline-flex items-center">
+										<i class="status-icon ml-1 {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+										<div class="data-tip">
+											{{- if eq $entry.EditState "Unknown" -}}
+												Gesucht
+											{{- else if eq $entry.EditState "ToDo" -}}
+												Zu erledigen
+											{{- else if eq $entry.EditState "Review" -}}
+												Überprüfen
+											{{- else if eq $entry.EditState "Seen" -}}
+												Autopsiert
+											{{- else if eq $entry.EditState "Edited" -}}
+												Vollständig Erfasst
+											{{- else -}}
+												{{ $entry.EditState }}
+											{{- end -}}
+										</div>
+									</tool-tip>
+								</div>
+								</div>
+								<div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-6 text-sm font-sans text-gray-700">
+									<div class="flex flex-col gap-3">
+										{{- if or $entry.TitleStmt $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Titelangaben</div>
+												<div>
+													{{- if $entry.TitleStmt -}}<div><span class="font-semibold text-gray-500">Titel:</span> {{ $entry.TitleStmt }}</div>{{- end -}}
+													{{- if $entry.SubtitleStmt -}}<div><span class="font-semibold text-gray-500">Untertitel:</span> {{ $entry.SubtitleStmt }}</div>{{- end -}}
+													{{- if $entry.VariantTitle -}}<div><span class="font-semibold text-gray-500">Varianten:</span> {{ $entry.VariantTitle }}</div>{{- end -}}
+													{{- if $entry.ParallelTitle -}}<div><span class="font-semibold text-gray-500">Parallel:</span> {{ $entry.ParallelTitle }}</div>{{- end -}}
+													{{- if $entry.IncipitStmt -}}<div><span class="font-semibold text-gray-500">Incipit:</span> {{ $entry.IncipitStmt }}</div>{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Erscheinung</div>
+												<div>
+													{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}<div><span class="font-semibold text-gray-500">Herausgaberangabe:</span> {{ $entry.ResponsibilityStmt }}</div>{{- end -}}
+													{{- if $entry.PublicationStmt -}}<div><span class="font-semibold text-gray-500">Publikationsangabe:</span> {{ $entry.PublicationStmt }}</div>{{- end -}}
+													{{- if $entry.PlaceStmt -}}<div><span class="font-semibold text-gray-500">Ortsangabe:</span> {{ $entry.PlaceStmt }}</div>{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- if $entry.Annotation -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Annotation</div>
+												<div>{{ $entry.Annotation }}</div>
+											</div>
+										{{- end -}}
+										{{- $srels := index $model.result.EntriesSeries $entry.Id -}}
+										{{- if $srels -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Reihen</div>
+												<div class="flex flex-col gap-1">
+													{{- range $_, $rel := $srels -}}
+														{{- $s := index $model.result.Series $rel.Series -}}
+														{{- if $s -}}
+															<div>
+																{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
+																	<span class="mr-2 px-2 py-0.5 rounded text-xs font-sans bg-slate-200 inline-block">{{ $rel.Type }}</span>
+																{{- end -}}
+																<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Title }}</a>
+															</div>
+														{{- end -}}
+													{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- if $entry.Places -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Orte</div>
+												<div>
+													{{- $sep := false -}}
+													{{- range $_, $pid := $entry.Places -}}
+														{{- $p := index $model.result.Places $pid -}}
+														{{- if $p -}}
+															{{- if $sep }}, {{ end -}}
+															<a href="/reihen?place={{ $p.Id }}&hidden=true">{{ $p.Name }}</a>
+															{{- $sep = true -}}
+														{{- end -}}
+													{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- $arels := index $model.result.EntriesAgents $entry.Id -}}
+										{{- if $arels -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Personen</div>
+												<div class="flex flex-col gap-1">
+													{{- range $_, $arel := $arels -}}
+														{{- $a := index $model.result.Agents $arel.Agent -}}
+														{{- if $a -}}
+															<div>
+																<a href="/person/{{ $a.Id }}">{{ $a.Name }}</a>
+																<span class="ml-2 px-2 py-0.5 rounded text-xs font-sans bg-slate-200 inline-block">{{ $arel.Type }}</span>
+															</div>
+														{{- end -}}
+													{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+									</div>
+									<div class="flex flex-col gap-3">
+										{{- if $entry.Comment -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Kommentar</div>
+												<div>{{ $entry.Comment }}</div>
+											</div>
+										{{- end -}}
+										{{- if $entry.Language -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Sprachen</div>
+												<div>
+													{{- range $i, $lang := $entry.Language -}}{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- if or $entry.Extent $entry.Dimensions -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Umfang / Maße</div>
+												<div>
+													{{- if $entry.Extent -}}<div><span class="font-semibold text-gray-500 block">Struktur</span>{{ $entry.Extent }}</div>{{- end -}}
+													{{- if $entry.Dimensions -}}<div><span class="font-semibold text-gray-500">Maße:</span> {{ $entry.Dimensions }}</div>{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+										{{- if $entry.References -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Nachweise</div>
+												<div>{{ $entry.References }}</div>
+											</div>
+										{{- end -}}
+										{{- if ne $entry.Year 0 -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Jahr</div>
+												<div>{{ $entry.Year }}</div>
+											</div>
+										{{- end -}}
+										{{- $items := index $model.result.Items $entry.Id -}}
+										{{- if $items -}}
+											<div>
+												<div class="text-xs uppercase tracking-wide text-gray-500">Exemplare</div>
+												<div class="flex flex-col gap-2">
+													{{- range $_, $item := $items -}}
+														<div class="rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm">
+															<div class="flex items-start gap-3">
+															<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-xs min-w-[6rem]">
+																{{- if $item.Identifier -}}
+																	<div class="px-2 py-1 font-semibold text-slate-900 text-center">{{ $item.Identifier }}</div>
+																{{- end -}}
+																{{- if $item.Media -}}
+																	<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug">
+																		{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}
+																	</div>
+																{{- end -}}
+															</div>
+																<div class="flex-1">
+																	{{- if or $item.Location $item.Owner -}}
+																		<div class="text-sm text-gray-600">
+																			{{- if $item.Location -}}<span>{{ $item.Location }}</span>{{- end -}}
+																			{{- if $item.Owner -}}<span class="ml-2">{{ $item.Owner }}</span>{{- end -}}
+																		</div>
+																	{{- end -}}
+																</div>
+															</div>
+															{{- if or $item.Location $item.Owner -}}
+																<div class="sr-only">
+																	{{- if $item.Location -}}<span>{{ $item.Location }}</span>{{- end -}}
+																	{{- if $item.Owner -}}<span class="ml-2">{{ $item.Owner }}</span>{{- end -}}
+																</div>
+															{{- end -}}
+														</div>
+													{{- end -}}
+												</div>
+											</div>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</td>
+					</tr>
+				{{- end -}}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script>
+	(() => {
+		const toggleRoot = document.querySelector('[data-role="baende-column-toggle"]');
+		if (toggleRoot) {
+			toggleRoot.querySelectorAll('input[type="checkbox"][data-col]').forEach((checkbox) => {
+				const col = checkbox.getAttribute("data-col");
+				const setColumn = (visible) => {
+					document.querySelectorAll(`.col-${col}`).forEach((el) => {
+						el.classList.toggle("hidden", !visible);
+					});
+				};
+				setColumn(checkbox.checked);
+				checkbox.addEventListener("change", (event) => {
+					setColumn(event.target.checked);
+				});
+			});
+		}
+
+		document.querySelectorAll('[data-role="baende-row"]').forEach((row) => {
+			row.addEventListener("click", (event) => {
+				if (event.target.closest("a, button, form, tool-tip")) {
+					return;
+				}
+				const entryId = row.getAttribute("data-entry-id");
+				if (!entryId) return;
+				const details = document.querySelector(`[data-role="baende-details"][data-entry-id="${entryId}"]`);
+				if (!details) return;
+				row.classList.add("hidden");
+				details.classList.remove("hidden");
+			});
+		});
+
+		document.querySelectorAll('[data-role="baende-collapse"]').forEach((button) => {
+			button.addEventListener("click", (event) => {
+				event.stopPropagation();
+				const entryId = button.getAttribute("data-entry-id");
+				if (!entryId) return;
+				const row = document.querySelector(`[data-role="baende-row"][data-entry-id="${entryId}"]`);
+				const details = document.querySelector(`[data-role="baende-details"][data-entry-id="${entryId}"]`);
+				if (!row || !details) return;
+				row.classList.remove("hidden");
+				details.classList.add("hidden");
+			});
+		});
+	})();
+</script>
