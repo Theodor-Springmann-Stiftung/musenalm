@@ -17,21 +17,21 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/router"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
+	"github.com/pocketbase/pocketbase/tools/router"
 )
 
 const (
-	URL_ALMANACH_CONTENTS_EDIT      = "contents/edit"
-	URL_ALMANACH_CONTENTS_NEW       = "contents/new"
-	URL_ALMANACH_CONTENTS_ITEM_EDIT = "contents/{contentMusenalmId}/edit"
-	URL_ALMANACH_CONTENTS_DELETE    = "contents/delete"
-	URL_ALMANACH_CONTENTS_EDIT_EXTENT = "contents/edit/extent"
-	URL_ALMANACH_CONTENTS_UPLOAD    = "contents/upload"
-	URL_ALMANACH_CONTENTS_DELETE_SCAN = "contents/scan/delete"
-	TEMPLATE_ALMANACH_CONTENTS_EDIT = "/almanach/contents/edit/"
-	TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT = "/almanach/contents/edit_item/"
-	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/almanach/contents/images_panel/"
+	URL_ALMANACH_CONTENTS_EDIT              = "contents/edit"
+	URL_ALMANACH_CONTENTS_NEW               = "contents/new"
+	URL_ALMANACH_CONTENTS_ITEM_EDIT         = "contents/{contentMusenalmId}/edit"
+	URL_ALMANACH_CONTENTS_DELETE            = "contents/delete"
+	URL_ALMANACH_CONTENTS_EDIT_EXTENT       = "contents/edit/extent"
+	URL_ALMANACH_CONTENTS_UPLOAD            = "contents/upload"
+	URL_ALMANACH_CONTENTS_DELETE_SCAN       = "contents/scan/delete"
+	TEMPLATE_ALMANACH_CONTENTS_EDIT         = "/contents/edit/"
+	TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT    = "/contents/edit_item/"
+	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/contents/images_panel/"
 )
 
 func init() {
@@ -955,9 +955,9 @@ type contentAgentRelationPayload struct {
 }
 
 type contentAgentRelationsPayload struct {
-	Relations   []contentAgentRelationPayload
+	Relations    []contentAgentRelationPayload
 	NewRelations []contentAgentRelationPayload
-	DeletedIDs  []string
+	DeletedIDs   []string
 }
 
 type contentAgentRender struct {

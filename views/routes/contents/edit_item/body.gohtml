@@ -15,7 +15,7 @@
 						<i class="ri-book-line"></i> Almanach
 					</span>
 				{{- end -}}
-				<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit/" class="header-tab">
+				<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
 					<i class="ri-file-list-3-line"></i> Beiträge
 				</a>
 				<span class="header-tab-sep" aria-hidden="true">
@@ -52,7 +52,7 @@
 					<div class="flex flex-row">
 						{{- if $model.prev_content -}}
 							<div>
-								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit/" class="text-gray-700 hover:text-slate-950 no-underline block">
+								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
 							</div>
@@ -62,7 +62,7 @@
 						</div>
 						{{- if $model.next_content -}}
 							<div>
-								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit/" class="text-gray-700 hover:text-slate-950 no-underline block">
+								<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
 							</div>
@@ -93,7 +93,7 @@
 									{{- end -}}
 								</div>
 								<a
-									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit/"
+									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.prev_content.MusenalmID }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
@@ -118,7 +118,7 @@
 									{{- end -}}
 								</div>
 								<a
-									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit/"
+									href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $model.next_content.MusenalmID }}/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
@@ -266,7 +266,7 @@
 					{{- end -}}
 				</p>
 				<div class="form-action-bar-actions">
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
 						<i class="ri-arrow-left-line"></i>
 						<span>Liste</span>
 					</a>

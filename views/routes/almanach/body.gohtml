@@ -63,7 +63,7 @@
 {{- if $model.result.HasContents -}}
 	<div
 		id="almanachcontents"
-		hx-get="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{- if $model.request.query -}}?{{- $model.request.query -}}{{- end -}}"
+		hx-get="/almanach/{{ $model.result.Entry.MusenalmID }}/contents-view/{{- if $model.request.query -}}?{{- $model.request.query -}}{{- end -}}"
 		hx-trigger="load"
 		hx-target="this"
 		hx-swap="outerHTML"

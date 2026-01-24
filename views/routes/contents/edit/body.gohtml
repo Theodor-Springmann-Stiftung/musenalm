@@ -40,7 +40,7 @@
 					<div class="flex flex-row">
 						{{- if $model.result.PrevByID -}}
 							<div>
-								<a href="/almanach/{{ $model.result.PrevByID.MusenalmID }}/contents/edit/" class="text-gray-700 hover:text-slate-950 no-underline block">
+								<a href="/almanach/{{ $model.result.PrevByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
 							</div>
@@ -50,7 +50,7 @@
 						</div>
 						{{- if $model.result.NextByID -}}
 							<div>
-								<a href="/almanach/{{ $model.result.NextByID.MusenalmID }}/contents/edit/" class="text-gray-700 hover:text-slate-950 no-underline block">
+								<a href="/almanach/{{ $model.result.NextByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
 							</div>
@@ -71,7 +71,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
 								<a
-									href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/contents/edit/"
+									href="/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/contents/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
@@ -88,7 +88,7 @@
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
 								<a
-									href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}/contents/edit/"
+									href="/almanach/{{ $model.result.NextByTitle.MusenalmID }}/contents/edit"
 									class="text-gray-700 hover:text-slate-950 no-underline">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>

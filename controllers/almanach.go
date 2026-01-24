@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"net/http"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -16,9 +18,9 @@ import (
 
 const (
 	URL_ALMANACH               = "/almanach/{id}/"
-	URL_ALMANACH_CONTENTS      = "/almanach/{id}/contents/"
+	URL_ALMANACH_CONTENTS      = "/almanach/{id}/contents-view/"
 	TEMPLATE_ALMANACH          = "/almanach/"
-	TEMPLATE_ALMANACH_CONTENTS = "/almanach/contents/"
+	TEMPLATE_ALMANACH_CONTENTS = "/almanach/contents-view/"
 )
 
 // Simple in-memory cache for sorted entries
@@ -92,6 +94,11 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], ia pagem
 
 func (p *AlmanachPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
+		path := e.Request.URL.Path
+		if strings.Contains(path, "/contents/") && strings.HasSuffix(path, "/edit/") {
+			return e.Redirect(http.StatusTemporaryRedirect, strings.TrimSuffix(path, "/"))
+		}
+
 		id := e.Request.PathValue("id")
 		data := make(map[string]any)
 		filters := NewBeitraegeFilterParameters(e)

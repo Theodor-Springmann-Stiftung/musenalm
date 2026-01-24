@@ -45,7 +45,7 @@ type AlmanachResult struct {
 					<i class="ri-book-line"></i> Almanach
 				</span>
 				{{- if not $model.is_new -}}
-					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit/" class="header-tab">
+					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
 						<i class="ri-file-list-3-line"></i> Beiträge
 					</a>
 				{{- else -}}
