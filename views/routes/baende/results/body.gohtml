@@ -1,7 +1,15 @@
 {{ $model := . }}
 
 <div id="baenderesults"
-     x-data="{ hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }}, offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}, loading: false }">
+     x-data="{ 
+        hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }}, 
+        offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}, 
+        loading: false,
+        search: '{{ $model.search }}',
+        letter: '{{ $model.letter }}',
+        sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
+        sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
+     }">
 
 	<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
 		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
@@ -14,13 +22,20 @@
 		<button
 			type="button"
 			class="content-action-button"
-			hx-get="/baende/more/?offset={{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}{{ if $model.search }}&search={{ $model.search }}{{ end }}{{ if $model.letter }}&letter={{ $model.letter }}{{ end }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+			:hx-get="`/baende/more/?offset=${offset}&search=${search}&letter=${letter}&sort=${sortField}&order=${sortOrder}`"
+			hx-replace-url="true"
 			hx-target="#baende-tbody"
 			hx-swap="beforeend"
 			hx-indicator="this"
-			>
-			<i class="ri-arrow-down-line"></i>
-			<span>Weitere 150 laden</span>
+			@htmx:before-request="loading = true"
+			@htmx:after-request="
+                loading = false;
+                hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+                offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+            "
+			:disabled="loading">
+			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 150 laden'"></span>
 		</button>
 	</div>
 
