@@ -73,13 +73,6 @@
 		selectedLetter = params.get('letter') || '';
 		sortField = params.get('sort') || sortField;
 		sortOrder = params.get('order') || sortOrder;
-		const nextOffsetAttr = $event.detail.target.dataset.nextOffset;
-		if (nextOffsetAttr) {
-			const parsed = Number(nextOffsetAttr);
-			if (!Number.isNaN(parsed)) {
-				offset = parsed;
-			}
-		}
 		updateUrl();
 	}
 "

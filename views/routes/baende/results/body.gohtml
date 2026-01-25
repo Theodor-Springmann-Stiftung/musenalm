@@ -3,7 +3,7 @@
 <div id="baenderesults"
      x-data="{ hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }}, offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}, loading: false }">
 
-	<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap" hx-swap-oob="true">
+	<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
 		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
 	</div>
 
@@ -15,15 +15,12 @@
 			type="button"
 			class="content-action-button"
 			hx-get="/baende/more/?offset={{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}{{ if $model.search }}&search={{ $model.search }}{{ end }}{{ if $model.letter }}&letter={{ $model.letter }}{{ end }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-			hx-push-url="/baende/?offset={{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}{{ if $model.search }}&search={{ $model.search }}{{ end }}{{ if $model.letter }}&letter={{ $model.letter }}{{ end }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 			hx-target="#baende-tbody"
 			hx-swap="beforeend"
 			hx-indicator="this"
-			@htmx:before-request="loading = true"
-			@htmx:after-request="loading = false; hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true'; offset = {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}"
-			:disabled="loading">
-			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
-			<span x-text="loading ? 'Lädt...' : 'Weitere 150 laden'"></span>
+			>
+			<i class="ri-arrow-down-line"></i>
+			<span>Weitere 150 laden</span>
 		</button>
 	</div>
 

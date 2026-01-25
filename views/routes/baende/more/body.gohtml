@@ -159,8 +159,3 @@
 		</td>
 	</tr>
 {{- end -}}
-
-<!-- Update count display with OOB swap -->
-<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap" hx-swap-oob="true">
-	{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
-</div>
