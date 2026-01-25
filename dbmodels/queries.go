@@ -1,6 +1,10 @@
 package dbmodels
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -237,6 +241,37 @@ func Items_Entry(app core.App, id string) ([]*Item, error) {
 			dbx.Params{"id": id},
 		)).
 		All(&ret)
+	return ret, err
+}
+
+func Items_Entries(app core.App, ids []any) ([]*Item, error) {
+	if len(ids) == 0 {
+		return []*Item{}, nil
+	}
+
+	params := dbx.Params{}
+	idPlaceholders := make([]string, len(ids))
+	for i, id := range ids {
+		placeholder := "p" + strconv.Itoa(i)
+		params[placeholder] = id
+		idPlaceholders[i] = "{:" + placeholder + "}"
+	}
+	inClause := strings.Join(idPlaceholders, ", ")
+
+	fullExpression := fmt.Sprintf(
+		"%s IN (%s) OR (json_valid(%s) = 1 AND EXISTS (SELECT 1 FROM json_each(%s) WHERE value IN (%s)))",
+		ENTRIES_TABLE,
+		inClause,
+		ENTRIES_TABLE,
+		ENTRIES_TABLE,
+		inClause,
+	)
+
+	var ret []*Item
+	err := app.RecordQuery(ITEMS_TABLE).
+		Where(dbx.NewExp(fullExpression, params)).
+		All(&ret)
+
 	return ret, err
 }
 

@@ -30,6 +30,25 @@ func (a *Item) Entry() string {
 	return a.GetString(ENTRIES_TABLE)
 }
 
+func (i *Item) Entries() []string {
+	// Get the raw string value of the 'entries' field
+	raw := i.GetString(ENTRIES_TABLE)
+
+	// Check if it's likely a JSON array (starts with '[')
+	if len(raw) > 0 && raw[0] == '[' {
+		// If it is JSON, GetStringSlice will handle unmarshalling it
+		return i.GetStringSlice(ENTRIES_TABLE)
+	}
+
+	// If it's not a JSON array, it's a single ID. Return it as a slice.
+	if raw != "" {
+		return []string{raw}
+	}
+
+	// Return an empty slice if the field is empty
+	return []string{}
+}
+
 func (a *Item) SetEntry(entry string) {
 	a.Set(ENTRIES_TABLE, entry)
 }

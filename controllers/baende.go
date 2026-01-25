@@ -12,6 +12,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/dbx"
+
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
@@ -20,6 +21,7 @@ const (
 	URL_BAENDE         = "/baende/"
 	URL_BAENDE_RESULTS = "/baende/results/"
 	TEMPLATE_BAENDE    = "/baende/"
+	URL_BAENDE_DETAILS = "/baende/details/{id}"
 )
 
 func init() {
@@ -48,12 +50,26 @@ type BaendeResult struct {
 	Items         map[string][]*dbmodels.Item
 }
 
+type BaendeDetailsResult struct {
+	Entry       *dbmodels.Entry
+	Series      []*dbmodels.Series
+	Places      []*dbmodels.Place
+	Agents      []*dbmodels.Agent
+	Items       []*dbmodels.Item
+	SeriesRels  []*dbmodels.REntriesSeries
+	AgentRels   []*dbmodels.REntriesAgents
+	IsAdmin     bool
+	CSRFToken   string
+}
+
 func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_BAENDE)
 	rg.BindFunc(middleware.Authenticated(app))
 	rg.GET("", p.handlePage(engine, app))
 	rg.GET("results/", p.handleResults(engine, app))
+	rg.GET("details/{id}", p.handleDetails(engine, app))
+	rg.GET("row/{id}", p.handleRow(engine, app))
 	return nil
 }
 
@@ -86,6 +102,104 @@ func (p *BaendePage) handleResults(engine *templating.Engine, app core.App) Hand
 			return engine.Response404(e, err, data)
 		}
 		return engine.Response200(e, URL_BAENDE_RESULTS, data, "fragment")
+	}
+}
+
+func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, "/login/")
+		}
+
+		id := e.Request.PathValue("id")
+		if id == "" {
+			return engine.Response404(e, nil, nil)
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		items, err := dbmodels.Items_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get items for entry", "error", err)
+		}
+
+		data := map[string]any{
+			"entry":      entry,
+			"items":      items,
+			"is_admin":   req.IsAdmin(),
+			"csrf_token": req.Session().Token,
+		}
+
+		return engine.Response200(e, "/baende/row/", data, "fragment")
+	}
+}
+
+func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, "/login/")
+		}
+
+		id := e.Request.PathValue("id")
+		if id == "" {
+			return engine.Response404(e, nil, nil)
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		entryIDs := []any{entry.Id}
+
+		series, relations, err := Series_Entries(app, []*dbmodels.Entry{entry})
+		if err != nil {
+			app.Logger().Error("Failed to get series for entry", "error", err)
+		}
+
+		agents, arelations, err := Agents_Entries_IDs(app, entryIDs)
+		if err != nil {
+			app.Logger().Error("Failed to get agents for entry", "error", err)
+		}
+		
+		toStringAny := func(ss []string) []any {
+			res := make([]any, len(ss))
+			for i, s := range ss {
+				res[i] = s
+			}
+			return res
+		}
+
+		places, err := dbmodels.Places_IDs(app, toStringAny(entry.Places()))
+		if err != nil {
+			app.Logger().Error("Failed to get places for entry", "error", err)
+		}
+
+		items, err := dbmodels.Items_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get items for entry", "error", err)
+		}
+
+		data := map[string]any{
+			"result": &BaendeDetailsResult{
+				Entry:      entry,
+				Series:     series,
+				Places:     places,
+				Agents:     agents,
+				Items:      items,
+				SeriesRels: relations,
+				AgentRels:  arelations,
+				IsAdmin:    req.IsAdmin(),
+				CSRFToken:  req.Session().Token,
+			},
+		}
+
+		return engine.Response200(e, "/baende/details/", data, "fragment")
 	}
 }
 
@@ -177,13 +291,28 @@ func (p *BaendePage) buildResultData(app core.App, e *core.RequestEvent, req *te
 	}
 
 	itemsMap := map[string][]*dbmodels.Item{}
-	for _, entry := range entries {
-		items, err := dbmodels.Items_Entry(app, entry.Id)
+	if len(entryIDs) > 0 {
+		// 1. Fetch all items related to any of the entry IDs in a single query.
+		allItems, err := dbmodels.Items_Entries(app, entryIDs)
 		if err != nil {
 			return data, err
 		}
-		if len(items) > 0 {
-			itemsMap[entry.Id] = items
+
+		// 2. Create a lookup map for the entries we are interested in.
+		interestedEntries := make(map[string]struct{})
+		for _, id := range entryIDs {
+			interestedEntries[id.(string)] = struct{}{}
+		}
+
+		// 3. Group the fetched items by their associated entry ID.
+		for _, item := range allItems {
+			// An item can be related to multiple entries. We need to check which of its entries are in our current list.
+			for _, entryID := range item.Entries() {
+				// If the item's entry ID is in our list of interested entries, add the item to the map.
+				if _, ok := interestedEntries[entryID]; ok {
+					itemsMap[entryID] = append(itemsMap[entryID], item)
+				}
+			}
 		}
 	}
 
