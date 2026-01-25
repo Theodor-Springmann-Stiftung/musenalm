@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"net/url"
+	"slices"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -20,8 +23,10 @@ import (
 const (
 	URL_BAENDE         = "/baende/"
 	URL_BAENDE_RESULTS = "/baende/results/"
+	URL_BAENDE_MORE    = "/baende/more/"
 	TEMPLATE_BAENDE    = "/baende/"
 	URL_BAENDE_DETAILS = "/baende/details/{id}"
+	BAENDE_PAGE_SIZE   = 150
 )
 
 func init() {
@@ -51,29 +56,30 @@ type BaendeResult struct {
 }
 
 type BaendeDetailsResult struct {
-	Entry       *dbmodels.Entry
-	Series      []*dbmodels.Series
-	Places      []*dbmodels.Place
-	Agents      []*dbmodels.Agent
-	Items       []*dbmodels.Item
-	SeriesRels  []*dbmodels.REntriesSeries
-	AgentRels   []*dbmodels.REntriesAgents
-	IsAdmin     bool
-	CSRFToken   string
+	Entry      *dbmodels.Entry
+	Series     []*dbmodels.Series
+	Places     []*dbmodels.Place
+	Agents     []*dbmodels.Agent
+	Items      []*dbmodels.Item
+	SeriesRels []*dbmodels.REntriesSeries
+	AgentRels  []*dbmodels.REntriesAgents
+	IsAdmin    bool
+	CSRFToken  string
 }
 
 func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_BAENDE)
 	rg.BindFunc(middleware.Authenticated(app))
-	rg.GET("", p.handlePage(engine, app))
-	rg.GET("results/", p.handleResults(engine, app))
+	rg.GET("", p.handlePage(engine, app, ia))
+	rg.GET("results/", p.handleResults(engine, app, ia))
+	rg.GET("more/", p.handleMore(engine, app, ia))
 	rg.GET("details/{id}", p.handleDetails(engine, app))
 	rg.GET("row/{id}", p.handleRow(engine, app))
 	return nil
 }
 
-func (p *BaendePage) handlePage(engine *templating.Engine, app core.App) HandleFunc {
+func (p *BaendePage) handlePage(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
@@ -81,7 +87,7 @@ func (p *BaendePage) handlePage(engine *templating.Engine, app core.App) HandleF
 			return e.Redirect(303, "/login/?redirectTo="+redirectTo)
 		}
 
-		data, err := p.buildResultData(app, e, req)
+		data, err := p.buildResultData(app, ma, e, req, true)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -89,7 +95,7 @@ func (p *BaendePage) handlePage(engine *templating.Engine, app core.App) HandleF
 	}
 }
 
-func (p *BaendePage) handleResults(engine *templating.Engine, app core.App) HandleFunc {
+func (p *BaendePage) handleResults(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
@@ -97,7 +103,7 @@ func (p *BaendePage) handleResults(engine *templating.Engine, app core.App) Hand
 			return e.Redirect(303, "/login/?redirectTo="+redirectTo)
 		}
 
-		data, err := p.buildResultData(app, e, req)
+		data, err := p.buildResultData(app, ma, e, req, true)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -166,7 +172,7 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 		if err != nil {
 			app.Logger().Error("Failed to get agents for entry", "error", err)
 		}
-		
+
 		toStringAny := func(ss []string) []any {
 			res := make([]any, len(ss))
 			for i, s := range ss {
@@ -203,126 +209,171 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 	}
 }
 
-func (p *BaendePage) buildResultData(app core.App, e *core.RequestEvent, req *templating.Request) (map[string]any, error) {
+func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, req *templating.Request, showAggregated bool) (map[string]any, error) {
 	data := map[string]any{}
 
+	// Get offset from query params (default 0)
+	offset := 0
+	if offsetStr := e.Request.URL.Query().Get("offset"); offsetStr != "" {
+		if val, err := strconv.Atoi(offsetStr); err == nil && val >= 0 {
+			offset = val
+		}
+	}
+
+	// Get filters from query params
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
-	if search != "" {
-		data["search"] = search
-	}
-
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
-	if letter == "" {
-		letter = "A"
-	}
-	if len(letter) > 1 {
-		letter = letter[:1]
-	}
-	if letter < "A" || letter > "Z" {
-		letter = "A"
+
+	// Validate letter
+	if letter != "" {
+		if len(letter) > 1 {
+			letter = letter[:1]
+		}
+		if letter < "A" || letter > "Z" {
+			letter = ""
+		}
 	}
 
-	entries := []*dbmodels.Entry{}
+	// Get sort parameters
+	sort := strings.ToLower(strings.TrimSpace(e.Request.URL.Query().Get("sort")))
+	order := strings.ToLower(strings.TrimSpace(e.Request.URL.Query().Get("order")))
+
+	// Validate sort field - whitelist approach for security
+	validSorts := map[string]bool{
+		"title":    true,
+		"alm":      true,
+		"year":     true,
+		"signatur": true,
+	}
+	if !validSorts[sort] {
+		sort = "title" // default
+	}
+
+	// Validate order
+	if order != "asc" && order != "desc" {
+		order = "asc" // default
+	}
+
+	// Load from cache
+	cacheInterface, err := ma.GetBaendeCache()
+	if err != nil {
+		return data, err
+	}
+
+	// Extract data from cache using interface methods
+	allEntries, ok := cacheInterface.GetEntries().([]*dbmodels.Entry)
+	if !ok {
+		return data, fmt.Errorf("failed to get entries from cache")
+	}
+
+	itemsMap, ok := cacheInterface.GetItems().(map[string][]*dbmodels.Item)
+	if !ok {
+		return data, fmt.Errorf("failed to get items from cache")
+	}
+
+	seriesMap, ok := cacheInterface.GetSeries().(map[string]*dbmodels.Series)
+	if !ok {
+		return data, fmt.Errorf("failed to get series from cache")
+	}
+
+	entrySeriesMap, ok := cacheInterface.GetEntriesSeries().(map[string][]*dbmodels.REntriesSeries)
+	if !ok {
+		return data, fmt.Errorf("failed to get entries series from cache")
+	}
+
+	placesMap, ok := cacheInterface.GetPlaces().(map[string]*dbmodels.Place)
+	if !ok {
+		return data, fmt.Errorf("failed to get places from cache")
+	}
+
+	agentsMap, ok := cacheInterface.GetAgents().(map[string]*dbmodels.Agent)
+	if !ok {
+		return data, fmt.Errorf("failed to get agents from cache")
+	}
+
+	entryAgentsMap, ok := cacheInterface.GetEntriesAgents().(map[string][]*dbmodels.REntriesAgents)
+	if !ok {
+		return data, fmt.Errorf("failed to get entries agents from cache")
+	}
+
+	// Apply search or letter filter
+	var filteredEntries []*dbmodels.Entry
 	if search != "" {
-		var err error
-		entries, err = searchBaendeEntries(app, search)
-		if err != nil {
-			return data, err
-		}
-	} else {
-		if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
-			Where(dbx.Like(dbmodels.PREFERRED_TITLE_FIELD, letter).Match(false, true)).
-			OrderBy(dbmodels.PREFERRED_TITLE_FIELD).
-			All(&entries); err != nil {
-			return data, err
-		}
-	}
-
-	entryIDs := []any{}
-	for _, entry := range entries {
-		entryIDs = append(entryIDs, entry.Id)
-	}
-
-	seriesMap := map[string]*dbmodels.Series{}
-	entrySeriesMap := map[string][]*dbmodels.REntriesSeries{}
-	if len(entries) > 0 {
-		series, relations, err := Series_Entries(app, entries)
-		if err != nil {
-			return data, err
-		}
-		for _, s := range series {
-			seriesMap[s.Id] = s
-		}
-		for _, r := range relations {
-			entrySeriesMap[r.Entry()] = append(entrySeriesMap[r.Entry()], r)
-		}
-	}
-
-	agentsMap := map[string]*dbmodels.Agent{}
-	entryAgentsMap := map[string][]*dbmodels.REntriesAgents{}
-	if len(entryIDs) > 0 {
-		agents, arelations, err := Agents_Entries_IDs(app, entryIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, a := range agents {
-			agentsMap[a.Id] = a
-		}
-		for _, r := range arelations {
-			entryAgentsMap[r.Entry()] = append(entryAgentsMap[r.Entry()], r)
-		}
-	}
-
-	placesMap := map[string]*dbmodels.Place{}
-	placesIDs := []any{}
-	for _, entry := range entries {
-		for _, placeID := range entry.Places() {
-			placesIDs = append(placesIDs, placeID)
-		}
-	}
-	if len(placesIDs) > 0 {
-		places, err := dbmodels.Places_IDs(app, placesIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, place := range places {
-			placesMap[place.Id] = place
-		}
-	}
-
-	itemsMap := map[string][]*dbmodels.Item{}
-	if len(entryIDs) > 0 {
-		// 1. Fetch all items related to any of the entry IDs in a single query.
-		allItems, err := dbmodels.Items_Entries(app, entryIDs)
-		if err != nil {
-			return data, err
-		}
-
-		// 2. Create a lookup map for the entries we are interested in.
-		interestedEntries := make(map[string]struct{})
-		for _, id := range entryIDs {
-			interestedEntries[id.(string)] = struct{}{}
-		}
-
-		// 3. Group the fetched items by their associated entry ID.
-		for _, item := range allItems {
-			// An item can be related to multiple entries. We need to check which of its entries are in our current list.
-			for _, entryID := range item.Entries() {
-				// If the item's entry ID is in our list of interested entries, add the item to the map.
-				if _, ok := interestedEntries[entryID]; ok {
-					itemsMap[entryID] = append(itemsMap[entryID], item)
-				}
+		trimmedSearch := strings.TrimSpace(search)
+		if utf8.RuneCountInString(trimmedSearch) >= 3 {
+			entries, err := searchBaendeEntries(app, trimmedSearch)
+			if err != nil {
+				return data, err
 			}
+			filteredEntries = entries
+		} else {
+			filteredEntries = filterEntriesBySearch(allEntries, itemsMap, trimmedSearch)
 		}
+		data["search"] = trimmedSearch
+	} else if letter != "" {
+		// Apply letter filter
+		filteredEntries = filterEntriesByLetter(allEntries, letter)
+	} else {
+		filteredEntries = allEntries
 	}
 
-	letters := []string{
-		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-		"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+	// Apply sorting based on sort parameter
+	switch sort {
+	case "alm":
+		dbmodels.Sort_Entries_MusenalmID(filteredEntries)
+	case "year":
+		dbmodels.Sort_Entries_Year_Title(filteredEntries)
+	case "signatur":
+		dbmodels.Sort_Entries_Signatur(filteredEntries, itemsMap)
+	default: // "title"
+		dbmodels.Sort_Entries_Title_Year(filteredEntries)
 	}
 
+	// Reverse for descending order
+	if order == "desc" {
+		slices.Reverse(filteredEntries)
+	}
+
+	// Calculate pagination
+	totalCount := len(filteredEntries)
+	var pageEntries []*dbmodels.Entry
+	nextOffset := offset
+	hasMore := false
+	currentCount := 0
+
+	if showAggregated {
+		displayLimit := offset + BAENDE_PAGE_SIZE
+		if displayLimit > totalCount {
+			displayLimit = totalCount
+		}
+		if displayLimit < 0 {
+			displayLimit = 0
+		}
+		pageEntries = filteredEntries[:displayLimit]
+		nextOffset = displayLimit
+		currentCount = len(pageEntries)
+		hasMore = displayLimit < totalCount
+	} else {
+		start := offset
+		if start < 0 {
+			start = 0
+		}
+		if start > totalCount {
+			start = totalCount
+		}
+		endIndex := start + BAENDE_PAGE_SIZE
+		if endIndex > totalCount {
+			endIndex = totalCount
+		}
+		pageEntries = filteredEntries[start:endIndex]
+		nextOffset = endIndex
+		currentCount = start + len(pageEntries)
+		hasMore = endIndex < totalCount
+	}
+
+	// Build result with cached associated data
 	data["result"] = &BaendeResult{
-		Entries:       entries,
+		Entries:       pageEntries,
 		Series:        seriesMap,
 		EntriesSeries: entrySeriesMap,
 		Places:        placesMap,
@@ -330,11 +381,108 @@ func (p *BaendePage) buildResultData(app core.App, e *core.RequestEvent, req *te
 		EntriesAgents: entryAgentsMap,
 		Items:         itemsMap,
 	}
+	data["offset"] = offset
+	data["total_count"] = totalCount
+	data["current_count"] = currentCount
+	data["has_more"] = hasMore
+	data["next_offset"] = nextOffset
 	data["letter"] = letter
-	data["letters"] = letters
+	data["sort_field"] = sort
+	data["sort_order"] = order
 	data["csrf_token"] = req.Session().Token
 
+	// Keep letters array for navigation
+	letters := []string{
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+		"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+	}
+	data["letters"] = letters
+
 	return data, nil
+}
+
+func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, "/login/")
+		}
+
+		data, err := p.buildResultData(app, ma, e, req, false)
+		if err != nil {
+			return engine.Response404(e, err, data)
+		}
+
+		// Add header to indicate if more results exist
+		hasMore := "false"
+		if hasMoreVal, ok := data["has_more"].(bool); ok && hasMoreVal {
+			hasMore = "true"
+		}
+		e.Response.Header().Set("X-Has-More", hasMore)
+		if nextOffsetVal, ok := data["next_offset"].(int); ok {
+			e.Response.Header().Set("X-Next-Offset", strconv.Itoa(nextOffsetVal))
+		} else {
+			e.Response.Header().Set("X-Next-Offset", "0")
+		}
+
+		return engine.Response200(e, URL_BAENDE_MORE, data, "fragment")
+	}
+}
+
+// filterEntriesBySearch performs in-memory filtering of entries by search term
+func filterEntriesBySearch(entries []*dbmodels.Entry, itemsMap map[string][]*dbmodels.Item, search string) []*dbmodels.Entry {
+	query := strings.ToLower(strings.TrimSpace(search))
+	if query == "" {
+		return entries
+	}
+
+	var results []*dbmodels.Entry
+	for _, entry := range entries {
+		if matchesShortSearch(entry, itemsMap, query) {
+			results = append(results, entry)
+			continue
+		}
+	}
+
+	return results
+}
+
+func matchesShortSearch(entry *dbmodels.Entry, itemsMap map[string][]*dbmodels.Item, query string) bool {
+	if strings.Contains(strings.ToLower(entry.PreferredTitle()), query) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(entry.TitleStmt()), query) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(entry.PlaceStmt()), query) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(entry.ResponsibilityStmt()), query) {
+		return true
+	}
+	if strings.Contains(strconv.Itoa(entry.MusenalmID()), query) {
+		return true
+	}
+	if items, ok := itemsMap[entry.Id]; ok {
+		for _, item := range items {
+			if strings.Contains(strings.ToLower(item.Identifier()), query) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// filterEntriesByLetter performs in-memory filtering of entries by first letter
+func filterEntriesByLetter(entries []*dbmodels.Entry, letter string) []*dbmodels.Entry {
+	var results []*dbmodels.Entry
+	for _, entry := range entries {
+		preferredTitle := entry.PreferredTitle()
+		if len(preferredTitle) > 0 && strings.HasPrefix(strings.ToUpper(preferredTitle), letter) {
+			results = append(results, entry)
+		}
+	}
+	return results
 }
 
 func searchBaendeEntries(app core.App, search string) ([]*dbmodels.Entry, error) {
@@ -412,8 +560,6 @@ func searchBaendeEntriesFTS(app core.App, query string) ([]*dbmodels.Entry, erro
 	return entries, nil
 }
 
-
-
 func searchBaendeEntriesQuick(app core.App, query string) ([]*dbmodels.Entry, error) {
 	trimmed := strings.TrimSpace(query)
 	if trimmed == "" {
@@ -425,6 +571,7 @@ func searchBaendeEntriesQuick(app core.App, query string) ([]*dbmodels.Entry, er
 
 	entryFields := []string{
 		dbmodels.PREFERRED_TITLE_FIELD,
+		dbmodels.MUSENALMID_FIELD,
 	}
 
 	entryConditions := make([]dbx.Expression, 0, len(entryFields))

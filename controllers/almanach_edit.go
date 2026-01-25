@@ -45,7 +45,7 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia p
 	rg := router.Group(URL_ALMANACH)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))
-	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app))
+	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app, ia))
 	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app))
 	return nil
 }
@@ -117,7 +117,7 @@ func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParam
 	}, nil
 }
 
-func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -193,6 +193,9 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App) Han
 
 		// Invalidate sorted entries cache since entry was modified
 		InvalidateSortedEntriesCache()
+
+		// Invalidate Bände cache since entry was modified
+		ma.ResetBaendeCache()
 
 		// Check if fields that affect contents changed
 		contentsNeedUpdate := entry.PreferredTitle() != oldPreferredTitle ||

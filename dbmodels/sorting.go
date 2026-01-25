@@ -64,3 +64,52 @@ func Sort_Places_Name(places []*Place) {
 		return collator.CompareString(i.Name(), j.Name())
 	})
 }
+
+// Sort_Entries_MusenalmID sorts entries by MusenalmID (Alm number) in ascending order
+func Sort_Entries_MusenalmID(entries []*Entry) {
+	slices.SortFunc(entries, func(i, j *Entry) int {
+		return i.MusenalmID() - j.MusenalmID()
+	})
+}
+
+// Sort_Entries_Signatur sorts entries by their lowest signature (identifier) alphabetically
+// Entries with no items sort last, entries with items but empty identifiers also sort last
+func Sort_Entries_Signatur(entries []*Entry, itemsMap map[string][]*Item) {
+	collator := collate.New(language.German)
+	slices.SortFunc(entries, func(i, j *Entry) int {
+		iItems := itemsMap[i.Id]
+		jItems := itemsMap[j.Id]
+
+		// Find lowest signature for entry i
+		var iLowestSig string
+		for _, item := range iItems {
+			sig := item.Identifier()
+			if sig != "" && (iLowestSig == "" || collator.CompareString(sig, iLowestSig) < 0) {
+				iLowestSig = sig
+			}
+		}
+
+		// Find lowest signature for entry j
+		var jLowestSig string
+		for _, item := range jItems {
+			sig := item.Identifier()
+			if sig != "" && (jLowestSig == "" || collator.CompareString(sig, jLowestSig) < 0) {
+				jLowestSig = sig
+			}
+		}
+
+		// Entries without signatures sort last
+		if iLowestSig == "" && jLowestSig == "" {
+			return 0
+		}
+		if iLowestSig == "" {
+			return 1 // i goes after j
+		}
+		if jLowestSig == "" {
+			return -1 // i goes before j
+		}
+
+		// Compare using German collation for natural sorting
+		return collator.CompareString(iLowestSig, jLowestSig)
+	})
+}

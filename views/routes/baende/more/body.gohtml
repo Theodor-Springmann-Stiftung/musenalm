@@ -1,0 +1,166 @@
+{{ $model := . }}
+
+{{- range $_, $entry := $model.result.Entries -}}
+	<tr class="border-b align-top cursor-pointer transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100"
+		data-role="baende-row"
+		data-entry-id="{{ $entry.MusenalmID }}"
+		hx-get="/baende/details/{{ $entry.MusenalmID }}"
+		hx-target="this"
+		hx-swap="outerHTML">
+		<td class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]">
+			<div class="flex flex-col gap-1">
+				<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">Alm {{ $entry.MusenalmID }}</span>
+				{{- if $entry.References -}}
+					<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 max-w-[10rem] whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
+				{{- end -}}
+				<div class="flex flex-wrap items-center gap-1.5 pt-1">
+					<tool-tip position="top" class="inline">
+						<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+							<i class="ri-eye-line"></i>
+						</a>
+						<div class="data-tip">Ansehen</div>
+					</tool-tip>
+					{{- if (IsAdminOrEditor $model.request.user) -}}
+						<tool-tip position="top" class="inline">
+							<a href="/almanach/{{ $entry.MusenalmID }}/edit" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+								<i class="ri-edit-line"></i>
+							</a>
+							<div class="data-tip">Bearbeiten</div>
+						</tool-tip>
+						<form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="return confirm('Band wirklich löschen?');">
+							<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+							<tool-tip position="top" class="inline">
+								<button type="submit" class="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+									<i class="ri-delete-bin-line"></i>
+								</button>
+								<div class="data-tip">Löschen</div>
+							</tool-tip>
+						</form>
+					{{- end -}}
+				</div>
+			</div>
+		</td>
+		<td class="py-2 pr-4">
+			<div class="font-semibold text-slate-900 text-base leading-snug">
+				{{- if $entry.PreferredTitle -}}
+					{{ $entry.PreferredTitle }}
+				{{- else if ne $entry.Year 0 -}}
+					{{ $entry.Year }}
+				{{- else -}}
+					[o.J.]
+				{{- end -}}
+				<tool-tip position="top" class="inline">
+					<i class="status-icon ml-1 align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+					<div class="data-tip">
+						{{- if eq $entry.EditState "Unknown" -}}
+							Gesucht
+						{{- else if eq $entry.EditState "ToDo" -}}
+							Zu erledigen
+						{{- else if eq $entry.EditState "Review" -}}
+							Überprüfen
+						{{- else if eq $entry.EditState "Seen" -}}
+							Autopsiert
+						{{- else if eq $entry.EditState "Edited" -}}
+							Vollständig Erfasst
+						{{- else -}}
+							{{ $entry.EditState }}
+						{{- end -}}
+					</div>
+				</tool-tip>
+			</div>
+			{{- if $entry.TitleStmt -}}
+				<div class="text-gray-700 text-base mt-1 leading-snug">
+					{{ $entry.TitleStmt }}
+				</div>
+			{{- end -}}
+			{{- if or $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
+				<div class="flex flex-col gap-1 text-sm text-gray-700 mt-1">
+					{{- if $entry.SubtitleStmt -}}
+						<div><span class="font-semibold text-gray-500">Untertitel:</span> {{ $entry.SubtitleStmt }}</div>
+					{{- end -}}
+					{{- if $entry.VariantTitle -}}
+						<div><span class="font-semibold text-gray-500">Varianten:</span> {{ $entry.VariantTitle }}</div>
+					{{- end -}}
+					{{- if $entry.ParallelTitle -}}
+						<div><span class="font-semibold text-gray-500">Parallel:</span> {{ $entry.ParallelTitle }}</div>
+					{{- end -}}
+					{{- if $entry.IncipitStmt -}}
+						<div><span class="font-semibold text-gray-500">Incipit:</span> {{ $entry.IncipitStmt }}</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4 col-appearance">
+			{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
+				<div class="flex flex-col gap-2 text-sm text-gray-700">
+					{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
+						<div>
+							<div class="text-xs font-semibold text-gray-500">Herausgaberangabe</div>
+							<div>{{ $entry.ResponsibilityStmt }}</div>
+						</div>
+					{{- end -}}
+					{{- if $entry.PublicationStmt -}}
+						<div>
+							<div class="text-xs font-semibold text-gray-500">Publikationsangabe</div>
+							<div>{{ $entry.PublicationStmt }}</div>
+						</div>
+					{{- end -}}
+					{{- if $entry.PlaceStmt -}}
+						<div>
+							<div class="text-xs font-semibold text-gray-500">Ortsangabe</div>
+							<div>{{ $entry.PlaceStmt }}</div>
+						</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4 whitespace-nowrap col-year hidden">
+			{{- if ne $entry.Year 0 -}}
+				{{ $entry.Year }}
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4 col-language hidden">
+			{{- if $entry.Language -}}
+				{{- range $i, $lang := $entry.Language -}}
+					{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}
+				{{- end -}}
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4 col-extent">
+			{{- if or $entry.Extent $entry.Dimensions -}}
+				<div class="flex flex-col gap-1 text-sm text-gray-700">
+					{{- if $entry.Extent -}}
+						<div><span class="font-semibold text-gray-500 block">Struktur</span>{{ $entry.Extent }}</div>
+					{{- end -}}
+					{{- if $entry.Dimensions -}}
+						<div><span class="font-semibold text-gray-500">Maße:</span> {{ $entry.Dimensions }}</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4 col-signatures">
+			{{- $items := index $model.result.Items $entry.Id -}}
+			{{- if $items -}}
+				<div class="flex flex-col gap-2 text-sm text-gray-700">
+					{{- range $_, $item := $items -}}
+						<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-xs">
+							{{- if $item.Identifier -}}
+								<div class="px-2 py-1 font-semibold text-slate-900 text-center">{{ $item.Identifier }}</div>
+							{{- end -}}
+							{{- if $item.Media -}}
+								<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug">
+									{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}
+								</div>
+							{{- end -}}
+						</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</td>
+	</tr>
+{{- end -}}
+
+<!-- Update count display with OOB swap -->
+<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap" hx-swap-oob="true">
+	{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
+</div>

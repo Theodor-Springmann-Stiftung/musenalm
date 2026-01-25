@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
@@ -31,17 +32,59 @@ type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
-	PB        *pocketbase.PocketBase
-	MAConfig  Config
-	Pages     []pagemodels.IPage
-	dataCache *PrefixCache
-	dataMutex sync.RWMutex
-	htmlCache *PrefixCache
-	htmlMutex sync.RWMutex
-	pagesCache map[string]PageMetaData
-	pagesMutex sync.RWMutex
-	imagesCache map[string]*dbmodels.Image
-	imagesMutex sync.RWMutex
+	PB              *pocketbase.PocketBase
+	MAConfig        Config
+	Pages           []pagemodels.IPage
+	dataCache       *PrefixCache
+	dataMutex       sync.RWMutex
+	htmlCache       *PrefixCache
+	htmlMutex       sync.RWMutex
+	pagesCache      map[string]PageMetaData
+	pagesMutex      sync.RWMutex
+	imagesCache     map[string]*dbmodels.Image
+	imagesMutex     sync.RWMutex
+	baendeCache     *BaendeCache
+	baendeCacheMutex sync.RWMutex
+}
+
+type BaendeCache struct {
+	Entries       []*dbmodels.Entry
+	Series        map[string]*dbmodels.Series
+	EntriesSeries map[string][]*dbmodels.REntriesSeries
+	Places        map[string]*dbmodels.Place
+	Agents        map[string]*dbmodels.Agent
+	EntriesAgents map[string][]*dbmodels.REntriesAgents
+	Items         map[string][]*dbmodels.Item
+	CachedAt      time.Time
+}
+
+// Implement BaendeCacheInterface methods
+func (bc *BaendeCache) GetEntries() interface{} {
+	return bc.Entries
+}
+
+func (bc *BaendeCache) GetSeries() interface{} {
+	return bc.Series
+}
+
+func (bc *BaendeCache) GetEntriesSeries() interface{} {
+	return bc.EntriesSeries
+}
+
+func (bc *BaendeCache) GetPlaces() interface{} {
+	return bc.Places
+}
+
+func (bc *BaendeCache) GetAgents() interface{} {
+	return bc.Agents
+}
+
+func (bc *BaendeCache) GetEntriesAgents() interface{} {
+	return bc.EntriesAgents
+}
+
+func (bc *BaendeCache) GetItems() interface{} {
+	return bc.Items
 }
 
 const (
@@ -484,6 +527,155 @@ func (app *App) ensureImagesCache() {
 		app.imagesCache = cache
 	}
 	app.imagesMutex.Unlock()
+}
+
+func (app *App) ResetBaendeCache() {
+	app.baendeCacheMutex.Lock()
+	defer app.baendeCacheMutex.Unlock()
+	app.baendeCache = nil
+}
+
+func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
+	// Check if cache is valid with read lock
+	app.baendeCacheMutex.RLock()
+	if app.baendeCache != nil && time.Since(app.baendeCache.CachedAt) < time.Hour {
+		cache := app.baendeCache
+		app.baendeCacheMutex.RUnlock()
+		return cache, nil
+	}
+	app.baendeCacheMutex.RUnlock()
+
+	// Acquire write lock to populate cache
+	app.baendeCacheMutex.Lock()
+	defer app.baendeCacheMutex.Unlock()
+
+	// Double-check after acquiring write lock
+	if app.baendeCache != nil && time.Since(app.baendeCache.CachedAt) < time.Hour {
+		return app.baendeCache, nil
+	}
+
+	// Load all entries sorted by PreferredTitle
+	entries := []*dbmodels.Entry{}
+	if err := app.PB.RecordQuery(dbmodels.ENTRIES_TABLE).
+		OrderBy(dbmodels.PREFERRED_TITLE_FIELD).
+		All(&entries); err != nil {
+		return nil, err
+	}
+
+	// Collect entry IDs
+	entryIDs := make([]any, 0, len(entries))
+	for _, entry := range entries {
+		entryIDs = append(entryIDs, entry.Id)
+	}
+
+	// Load series and relations
+	seriesMap := map[string]*dbmodels.Series{}
+	entrySeriesMap := map[string][]*dbmodels.REntriesSeries{}
+	if len(entries) > 0 {
+		relations, err := dbmodels.REntriesSeries_Entries(app.PB.App, dbmodels.Ids(entries))
+		if err != nil {
+			return nil, err
+		}
+
+		seriesIDs := []any{}
+		for _, r := range relations {
+			seriesIDs = append(seriesIDs, r.Series())
+			entrySeriesMap[r.Entry()] = append(entrySeriesMap[r.Entry()], r)
+		}
+
+		if len(seriesIDs) > 0 {
+			series, err := dbmodels.Series_IDs(app.PB.App, seriesIDs)
+			if err != nil {
+				return nil, err
+			}
+			for _, s := range series {
+				seriesMap[s.Id] = s
+			}
+		}
+	}
+
+	// Load agents and relations
+	agentsMap := map[string]*dbmodels.Agent{}
+	entryAgentsMap := map[string][]*dbmodels.REntriesAgents{}
+	if len(entryIDs) > 0 {
+		arelations, err := dbmodels.REntriesAgents_Entries(app.PB.App, entryIDs)
+		if err != nil {
+			return nil, err
+		}
+
+		agentIDs := []any{}
+		for _, r := range arelations {
+			agentIDs = append(agentIDs, r.Agent())
+			entryAgentsMap[r.Entry()] = append(entryAgentsMap[r.Entry()], r)
+		}
+
+		if len(agentIDs) > 0 {
+			agents, err := dbmodels.Agents_IDs(app.PB.App, agentIDs)
+			if err != nil {
+				return nil, err
+			}
+			for _, a := range agents {
+				agentsMap[a.Id] = a
+			}
+		}
+	}
+
+	// Load places
+	placesMap := map[string]*dbmodels.Place{}
+	placesIDs := []any{}
+	for _, entry := range entries {
+		for _, placeID := range entry.Places() {
+			placesIDs = append(placesIDs, placeID)
+		}
+	}
+	if len(placesIDs) > 0 {
+		places, err := dbmodels.Places_IDs(app.PB.App, placesIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, place := range places {
+			placesMap[place.Id] = place
+		}
+	}
+
+	// Load items
+	itemsMap := map[string][]*dbmodels.Item{}
+	if len(entryIDs) > 0 {
+		allItems, err := dbmodels.Items_Entries(app.PB.App, entryIDs)
+		if err != nil {
+			return nil, err
+		}
+
+		interestedEntries := make(map[string]struct{})
+		for _, id := range entryIDs {
+			interestedEntries[id.(string)] = struct{}{}
+		}
+
+		for _, item := range allItems {
+			for _, entryID := range item.Entries() {
+				if _, ok := interestedEntries[entryID]; ok {
+					itemsMap[entryID] = append(itemsMap[entryID], item)
+				}
+			}
+		}
+	}
+
+	app.baendeCache = &BaendeCache{
+		Entries:       entries,
+		Series:        seriesMap,
+		EntriesSeries: entrySeriesMap,
+		Places:        placesMap,
+		Agents:        agentsMap,
+		EntriesAgents: entryAgentsMap,
+		Items:         itemsMap,
+		CachedAt:      time.Now(),
+	}
+
+	return app.baendeCache, nil
+}
+
+func (app *App) GetBaendeCache() (pagemodels.BaendeCacheInterface, error) {
+	return app.EnsureBaendeCache()
 }
 
 func (app *App) setWatchers(engine *templating.Engine) {

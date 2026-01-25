@@ -1,29 +1,97 @@
 {{ $model := . }}
 
-<div x-data="{ search : '{{ $model.search }}' }" class="container-normal font-sans mt-10">
+<div x-data="{
+	search: '{{ $model.search }}',
+	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+	loading: false,
+	alphabetOpen: false,
+	selectedLetter: '{{ $model.letter }}',
+	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
+	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
+	changeSort(field) {
+		if (this.sortField === field) {
+			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+		} else {
+			this.sortField = field;
+			this.sortOrder = 'asc';
+		}
+		this.offset = 0;
+		this.hasMore = true;
+
+		const params = new URLSearchParams();
+		params.set('sort', this.sortField);
+		params.set('order', this.sortOrder);
+		params.set('offset', 0);
+		if (this.search) {
+			params.set('search', this.search);
+		}
+		if (this.selectedLetter) {
+			params.set('letter', this.selectedLetter);
+		}
+
+		const queryString = params.toString();
+		htmx.ajax('GET', `/baende/results/?${queryString}`, {
+			target: '#baenderesults',
+			swap: 'outerHTML',
+			indicator: 'body'
+		});
+	},
+	updateUrl() {
+		const params = new URLSearchParams();
+		params.set('offset', this.offset);
+		params.set('sort', this.sortField);
+		params.set('order', this.sortOrder);
+		if (this.search) {
+			params.set('search', this.search);
+		}
+		if (this.selectedLetter) {
+			params.set('letter', this.selectedLetter);
+		}
+		const query = params.toString();
+		const newUrl = query ? `/baende/?${query}` : '/baende/';
+		window.history.replaceState(null, '', newUrl);
+	},
+	loadMoreUrl() {
+		const params = new URLSearchParams();
+		params.set('offset', this.offset);
+		params.set('sort', this.sortField);
+		params.set('order', this.sortOrder);
+		if (this.search) {
+			params.set('search', this.search);
+		}
+		if (this.selectedLetter) {
+			params.set('letter', this.selectedLetter);
+		}
+		return `/baende/more/?${params.toString()}`;
+	}
+}"
+@htmx:after-swap.window="
+	if ($event.detail.target && $event.detail.target.id === 'baenderesults') {
+		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
+		const params = new URL(responseUrl).searchParams;
+		selectedLetter = params.get('letter') || '';
+		sortField = params.get('sort') || sortField;
+		sortOrder = params.get('order') || sortOrder;
+		const nextOffsetAttr = $event.detail.target.dataset.nextOffset;
+		if (nextOffsetAttr) {
+			const parsed = Number(nextOffsetAttr);
+			if (!Number.isNaN(parsed)) {
+				offset = parsed;
+			}
+		}
+		updateUrl();
+	}
+"
+class="container-normal font-sans mt-10">
 	<div id="pageheading" class="headingcontainer">
 		<h1 class="heading">Bände A–Z</h1>
 
 		<div class="mt-2">
 			<div class="flex flex-wrap flex-row border-b px-3 border-zinc-300 items-end justify-between min-h-14 gap-y-4">
-				<!-- Left side group: Count and Alphabet -->
-				<div class="flex items-end gap-x-6">
-					<div id="alphabet" class="alphabet flex flex-row items-end text-xl">
-						{{- range $_, $ch := $model.letters -}}
-							<a
-								href="/baende/?letter={{ $ch }}"
-								:class="search ? 'inactive pointer-events-none' : ''"
-								class="odd:bg-stone-100 even:bg-zinc-100 mr-1 border-zinc-300 border-x border-t [&>a[aria-current='page']]:font-bold px-2 py-0.5 no-underline transition-all duration-75"
-								{{ if and (not $model.search) (eq $model.letter $ch) }}aria-current="page"{{ end }}>
-								{{ $ch }}
-							</a>
-						{{- end -}}
-						<i class="ml-2 ri-hourglass-2-fill request-indicator spinning"></i>
-					</div>
-				</div>
-
-				<!-- Right side group: Search and Spalten menu -->
+				<!-- Left side group: Search and Alphabet -->
 				<div class="flex items-end gap-4">
+					<!-- Search box -->
 					<div class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative font-sans text-lg items-center">
 						<div>
 							<i class="ri-search-line"></i><i class="-ml-0.5 inline-block ri-arrow-right-s-line"></i>
@@ -38,10 +106,10 @@
 								hx-swap="outerHTML"
 								hx-target="#baenderesults"
 								role="search"
+								@submit="offset = 0; hasMore = true"
 								aria-label="Bändesuche">
-								{{- if $model.letter -}}
-									<input type="hidden" name="letter" value="{{- $model.letter -}}" />
-								{{- end -}}
+								<input type="hidden" name="sort" :value="sortField" />
+								<input type="hidden" name="order" :value="sortOrder" />
 								<input
 									class="px-2 py-0.5 font-sans placeholder:italic w-full text-lg"
 									type="search"
@@ -56,45 +124,114 @@
 							</form>
 						</div>
 					</div>
+
+					<!-- Alphabet navigation toggle -->
+					<div class="relative">
+						<details class="font-sans text-base list-none" data-role="alphabet-toggle" @toggle="alphabetOpen = $el.open">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+								Alphabet
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': alphabetOpen }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-12 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-2 flex flex-col gap-1 text-sm text-gray-700">
+									{{- range $_, $ch := $model.letters -}}
+										<a href="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   hx-get="/baende/results/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   hx-target="#baenderesults"
+										   hx-swap="outerHTML"
+										   hx-indicator="body"
+										   hx-push-url="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'"
+										   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
+										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
+											{{ $ch }}
+										</a>
+									{{- end -}}
+									<!-- Clear filter option -->
+									<a href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-target="#baenderesults"
+									   hx-swap="outerHTML"
+									   hx-indicator="body"
+									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''"
+									   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors border-t mt-1">
+										Alle
+									</a>
+								</div>
+							</div>
+						</details>
+					</div>
+				</div>
+
+				<!-- Right side group: Spalten menu and count/button -->
+				<div class="flex items-end gap-4">
+
+
+
+					<!-- Spalten toggle -->
+					<div class="relative" x-data="{ open: false }">
+						<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+								Spalten
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Count and New button -->
+					<div class="flex items-center gap-3">
+						<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+							{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
+						</div>
+						<button
+							type="button"
+							class="content-action-button"
+							onclick="window.location.assign('/almanach/new')">
+							<i class="ri-add-line"></i>
+							<span>Neuer Band</span>
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-
-
-	<div class="flex justify-between mt-10">
-		<div class="relative" x-data="{ open: false }">
-			<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open">
-				<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-					Spalten
-					<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-				</summary>
-				<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-					<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
-						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
-						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
-						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
-						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
-						<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
-					</div>
-				</div>
-			</details>
-		</div>
-		<div class="flex items-center gap-3">
-            <div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
-                {{ len $model.result.Entries }} Bände
-            </div>
-            <button
-                type="button"
-                class="content-action-button"
-                onclick="window.location.assign('/almanach/new')">
-                <i class="ri-add-line"></i>
-                <span>Neuer Band</span>
-            </button>
-        </div>
-	</div>
-	<div id="baenderesults" class="mt-2">
+	<div id="baenderesults" class="mt-2" data-next-offset="{{ $model.next_offset }}">
 		{{ template "_baende_table" $model }}
+
+		<!-- Load More Button -->
+		<div class="mt-6 flex justify-center" x-show="hasMore">
+			<button
+				type="button"
+				class="content-action-button"
+				:hx-get="loadMoreUrl()"
+				hx-target="#baende-tbody"
+				hx-swap="beforeend"
+				hx-indicator="this"
+				@htmx:before-request="loading = true"
+				@htmx:after-request="
+					loading = false;
+					hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+					const nextOffsetHeader = Number($event.detail.xhr.getResponseHeader('X-Next-Offset'));
+					if (!Number.isNaN(nextOffsetHeader)) {
+						offset = nextOffsetHeader;
+					}
+					updateUrl();
+				"
+				:disabled="loading">
+				<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+				<span x-text="loading ? 'Lädt...' : 'Weitere 150 laden'"></span>
+			</button>
+		</div>
 	</div>
 </div>

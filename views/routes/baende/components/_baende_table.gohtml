@@ -4,16 +4,72 @@
 	<table class="min-w-full text-sm font-sans baende-text">
 		<thead class="text-left text-gray-600 border-b">
 			<tr>
-				<th class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]"></th>
-				<th class="py-2 pr-4 whitespace-nowrap w-[44rem]">Titel</th>
+				<th class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]"
+					:aria-sort="sortField === 'alm' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="flex w-full items-center justify-between gap-1 text-left text-sm"
+						@click="changeSort('alm')">
+						<span class="font-semibold tracking-wide">Alm</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'alm' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'alm' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'alm'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-4 whitespace-nowrap w-[44rem]"
+					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="flex w-full items-center justify-between gap-1 text-left text-sm"
+						@click="changeSort('title')">
+						<span class="font-semibold tracking-wide">Titel</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'title' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'title' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'title'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
 				<th class="py-2 pr-4 whitespace-nowrap col-appearance w-[18rem]">Erscheinung</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-year hidden">Jahr</th>
+				<th class="py-2 pr-4 whitespace-nowrap col-year hidden"
+					:aria-sort="sortField === 'year' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="flex w-full items-center justify-between gap-1 text-left text-sm"
+						@click="changeSort('year')">
+						<span class="font-semibold tracking-wide">Jahr</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'year' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'year' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'year'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
 				<th class="py-2 pr-4 whitespace-nowrap col-language hidden">Sprachen</th>
 				<th class="py-2 pr-4 whitespace-nowrap col-extent w-[18rem]">Umfang / Maße</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-signatures">Signaturen</th>
+				<th class="py-2 pr-4 whitespace-nowrap col-signatures"
+					:aria-sort="sortField === 'signatur' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="flex w-full items-center justify-between gap-1 text-left text-sm"
+						@click="changeSort('signatur')">
+						<span class="font-semibold tracking-wide">Signaturen</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'signatur' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'signatur' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'signatur'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="baende-tbody">
 			{{- range $_, $entry := $model.result.Entries -}}
 				<tr class="border-b align-top cursor-pointer transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100" 
                     data-role="baende-row" 
