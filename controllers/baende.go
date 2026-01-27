@@ -223,6 +223,10 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	// Get filters from query params
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
+	person := strings.TrimSpace(e.Request.URL.Query().Get("person"))
+	yearStr := strings.TrimSpace(e.Request.URL.Query().Get("year"))
+	place := strings.TrimSpace(e.Request.URL.Query().Get("place"))
 
 	// Validate letter
 	if letter != "" {
@@ -298,9 +302,53 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, fmt.Errorf("failed to get entries agents from cache")
 	}
 
-	// Apply search or letter filter
+	// Determine active filter (only one at a time)
+	activeFilterType := ""
+	activeFilterValue := ""
+	switch {
+	case status != "":
+		activeFilterType = "status"
+		activeFilterValue = status
+		person = ""
+		yearStr = ""
+		place = ""
+	case person != "":
+		activeFilterType = "person"
+		activeFilterValue = person
+		yearStr = ""
+		place = ""
+	case yearStr != "":
+		activeFilterType = "year"
+		activeFilterValue = yearStr
+		place = ""
+	case place != "":
+		activeFilterType = "place"
+		activeFilterValue = place
+	}
+	if activeFilterType != "" {
+		search = ""
+		letter = ""
+	}
+
+	// Apply search/letter/filters
 	var filteredEntries []*dbmodels.Entry
-	if search != "" {
+	if activeFilterType != "" {
+		switch activeFilterType {
+		case "status":
+			filteredEntries = filterEntriesByStatus(allEntries, status)
+		case "person":
+			filteredEntries = filterEntriesByAgent(allEntries, entryAgentsMap, person)
+		case "year":
+			yearVal, err := strconv.Atoi(yearStr)
+			if err != nil {
+				filteredEntries = []*dbmodels.Entry{}
+			} else {
+				filteredEntries = filterEntriesByYear(allEntries, yearVal)
+			}
+		case "place":
+			filteredEntries = filterEntriesByPlace(allEntries, place)
+		}
+	} else if search != "" {
 		trimmedSearch := strings.TrimSpace(search)
 		if utf8.RuneCountInString(trimmedSearch) >= 3 {
 			entries, err := searchBaendeEntries(app, trimmedSearch)
@@ -396,6 +444,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["sort_field"] = sort
 	data["sort_order"] = order
 	data["csrf_token"] = req.Session().Token
+	data["active_filter_type"] = activeFilterType
+	data["active_filter_value"] = activeFilterValue
 
 	// Keep letters array for navigation
 	letters := []string{
@@ -403,6 +453,16 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
 	}
 	data["letters"] = letters
+
+	// Build filter lists
+	data["filter_statuses"] = buildStatusFilters()
+	data["filter_status_labels"] = buildStatusLabelMap()
+	data["filter_agents"] = buildAgentFilters(agentsMap)
+	data["filter_agent_labels"] = buildAgentLabelMap(agentsMap)
+	data["filter_places"] = buildPlaceFilters(placesMap)
+	data["filter_place_labels"] = buildPlaceLabelMap(placesMap)
+	data["filter_years"] = buildYearFilters(allEntries)
+	data["filter_year_labels"] = buildYearLabelMap(allEntries)
 
 	return data, nil
 }
@@ -631,4 +691,154 @@ func searchBaendeEntriesQuick(app core.App, query string) ([]*dbmodels.Entry, er
 
 	dbmodels.Sort_Entries_Title_Year(entries)
 	return entries, nil
+}
+
+func filterEntriesByStatus(entries []*dbmodels.Entry, status string) []*dbmodels.Entry {
+	if status == "" {
+		return entries
+	}
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.EditState() == status {
+			results = append(results, entry)
+		}
+	}
+	return results
+}
+
+func filterEntriesByAgent(entries []*dbmodels.Entry, entryAgentsMap map[string][]*dbmodels.REntriesAgents, agentID string) []*dbmodels.Entry {
+	if agentID == "" {
+		return entries
+	}
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		rels := entryAgentsMap[entry.Id]
+		for _, rel := range rels {
+			if rel.Agent() == agentID {
+				results = append(results, entry)
+				break
+			}
+		}
+	}
+	return results
+}
+
+func filterEntriesByYear(entries []*dbmodels.Entry, year int) []*dbmodels.Entry {
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.Year() == year {
+			results = append(results, entry)
+		}
+	}
+	return results
+}
+
+func filterEntriesByPlace(entries []*dbmodels.Entry, placeID string) []*dbmodels.Entry {
+	if placeID == "" {
+		return entries
+	}
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		for _, pid := range entry.Places() {
+			if pid == placeID {
+				results = append(results, entry)
+				break
+			}
+		}
+	}
+	return results
+}
+
+func buildStatusFilters() []map[string]string {
+	labels := buildStatusLabelMap()
+	allowed := []string{"Unknown", "ToDo", "Review", "Seen", "Edited"}
+	filters := make([]map[string]string, 0, len(allowed))
+	for _, val := range allowed {
+		label := val
+		if mapped, ok := labels[val]; ok {
+			label = mapped
+		}
+		filters = append(filters, map[string]string{
+			"value": val,
+			"label": label,
+		})
+	}
+	return filters
+}
+
+func buildStatusLabelMap() map[string]string {
+	return map[string]string{
+		"Unknown": "Gesucht",
+		"ToDo":    "Zu erledigen",
+		"Review":  "Überprüfen",
+		"Seen":    "Autopsiert",
+		"Edited":  "Vollständig Erfasst",
+	}
+}
+
+func buildAgentFilters(agentsMap map[string]*dbmodels.Agent) []*dbmodels.Agent {
+	agents := make([]*dbmodels.Agent, 0, len(agentsMap))
+	for _, agent := range agentsMap {
+		agents = append(agents, agent)
+	}
+	dbmodels.Sort_Agents_Name(agents)
+	return agents
+}
+
+func buildAgentLabelMap(agentsMap map[string]*dbmodels.Agent) map[string]string {
+	labels := make(map[string]string, len(agentsMap))
+	for id, agent := range agentsMap {
+		if agent != nil {
+			labels[id] = agent.Name()
+		}
+	}
+	return labels
+}
+
+func buildPlaceFilters(placesMap map[string]*dbmodels.Place) []*dbmodels.Place {
+	places := make([]*dbmodels.Place, 0, len(placesMap))
+	for _, place := range placesMap {
+		places = append(places, place)
+	}
+	dbmodels.Sort_Places_Name(places)
+	return places
+}
+
+func buildPlaceLabelMap(placesMap map[string]*dbmodels.Place) map[string]string {
+	labels := make(map[string]string, len(placesMap))
+	for id, place := range placesMap {
+		if place != nil {
+			labels[id] = place.Name()
+		}
+	}
+	return labels
+}
+
+func buildYearFilters(entries []*dbmodels.Entry) []int {
+	yearSet := map[int]struct{}{}
+	for _, entry := range entries {
+		yearSet[entry.Year()] = struct{}{}
+	}
+	years := make([]int, 0, len(yearSet))
+	for year := range yearSet {
+		years = append(years, year)
+	}
+	slices.Sort(years)
+	return years
+}
+
+func buildYearLabelMap(entries []*dbmodels.Entry) map[string]string {
+	labels := map[string]string{}
+	for _, entry := range entries {
+		year := entry.Year()
+		if _, ok := labels[strconv.Itoa(year)]; ok {
+			continue
+		}
+		if year == 0 {
+			labels[strconv.Itoa(year)] = "ohne Jahr"
+		} else {
+			labels[strconv.Itoa(year)] = strconv.Itoa(year)
+		}
+	}
+	return labels
 }

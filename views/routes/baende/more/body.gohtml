@@ -41,16 +41,16 @@
 			</div>
 		</td>
 		<td class="py-2 pr-4">
-			<div class="font-semibold text-slate-900 text-base leading-snug inline-flex items-center gap-1">
+			<div class="font-semibold text-slate-900 text-base leading-snug">
 				{{- if $entry.PreferredTitle -}}
-					{{ $entry.PreferredTitle }}
+					<span class="inline">{{ $entry.PreferredTitle }}</span>
 				{{- else if ne $entry.Year 0 -}}
-					{{ $entry.Year }}
+					<span class="inline">{{ $entry.Year }}</span>
 				{{- else -}}
-					[o.J.]
+					<span class="inline">[o.J.]</span>
 				{{- end -}}
-				<tool-tip position="top" class="inline-flex items-center">
-					<i class="status-icon {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+				<tool-tip position="top" class="inline-block align-middle ml-1">
+					<i class="status-icon align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
 					<div class="data-tip">
 						{{- if eq $entry.EditState "Unknown" -}}
 							Gesucht

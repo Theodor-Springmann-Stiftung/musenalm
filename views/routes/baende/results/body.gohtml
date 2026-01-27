@@ -7,26 +7,26 @@
         loading: false,
         search: '{{ $model.search }}',
         letter: '{{ $model.letter }}',
+        activeFilterType: '{{ $model.active_filter_type }}',
+        activeFilterValue: '{{ $model.active_filter_value }}',
         sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
         sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
      }">
 
-	<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+	<span id="baende-count"
+		  hx-swap-oob="outerHTML"
+		  class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
 		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
-	</div>
+	</span>
 
 	{{ template "_baende_table" $model }}
-
-	<div id="baende-count-bottom" class="mt-4 flex justify-center text-base font-semibold font-sans text-gray-600 whitespace-nowrap">
-		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
-	</div>
 
 	<!-- Load More Button -->
 	<div class="mt-6 flex justify-center" x-show="hasMore">
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="`/baende/more/?offset=${offset}&search=${search}&letter=${letter}&sort=${sortField}&order=${sortOrder}`"
+			:hx-get="`/baende/more/?offset=${offset}&${activeFilterType && activeFilterValue ? `${activeFilterType}=${encodeURIComponent(activeFilterValue)}` : `search=${search}&letter=${letter}`}&sort=${sortField}&order=${sortOrder}`"
 			hx-replace-url="true"
 			hx-target="#baende-tbody"
 			hx-swap="beforeend"

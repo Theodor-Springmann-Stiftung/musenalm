@@ -9,6 +9,42 @@
 	selectedLetter: '{{ $model.letter }}',
 	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
 	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
+	activeFilterType: '{{ $model.active_filter_type }}',
+	activeFilterValue: '{{ $model.active_filter_value }}',
+	statusLabels: {
+		{{- range $k, $v := $model.filter_status_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	personLabels: {
+		{{- range $k, $v := $model.filter_agent_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	placeLabels: {
+		{{- range $k, $v := $model.filter_place_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	yearLabels: {
+		{{- range $k, $v := $model.filter_year_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	appendActiveFilter(params) {
+		if (this.activeFilterType && this.activeFilterValue) {
+			params.set(this.activeFilterType, this.activeFilterValue);
+		}
+	},
+	clearFilters() {
+		this.activeFilterType = '';
+		this.activeFilterValue = '';
+	},
+	closeOtherDropdowns(current) {
+		document.querySelectorAll('details').forEach((d) => {
+			if (d !== current) d.open = false;
+		});
+	},
 	changeSort(field) {
 		if (this.sortField === field) {
 			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
@@ -23,11 +59,14 @@
 		params.set('sort', this.sortField);
 		params.set('order', this.sortOrder);
 		params.set('offset', 0);
-		if (this.search) {
-			params.set('search', this.search);
-		}
-		if (this.selectedLetter) {
-			params.set('letter', this.selectedLetter);
+		this.appendActiveFilter(params);
+		if (!this.activeFilterType) {
+			if (this.search) {
+				params.set('search', this.search);
+			}
+			if (this.selectedLetter) {
+				params.set('letter', this.selectedLetter);
+			}
 		}
 
 		const queryString = params.toString();
@@ -42,11 +81,14 @@
 		params.set('offset', this.offset);
 		params.set('sort', this.sortField);
 		params.set('order', this.sortOrder);
-		if (this.search) {
-			params.set('search', this.search);
-		}
-		if (this.selectedLetter) {
-			params.set('letter', this.selectedLetter);
+		this.appendActiveFilter(params);
+		if (!this.activeFilterType) {
+			if (this.search) {
+				params.set('search', this.search);
+			}
+			if (this.selectedLetter) {
+				params.set('letter', this.selectedLetter);
+			}
 		}
 		const query = params.toString();
 		const newUrl = query ? `/baende/?${query}` : '/baende/';
@@ -57,11 +99,14 @@
 		params.set('offset', this.offset);
 		params.set('sort', this.sortField);
 		params.set('order', this.sortOrder);
-		if (this.search) {
-			params.set('search', this.search);
-		}
-		if (this.selectedLetter) {
-			params.set('letter', this.selectedLetter);
+		this.appendActiveFilter(params);
+		if (!this.activeFilterType) {
+			if (this.search) {
+				params.set('search', this.search);
+			}
+			if (this.selectedLetter) {
+				params.set('letter', this.selectedLetter);
+			}
 		}
 		return `/baende/more/?${params.toString()}`;
 	}
@@ -70,9 +115,27 @@
 	if ($event.detail.target && $event.detail.target.id === 'baenderesults') {
 		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
 		const params = new URL(responseUrl).searchParams;
-		selectedLetter = params.get('letter') || '';
 		sortField = params.get('sort') || sortField;
 		sortOrder = params.get('order') || sortOrder;
+		const filterKeys = ['status', 'person', 'year', 'place'];
+		activeFilterType = '';
+		activeFilterValue = '';
+		filterKeys.some((key) => {
+			const val = params.get(key);
+			if (val) {
+				activeFilterType = key;
+				activeFilterValue = val;
+				return true;
+			}
+			return false;
+		});
+		if (activeFilterType) {
+			search = '';
+			selectedLetter = '';
+		} else {
+			search = params.get('search') || '';
+			selectedLetter = params.get('letter') || '';
+		}
 		updateUrl();
 	}
 "
@@ -110,8 +173,8 @@ class="container-normal font-sans mt-10">
 									value="{{ $model.search }}"
 									placeholder="Signatur oder Suchbegriff"
 									x-model="search"
-									@input.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-									@search.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+									@input.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+									@search.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
 									autocomplete="off" />
 								<button x-show="false">Suchen</button>
 							</form>
@@ -120,9 +183,10 @@ class="container-normal font-sans mt-10">
 
 					<!-- Alphabet navigation toggle -->
 					<div class="relative">
-						<details class="font-sans text-base list-none" data-role="alphabet-toggle" @toggle="alphabetOpen = $el.open">
-							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-								Alphabet
+						<details class="font-sans text-base list-none" data-role="alphabet-toggle" @toggle="alphabetOpen = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="selectedLetter ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="selectedLetter ? `Alphabet: ${selectedLetter}` : 'Alphabet'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': alphabetOpen }"></i>
 							</summary>
 							<div class="absolute left-0 mt-2 z-10 bg-white rounded-md shadow-lg border border-gray-200">
@@ -134,7 +198,7 @@ class="container-normal font-sans mt-10">
 										   hx-swap="outerHTML"
 										   hx-indicator="body"
 										   hx-push-url="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'; search = ''"
+										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'; search = ''; clearFilters()"
 										   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
 										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
 											{{ $ch }}
@@ -146,7 +210,7 @@ class="container-normal font-sans mt-10">
 									   hx-swap="outerHTML"
 									   hx-indicator="body"
 									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''; search = ''"
+									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''; search = ''; clearFilters()"
 									   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors col-span-13 border-t mt-1">
 										Alle
 									</a>
@@ -155,11 +219,190 @@ class="container-normal font-sans mt-10">
 						</details>
 					</div>
 
+					<!-- Status filter -->
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="activeFilterType === 'status' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="activeFilterType === 'status' ? `Status: ${statusLabels[activeFilterValue] || activeFilterValue}` : 'Status'"></span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-64 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-3">
+									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700" data-role="filter-list">
+										<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   hx-target="#baenderesults"
+										   hx-swap="outerHTML"
+										   hx-indicator="body"
+										   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
+										   x-show="activeFilterType === 'status'"
+										   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+											<i class="ri-filter-off-line text-base"></i>
+											<span>Alle</span>
+										</a>
+										{{- range $_, $s := $model.filter_statuses -}}
+											<a data-role="filter-item" data-label="{{ $s.label }}" href="/baende/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-indicator="body"
+											   hx-push-url="/baende/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'status'; activeFilterValue = '{{ $s.value }}'; search = ''; selectedLetter = ''"
+											   :class="activeFilterType === 'status' && activeFilterValue === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
+											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+												{{ $s.label }}
+											</a>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Person filter -->
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="activeFilterType === 'person' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="activeFilterType === 'person' ? `Person: ${personLabels[activeFilterValue] || activeFilterValue}` : 'Person'"></span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-3">
+									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-target="#baenderesults"
+									   hx-swap="outerHTML"
+									   hx-indicator="body"
+									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
+									   x-show="activeFilterType === 'person'"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									<input data-role="filter-search" type="search" placeholder="Personen filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+										{{- range $_, $a := $model.filter_agents -}}
+											<a data-role="filter-item" data-label="{{ $a.Name }}" href="/baende/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-indicator="body"
+											   hx-push-url="/baende/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'person'; activeFilterValue = '{{ $a.Id }}'; search = ''; selectedLetter = ''"
+											   :class="activeFilterType === 'person' && activeFilterValue === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
+											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+												<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
+												{{- if $a.CorporateBody -}}
+													<span class="inline-flex items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.7rem] font-semibold text-slate-600">ORG</span>
+												{{- else if $a.BiographicalData -}}
+													<span class="text-[0.7rem] text-stone-500 whitespace-nowrap">{{ $a.BiographicalData }}</span>
+												{{- end -}}
+											</a>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Jahr filter -->
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="activeFilterType === 'year' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="activeFilterType === 'year' ? `Jahr: ${yearLabels[activeFilterValue] || activeFilterValue}` : 'Jahr'"></span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-3">
+									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-target="#baenderesults"
+									   hx-swap="outerHTML"
+									   hx-indicator="body"
+									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
+									   x-show="activeFilterType === 'year'"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									<input data-role="filter-search" type="search" placeholder="Jahre filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+										{{- range $_, $y := $model.filter_years -}}
+											{{- $label := $y -}}
+											{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
+											<a data-role="filter-item" data-label="{{ $label }}" href="/baende/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-indicator="body"
+											   hx-push-url="/baende/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'year'; activeFilterValue = '{{ $y }}'; search = ''; selectedLetter = ''"
+											   :class="activeFilterType === 'year' && activeFilterValue === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
+											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+												{{ $label }}
+											</a>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Ort filter -->
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="activeFilterType === 'place' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="activeFilterType === 'place' ? `Ort: ${placeLabels[activeFilterValue] || activeFilterValue}` : 'Ort'"></span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-3">
+									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-target="#baenderesults"
+									   hx-swap="outerHTML"
+									   hx-indicator="body"
+									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
+									   x-show="activeFilterType === 'place'"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									<input data-role="filter-search" type="search" placeholder="Orte filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+										{{- range $_, $p := $model.filter_places -}}
+											<a data-role="filter-item" data-label="{{ $p.Name }}" href="/baende/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-indicator="body"
+											   hx-push-url="/baende/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'place'; activeFilterValue = '{{ $p.Id }}'; search = ''; selectedLetter = ''"
+											   :class="activeFilterType === 'place' && activeFilterValue === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
+											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+												{{ $p.Name }}
+											</a>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+
 					<!-- Spalten toggle -->
-					<div class="relative" x-data="{ open: false }">
-						<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open">
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
 							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-								Spalten
+								<i class="ri-eye-line"></i>
+								<span>Spalten</span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							</summary>
 							<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
@@ -182,14 +425,8 @@ class="container-normal font-sans mt-10">
 						<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
 							{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
 						</div>
-						<button
-							type="button"
-							class="content-action-button"
-							onclick="window.location.assign('/almanach/new')">
-							<i class="ri-add-line"></i>
-							<span>Neuer Band</span>
-						</button>
 					</div>
+
 				</div>
 			</div>
 		</div>
@@ -197,11 +434,6 @@ class="container-normal font-sans mt-10">
 
 	<div id="baenderesults" class="mt-2" data-next-offset="{{ $model.next_offset }}">
 		{{ template "_baende_table" $model }}
-
-		<!-- Bottom count -->
-		<div id="baende-count-bottom" class="mt-4 flex justify-center text-base font-semibold font-sans text-gray-600 whitespace-nowrap">
-			{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
-		</div>
 
 		<!-- Load More Button -->
 		<div class="mt-6 flex justify-center" x-show="hasMore">
@@ -229,3 +461,24 @@ class="container-normal font-sans mt-10">
 		</div>
 	</div>
 </div>
+
+<script>
+	(() => {
+		const filterRoots = document.querySelectorAll('[data-role="baende-filter"]');
+		filterRoots.forEach((root) => {
+			const input = root.querySelector('[data-role="filter-search"]');
+			const list = root.querySelector('[data-role="filter-list"]');
+			if (!list || !input) return;
+			input.addEventListener('input', () => {
+				const query = input.value.trim().toLowerCase();
+				list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
+					const label = (item.getAttribute('data-label') || '').toLowerCase();
+					if (item.getAttribute('data-label') === 'Alle') {
+						return;
+					}
+					item.classList.toggle('hidden', query !== '' && !label.includes(query));
+				});
+			});
+		});
+	})();
+</script>
