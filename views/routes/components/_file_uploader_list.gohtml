@@ -1,0 +1,63 @@
+{{ $model := . }}
+
+{{- if not $model.files -}}
+	<div class="text-sm text-gray-500">Noch keine Dateien hochgeladen.</div>
+{{- else -}}
+	<table class="min-w-full text-sm">
+		<thead>
+			<tr class="text-left text-gray-600 border-b">
+				<th class="py-2 pr-4">
+					<button type="button" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="file-sort" data-sort-key="title">
+						Titel
+						<i class="ri-arrow-up-down-line text-xs"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-4">Datei</th>
+				<th class="py-2 pr-4">Typ/Größe</th>
+				<th class="py-2 pr-4">
+					<button type="button" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="file-sort" data-sort-key="created">
+						Erstellt
+						<i class="ri-arrow-up-down-line text-xs"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-4">Link</th>
+				<th class="py-2 pr-2 text-right">Aktion</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{- range $_, $file := $model.files -}}
+				{{- $url := $file.PublicURL -}}
+				<tr class="border-b align-top" data-id="{{ $file.Id }}" data-title="{{ $file.Title }}" data-created="{{ $file.CreatedUnix }}">
+					<td class="py-2 pr-4">
+						<div class="font-semibold text-slate-900">{{ $file.Title }}</div>
+						{{- if $file.Description -}}
+							<div class="text-xs text-slate-500">{{ $file.Description }}</div>
+						{{- end -}}
+					</td>
+					<td class="py-2 pr-4 text-xs text-slate-600">{{ $file.FileField }}</td>
+					<td class="py-2 pr-4 text-xs text-slate-600">
+						{{- if $url -}}
+							<span data-role="file-meta" data-url="{{ $url }}" data-filename="{{ $file.FileField }}">
+								<span data-role="file-meta-value">lädt…</span>
+							</span>
+						{{- end -}}
+					</td>
+					<td class="py-2 pr-4 text-xs text-slate-600 whitespace-nowrap">{{ GermanDate $file.Created }} {{ GermanTime $file.Created }}</td>
+					<td class="py-2 pr-4 text-xs">
+						{{- if $url -}}
+							<a class="text-blue-700 hover:text-blue-900 underline" href="{{ $url }}" target="_blank" rel="noopener noreferrer" data-role="file-link" data-url="{{ $url }}">Link</a>
+							<button type="button" class="ml-2 text-slate-600 hover:text-slate-900" data-action="copy" data-url="{{ $url }}">
+								<i class="ri-file-copy-line"></i>
+							</button>
+						{{- end -}}
+					</td>
+					<td class="py-2 pr-2 text-right">
+						<button type="button" class="text-red-700 hover:text-red-900" data-action="delete" data-id="{{ $file.Id }}">
+							<i class="ri-delete-bin-line"></i>
+						</button>
+					</td>
+				</tr>
+			{{- end -}}
+		</tbody>
+	</table>
+{{- end -}}

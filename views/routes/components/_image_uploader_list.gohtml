@@ -1,0 +1,67 @@
+{{ $model := . }}
+
+{{- if not $model.images -}}
+	<div class="text-sm text-gray-500">Noch keine Bilder vorhanden.</div>
+{{- else -}}
+	<table class="min-w-full text-sm">
+		<thead>
+			<tr class="text-left text-gray-600 border-b">
+				<th class="py-2 pr-4">
+					<button type="button" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="image-sort" data-sort-key="title">
+						Titel
+						<i class="ri-arrow-up-down-line text-xs"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-4">Vorschau</th>
+				<th class="py-2 pr-4">Bild</th>
+				<th class="py-2 pr-4">
+					<button type="button" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="image-sort" data-sort-key="created">
+						Erstellt
+						<i class="ri-arrow-up-down-line text-xs"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-2 text-right">Aktion</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{- range $_, $img := $model.images -}}
+				{{- $preview := $img.PreviewPath -}}
+				{{- $image := $img.ImagePath -}}
+				<tr class="border-b align-top" data-id="{{ $img.Id }}" data-title="{{ $img.Title }}" data-created="{{ $img.CreatedUnix }}">
+					<td class="py-2 pr-4">
+						<div class="font-semibold text-slate-900">{{ $img.Title }}</div>
+						{{- if $img.Description -}}
+							<div class="text-xs text-slate-500 annotation-content">{{ Safe $img.Description }}</div>
+						{{- end -}}
+						<div class="text-xs text-slate-400 mt-1">{{ $img.Key }}</div>
+					</td>
+					<td class="py-2 pr-4 text-xs">
+						{{- if $preview -}}
+							<a href="{{ $preview }}" target="_blank" rel="noopener noreferrer" data-url="{{ $preview }}">
+								<img src="{{ $preview }}" alt="" class="h-12 w-12 object-cover rounded-sm border border-slate-200 hover:opacity-90" />
+							</a>
+						{{- end -}}
+					</td>
+					<td class="py-2 pr-4 text-xs">
+						{{- if $image -}}
+							<a href="{{ $image }}" target="_blank" rel="noopener noreferrer" data-url="{{ $image }}">
+								<img src="{{ $image }}" alt="" class="h-12 w-12 object-cover rounded-sm border border-slate-200 hover:opacity-90" />
+							</a>
+						{{- end -}}
+					</td>
+					<td class="py-2 pr-4 text-xs text-slate-600 whitespace-nowrap">{{ GermanDate $img.Created }} {{ GermanTime $img.Created }}</td>
+					<td class="py-2 pr-2 text-right">
+						{{- if $image -}}
+							<button type="button" class="mr-2 text-slate-600 hover:text-slate-900" data-action="copy" data-url="{{ $image }}">
+								<i class="ri-file-copy-line"></i>
+							</button>
+						{{- end -}}
+						<button type="button" class="text-red-700 hover:text-red-900" data-action="delete" data-id="{{ $img.Id }}">
+							<i class="ri-delete-bin-line"></i>
+						</button>
+					</td>
+				</tr>
+			{{- end -}}
+		</tbody>
+	</table>
+{{- end -}}
