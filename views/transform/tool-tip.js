@@ -91,8 +91,9 @@ export class ToolTip extends HTMLElement {
 			"shadow",
 			"z-50",
 			"whitespace-nowrap",
-			"transition-all",
-			"duration-200",
+			"transition-opacity",
+			"duration-100",
+			"ease-out",
 			"font-sans",
 		].join(" ");
 
