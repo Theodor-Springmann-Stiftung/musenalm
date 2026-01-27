@@ -240,10 +240,12 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 
 	// Validate sort field - whitelist approach for security
 	validSorts := map[string]bool{
-		"title":    true,
-		"alm":      true,
-		"year":     true,
-		"signatur": true,
+		"title":          true,
+		"alm":            true,
+		"year":           true,
+		"signatur":       true,
+		"responsibility": true,
+		"place":          true,
 	}
 	if !validSorts[sort] {
 		sort = "title" // default
@@ -325,6 +327,10 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		dbmodels.Sort_Entries_Year_Title(filteredEntries)
 	case "signatur":
 		dbmodels.Sort_Entries_Signatur(filteredEntries, itemsMap)
+	case "responsibility":
+		dbmodels.Sort_Entries_Responsibility_Title(filteredEntries)
+	case "place":
+		dbmodels.Sort_Entries_Place_Title(filteredEntries)
 	default: // "title"
 		dbmodels.Sort_Entries_Title_Year(filteredEntries)
 	}

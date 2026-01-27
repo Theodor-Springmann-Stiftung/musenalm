@@ -81,7 +81,7 @@ export class ToolTip extends HTMLElement {
 			"tooltip-box",
 			"opacity-0",
 			"hidden",
-			"absolute",
+			"fixed",
 			"px-2",
 			"py-1",
 			"text-sm",
@@ -89,7 +89,7 @@ export class ToolTip extends HTMLElement {
 			"bg-gray-900",
 			"rounded",
 			"shadow",
-			"z-10",
+			"z-50",
 			"whitespace-nowrap",
 			"transition-all",
 			"duration-200",
@@ -169,6 +169,7 @@ export class ToolTip extends HTMLElement {
 		clearTimeout(this._hideTimeout);
 		clearTimeout(this._hiddenTimeout);
 		this._tooltipBox.classList.remove("hidden");
+		this._updatePosition();
 		setTimeout(() => {
 			this._tooltipBox.classList.remove("opacity-0");
 			this._tooltipBox.classList.add("opacity-100");
@@ -186,61 +187,40 @@ export class ToolTip extends HTMLElement {
 	}
 
 	_updatePosition() {
-		this._tooltipBox.classList.remove(
-			"bottom-full",
-			"left-1/2",
-			"-translate-x-1/2",
-			"mb-2", // top
-			"top-full",
-			"mt-2", // bottom
-			"right-full",
-			"-translate-y-1/2",
-			"mr-2",
-			"top-1/2", // left
-			"left-full",
-			"ml-2", // right
-		);
+		const anchorRect = this.getBoundingClientRect();
+		const tipRect = this._tooltipBox.getBoundingClientRect();
+		const gap = 6;
 
+		let top = 0;
+		let left = 0;
 		const pos = this.getAttribute("position") || "top";
 
 		switch (pos) {
 			case "bottom":
-				this._tooltipBox.classList.add(
-					"top-full",
-					"left-1/2",
-					"transform",
-					"-translate-x-1/2",
-					"mt-0.5",
-				);
+				top = anchorRect.bottom + gap;
+				left = anchorRect.left + (anchorRect.width - tipRect.width) / 2;
 				break;
 			case "left":
-				this._tooltipBox.classList.add(
-					"right-full",
-					"top-1/2",
-					"transform",
-					"-translate-y-1/2",
-					"mr-0.5",
-				);
+				top = anchorRect.top + (anchorRect.height - tipRect.height) / 2;
+				left = anchorRect.left - tipRect.width - gap;
 				break;
 			case "right":
-				this._tooltipBox.classList.add(
-					"left-full",
-					"top-1/2",
-					"transform",
-					"-translate-y-1/2",
-					"ml-0.5",
-				);
+				top = anchorRect.top + (anchorRect.height - tipRect.height) / 2;
+				left = anchorRect.right + gap;
 				break;
 			case "top":
 			default:
-				// top as default
-				this._tooltipBox.classList.add(
-					"bottom-full",
-					"left-1/2",
-					"transform",
-					"-translate-x-1/2",
-					"mb-0.5",
-				);
+				top = anchorRect.top - tipRect.height - gap;
+				left = anchorRect.left + (anchorRect.width - tipRect.width) / 2;
 		}
+
+		const padding = 4;
+		const maxLeft = window.innerWidth - tipRect.width - padding;
+		const maxTop = window.innerHeight - tipRect.height - padding;
+		left = Math.max(padding, Math.min(left, maxLeft));
+		top = Math.max(padding, Math.min(top, maxTop));
+
+		this._tooltipBox.style.left = `${left}px`;
+		this._tooltipBox.style.top = `${top}px`;
 	}
 }

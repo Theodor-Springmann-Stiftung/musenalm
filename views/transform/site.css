@@ -300,6 +300,15 @@
 		@apply font-serif;
 	}
 
+	/* Card view (baende details) should use sans annotations */
+	.baende-details-card .annotation-content {
+		@apply font-sans text-base;
+	}
+
+	.baende-details-card .annotation-small {
+		@apply text-sm;
+	}
+
 	/* Headings - bold with spacing, same font size */
 	.annotation-content h1 {
 		@apply font-bold mt-2 mb-1 leading-normal;

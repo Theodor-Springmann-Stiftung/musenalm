@@ -9,22 +9,22 @@
 			{{- end -}}
 			<div class="flex flex-wrap items-center gap-1.5 pt-2">
 				<tool-tip position="top" class="inline">
-					<a href="/almanach/{{ $entry.MusenalmID }}" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+					<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
 						<i class="ri-eye-line"></i>
 					</a>
 					<div class="data-tip">Ansehen</div>
 				</tool-tip>
 				{{- if $result.IsAdmin -}}
 					<tool-tip position="top" class="inline">
-						<a href="/almanach/{{ $entry.MusenalmID }}/edit" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+						<a href="/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
 							<i class="ri-edit-line"></i>
 						</a>
 						<div class="data-tip">Bearbeiten</div>
 					</tool-tip>
-					<form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="return confirm('Band wirklich löschen?');">
+					<form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="event.stopPropagation(); return confirm('Band wirklich löschen?');">
 						<input type="hidden" name="csrf_token" value="{{ $result.CSRFToken }}" />
 						<tool-tip position="top" class="inline">
-							<button type="submit" class="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+							<button type="submit" onclick="event.stopPropagation();" class="inline-flex items-center gap-1 rounded-xs bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
 								<i class="ri-delete-bin-line"></i>
 
 							</button>
@@ -35,6 +35,7 @@
 				<tool-tip position="top" class="inline">
 					<button 
                         type="button" 
+                        onclick="event.stopPropagation();"
                         class="inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900" 
                         hx-get="/baende/row/{{ $entry.MusenalmID }}"
                         hx-target="closest tr"
@@ -50,7 +51,7 @@
 	<td class="py-2 pr-4 pl-2" colspan="6">
 		<div class="rounded-md border border-slate-200 bg-white shadow-sm p-3 text-base">
 			<div class="flex items-start justify-between gap-4 mb-3">
-			<div class="font-sans text-base font-semibold text-slate-900 inline-flex items-center">
+			<div class="font-sans text-base font-semibold text-slate-900 inline-flex items-center gap-1">
 				{{- if $entry.PreferredTitle -}}
 					{{ $entry.PreferredTitle }}
 				{{- else if ne $entry.Year 0 -}}
@@ -59,7 +60,7 @@
 					[o.J.]
 				{{- end -}}
 				<tool-tip position="top" class="inline-flex items-center">
-					<i class="status-icon ml-1 {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+					<i class="status-icon {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
 					<div class="data-tip">
 						{{- if eq $entry.EditState "Unknown" -}}
 							Gesucht
@@ -78,7 +79,7 @@
 				</tool-tip>
 			</div>
 			</div>
-			<div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-6 text-base font-sans text-gray-700">
+			<div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-6 text-base font-sans text-gray-700 baende-details-card">
 				<div class="flex flex-col gap-3">
 					{{- if or $entry.TitleStmt $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
 						<div>
@@ -105,7 +106,7 @@
 					{{- if $entry.Annotation -}}
 						<div>
 							<div class="text-xs uppercase tracking-wide text-gray-500">Annotation</div>
-							<div>{{ $entry.Annotation }}</div>
+							<div class="annotation-content">{{- Safe (ReplaceSlashParen $entry.Annotation) -}}</div>
 						</div>
 					{{- end -}}
 					{{- if $result.SeriesRels -}}
@@ -162,7 +163,7 @@
 					{{- if $entry.Comment -}}
 						<div>
 							<div class="text-xs uppercase tracking-wide text-gray-500">Kommentar</div>
-							<div>{{ $entry.Comment }}</div>
+							<div class="annotation-content">{{- Safe (ReplaceSlashParen $entry.Comment) -}}</div>
 						</div>
 					{{- end -}}
 					{{- if ne $entry.Year 0 -}}
@@ -206,33 +207,62 @@
 					{{- if $result.Items -}}
 						<div>
 							<div class="text-xs uppercase tracking-wide text-gray-500">Exemplare</div>
-							<div class="flex flex-col gap-2">
+							<div class="grid grid-cols-1 gap-4">
 								{{- range $_, $item := $result.Items -}}
-									<div class="rounded-md border border-slate-200 bg-white px-3 py-2 shadow-sm">
-										<div class="flex items-start gap-3">
-											<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-xs min-w-[6rem]">
-												{{- if $item.Identifier -}}
-													<div class="px-2 py-1 font-semibold text-slate-900 text-center">{{ $item.Identifier }}</div>
-												{{- end -}}
-												{{- if $item.Media -}}
-													<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug">
+									<div class="rounded-sm border border-slate-200 bg-white">
+										<div class="divide-y divide-slate-200 text-sm text-gray-700">
+											{{- if $item.Identifier -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Signatur</span>
+													<span class="font-semibold text-slate-900">{{ $item.Identifier }}</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Media -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Status</span>
+													<span class="font-medium text-slate-800">
 														{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}
-													</div>
-												{{- end -}}
-											</div>
-											<div class="flex-1">
-												{{- if or $item.Location $item.Owner -}}
-													<div class="text-sm text-gray-600">
-														{{- if $item.Location -}}<span>{{ $item.Location }}</span>{{- end -}}
-														{{- if $item.Owner -}}<span class="ml-2">{{ $item.Owner }}</span>{{- end -}}
-													</div>
-												{{- end -}}
-											</div>
+													</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Location -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Standort</span>
+													<span class="font-medium text-slate-800">{{ $item.Location }}</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Owner -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Träger</span>
+													<span class="font-medium text-slate-800">{{ $item.Owner }}</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Condition -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Zustand</span>
+													<span class="font-medium text-slate-800">{{ $item.Condition }}</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Annotation -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">Anmerkung</span>
+													<span class="text-slate-700 annotation-content annotation-small">{{- Safe (ReplaceSlashParen $item.Annotation) -}}</span>
+												</div>
+											{{- end -}}
+											{{- if $item.Uri -}}
+												<div class="grid grid-cols-[5rem_1fr] items-center gap-3 px-3 py-1.5">
+													<span class="text-xs uppercase tracking-wide text-gray-500 whitespace-nowrap">URI</span>
+													<a href="{{ $item.Uri }}" class="text-slate-700 hover:text-slate-900 underline underline-offset-2" target="_blank" rel="noopener">Link öffnen</a>
+												</div>
+											{{- end -}}
 										</div>
-										{{- if or $item.Location $item.Owner -}}
+										{{- if or $item.Location $item.Owner $item.Condition $item.Annotation $item.Uri -}}
 											<div class="sr-only">
 												{{- if $item.Location -}}<span>{{ $item.Location }}</span>{{- end -}}
 												{{- if $item.Owner -}}<span class="ml-2">{{ $item.Owner }}</span>{{- end -}}
+												{{- if $item.Condition -}}<span class="ml-2">{{ $item.Condition }}</span>{{- end -}}
+												{{- if $item.Annotation -}}<span class="ml-2">{{ $item.Annotation }}</span>{{- end -}}
+												{{- if $item.Uri -}}<span class="ml-2">{{ $item.Uri }}</span>{{- end -}}
 											</div>
 										{{- end -}}
 									</div>
@@ -245,4 +275,3 @@
 		</div>
 	</td>
 </tr>
-

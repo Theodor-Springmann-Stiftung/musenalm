@@ -125,8 +125,8 @@ class="container-normal font-sans mt-10">
 								Alphabet
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': alphabetOpen }"></i>
 							</summary>
-							<div class="absolute left-0 mt-2 w-12 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-								<div class="p-2 flex flex-col gap-1 text-sm text-gray-700">
+							<div class="absolute left-0 mt-2 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-2 grid grid-cols-13 gap-1 text-sm text-gray-700 w-[26rem]">
 									{{- range $_, $ch := $model.letters -}}
 										<a href="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 										   hx-get="/baende/results/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
@@ -134,33 +134,26 @@ class="container-normal font-sans mt-10">
 										   hx-swap="outerHTML"
 										   hx-indicator="body"
 										   hx-push-url="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'"
+										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'; search = ''"
 										   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
 										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
 											{{ $ch }}
 										</a>
 									{{- end -}}
-									<!-- Clear filter option -->
 									<a href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-target="#baenderesults"
 									   hx-swap="outerHTML"
 									   hx-indicator="body"
 									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''"
-									   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors border-t mt-1">
+									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''; search = ''"
+									   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors col-span-13 border-t mt-1">
 										Alle
 									</a>
 								</div>
 							</div>
 						</details>
 					</div>
-				</div>
-
-				<!-- Right side group: Spalten menu and count/button -->
-				<div class="flex items-end gap-4">
-
-
 
 					<!-- Spalten toggle -->
 					<div class="relative" x-data="{ open: false }">
@@ -173,13 +166,16 @@ class="container-normal font-sans mt-10">
 								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="language" /> Sprachen</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
 								</div>
 							</div>
 						</details>
 					</div>
+				</div>
+
+				<!-- Right side group: count/button -->
+				<div class="flex items-end gap-4 ml-auto">
 
 					<!-- Count and New button -->
 					<div class="flex items-center gap-3">
@@ -201,6 +197,11 @@ class="container-normal font-sans mt-10">
 
 	<div id="baenderesults" class="mt-2" data-next-offset="{{ $model.next_offset }}">
 		{{ template "_baende_table" $model }}
+
+		<!-- Bottom count -->
+		<div id="baende-count-bottom" class="mt-4 flex justify-center text-base font-semibold font-sans text-gray-600 whitespace-nowrap">
+			{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
+		</div>
 
 		<!-- Load More Button -->
 		<div class="mt-6 flex justify-center" x-show="hasMore">

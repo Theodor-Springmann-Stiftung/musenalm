@@ -113,3 +113,51 @@ func Sort_Entries_Signatur(entries []*Entry, itemsMap map[string][]*Item) {
 		return collator.CompareString(iLowestSig, jLowestSig)
 	})
 }
+
+// Sort_Entries_Responsibility_Title sorts entries by responsibility statement, then preferred title.
+// Empty responsibility statements sort last.
+func Sort_Entries_Responsibility_Title(entries []*Entry) {
+	collator := collate.New(language.German)
+	slices.SortFunc(entries, func(i, j *Entry) int {
+		iResp := i.ResponsibilityStmt()
+		jResp := j.ResponsibilityStmt()
+
+		if iResp == "" && jResp == "" {
+			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
+		}
+		if iResp == "" {
+			return 1
+		}
+		if jResp == "" {
+			return -1
+		}
+		if iResp == jResp {
+			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
+		}
+		return collator.CompareString(iResp, jResp)
+	})
+}
+
+// Sort_Entries_Place_Title sorts entries by place statement, then preferred title.
+// Empty place statements sort last.
+func Sort_Entries_Place_Title(entries []*Entry) {
+	collator := collate.New(language.German)
+	slices.SortFunc(entries, func(i, j *Entry) int {
+		iPlace := i.PlaceStmt()
+		jPlace := j.PlaceStmt()
+
+		if iPlace == "" && jPlace == "" {
+			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
+		}
+		if iPlace == "" {
+			return 1
+		}
+		if jPlace == "" {
+			return -1
+		}
+		if iPlace == jPlace {
+			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
+		}
+		return collator.CompareString(iPlace, jPlace)
+	})
+}
