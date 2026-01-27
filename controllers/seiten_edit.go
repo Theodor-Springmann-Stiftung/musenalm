@@ -204,6 +204,11 @@ func seitenEditorData(e *core.RequestEvent, app core.App) (map[string]any, error
 		return nil, err
 	}
 
+	files, err := dbmodels.Files_All(app)
+	if err != nil {
+		return nil, err
+	}
+
 	selectedKey := strings.TrimSpace(e.Request.URL.Query().Get("key"))
 	if selectedKey == "" && len(pages) > 0 {
 		selectedKey = pages[0].Key
@@ -221,6 +226,24 @@ func seitenEditorData(e *core.RequestEvent, app core.App) (map[string]any, error
 		"pages":        pages,
 		"selected":     selected,
 		"selected_key": selectedKey,
+		"files":        files,
+	}
+
+	if selectedKey == pagemodels.P_INDEX_NAME {
+		images, err := dbmodels.Images_KeyPrefix(app, "page.index.image.")
+		if err != nil {
+			return nil, err
+		}
+		data["images_index"] = images
+		data["images_index_prefix"] = "page.index"
+	}
+	if selectedKey == pagemodels.P_REIHEN_NAME {
+		image, err := dbmodels.Images_Key(app, "page.reihen.image")
+		if err != nil {
+			return nil, err
+		}
+		data["image_reihen"] = image
+		data["image_reihen_key"] = "page.reihen.image"
 	}
 
 	req := templating.NewRequest(e)

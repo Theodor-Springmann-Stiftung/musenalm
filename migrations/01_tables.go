@@ -532,7 +532,7 @@ func filesTable() *core.Collection {
 
 func filesTableFields() core.FieldsList {
 	fields := core.NewFieldsList(
-		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.TITLE_FIELD, Required: true, Presentable: true},
 		&core.TextField{Name: dbmodels.DESCRIPTION_FIELD, Required: false},
 		&core.FileField{
 			Name:      dbmodels.FILE_FIELD,
@@ -547,7 +547,7 @@ func filesTableFields() core.FieldsList {
 }
 
 func filesTableIndexes(collection *core.Collection) {
-	dbmodels.AddIndex(collection, dbmodels.KEY_FIELD, false)
+	dbmodels.AddIndex(collection, dbmodels.TITLE_FIELD, false)
 }
 
 func htmlTable() *core.Collection {

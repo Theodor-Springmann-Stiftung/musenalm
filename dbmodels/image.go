@@ -1,6 +1,9 @@
 package dbmodels
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
+)
 
 type Image struct {
 	core.BaseRecordProxy
@@ -56,4 +59,16 @@ func (i *Image) VorschauPath() string {
 
 func (i *Image) Beschreibung() string {
 	return i.Description()
+}
+
+func (i *Image) Created() types.DateTime {
+	return i.GetDateTime(CREATED_FIELD)
+}
+
+func (i *Image) CreatedUnix() int64 {
+	t := i.GetDateTime(CREATED_FIELD)
+	if t.IsZero() {
+		return 0
+	}
+	return t.Time().Unix()
 }

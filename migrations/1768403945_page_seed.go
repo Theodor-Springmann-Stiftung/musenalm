@@ -11,6 +11,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
@@ -654,25 +655,89 @@ const (
 
 	KABINETT_TITLE       = "Lesekabinett"
 	KABINETT_DESCRIPTION = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
-	KABINETT_TEXT        = `<h1>Texte zum Almanachwesen</h1>
-<p><em>Joseph Franz von Ratschky:</em> Vorbericht. in: Wiener Musenalmanach. 1779, S. 3-6. [&darr;<a href="/assets/Lesekabinett/ratschky_in_wiener_1779.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Gottfried August B&uuml;rger:</em> Nothgedrungene Nachrede. in: G&ouml;ttinger Musenalmanach. 1782, S. 184-192. [&darr;<a href="/assets/Lesekabinett/buerger_in_goettinger_1782.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Christian Cay Lorenz Hirschfeld: </em>An die Leser. in: Gartenkalender. 1783, S. 272. [&darr;<a href="/assets/Lesekabinett/hirschfeld_in_gartenkalender_1783.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Johann Heinrich Vo&szlig;:</em> Ank&uuml;ndigung. in: Hamburger Musenalmanach. 1784, S. 222ff. [&darr;<a href="/assets/Lesekabinett/voss_in_hamburger_1784.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Gotthold Friedrich St&auml;udlin: </em>Nachrede. in: Schw&auml;bischer Musenalmanach. 1786 [o. S.]. [&darr;<a href="/assets/Lesekabinett/staeudlin_in_schwaebischer_1786.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Gottfried August B&uuml;rger:</em> F&uuml;rbitte eines ans peinliche Kreuz der Verlegenheit genagelten Herausgebers eines Musenalmanachs. in: G&ouml;ttinger Musenalmanach. 1789, S. 104. [&darr;<a href="/assets/Lesekabinett/buerger_in_goettinger_1789.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Anonymus: </em>Die deutschen Almanache. in: Bibliothek der redenden und bildenden K&uuml;nste. Zweyten Bandes erstes St&uuml;ck. Leipzig, in der Dyckischen Buchhandlung, 1806, S. 207-217. [&darr;<a href="/assets/Lesekabinett/anonymus.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Stephan Sch&uuml;tze:</em> Die Neujahrsversammlung. Ein dramatischer Prolog. in: Taschenbuch der Liebe und Freundschaft gewidmet. 1813, S. 1-20. [&darr;<a href="/assets/Lesekabinett/schuetze_in_taschenbuch_1813.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>N. B. E.: </em>Die deutschen Taschenb&uuml;cher f&uuml;r 1820. in: Hermes oder kritisches Jahrbuch der Literatur. Zweites St&uuml;ck f&uuml;r das Jahr 1820. Amsterdam, in der Verlags-Expedition des Hermes, S. 191-235. [&darr;<em><a href="/assets/Lesekabinett/nbe_in_hermes_1820.pdf" target="_blank" rel="noopener">Download</a>]</em></p>
-<p><em>Ferdinand Johannes Wit:</em> Die Almanachomanie. in: Politisches Taschenbuch. 1831, S. 102-111. [&darr;<a href="/assets/Lesekabinett/wit_in_politaschenbuch_1831.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>August Wilhelm Schlegel:</em> Recept. in: Deutscher Musenalmanach (Chamisso, Schwab, Gaudy). 1836, S. 18. [&darr;<a href="/assets/Lesekabinett/schlegel_in_deutscher_1836.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p><em>Robert Eduard Prutz:</em> Die Musenalmanache und Taschenb&uuml;cher in Deutschland. in: Neue Schriften. Zur deutschen Literatur- und Kulturgeschichte. Erster Band, Halle, G. Schwetschke'scher Verlag, 1854, S. 105-165. [&darr;<a href="/assets/Lesekabinett/prutz_in_musenalmanache_1854.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<p data-olk-copy-source="MessageBody"><em>Friedrich Arnold Brockhaus:</em> Taschenb&uuml;cher &ndash; und Almanachsliteratur in Deutschland. In: &nbsp;Allgemeine deutsche Real-Encyclop&auml;die f&uuml;r die gebildeten St&auml;nde (Conversations-Lexicon) Leipzig 1820 Bd. 10. S. 973-978. [&darr;<a href="/assets/Lesekabinett/brockhaus.pdf" target="_blank" rel="noopener">Download</a>]</p>
-<h1>Allotria und Kuriosa</h1>
-<p><em>Anonymus:</em> Woher das Wort Almanach komme. in: Neues Wochenblatt zum Nuzzen und zur Unterhaltung f&uuml;r Kinder und junge Leute. Erstes B&auml;ndchen, erstes St&uuml;ck, Leipzig, in der Sommerschen Buchhandlung 1794, S. 8f. [&darr;<a href="/assets/Lesekabinett/allatroia_anonymus_wochenblatt_1794.pdf" target="_blank" rel="noopener">Download</a>]</p>`
+	LESEKABINETT_FILES_PATH = "./views/public/Lesekabinett"
 
 	ABKUERZUNGEN_PATH = "./import/data/abkuerzungen.txt"
 )
+
+type lesekabinettFileSeed struct {
+	HTML     string
+	FileName string
+	Title    string
+}
+
+var lesekabinettSeed = []lesekabinettFileSeed{
+	{
+		HTML:     `<p><em>Joseph Franz von Ratschky:</em> Vorbericht. in: Wiener Musenalmanach. 1779, S. 3-6. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "ratschky_in_wiener_1779.pdf",
+		Title:    "Joseph Franz von Ratschky: Vorbericht",
+	},
+	{
+		HTML:     `<p><em>Gottfried August B&uuml;rger:</em> Nothgedrungene Nachrede. in: G&ouml;ttinger Musenalmanach. 1782, S. 184-192. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "buerger_in_goettinger_1782.pdf",
+		Title:    "Gottfried August Bürger: Nothgedrungene Nachrede",
+	},
+	{
+		HTML:     `<p><em>Christian Cay Lorenz Hirschfeld: </em>An die Leser. in: Gartenkalender. 1783, S. 272. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "hirschfeld_in_gartenkalender_1783.pdf",
+		Title:    "Christian Cay Lorenz Hirschfeld: An die Leser",
+	},
+	{
+		HTML:     `<p><em>Johann Heinrich Vo&szlig;:</em> Ank&uuml;ndigung. in: Hamburger Musenalmanach. 1784, S. 222ff. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "voss_in_hamburger_1784.pdf",
+		Title:    "Johann Heinrich Voß: Ankündigung",
+	},
+	{
+		HTML:     `<p><em>Gotthold Friedrich St&auml;udlin: </em>Nachrede. in: Schw&auml;bischer Musenalmanach. 1786 [o. S.]. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "staeudlin_in_schwaebischer_1786.pdf",
+		Title:    "Gotthold Friedrich Stäudlin: Nachrede",
+	},
+	{
+		HTML:     `<p><em>Gottfried August B&uuml;rger:</em> F&uuml;rbitte eines ans peinliche Kreuz der Verlegenheit genagelten Herausgebers eines Musenalmanachs. in: G&ouml;ttinger Musenalmanach. 1789, S. 104. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "buerger_in_goettinger_1789.pdf",
+		Title:    "Gottfried August Bürger: Fürbitte eines Herausgebers",
+	},
+	{
+		HTML:     `<p><em>Anonymus: </em>Die deutschen Almanache. in: Bibliothek der redenden und bildenden K&uuml;nste. Zweyten Bandes erstes St&uuml;ck. Leipzig, in der Dyckischen Buchhandlung, 1806, S. 207-217. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "anonymus.pdf",
+		Title:    "Anonymus: Die deutschen Almanache",
+	},
+	{
+		HTML:     `<p><em>Stephan Sch&uuml;tze:</em> Die Neujahrsversammlung. Ein dramatischer Prolog. in: Taschenbuch der Liebe und Freundschaft gewidmet. 1813, S. 1-20. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "schuetze_in_taschenbuch_1813.pdf",
+		Title:    "Stephan Schütze: Die Neujahrsversammlung",
+	},
+	{
+		HTML:     `<p><em>N. B. E.: </em>Die deutschen Taschenb&uuml;cher f&uuml;r 1820. in: Hermes oder kritisches Jahrbuch der Literatur. Zweites St&uuml;ck f&uuml;r das Jahr 1820. Amsterdam, in der Verlags-Expedition des Hermes, S. 191-235. [&darr;<em><a href="%s" target="_blank" rel="noopener">Download</a>]</em></p>`,
+		FileName: "nbe_in_hermes_1820.pdf",
+		Title:    "N. B. E.: Die deutschen Taschenbücher für 1820",
+	},
+	{
+		HTML:     `<p><em>Ferdinand Johannes Wit:</em> Die Almanachomanie. in: Politisches Taschenbuch. 1831, S. 102-111. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "wit_in_politaschenbuch_1831.pdf",
+		Title:    "Ferdinand Johannes Wit: Die Almanachomanie",
+	},
+	{
+		HTML:     `<p><em>August Wilhelm Schlegel:</em> Recept. in: Deutscher Musenalmanach (Chamisso, Schwab, Gaudy). 1836, S. 18. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "schlegel_in_deutscher_1836.pdf",
+		Title:    "August Wilhelm Schlegel: Recept",
+	},
+	{
+		HTML:     `<p><em>Robert Eduard Prutz:</em> Die Musenalmanache und Taschenb&uuml;cher in Deutschland. in: Neue Schriften. Zur deutschen Literatur- und Kulturgeschichte. Erster Band, Halle, G. Schwetschke'scher Verlag, 1854, S. 105-165. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "prutz_in_musenalmanache_1854.pdf",
+		Title:    "Robert Eduard Prutz: Die Musenalmanache und Taschenbücher",
+	},
+	{
+		HTML:     `<p data-olk-copy-source="MessageBody"><em>Friedrich Arnold Brockhaus:</em> Taschenb&uuml;cher &ndash; und Almanachsliteratur in Deutschland. In: &nbsp;Allgemeine deutsche Real-Encyclop&auml;die f&uuml;r die gebildeten St&auml;nde (Conversations-Lexicon) Leipzig 1820 Bd. 10. S. 973-978. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "brockhaus.pdf",
+		Title:    "Friedrich Arnold Brockhaus: Taschenbücher und Almanachsliteratur",
+	},
+	{
+		HTML:     `<p><em>Anonymus:</em> Woher das Wort Almanach komme. in: Neues Wochenblatt zum Nuzzen und zur Unterhaltung f&uuml;r Kinder und junge Leute. Erstes B&auml;ndchen, erstes St&uuml;ck, Leipzig, in der Sommerschen Buchhandlung 1794, S. 8f. [&darr;<a href="%s" target="_blank" rel="noopener">Download</a>]</p>`,
+		FileName: "allatroia_anonymus_wochenblatt_1794.pdf",
+		Title:    "Anonymus: Woher das Wort Almanach komme",
+	},
+}
 
 var pageMetaSeed = map[string]PageMeta{
 	pagemodels.P_INDEX_NAME: {
@@ -725,27 +790,38 @@ var pageMetaSeed = map[string]PageMeta{
 	},
 }
 
-var pageHTMLSeed = map[string]string{
-	pageHTMLKey(pagemodels.P_INDEX_NAME, "abs1"):       INDEX_ABS1,
-	pageHTMLKey(pagemodels.P_INDEX_NAME, "abs2"):       INDEX_ABS2,
-	pageHTMLKey(pagemodels.P_REIHEN_NAME, "text"):      REIHEN_TEXT,
-	pageHTMLKey(pagemodels.P_DANK_NAME, "text"):        DANKSAGUNGEN_TEXT,
-	pageHTMLKey(pagemodels.P_EINFUEHRUNG_NAME, "text"): EINLEITUNG_TEXT,
-	pageHTMLKey(pagemodels.P_KONTAKT_NAME, "text"):     KONTAKT_TEXT,
-	pageHTMLKey(pagemodels.P_LIT_NAME, "text"):         LITERATUR_TEXT,
-	pageHTMLKey(pagemodels.P_DOK_NAME, "text"):         DOKUMENTATION_TEXT,
-	pageHTMLKey(pagemodels.P_KABINETT_NAME, "text"):    KABINETT_TEXT,
+func pageHTMLSeed(kabinetText string) map[string]string {
+	return map[string]string{
+		pageHTMLKey(pagemodels.P_INDEX_NAME, "abs1"):       INDEX_ABS1,
+		pageHTMLKey(pagemodels.P_INDEX_NAME, "abs2"):       INDEX_ABS2,
+		pageHTMLKey(pagemodels.P_REIHEN_NAME, "text"):      REIHEN_TEXT,
+		pageHTMLKey(pagemodels.P_DANK_NAME, "text"):        DANKSAGUNGEN_TEXT,
+		pageHTMLKey(pagemodels.P_EINFUEHRUNG_NAME, "text"): EINLEITUNG_TEXT,
+		pageHTMLKey(pagemodels.P_KONTAKT_NAME, "text"):     KONTAKT_TEXT,
+		pageHTMLKey(pagemodels.P_LIT_NAME, "text"):         LITERATUR_TEXT,
+		pageHTMLKey(pagemodels.P_DOK_NAME, "text"):         DOKUMENTATION_TEXT,
+		pageHTMLKey(pagemodels.P_KABINETT_NAME, "text"):    kabinetText,
+	}
 }
 
 func init() {
 	m.Register(func(app core.App) error {
+		kabinetUrls, err := seedLesekabinettFiles(app)
+		if err != nil {
+			return err
+		}
+		kabinetText, err := buildLesekabinettHTML(kabinetUrls)
+		if err != nil {
+			return err
+		}
+
 		for key, meta := range pageMetaSeed {
 			if err := upsertPageMeta(app, key, meta); err != nil {
 				return err
 			}
 		}
 
-		for key, html := range pageHTMLSeed {
+		for key, html := range pageHTMLSeed(kabinetText) {
 			if err := upsertHTML(app, key, html); err != nil {
 				return err
 			}
@@ -764,7 +840,7 @@ func init() {
 
 		return seedAbkuerzungen(app)
 	}, func(app core.App) error {
-		for key := range pageHTMLSeed {
+		for key := range pageHTMLSeed("") {
 			if err := deleteByKey(app, dbmodels.HTML_TABLE, key); err != nil {
 				return err
 			}
@@ -787,8 +863,88 @@ func init() {
 		_, err = app.DB().
 			NewQuery("DELETE FROM " + imagesCollection.TableName() + " WHERE " + dbmodels.KEY_FIELD + " LIKE 'page.index.image.%'").
 			Execute()
-		return err
+		if err != nil {
+			return err
+		}
+
+		return deleteLesekabinettFiles(app)
 	})
+}
+
+func seedLesekabinettFiles(app core.App) (map[string]string, error) {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.FILES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	urls := map[string]string{}
+	for _, entry := range lesekabinettSeed {
+		path := filepath.Join(LESEKABINETT_FILES_PATH, entry.FileName)
+		file, err := filesystem.NewFileFromPath(path)
+		if err != nil {
+			app.Logger().Error("Failed to read lesekabinett file", "error", err, "path", path)
+			return nil, err
+		}
+
+		record, _ := app.FindFirstRecordByData(collection.Id, dbmodels.TITLE_FIELD, entry.Title)
+		if record == nil {
+			record = core.NewRecord(collection)
+		}
+		record.Set(dbmodels.TITLE_FIELD, entry.Title)
+		record.Set(dbmodels.DESCRIPTION_FIELD, entry.Title)
+		record.Set(dbmodels.FILE_FIELD, file)
+
+		if err := app.Save(record); err != nil {
+			return nil, err
+		}
+
+		fileName := record.GetString(dbmodels.FILE_FIELD)
+		if fileName == "" {
+			fileName = entry.FileName
+		}
+		urls[entry.FileName] = "/api/files/" + dbmodels.FILES_TABLE + "/" + record.Id + "/" + fileName
+	}
+
+	return urls, nil
+}
+
+func buildLesekabinettHTML(urls map[string]string) (string, error) {
+	var builder strings.Builder
+	builder.WriteString("<h1>Texte zum Almanachwesen</h1>\n")
+	for _, entry := range lesekabinettSeed {
+		if entry.FileName == "allatroia_anonymus_wochenblatt_1794.pdf" {
+			builder.WriteString("<h1>Allotria und Kuriosa</h1>\n")
+		}
+		url, ok := urls[entry.FileName]
+		if !ok {
+			return "", fmt.Errorf("missing file url for %s", entry.FileName)
+		}
+		builder.WriteString(fmt.Sprintf(entry.HTML, url))
+	}
+	return builder.String(), nil
+}
+
+func deleteLesekabinettFiles(app core.App) error {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.FILES_TABLE)
+	if err != nil {
+		return err
+	}
+
+	if len(lesekabinettSeed) == 0 {
+		return nil
+	}
+
+	params := dbx.Params{}
+	placeholders := make([]string, 0, len(lesekabinettSeed))
+	for i, entry := range lesekabinettSeed {
+		key := fmt.Sprintf("p%d", i)
+		params[key] = entry.FileName
+		placeholders = append(placeholders, "{:"+key+"}")
+	}
+
+	query := "DELETE FROM " + collection.TableName() + " WHERE " + dbmodels.FILE_FIELD + " IN (" + strings.Join(placeholders, ", ") + ")"
+	_, err = app.DB().NewQuery(query).Bind(params).Execute()
+	return err
 }
 
 func seedReihenImage(app core.App) error {

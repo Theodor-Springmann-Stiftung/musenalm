@@ -43,6 +43,14 @@
 					<span>Seiteninhalte</span>
 				</div>
 
+				{{ template "_file_uploader" $model }}
+				{{- if and $model.images_index $model.images_index_prefix -}}
+					{{ template "_image_uploader" (Dict "images" $model.images_index "prefix" $model.images_index_prefix "csrf_token" $model.csrf_token) }}
+				{{- end -}}
+				{{- if and $model.image_reihen $model.image_reihen_key -}}
+					{{ template "_image_uploader_single" (Dict "image" $model.image_reihen "key" $model.image_reihen_key "csrf_token" $model.csrf_token) }}
+				{{- end -}}
+
 				{{- if not $model.selected.Sections -}}
 					<div class="text-gray-700 bg-slate-100 border border-slate-200 rounded-xs p-4">
 						Keine HTML-Bereiche gefunden.

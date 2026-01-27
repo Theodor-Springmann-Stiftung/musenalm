@@ -190,6 +190,14 @@ func Images_KeyPrefix(app core.App, prefix string) ([]*Image, error) {
 	return images, err
 }
 
+func Files_All(app core.App) ([]*File, error) {
+	files := make([]*File, 0)
+	err := app.RecordQuery(FILES_TABLE).
+		OrderBy(CREATED_FIELD + " DESC").
+		All(&files)
+	return files, err
+}
+
 func AccessTokens_Token(app core.App, token string) (*AccessToken, error) {
 	ret, err := TableByField[AccessToken](
 		app,
