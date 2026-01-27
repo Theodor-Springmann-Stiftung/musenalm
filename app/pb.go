@@ -184,8 +184,9 @@ func (app *App) Serve() error {
 		panic(err)
 	}
 
-	if app.MAConfig.Debug {
+	if app.MAConfig.Debug && !app.MAConfig.DisableWatchers {
 		app.setWatchers(engine)
+		engine.Debug()
 	}
 
 	// INFO: we use OnServe, but here is also OnBootstrap
@@ -686,7 +687,6 @@ func (app *App) setWatchers(engine *templating.Engine) {
 	} else {
 		watcher.AddRecursive(LAYOUT_DIR)
 		watcher.AddRecursive(ROUTES_DIR)
-		engine.Debug()
 		rwatcher, err := RefreshWatcher(engine)
 		if err != nil {
 			app.PB.Logger().Error("Failed to create watcher, continuing without", "error", err)

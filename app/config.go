@@ -29,6 +29,7 @@ type Config struct {
 	// At least one of these should be set
 	Debug          bool `json:"debug,omitempty" envconfig:"DEBUG"`
 	AllowTestLogin bool `json:"allow_test_login,omitempty" envconfig:"ALLOW_TEST_LOGIN"`
+	DisableWatchers bool `json:"disable_watchers,omitempty" envconfig:"DISABLE_WATCHERS"`
 }
 
 func NewConfigProvider(files []string, devfiles []string) *ConfigProvider {
@@ -69,6 +70,12 @@ func (c *ConfigProvider) Validate() error {
 		slog.Info("Debug mode is enabled")
 	} else {
 		slog.Info("Debug mode is disabled")
+	}
+
+	if c.DisableWatchers {
+		slog.Info("Template watchers are disabled")
+	} else {
+		slog.Info("Template watchers are enabled")
 	}
 
 	return nil

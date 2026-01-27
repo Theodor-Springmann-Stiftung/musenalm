@@ -1,4 +1,5 @@
 {
 	"debug": true,
-	"allow_test_login": true
+	"allow_test_login": true,
+	"disable_watchers": false
 }
