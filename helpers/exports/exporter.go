@@ -3,9 +3,11 @@ package exports
 import (
 	"archive/zip"
 	"encoding/xml"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/dbx"
@@ -32,13 +34,13 @@ func ListTables(app core.App) ([]string, error) {
 	}
 
 	excluded := map[string]struct{}{
-		"_superusers":     {},
-		"_mfas":           {},
-		"_otps":           {},
-		"_externalAuths":  {},
-		"_authorigins":    {},
-		"_authOrigins":    {},
-		"access_tokens":   {},
+		"_superusers":    {},
+		"_mfas":          {},
+		"_otps":          {},
+		"_externalAuths": {},
+		"_authorigins":   {},
+		"_authOrigins":   {},
+		"access_tokens":  {},
 	}
 
 	filtered := tables[:0]
@@ -80,7 +82,7 @@ func Run(app core.App, exportID string) error {
 		return markFailed(app, record, err)
 	}
 
-	filename := exportID + ".zip"
+	filename := buildExportFilename("data", exportID)
 	tempPath := filepath.Join(exportDir, filename+".tmp")
 	finalPath := filepath.Join(exportDir, filename)
 
@@ -267,7 +269,7 @@ func markFailed(app core.App, record *core.Record, err error) error {
 	if dirErr == nil {
 		filename := record.GetString(dbmodels.EXPORT_FILENAME_FIELD)
 		if filename == "" {
-			filename = record.Id + ".zip"
+			filename = buildExportFilename("data", record.Id)
 		}
 		filename = filepath.Base(filename)
 		_ = os.Remove(filepath.Join(exportDir, filename))
@@ -299,4 +301,17 @@ func safeFilename(name string) string {
 		}
 	}
 	return b.String()
+}
+
+func buildExportFilename(kind, exportID string) string {
+	date := time.Now().Format("2006-01-02")
+	label := "DATA"
+	if kind == "files" {
+		label = "FILES"
+	}
+	idPart := exportID
+	if len(exportID) > 8 {
+		idPart = exportID[:8]
+	}
+	return fmt.Sprintf("%s-MUSENALM-%s-%s.zip", date, label, idPart)
 }

@@ -39,7 +39,7 @@ func RunFiles(app core.App, exportID string) error {
 	record.Set(dbmodels.EXPORT_PROGRESS_FIELD, 0)
 	record.Set(dbmodels.EXPORT_CURRENT_TABLE_FIELD, "")
 	record.Set(dbmodels.EXPORT_ERROR_FIELD, "")
-	record.Set(dbmodels.EXPORT_FILENAME_FIELD, exportID+"-files.zip")
+	record.Set(dbmodels.EXPORT_FILENAME_FIELD, buildExportFilename("files", exportID))
 	if err := app.Save(record); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func RunFiles(app core.App, exportID string) error {
 		return markFailed(app, record, err)
 	}
 
-	filename := exportID + "-files.zip"
+	filename := buildExportFilename("files", exportID)
 	tempPath := filepath.Join(exportDir, filename+".tmp")
 	finalPath := filepath.Join(exportDir, filename)
 
