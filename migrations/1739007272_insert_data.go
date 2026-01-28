@@ -6,6 +6,7 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/migrations/seed"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 	"github.com/pocketbase/pocketbase/core"
@@ -14,6 +15,16 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
+		if candidate, err := imports.FindLatestImport("data"); err != nil {
+			return err
+		} else if candidate != nil {
+			app.Logger().Info("Importing Musenalm data from export", "path", candidate.Path)
+			if err := imports.ImportData(app, candidate); err != nil {
+				return err
+			}
+			return imports.RebuildFTS(app)
+		}
+
 		adb, err := xmlmodels.ReadAccessDB(xmlmodels.DATA_PATH, app.Logger())
 		if err != nil {
 			return err

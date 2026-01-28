@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 	"github.com/pocketbase/dbx"
@@ -653,8 +654,8 @@ const (
 		</div>
 	`
 
-	KABINETT_TITLE       = "Lesekabinett"
-	KABINETT_DESCRIPTION = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
+	KABINETT_TITLE          = "Lesekabinett"
+	KABINETT_DESCRIPTION    = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
 	LESEKABINETT_FILES_PATH = "./views/public/Lesekabinett"
 
 	ABKUERZUNGEN_PATH = "./import/data/abkuerzungen.txt"
@@ -806,6 +807,19 @@ func pageHTMLSeed(kabinetText string) map[string]string {
 
 func init() {
 	m.Register(func(app core.App) error {
+		if candidate, err := imports.FindLatestImport("data"); err != nil {
+			return err
+		} else if candidate != nil {
+			if filesCandidate, err := imports.FindLatestImport("files"); err != nil {
+				return err
+			} else if filesCandidate != nil {
+				app.Logger().Info("Importing Musenalm files from export", "path", filesCandidate.Path)
+				return imports.ImportFiles(app, filesCandidate)
+			}
+			app.Logger().Info("Skipping page seed because data import exists", "path", candidate.Path)
+			return nil
+		}
+
 		kabinetUrls, err := seedLesekabinettFiles(app)
 		if err != nil {
 			return err

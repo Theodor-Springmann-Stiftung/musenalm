@@ -55,6 +55,7 @@ type BaendeCache struct {
 	Agents        map[string]*dbmodels.Agent
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
 	Items         map[string][]*dbmodels.Item
+	Users         map[string]*dbmodels.User
 	CachedAt      time.Time
 }
 
@@ -87,6 +88,9 @@ func (bc *BaendeCache) GetItems() interface{} {
 	return bc.Items
 }
 
+func (bc *BaendeCache) GetUsers() interface{} {
+	return bc.Users
+}
 const (
 	TEST_SUPERUSER_MAIL = "demo@example.com"
 	TEST_SUPERUSER_PASS = "password"
@@ -661,6 +665,30 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		}
 	}
 
+	// Load users (editors)
+	usersMap := map[string]*dbmodels.User{}
+	editorIDs := map[string]struct{}{}
+	for _, entry := range entries {
+		if editorID := entry.Editor(); editorID != "" {
+			editorIDs[editorID] = struct{}{}
+		}
+	}
+	if len(editorIDs) > 0 {
+		userIDs := make([]any, 0, len(editorIDs))
+		for editorID := range editorIDs {
+			userIDs = append(userIDs, editorID)
+		}
+		users, err := dbmodels.TableByIDs[*dbmodels.User](app.PB.App, dbmodels.USERS_TABLE, userIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users {
+			if user != nil {
+				usersMap[user.Id] = user
+			}
+		}
+	}
+
 	app.baendeCache = &BaendeCache{
 		Entries:       entries,
 		Series:        seriesMap,
@@ -669,6 +697,7 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		Agents:        agentsMap,
 		EntriesAgents: entryAgentsMap,
 		Items:         itemsMap,
+		Users:         usersMap,
 		CachedAt:      time.Now(),
 	}
 

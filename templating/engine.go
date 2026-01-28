@@ -127,6 +127,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("Len", functions.Length)
 	e.AddFunc("GermanDate", functions.GermanDate)
 	e.AddFunc("GermanTime", functions.GermanTime)
+	e.AddFunc("GermanShortDateTime", functions.GermanShortDateTime)
 
 	// String Functions
 	e.AddFunc("Lower", functions.Lower)

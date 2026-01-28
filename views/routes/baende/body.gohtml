@@ -21,6 +21,11 @@
 		{{ printf "%q" $k }}: {{ printf "%q" $v }},
 		{{- end -}}
 	},
+	userLabels: {
+		{{- range $k, $v := $model.filter_user_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
 	placeLabels: {
 		{{- range $k, $v := $model.filter_place_labels -}}
 		{{ printf "%q" $k }}: {{ printf "%q" $v }},
@@ -117,7 +122,7 @@
 		const params = new URL(responseUrl).searchParams;
 		sortField = params.get('sort') || sortField;
 		sortOrder = params.get('order') || sortOrder;
-		const filterKeys = ['status', 'person', 'year', 'place'];
+		const filterKeys = ['status', 'person', 'user', 'year', 'place'];
 		activeFilterType = '';
 		activeFilterValue = '';
 		filterKeys.some((key) => {
@@ -144,9 +149,9 @@ class="container-normal font-sans mt-10">
 		<h1 class="heading">Bände A–Z</h1>
 
 		<div class="mt-2">
-			<div class="flex flex-wrap flex-row border-b px-3 border-zinc-300 items-end justify-between min-h-14 gap-y-4">
-				<!-- Left side group: Search and Alphabet -->
-				<div class="flex items-end gap-4">
+			<div class="border-b px-3 border-zinc-300">
+				<!-- Row 1: Search and Filters -->
+				<div class="flex flex-wrap items-end justify-start min-h-14 gap-x-2 gap-y-3 pb-3">
 					<!-- Search box -->
 					<div class="min-w-[22.5rem] max-w-96 flex flex-row bg-stone-50 relative font-sans text-lg items-center">
 						<div>
@@ -157,7 +162,7 @@ class="container-normal font-sans mt-10">
 								method="GET"
 								action="/baende/"
 								hx-get="/baende/results/"
-								hx-indicator="body"
+								hx-indicator="#baende-search-spinner"
 								hx-push-url="false"
 								hx-swap="outerHTML"
 								hx-target="#baenderesults"
@@ -166,16 +171,21 @@ class="container-normal font-sans mt-10">
 								aria-label="Bändesuche">
 								<input type="hidden" name="sort" :value="sortField" />
 								<input type="hidden" name="order" :value="sortOrder" />
-								<input
-									class="px-2 py-0.5 font-sans placeholder:italic w-full text-lg"
-									type="search"
-									name="search"
-									value="{{ $model.search }}"
-									placeholder="Signatur oder Suchbegriff"
-									x-model="search"
-									@input.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-									@search.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-									autocomplete="off" />
+								<div class="relative">
+									<input
+										class="px-2 py-0.5 pr-7 font-sans placeholder:italic w-full text-lg"
+										type="search"
+										name="search"
+										value="{{ $model.search }}"
+										placeholder="Signatur oder Suchbegriff"
+										x-model="search"
+										@input.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+										@search.debounce.500="selectedLetter = ''; clearFilters(); ((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
+										autocomplete="off" />
+									<span id="baende-search-spinner" class="htmx-indicator absolute right-1 top-1/2 -translate-y-1/2 text-slate-900">
+										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+									</span>
+								</div>
 								<button x-show="false">Suchen</button>
 							</form>
 						</div>
@@ -188,32 +198,39 @@ class="container-normal font-sans mt-10">
 								:class="selectedLetter ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
 								<span x-text="selectedLetter ? `Alphabet: ${selectedLetter}` : 'Alphabet'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': alphabetOpen }"></i>
+								<span id="baende-alphabet-spinner" class="htmx-indicator text-slate-900">
+									<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+								</span>
 							</summary>
 							<div class="absolute left-0 mt-2 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-								<div class="p-2 grid grid-cols-13 gap-1 text-sm text-gray-700 w-[26rem]">
-									{{- range $_, $ch := $model.letters -}}
-										<a href="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-										   hx-get="/baende/results/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-										   hx-target="#baenderesults"
-										   hx-swap="outerHTML"
-										   hx-indicator="body"
-										   hx-push-url="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
-										   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'; search = ''; clearFilters()"
-										   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
-										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
-											{{ $ch }}
-										</a>
-									{{- end -}}
+								<div class="p-2 w-[26rem]">
 									<a href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-indicator="#baende-alphabet-spinner"
 									   hx-target="#baenderesults"
 									   hx-swap="outerHTML"
-									   hx-indicator="body"
 									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = ''; search = ''; clearFilters()"
-									   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors col-span-13 border-t mt-1">
-										Alle
+									   x-show="selectedLetter"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
 									</a>
+									<div class="grid grid-cols-13 gap-1 text-sm text-gray-700">
+										{{- range $_, $ch := $model.letters -}}
+											<a href="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-alphabet-spinner"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-push-url="/baende/?letter={{ $ch }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; alphabetOpen = false; selectedLetter = '{{ $ch }}'; search = ''; clearFilters()"
+											   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
+											   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
+												{{ $ch }}
+											</a>
+										{{- end -}}
+									</div>
 								</div>
 							</div>
 						</details>
@@ -226,16 +243,19 @@ class="container-normal font-sans mt-10">
 								:class="activeFilterType === 'status' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
 								<span x-text="activeFilterType === 'status' ? `Status: ${statusLabels[activeFilterValue] || activeFilterValue}` : 'Status'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+								<span id="baende-status-spinner" class="htmx-indicator text-slate-900">
+									<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+								</span>
 							</summary>
-							<div class="absolute left-0 mt-2 w-64 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 								<div class="p-3">
-									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700" data-role="filter-list">
+									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 										<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 										   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   hx-indicator="#baende-status-spinner"
 										   hx-target="#baenderesults"
 										   hx-swap="outerHTML"
-										   hx-indicator="body"
-										   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+										   										   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 										   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
 										   x-show="activeFilterType === 'status'"
 										   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
@@ -245,13 +265,13 @@ class="container-normal font-sans mt-10">
 										{{- range $_, $s := $model.filter_statuses -}}
 											<a data-role="filter-item" data-label="{{ $s.label }}" href="/baende/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   hx-get="/baende/results/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-status-spinner"
 											   hx-target="#baenderesults"
 											   hx-swap="outerHTML"
-											   hx-indicator="body"
 											   hx-push-url="/baende/?status={{ $s.value }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'status'; activeFilterValue = '{{ $s.value }}'; search = ''; selectedLetter = ''"
 											   :class="activeFilterType === 'status' && activeFilterValue === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
-											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $s.label }}
 											</a>
 										{{- end -}}
@@ -269,38 +289,91 @@ class="container-normal font-sans mt-10">
 								<span x-text="activeFilterType === 'person' ? `Person: ${personLabels[activeFilterValue] || activeFilterValue}` : 'Person'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							</summary>
-							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-indicator="#baende-person-spinner"
 									   hx-target="#baenderesults"
 									   hx-swap="outerHTML"
-									   hx-indicator="body"
-									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
 									   x-show="activeFilterType === 'person'"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
-									<input data-role="filter-search" type="search" placeholder="Personen filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
-									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+									<div class="relative">
+										<input data-role="filter-search" type="search" placeholder="Personen filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<span id="baende-person-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+										</span>
+									</div>
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 										{{- range $_, $a := $model.filter_agents -}}
 											<a data-role="filter-item" data-label="{{ $a.Name }}" href="/baende/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   hx-get="/baende/results/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-person-spinner"
 											   hx-target="#baenderesults"
 											   hx-swap="outerHTML"
-											   hx-indicator="body"
 											   hx-push-url="/baende/?person={{ $a.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'person'; activeFilterValue = '{{ $a.Id }}'; search = ''; selectedLetter = ''"
 											   :class="activeFilterType === 'person' && activeFilterValue === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
 												{{- if $a.CorporateBody -}}
 													<span class="inline-flex items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.7rem] font-semibold text-slate-600">ORG</span>
 												{{- else if $a.BiographicalData -}}
 													<span class="text-[0.7rem] text-stone-500 whitespace-nowrap">{{ $a.BiographicalData }}</span>
 												{{- end -}}
+											</a>
+										{{- end -}}
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Benutzer filter -->
+					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+						<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+								:class="activeFilterType === 'user' ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+								<span x-text="activeFilterType === 'user' ? `Benutzer: ${userLabels[activeFilterValue] || activeFilterValue}` : 'Benutzer'"></span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+								<div class="p-3">
+									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-indicator="#baende-user-spinner"
+									   hx-target="#baenderesults"
+									   hx-swap="outerHTML"
+									   									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
+									   x-show="activeFilterType === 'user'"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									<div class="relative">
+										<input data-role="filter-search" type="search" placeholder="Benutzer filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<span id="baende-user-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+										</span>
+									</div>
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
+										{{- range $_, $u := $model.filter_users -}}
+											<a data-role="filter-item" data-label="{{ $u.Name }}" href="/baende/?user={{ $u.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-get="/baende/results/?user={{ $u.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-user-spinner"
+											   hx-target="#baenderesults"
+											   hx-swap="outerHTML"
+											   hx-push-url="/baende/?user={{ $u.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'user'; activeFilterValue = '{{ $u.Id }}'; search = ''; selectedLetter = ''"
+											   :class="activeFilterType === 'user' && activeFilterValue === '{{ $u.Id }}' ? 'bg-stone-100 font-semibold' : ''"
+											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
+												<span class="filter-list-searchable mr-1">{{ $u.Name }}</span>
 											</a>
 										{{- end -}}
 									</div>
@@ -317,34 +390,39 @@ class="container-normal font-sans mt-10">
 								<span x-text="activeFilterType === 'year' ? `Jahr: ${yearLabels[activeFilterValue] || activeFilterValue}` : 'Jahr'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							</summary>
-							<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-indicator="#baende-year-spinner"
 									   hx-target="#baenderesults"
 									   hx-swap="outerHTML"
-									   hx-indicator="body"
-									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
 									   x-show="activeFilterType === 'year'"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
-									<input data-role="filter-search" type="search" placeholder="Jahre filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
-									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+									<div class="relative">
+										<input data-role="filter-search" type="search" placeholder="Jahre filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<span id="baende-year-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+										</span>
+									</div>
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 										{{- range $_, $y := $model.filter_years -}}
 											{{- $label := $y -}}
 											{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
 											<a data-role="filter-item" data-label="{{ $label }}" href="/baende/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   hx-get="/baende/results/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-year-spinner"
 											   hx-target="#baenderesults"
 											   hx-swap="outerHTML"
-											   hx-indicator="body"
 											   hx-push-url="/baende/?year={{ $y }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'year'; activeFilterValue = '{{ $y }}'; search = ''; selectedLetter = ''"
 											   :class="activeFilterType === 'year' && activeFilterValue === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
-											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $label }}
 											</a>
 										{{- end -}}
@@ -362,32 +440,37 @@ class="container-normal font-sans mt-10">
 								<span x-text="activeFilterType === 'place' ? `Ort: ${placeLabels[activeFilterValue] || activeFilterValue}` : 'Ort'"></span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							</summary>
-							<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" href="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   hx-get="/baende/results/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   hx-indicator="#baende-place-spinner"
 									   hx-target="#baenderesults"
 									   hx-swap="outerHTML"
-									   hx-indicator="body"
-									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+									   									   hx-push-url="/baende/?sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 									   @click="offset = 0; hasMore = true; open = false; clearFilters(); search = ''; selectedLetter = ''"
 									   x-show="activeFilterType === 'place'"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
-									<input data-role="filter-search" type="search" placeholder="Orte filtern..." class="w-full px-2 py-1 border border-stone-200 rounded text-sm" />
-									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700" data-role="filter-list">
+									<div class="relative">
+										<input data-role="filter-search" type="search" placeholder="Orte filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<span id="baende-place-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+										</span>
+									</div>
+									<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 										{{- range $_, $p := $model.filter_places -}}
 											<a data-role="filter-item" data-label="{{ $p.Name }}" href="/baende/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   hx-get="/baende/results/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
+											   hx-indicator="#baende-place-spinner"
 											   hx-target="#baenderesults"
 											   hx-swap="outerHTML"
-											   hx-indicator="body"
 											   hx-push-url="/baende/?place={{ $p.Id }}&sort={{ $model.sort_field }}&order={{ $model.sort_order }}"
 											   @click="offset = 0; hasMore = true; open = false; activeFilterType = 'place'; activeFilterValue = '{{ $p.Id }}'; search = ''; selectedLetter = ''"
 											   :class="activeFilterType === 'place' && activeFilterValue === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-											   class="px-2 py-1 rounded hover:bg-gray-100 no-underline transition-colors">
+											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $p.Name }}
 											</a>
 										{{- end -}}
@@ -397,36 +480,35 @@ class="container-normal font-sans mt-10">
 						</details>
 					</div>
 
-					<!-- Spalten toggle -->
-					<div class="relative" x-data="{ open: false }" data-role="baende-filter">
+				</div>
+
+				<!-- Row 2: Spalten + count -->
+				<div class="flex flex-wrap items-center justify-end gap-3 pb-0 mt-3">
+					<div class="relative" x-data="{ open: false }">
 						<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-							<summary class="cursor-pointer text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+							<summary class="cursor-pointer text-gray-600 hover:text-slate-900 px-2 py-1 rounded-xs flex items-center gap-2 text-lg font-semibold font-sans">
 								<i class="ri-eye-line"></i>
 								<span>Spalten</span>
 								<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							</summary>
-							<div class="absolute left-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="absolute right-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="title" checked /> Titel</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinung</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Umfang / Maße</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" /> Bearbeitet / Benutzer</label>
 								</div>
 							</div>
 						</details>
 					</div>
-				</div>
 
-				<!-- Right side group: count/button -->
-				<div class="flex items-end gap-4 ml-auto">
-
-					<!-- Count and New button -->
 					<div class="flex items-center gap-3">
 						<div id="baende-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
 							{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
 						</div>
 					</div>
-
 				</div>
 			</div>
 		</div>

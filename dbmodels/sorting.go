@@ -24,6 +24,13 @@ func Sort_Agents_Name(agents []*Agent) {
 	})
 }
 
+func Sort_Users_Name(users []*User) {
+	collator := collate.New(language.German)
+	slices.SortFunc(users, func(i, j *User) int {
+		return collator.CompareString(i.Name(), j.Name())
+	})
+}
+
 func Sort_Entries_Title_Year(entries []*Entry) {
 	collator := collate.New(language.German)
 	slices.SortFunc(entries, func(i, j *Entry) int {
@@ -159,5 +166,21 @@ func Sort_Entries_Place_Title(entries []*Entry) {
 			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
 		}
 		return collator.CompareString(iPlace, jPlace)
+	})
+}
+
+// Sort_Entries_Updated sorts entries by updated timestamp, then preferred title.
+func Sort_Entries_Updated(entries []*Entry) {
+	collator := collate.New(language.German)
+	slices.SortFunc(entries, func(i, j *Entry) int {
+		iUpdated := i.Updated().Time()
+		jUpdated := j.Updated().Time()
+		if iUpdated.Equal(jUpdated) {
+			return collator.CompareString(i.PreferredTitle(), j.PreferredTitle())
+		}
+		if iUpdated.Before(jUpdated) {
+			return -1
+		}
+		return 1
 	})
 }

@@ -55,7 +55,15 @@ func CleanupExpired(app core.App) {
 	for _, record := range records {
 		filename := record.GetString(dbmodels.EXPORT_FILENAME_FIELD)
 		if filename == "" {
-			filename = record.Id + ".xml"
+			exportType := record.GetString(dbmodels.EXPORT_TYPE_FIELD)
+			if exportType == "" {
+				exportType = dbmodels.EXPORT_TYPE_DATA
+			}
+			kind := "data"
+			if exportType == dbmodels.EXPORT_TYPE_FILES {
+				kind = "files"
+			}
+			filename = buildExportFilename(kind, record.Id)
 		}
 		filename = filepath.Base(filename)
 		_ = os.Remove(filepath.Join(exportDir, filename))

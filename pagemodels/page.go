@@ -17,6 +17,7 @@ type BaendeCacheInterface interface {
 	GetAgents() interface{}        // Returns map[string]*dbmodels.Agent
 	GetEntriesAgents() interface{} // Returns map[string][]*dbmodels.REntriesAgents
 	GetItems() interface{}         // Returns map[string][]*dbmodels.Item
+	GetUsers() interface{}         // Returns map[string]*dbmodels.User
 }
 
 type IApp interface {

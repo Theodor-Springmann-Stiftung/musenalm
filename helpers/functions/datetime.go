@@ -91,3 +91,13 @@ func GermanTime(t types.DateTime) string {
 	time := t.Time().In(location)
 	return fmt.Sprintf("%02d:%02d", time.Hour(), time.Minute())
 }
+
+func GermanShortDateTime(t types.DateTime) string {
+	if t.IsZero() {
+		return "N/A"
+	}
+
+	location, _ := time.LoadLocation("Europe/Berlin")
+	ts := t.Time().In(location)
+	return ts.Format("02.01.06 15:04")
+}

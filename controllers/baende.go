@@ -53,6 +53,7 @@ type BaendeResult struct {
 	Agents        map[string]*dbmodels.Agent
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
 	Items         map[string][]*dbmodels.Item
+	Users         map[string]*dbmodels.User
 }
 
 type BaendeDetailsResult struct {
@@ -133,11 +134,22 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 			app.Logger().Error("Failed to get items for entry", "error", err)
 		}
 
+		var editorUser *dbmodels.User
+		if editorID := entry.Editor(); editorID != "" {
+			user, err := dbmodels.Users_ID(app, editorID)
+			if err != nil {
+				app.Logger().Error("Failed to get editor user for entry", "error", err)
+			} else {
+				editorUser = user
+			}
+		}
+
 		data := map[string]any{
-			"entry":      entry,
-			"items":      items,
-			"is_admin":   req.IsAdmin(),
-			"csrf_token": req.Session().Token,
+			"entry":       entry,
+			"items":       items,
+			"editor_user": editorUser,
+			"is_admin":    req.IsAdmin(),
+			"csrf_token":  req.Session().Token,
 		}
 
 		return engine.Response200(e, "/baende/row/", data, "fragment")
@@ -225,6 +237,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
 	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
 	person := strings.TrimSpace(e.Request.URL.Query().Get("person"))
+	user := strings.TrimSpace(e.Request.URL.Query().Get("user"))
 	yearStr := strings.TrimSpace(e.Request.URL.Query().Get("year"))
 	place := strings.TrimSpace(e.Request.URL.Query().Get("place"))
 
@@ -250,6 +263,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		"signatur":       true,
 		"responsibility": true,
 		"place":          true,
+		"updated":        true,
 	}
 	if !validSorts[sort] {
 		sort = "title" // default
@@ -302,6 +316,11 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, fmt.Errorf("failed to get entries agents from cache")
 	}
 
+	usersMap, ok := cacheInterface.GetUsers().(map[string]*dbmodels.User)
+	if !ok {
+		return data, fmt.Errorf("failed to get users from cache")
+	}
+
 	// Determine active filter (only one at a time)
 	activeFilterType := ""
 	activeFilterValue := ""
@@ -310,11 +329,18 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		activeFilterType = "status"
 		activeFilterValue = status
 		person = ""
+		user = ""
 		yearStr = ""
 		place = ""
 	case person != "":
 		activeFilterType = "person"
 		activeFilterValue = person
+		user = ""
+		yearStr = ""
+		place = ""
+	case user != "":
+		activeFilterType = "user"
+		activeFilterValue = user
 		yearStr = ""
 		place = ""
 	case yearStr != "":
@@ -338,6 +364,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 			filteredEntries = filterEntriesByStatus(allEntries, status)
 		case "person":
 			filteredEntries = filterEntriesByAgent(allEntries, entryAgentsMap, person)
+		case "user":
+			filteredEntries = filterEntriesByEditor(allEntries, user)
 		case "year":
 			yearVal, err := strconv.Atoi(yearStr)
 			if err != nil {
@@ -379,6 +407,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		dbmodels.Sort_Entries_Responsibility_Title(filteredEntries)
 	case "place":
 		dbmodels.Sort_Entries_Place_Title(filteredEntries)
+	case "updated":
+		dbmodels.Sort_Entries_Updated(filteredEntries)
 	default: // "title"
 		dbmodels.Sort_Entries_Title_Year(filteredEntries)
 	}
@@ -434,6 +464,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		Agents:        agentsMap,
 		EntriesAgents: entryAgentsMap,
 		Items:         itemsMap,
+		Users:         usersMap,
 	}
 	data["offset"] = offset
 	data["total_count"] = totalCount
@@ -459,6 +490,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["filter_status_labels"] = buildStatusLabelMap()
 	data["filter_agents"] = buildAgentFilters(agentsMap)
 	data["filter_agent_labels"] = buildAgentLabelMap(agentsMap)
+	data["filter_users"] = buildUserFilters(usersMap)
+	data["filter_user_labels"] = buildUserLabelMap(usersMap)
 	data["filter_places"] = buildPlaceFilters(placesMap)
 	data["filter_place_labels"] = buildPlaceLabelMap(placesMap)
 	data["filter_years"] = buildYearFilters(allEntries)
@@ -749,6 +782,19 @@ func filterEntriesByPlace(entries []*dbmodels.Entry, placeID string) []*dbmodels
 	return results
 }
 
+func filterEntriesByEditor(entries []*dbmodels.Entry, userID string) []*dbmodels.Entry {
+	if userID == "" {
+		return entries
+	}
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.Editor() == userID {
+			results = append(results, entry)
+		}
+	}
+	return results
+}
+
 func buildStatusFilters() []map[string]string {
 	labels := buildStatusLabelMap()
 	allowed := []string{"Unknown", "ToDo", "Review", "Seen", "Edited"}
@@ -790,6 +836,25 @@ func buildAgentLabelMap(agentsMap map[string]*dbmodels.Agent) map[string]string 
 	for id, agent := range agentsMap {
 		if agent != nil {
 			labels[id] = agent.Name()
+		}
+	}
+	return labels
+}
+
+func buildUserFilters(usersMap map[string]*dbmodels.User) []*dbmodels.User {
+	users := make([]*dbmodels.User, 0, len(usersMap))
+	for _, user := range usersMap {
+		users = append(users, user)
+	}
+	dbmodels.Sort_Users_Name(users)
+	return users
+}
+
+func buildUserLabelMap(usersMap map[string]*dbmodels.User) map[string]string {
+	labels := make(map[string]string, len(usersMap))
+	for id, user := range usersMap {
+		if user != nil {
+			labels[id] = user.Name()
 		}
 	}
 	return labels

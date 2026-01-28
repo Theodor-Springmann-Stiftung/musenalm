@@ -195,6 +195,14 @@
 		@apply border-l-4 border-zinc-300 font-bold;
 	}
 
+	.filter-list-row:nth-child(odd) {
+		@apply bg-stone-50;
+	}
+
+	.filter-list-row:nth-child(even) {
+		@apply bg-white;
+	}
+
 	.legacy-toggle-icon {
 		transition: transform 150ms ease;
 	}
@@ -217,6 +225,18 @@
 
 	.headingcontainer .backbutton {
 		@apply ml-4 bg-stone-100 py-0.5 px-2.5 rounded font-sans text-base text-center;
+	}
+
+	.baende-sort-button {
+		@apply transition-colors;
+	}
+
+	.baende-sort-button:hover {
+		@apply text-slate-900;
+	}
+
+	.baende-sort-button:hover i {
+		@apply text-slate-900;
 	}
 
 	.container-normal {
@@ -623,6 +643,15 @@
 
 	.spinning {
 		animation: spin 1s ease-out infinite;
+	}
+
+	.htmx-indicator {
+		@apply hidden;
+	}
+
+	.htmx-request .htmx-indicator,
+	.htmx-indicator.htmx-request {
+		@apply inline-flex;
 	}
 
 	body.htmx-request #simplesearchform #sumbmitbutton {
