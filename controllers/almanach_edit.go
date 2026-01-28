@@ -46,7 +46,7 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia p
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))
 	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app, ia))
-	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app))
+	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app, ia))
 	return nil
 }
 
@@ -238,7 +238,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 	}
 }
 
-func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -302,6 +302,9 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App) H
 		// Invalidate sorted entries cache since entry was deleted
 		InvalidateSortedEntriesCache()
 
+		// Invalidate Bände cache since entry was deleted
+		ma.ResetBaendeCache()
+
 		// Delete from FTS5 index asynchronously
 		go func(appInstance core.App, entryID string) {
 			if err := dbmodels.DeleteFTS5Entry(appInstance, entryID); err != nil {
@@ -333,8 +336,8 @@ type almanachEditPayload struct {
 }
 
 type almanachDeletePayload struct {
-	CSRFToken  string `json:"csrf_token"`
-	LastEdited string `json:"last_edited"`
+	CSRFToken  string `json:"csrf_token" form:"csrf_token"`
+	LastEdited string `json:"last_edited" form:"last_edited"`
 }
 
 type almanachEntryPayload struct {

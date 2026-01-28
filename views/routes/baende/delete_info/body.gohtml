@@ -1,0 +1,61 @@
+{{ $entry := .entry }}
+{{ $items := .items }}
+{{ $contents := .contents }}
+
+<div>
+	<div class="text-sm text-gray-700">
+		Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Beiträge werden entfernt.
+	</div>
+
+	<div class="mt-3">
+		<div class="text-sm font-semibold text-gray-700">Betroffene Beiträge ({{ len $contents }})</div>
+		<div class="mt-2 max-h-40 overflow-auto pr-1">
+			{{- if $contents -}}
+				<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
+					{{- range $content := $contents -}}
+						<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
+							<span>
+								{{- if $content.PreferredTitle -}}
+									{{ $content.PreferredTitle }}
+								{{- else if $content.TitleStmt -}}
+									{{ $content.TitleStmt }}
+								{{- else -}}
+									[Ohne Titel]
+								{{- end -}}
+							</span>
+							<span class="text-xs text-gray-500">Alm {{ $content.MusenalmID }}</span>
+						</li>
+					{{- end -}}
+				</ul>
+			{{- else -}}
+				<div class="italic text-gray-500">Keine Beiträge betroffen.</div>
+			{{- end -}}
+		</div>
+	</div>
+
+	<div class="mt-3">
+		<div class="text-sm font-semibold text-gray-700">Betroffene Exemplare ({{ len $items }})</div>
+		<div class="mt-2 max-h-40 overflow-auto pr-1">
+			{{- if $items -}}
+				<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
+					{{- range $item := $items -}}
+						<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
+							<span>
+								{{- if $item.Identifier -}}
+									{{ $item.Identifier }}
+								{{- else -}}
+									[Ohne Signatur]
+								{{- end -}}
+							</span>
+							{{- if $item.Location -}}
+								<span class="text-xs text-gray-500">{{ $item.Location }}</span>
+							{{- end -}}
+						</li>
+					{{- end -}}
+				</ul>
+			{{- else -}}
+				<div class="italic text-gray-500">Keine Exemplare betroffen.</div>
+			{{- end -}}
+		</div>
+	</div>
+</div>

@@ -24,6 +24,7 @@ const (
 	URL_BAENDE         = "/baende/"
 	URL_BAENDE_RESULTS = "/baende/results/"
 	URL_BAENDE_MORE    = "/baende/more/"
+	URL_BAENDE_DELETE  = "/baende/delete-info/{id}"
 	TEMPLATE_BAENDE    = "/baende/"
 	URL_BAENDE_DETAILS = "/baende/details/{id}"
 	BAENDE_PAGE_SIZE   = 150
@@ -77,6 +78,7 @@ func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemod
 	rg.GET("more/", p.handleMore(engine, app, ia))
 	rg.GET("details/{id}", p.handleDetails(engine, app))
 	rg.GET("row/{id}", p.handleRow(engine, app))
+	rg.GET("delete-info/{id}", p.handleDeleteInfo(engine, app))
 	return nil
 }
 
@@ -218,6 +220,45 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 		}
 
 		return engine.Response200(e, "/baende/details/", data, "fragment")
+	}
+}
+
+func (p *BaendePage) handleDeleteInfo(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, "/login/")
+		}
+
+		id := e.Request.PathValue("id")
+		if id == "" {
+			return engine.Response404(e, nil, nil)
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		items, err := dbmodels.Items_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get items for delete dialog", "error", err)
+		}
+
+		contents, err := dbmodels.Contents_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get contents for delete dialog", "error", err)
+		}
+
+		dbmodels.Sort_Contents_Numbering(contents)
+
+		data := map[string]any{
+			"entry":    entry,
+			"items":    items,
+			"contents": contents,
+		}
+
+		return engine.Response200(e, "/baende/delete_info/", data, "fragment")
 	}
 }
 
