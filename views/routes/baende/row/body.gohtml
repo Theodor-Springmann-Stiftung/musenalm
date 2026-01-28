@@ -14,19 +14,19 @@
                 <span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 max-w-[10rem] whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
             {{- end -}}
             <div class="flex flex-wrap items-center gap-1.5 pt-1">
-                <tool-tip position="top" class="inline">
-                    <a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
-                        <i class="ri-eye-line"></i>
-                    </a>
-                    <div class="data-tip">Ansehen</div>
-                </tool-tip>
-                {{- if .is_admin -}}
                     <tool-tip position="top" class="inline">
-                        <a href="/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
-                            <i class="ri-edit-line"></i>
+                        <a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+                            <i class="ri-eye-line"></i>
                         </a>
-                        <div class="data-tip">Bearbeiten</div>
+                        <div class="data-tip">Ansehen</div>
                     </tool-tip>
+                {{- if .is_admin -}}
+                        <tool-tip position="top" class="inline">
+                            <a href="/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+                                <i class="ri-edit-line"></i>
+                            </a>
+                            <div class="data-tip">Bearbeiten</div>
+                        </tool-tip>
                     <form method="POST" action="/almanach/{{ $entry.MusenalmID }}/edit/delete" class="inline" onsubmit="event.stopPropagation(); return confirm('Band wirklich löschen?');">
                         <input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
                         <tool-tip position="top" class="inline">
