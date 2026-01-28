@@ -338,6 +338,15 @@ export class FabMenu extends HTMLElement {
 				Administration
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
+				<a href="/redaktion/exports/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+					<i class="ri-download-2-line text-base text-gray-700 mr-2.5"></i>
+					<span class="text-gray-900">Datenexport</span>
+				</a>
+				<a href="/redaktion/exports/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+					<i class="ri-external-link-line text-base"></i>
+				</a>
+			</div>
+			<div class="grid grid-cols-[1fr_auto] group">
 				<a href="/user/management/access/User?redirectTo=${redirectPath}" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Nutzer einladen</span>

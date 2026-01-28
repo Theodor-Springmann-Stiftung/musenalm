@@ -1,0 +1,59 @@
+{{ $model := . }}
+
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
+	<div class="flex-col w-full">
+		<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Datenexport</h1>
+		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[70ch]">
+			<i class="ri-question-line"></i>
+			Export von Daten u. Dateien als ZIP-Ordner. Die Exporte werden gespeichert und nach dem
+			Ablauf von sieben Tagen automatisch gelöscht.
+		</div>
+	</div>
+</div>
+
+<export-manager
+	class="block container-normal mx-auto px-8 mt-6"
+	data-run-url="/redaktion/exports/run/"
+	data-list-url="/redaktion/exports/list/"
+	data-delete-url="/redaktion/exports/delete/"
+	data-csrf="{{ $model.csrf_token }}">
+	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+	<div class="flex flex-col gap-6">
+		<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+			<div>
+				<h2 class="text-lg font-semibold text-slate-900">Daten-Export erstellen</h2>
+				<p class="text-sm text-slate-600 mt-1">Sichert alle Daten der Tabellen als
+				XML-Dateien. Der Export läuft im Hintergrund.</p>
+			</div>
+			<div class="flex items-center gap-3">
+				<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="data">
+					<i class="ri-download-2-line"></i> Export starten
+				</button>
+			</div>
+		</div>
+		<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+			<div>
+				<h2 class="text-lg font-semibold text-slate-900">Dateien sichern</h2>
+				<p class="text-sm text-slate-600 mt-1">Exportiert Bilder und Dateien als ZIP. Der
+				Export kann eine Weile in Anspruch nehmen und läuft ebenfalls im Hintergrund.</p>
+			</div>
+			<div class="flex items-center gap-3">
+				<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="files">
+					<i class="ri-folder-zip-line"></i> Dateien sichern
+				</button>
+			</div>
+		</div>
+		<div class="text-sm text-slate-600" data-role="status"></div>
+
+		<div class="">
+			<div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
+				<h3 class="text-base font-semibold text-slate-900">Letzte Exporte</h3>
+				<div class="text-xs text-slate-500">Aktualisiert automatisch</div>
+			</div>
+			<div class="flex flex-col gap-3" data-role="export-list">
+				{{ template "_export_list" $model }}
+			</div>
+		</div>
+	</div>
+</export-manager>

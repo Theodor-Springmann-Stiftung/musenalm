@@ -444,6 +444,7 @@ const (
 	FILES_TABLE         = "files"
 	HTML_TABLE          = "html"
 	PAGES_TABLE         = "pages"
+	EXPORTS_TABLE       = "exports"
 
 	ID_FIELD         = "id"
 	CREATED_FIELD    = "created"
@@ -499,7 +500,7 @@ const (
 
 	REFERENCES_FIELD = "refs"
 	URI_FIELD        = "uri"
-	URL_FIELD ="url"
+	URL_FIELD        = "url"
 
 	MUSENALM_BAENDE_STATUS_FIELD = "musenalm_status"
 	MUSENALM_INHALTE_TYPE_FIELD  = "musenalm_type"
@@ -554,6 +555,19 @@ const (
 	TEMPLATE_FIELD    = "template"
 	LAYOUT_FIELD      = "layout"
 	TYPE_FIELD        = "type"
+
+	EXPORT_NAME_FIELD          = "name"
+	EXPORT_FILENAME_FIELD      = "filename"
+	EXPORT_TYPE_FIELD          = "export_type"
+	EXPORT_STATUS_FIELD        = "status"
+	EXPORT_PROGRESS_FIELD      = "progress"
+	EXPORT_TABLES_TOTAL_FIELD  = "tables_total"
+	EXPORT_TABLES_DONE_FIELD   = "tables_done"
+	EXPORT_SIZE_FIELD          = "size_bytes"
+	EXPORT_CURRENT_TABLE_FIELD = "current_table"
+	EXPORT_ERROR_FIELD         = "error"
+	EXPORT_EXPIRES_FIELD       = "expires_at"
+	EXPORT_CREATED_BY_FIELD    = "created_by"
 
 	SESSION_COOKIE_NAME = "sid"
 )

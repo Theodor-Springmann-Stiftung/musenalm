@@ -2,6 +2,7 @@ package templating
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
@@ -87,7 +88,11 @@ func (r *Request) IsEditor() bool {
 }
 
 func (r *Request) CheckCSRF(target string) error {
-	if r.Session() == nil || target == "" || r.Session().Token != target {
+	target = strings.TrimSpace(target)
+	if r.Session() == nil || target == "" {
+		return fmt.Errorf("CSRF-Token nicht vorhanden oder ungültig")
+	}
+	if r.Session().Token != target && r.Session().CSRF != target {
 		return fmt.Errorf("CSRF-Token nicht vorhanden oder ungültig")
 	}
 	return nil
