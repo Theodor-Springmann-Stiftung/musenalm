@@ -75,6 +75,7 @@ func (p *ReiheNewPage) renderPage(engine *templating.Engine, app core.App, e *co
 
 	data["result"] = result
 	data["csrf_token"] = req.Session().Token
+	data["cancel_url"] = cancelURLFromHeader(e)
 	data["is_new"] = true
 	if message != "" {
 		data["error"] = message

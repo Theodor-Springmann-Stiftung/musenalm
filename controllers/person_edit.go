@@ -124,6 +124,7 @@ func (p *PersonEditPage) GET(engine *templating.Engine, app core.App) HandleFunc
 
 		req := templating.NewRequest(e)
 		data["csrf_token"] = req.Session().Token
+		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
@@ -150,6 +151,7 @@ func (p *PersonEditPage) renderError(engine *templating.Engine, app core.App, e 
 
 	req := templating.NewRequest(e)
 	data["csrf_token"] = req.Session().Token
+	data["cancel_url"] = cancelURLFromHeader(e)
 
 	return engine.Response200(e, p.Template, data, p.Layout)
 }

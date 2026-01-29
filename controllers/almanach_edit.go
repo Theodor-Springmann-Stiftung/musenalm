@@ -66,6 +66,7 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFu
 		data["item_types"] = dbmodels.ITEM_TYPE_VALUES
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 		data["series_relations"] = dbmodels.SERIES_RELATIONS
+		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg

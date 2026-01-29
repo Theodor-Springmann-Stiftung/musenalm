@@ -7,8 +7,11 @@
         loading: false,
         search: '{{ $model.search }}',
         letter: '{{ $model.letter }}',
-        activeFilterType: '{{ $model.active_filter_type }}',
-        activeFilterValue: '{{ $model.active_filter_value }}',
+        status: '{{ $model.status }}',
+        person: '{{ $model.person }}',
+        user: '{{ $model.user }}',
+        year: '{{ $model.year }}',
+        place: '{{ $model.place }}',
         sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
         sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
      }">
@@ -26,7 +29,7 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="`/baende/more/?offset=${offset}&${activeFilterType && activeFilterValue ? `${activeFilterType}=${encodeURIComponent(activeFilterValue)}` : `search=${search}&letter=${letter}`}&sort=${sortField}&order=${sortOrder}`"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (person) params.set('person', person); if (user) params.set('user', user); if (year) params.set('year', year); if (place) params.set('place', place); params.set('sort', sortField); params.set('order', sortOrder); return `/baende/more/?${params.toString()}`; })()"
 			hx-replace-url="true"
 			hx-target="#baende-tbody"
 			hx-swap="beforeend"

@@ -266,7 +266,7 @@
 					{{- end -}}
 				</p>
 				<div class="form-action-bar-actions">
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center">
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
 						<i class="ri-arrow-left-line"></i>
 						<span>Liste</span>
 					</a>

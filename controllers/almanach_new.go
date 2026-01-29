@@ -82,6 +82,7 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 		data["series_relations"] = dbmodels.SERIES_RELATIONS
 		data["is_new"] = true
+		data["cancel_url"] = cancelURLFromHeader(e)
 
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}

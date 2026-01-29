@@ -362,62 +362,9 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, fmt.Errorf("failed to get users from cache")
 	}
 
-	// Determine active filter (only one at a time)
-	activeFilterType := ""
-	activeFilterValue := ""
-	switch {
-	case status != "":
-		activeFilterType = "status"
-		activeFilterValue = status
-		person = ""
-		user = ""
-		yearStr = ""
-		place = ""
-	case person != "":
-		activeFilterType = "person"
-		activeFilterValue = person
-		user = ""
-		yearStr = ""
-		place = ""
-	case user != "":
-		activeFilterType = "user"
-		activeFilterValue = user
-		yearStr = ""
-		place = ""
-	case yearStr != "":
-		activeFilterType = "year"
-		activeFilterValue = yearStr
-		place = ""
-	case place != "":
-		activeFilterType = "place"
-		activeFilterValue = place
-	}
-	if activeFilterType != "" {
-		search = ""
-		letter = ""
-	}
-
 	// Apply search/letter/filters
-	var filteredEntries []*dbmodels.Entry
-	if activeFilterType != "" {
-		switch activeFilterType {
-		case "status":
-			filteredEntries = filterEntriesByStatus(allEntries, status)
-		case "person":
-			filteredEntries = filterEntriesByAgent(allEntries, entryAgentsMap, person)
-		case "user":
-			filteredEntries = filterEntriesByEditor(allEntries, user)
-		case "year":
-			yearVal, err := strconv.Atoi(yearStr)
-			if err != nil {
-				filteredEntries = []*dbmodels.Entry{}
-			} else {
-				filteredEntries = filterEntriesByYear(allEntries, yearVal)
-			}
-		case "place":
-			filteredEntries = filterEntriesByPlace(allEntries, place)
-		}
-	} else if search != "" {
+	filteredEntries := allEntries
+	if search != "" {
 		trimmedSearch := strings.TrimSpace(search)
 		if utf8.RuneCountInString(trimmedSearch) >= 3 {
 			entries, err := searchBaendeEntries(app, trimmedSearch)
@@ -429,11 +376,30 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 			filteredEntries = filterEntriesBySearch(allEntries, itemsMap, trimmedSearch)
 		}
 		data["search"] = trimmedSearch
-	} else if letter != "" {
-		// Apply letter filter
-		filteredEntries = filterEntriesByLetter(allEntries, letter)
-	} else {
-		filteredEntries = allEntries
+	}
+	if letter != "" {
+		filteredEntries = filterEntriesByLetter(filteredEntries, letter)
+	}
+
+	if status != "" {
+		filteredEntries = filterEntriesByStatus(filteredEntries, status)
+	}
+	if person != "" {
+		filteredEntries = filterEntriesByAgent(filteredEntries, entryAgentsMap, person)
+	}
+	if user != "" {
+		filteredEntries = filterEntriesByEditor(filteredEntries, user)
+	}
+	if yearStr != "" {
+		yearVal, err := strconv.Atoi(yearStr)
+		if err != nil {
+			filteredEntries = []*dbmodels.Entry{}
+		} else {
+			filteredEntries = filterEntriesByYear(filteredEntries, yearVal)
+		}
+	}
+	if place != "" {
+		filteredEntries = filterEntriesByPlace(filteredEntries, place)
 	}
 
 	// Apply sorting based on sort parameter
@@ -513,11 +479,14 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["has_more"] = hasMore
 	data["next_offset"] = nextOffset
 	data["letter"] = letter
+	data["status"] = status
+	data["person"] = person
+	data["user"] = user
+	data["year"] = yearStr
+	data["place"] = place
 	data["sort_field"] = sort
 	data["sort_order"] = order
 	data["csrf_token"] = req.Session().Token
-	data["active_filter_type"] = activeFilterType
-	data["active_filter_value"] = activeFilterValue
 
 	// Keep letters array for navigation
 	letters := []string{

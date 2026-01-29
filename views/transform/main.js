@@ -179,6 +179,31 @@ function ShowBoostedErrors() {
 	});
 }
 
+function setupCancelLinks(root = document) {
+	const links = root.querySelectorAll("[data-role='cancel-link']");
+	links.forEach((link) => {
+		if (link.dataset.cancelBound === "true") {
+			return;
+		}
+		link.dataset.cancelBound = "true";
+		const cancelUrl = (link.getAttribute("data-cancel-url") || "").trim();
+		if (cancelUrl) {
+			link.setAttribute("href", cancelUrl);
+			return;
+		}
+		link.addEventListener("click", (event) => {
+			const resolved = (link.getAttribute("data-cancel-url") || "").trim();
+			if (resolved) {
+				return;
+			}
+			event.preventDefault();
+			if (window.history.length > 1) {
+				window.history.back();
+			}
+		});
+	});
+}
+
 // INFO: Hooks up to all the reset button children of the target element.
 // If an element has a changed state, it will trigger the action with `true`.
 // If no elements are changed, it will trigger the action with `false`.
@@ -223,6 +248,15 @@ function supportsFieldSizing() {
 	console.log("Browser supports field-sizing:", browserSupportsFieldSizing);
 	return browserSupportsFieldSizing;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+	setupCancelLinks(document);
+});
+
+document.addEventListener("htmx:afterSwap", (event) => {
+	const root = event.detail?.target || document;
+	setupCancelLinks(root);
+});
 
 // Simple textarea auto-resize function
 function TextareaAutoResize(textarea) {

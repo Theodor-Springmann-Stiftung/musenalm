@@ -80,6 +80,7 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
 		data["pagination_values"] = paginationValuesSorted()
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
+		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
@@ -160,6 +161,7 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
 		data["agents"] = agentsMap
 		data["content_agents"] = contentAgentsMap[content.Id]
+		data["cancel_url"] = cancelURLFromHeader(e)
 		data["prev_content"] = prevContent
 		data["next_content"] = nextContent
 		data["content_index"] = contentIndex
@@ -205,6 +207,7 @@ func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.Ap
 		data["agents"] = map[string]*dbmodels.Agent{}
 		data["content_agents"] = []*dbmodels.RContentsAgents{}
 		data["is_new"] = true
+		data["cancel_url"] = cancelURLFromHeader(e)
 
 		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 	}
@@ -225,6 +228,7 @@ func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app co
 	data["pagination_values"] = paginationValuesSorted()
 	data["agent_relations"] = dbmodels.AGENT_RELATIONS
 	data["error"] = message
+	data["cancel_url"] = cancelURLFromHeader(e)
 	data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
 	data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
 	return engine.Response200(e, p.Template, data, p.Layout)
@@ -299,6 +303,7 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	data["content_index"] = contentIndex
 	data["content_total"] = contentTotal
 	data["error"] = message
+	data["cancel_url"] = cancelURLFromHeader(e)
 
 	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 }
