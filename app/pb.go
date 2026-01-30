@@ -57,6 +57,7 @@ type BaendeCache struct {
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
 	Items         map[string][]*dbmodels.Item
 	Users         map[string]*dbmodels.User
+	ContentsCount map[string]int
 	CachedAt      time.Time
 }
 
@@ -93,6 +94,9 @@ func (bc *BaendeCache) GetUsers() interface{} {
 	return bc.Users
 }
 
+func (bc *BaendeCache) GetContentsCount() interface{} {
+	return bc.ContentsCount
+}
 const (
 	TEST_SUPERUSER_MAIL = "demo@example.com"
 	TEST_SUPERUSER_PASS = "password"
@@ -671,6 +675,16 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		}
 	}
 
+	// Load contents counts
+	contentsCount := map[string]int{}
+	if len(entryIDs) > 0 {
+		counts, err := dbmodels.CountContentsEntries(app.PB.App, entryIDs)
+		if err != nil {
+			return nil, err
+		}
+		contentsCount = counts
+	}
+
 	// Load users (editors)
 	usersMap := map[string]*dbmodels.User{}
 	editorIDs := map[string]struct{}{}
@@ -704,6 +718,7 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		EntriesAgents: entryAgentsMap,
 		Items:         itemsMap,
 		Users:         usersMap,
+		ContentsCount: contentsCount,
 		CachedAt:      time.Now(),
 	}
 

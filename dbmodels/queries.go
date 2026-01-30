@@ -294,6 +294,31 @@ func Items_Entries(app core.App, ids []any) ([]*Item, error) {
 	return ret, err
 }
 
+type EntryCount struct {
+	Count int    `db:"count"`
+	ID    string `db:"id"`
+}
+
+func CountContentsEntries(app core.App, ids []any) (map[string]int, error) {
+	if len(ids) == 0 {
+		return map[string]int{}, nil
+	}
+	counts := []EntryCount{}
+	err := app.RecordQuery(CONTENTS_TABLE).
+		Select("count(*) as count, " + ENTRIES_TABLE + " as id").
+		Where(dbx.HashExp{ENTRIES_TABLE: ids}).
+		GroupBy(ENTRIES_TABLE).
+		All(&counts)
+	if err != nil {
+		return nil, err
+	}
+	ret := make(map[string]int, len(counts))
+	for _, c := range counts {
+		ret[c.ID] = c.Count
+	}
+	return ret, nil
+}
+
 func Contents_MusenalmID(app core.App, id string) (*Content, error) {
 	ret, err := TableByField[Content](app, CONTENTS_TABLE, MUSENALMID_FIELD, id)
 	return &ret, err

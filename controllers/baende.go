@@ -27,7 +27,7 @@ const (
 	URL_BAENDE_DELETE  = "/baende/delete-info/{id}"
 	TEMPLATE_BAENDE    = "/baende/"
 	URL_BAENDE_DETAILS = "/baende/details/{id}"
-	BAENDE_PAGE_SIZE   = 150
+	BAENDE_PAGE_SIZE   = 100
 )
 
 func init() {
@@ -55,6 +55,7 @@ type BaendeResult struct {
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
 	Items         map[string][]*dbmodels.Item
 	Users         map[string]*dbmodels.User
+	ContentsCount map[string]int
 }
 
 type BaendeDetailsResult struct {
@@ -136,6 +137,15 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 			app.Logger().Error("Failed to get items for entry", "error", err)
 		}
 
+		contents, err := dbmodels.Contents_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get contents for entry", "error", err)
+		}
+		contentsCount := 0
+		if contents != nil {
+			contentsCount = len(contents)
+		}
+
 		var editorUser *dbmodels.User
 		if editorID := entry.Editor(); editorID != "" {
 			user, err := dbmodels.Users_ID(app, editorID)
@@ -147,11 +157,12 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 		}
 
 		data := map[string]any{
-			"entry":       entry,
-			"items":       items,
-			"editor_user": editorUser,
-			"is_admin":    req.IsAdmin(),
-			"csrf_token":  req.Session().Token,
+			"entry":          entry,
+			"items":          items,
+			"editor_user":    editorUser,
+			"contents_count": contentsCount,
+			"is_admin":       req.IsAdmin(),
+			"csrf_token":     req.Session().Token,
 		}
 
 		return engine.Response200(e, "/baende/row/", data, "fragment")
@@ -362,6 +373,11 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, fmt.Errorf("failed to get users from cache")
 	}
 
+	contentsCount, ok := cacheInterface.GetContentsCount().(map[string]int)
+	if !ok {
+		return data, fmt.Errorf("failed to get contents count from cache")
+	}
+
 	// Apply search/letter/filters
 	filteredEntries := allEntries
 	if search != "" {
@@ -472,6 +488,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		EntriesAgents: entryAgentsMap,
 		Items:         itemsMap,
 		Users:         usersMap,
+		ContentsCount: contentsCount,
 	}
 	data["offset"] = offset
 	data["total_count"] = totalCount
