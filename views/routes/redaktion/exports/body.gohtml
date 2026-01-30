@@ -3,11 +3,10 @@
 <div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
 	<div class="flex-col w-full">
 		<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
-		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Datenexport</h1>
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Einstellungen</h1>
 		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[70ch]">
 			<i class="ri-question-line"></i>
-			Export von Daten u. Dateien als ZIP-Ordner. Die Exporte werden gespeichert und nach dem
-			Ablauf von sieben Tagen automatisch gelöscht.
+			Export von Daten u. Dateien. Verwaltung der Suchindizes und globalen Einstellungen.
 		</div>
 	</div>
 </div>
@@ -17,43 +16,85 @@
 	data-run-url="/redaktion/exports/run/"
 	data-list-url="/redaktion/exports/list/"
 	data-delete-url="/redaktion/exports/delete/"
+	data-fts5-rebuild-url="/redaktion/exports/fts5/rebuild/"
+	data-fts5-status-url="/redaktion/exports/fts5/status/"
 	data-csrf="{{ $model.csrf_token }}">
-	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-	<div class="flex flex-col gap-6">
-		<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-			<div>
-				<h2 class="text-lg font-semibold text-slate-900">Daten-Export erstellen</h2>
-				<p class="text-sm text-slate-600 mt-1">Sichert alle Daten der Tabellen als
-				XML-Dateien. Der Export läuft im Hintergrund.</p>
+{{ template "_usermessage" $model }}
+	<div class="bg-slate-50 rounded-md shadow-sm border border-slate-200 p-6 mb-6">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<div class="flex flex-col gap-6">
+			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+				<div>
+					<h2 class="text-lg font-semibold text-slate-900">Daten-Export erstellen</h2>
+					<p class="text-sm text-slate-600 mt-1">Sichert alle Daten der Tabellen als
+					XML-Dateien. Der Export läuft im Hintergrund.</p>
+				</div>
+				<div class="flex items-center gap-3">
+					<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="data">
+						<i class="ri-download-2-line"></i> Export starten
+					</button>
+				</div>
 			</div>
-			<div class="flex items-center gap-3">
-				<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="data">
-					<i class="ri-download-2-line"></i> Export starten
-				</button>
+			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+				<div>
+					<h2 class="text-lg font-semibold text-slate-900">Dateien sichern</h2>
+					<p class="text-sm text-slate-600 mt-1">Exportiert Bilder und Dateien als ZIP. Der
+					Export kann eine Weile in Anspruch nehmen und läuft ebenfalls im Hintergrund.</p>
+				</div>
+				<div class="flex items-center gap-3">
+					<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="files">
+						<i class="ri-folder-zip-line"></i> Dateien sichern
+					</button>
+				</div>
 			</div>
-		</div>
-		<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-			<div>
-				<h2 class="text-lg font-semibold text-slate-900">Dateien sichern</h2>
-				<p class="text-sm text-slate-600 mt-1">Exportiert Bilder und Dateien als ZIP. Der
-				Export kann eine Weile in Anspruch nehmen und läuft ebenfalls im Hintergrund.</p>
-			</div>
-			<div class="flex items-center gap-3">
-				<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" data-role="run-export" data-export-type="files">
-					<i class="ri-folder-zip-line"></i> Dateien sichern
-				</button>
-			</div>
-		</div>
-		<div class="text-sm text-slate-600" data-role="status"></div>
+			<div class="text-sm text-slate-600" data-role="status"></div>
 
-		<div class="">
-			<div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
-				<h3 class="text-base font-semibold text-slate-900">Letzte Exporte</h3>
-				<div class="text-xs text-slate-500">Aktualisiert automatisch</div>
-			</div>
-			<div class="flex flex-col gap-3" data-role="export-list">
-				{{ template "_export_list" $model }}
+			<div class="">
+				<div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
+					<h3 class="text-base font-semibold text-slate-900">Letzte Exporte</h3>
+					<div class="text-xs text-slate-500">Aktualisiert automatisch</div>
+				</div>
+				<div class="flex flex-col gap-3" data-role="export-list">
+					{{ template "_export_list" $model }}
+				</div>
 			</div>
 		</div>
-	</div>
+		</div>
+
+		<section class="bg-slate-50 rounded-md shadow-sm border border-slate-200 p-6">
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div class="min-w-0">
+						<h2 class="text-lg font-semibold text-slate-900">Suchindex neu aufbauen</h2>
+						<p class="text-sm text-slate-600 mt-1">Löscht und erstellt den Suchindex aus den
+						bestehenden Einträgen neu. Kann bei Problemen bei der Suche und Auffindbarkeit von
+						Bänden und Beiträgen hilfreich sein. <em>Die Datenbank sollte während dem Aufbau möglichst
+						nicht verändert werden.</em> Ein automatischer Rebuild findet jeden Sonntag um 00:00 Uhr statt.</p>
+					</div>
+					<div class="flex items-center gap-3 shrink-0">
+						<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50 whitespace-nowrap" data-role="fts5-rebuild">
+							<i class="ri-refresh-line"></i>
+							<span data-role="fts5-rebuild-label">Neuaufbau starten</span>
+						</button>
+					</div>
+				</div>
+				<div>
+					{{- if $model.fts5_last_rebuild_dt.IsZero | not -}}
+						<div class="text-xs text-slate-500">Zuletzt aufgebaut: <span data-role="fts5-last-rebuild">{{ GermanDate $model.fts5_last_rebuild_dt }} {{ GermanTime $model.fts5_last_rebuild_dt }}</span></div>
+					{{- else -}}
+						<div class="text-xs text-slate-500 hidden" data-role="fts5-last-rebuild-wrap">Zuletzt aufgebaut: <span data-role="fts5-last-rebuild"></span></div>
+					{{- end -}}
+					<div class="mt-3 hidden rounded-md border px-3 py-2 text-sm" data-role="fts5-status"></div>
+					<div class="mt-3 hidden" data-role="fts5-progress">
+						<div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+							<span data-role="fts5-progress-text"></span>
+							<span data-role="fts5-progress-percent"></span>
+						</div>
+						<div class="h-2 w-full bg-slate-200 rounded">
+							<div class="h-2 bg-slate-700 rounded transition-all duration-200" style="width: 0%;" data-role="fts5-progress-bar"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
 </export-manager>

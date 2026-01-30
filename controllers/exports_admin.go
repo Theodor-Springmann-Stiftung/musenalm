@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/exports"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -20,14 +22,17 @@ import (
 )
 
 const (
-	URL_EXPORTS_ADMIN       = "/redaktion/exports/"
-	URL_EXPORTS_RUN         = "run/"
-	URL_EXPORTS_LIST        = "list/"
-	URL_EXPORTS_DOWNLOAD    = "download/"
-	URL_EXPORTS_DELETE      = "delete/"
-	TEMPLATE_EXPORTS        = "/redaktion/exports/"
-	TEMPLATE_EXPORTS_LIST   = "/redaktion/exports/list/"
-	LAYOUT_EXPORTS_FRAGMENT = "fragment"
+	URL_EXPORTS_ADMIN        = "/redaktion/exports/"
+	URL_EXPORTS_RUN          = "run/"
+	URL_EXPORTS_LIST         = "list/"
+	URL_EXPORTS_DOWNLOAD     = "download/"
+	URL_EXPORTS_DELETE       = "delete/"
+	URL_EXPORTS_SETTINGS     = "settings/"
+	URL_EXPORTS_FTS5_REBUILD = "fts5/rebuild/"
+	URL_EXPORTS_FTS5_STATUS  = "fts5/status/"
+	TEMPLATE_EXPORTS         = "/redaktion/exports/"
+	TEMPLATE_EXPORTS_LIST    = "/redaktion/exports/list/"
+	LAYOUT_EXPORTS_FRAGMENT  = "fragment"
 )
 
 func init() {
@@ -56,6 +61,10 @@ func (p *ExportsAdmin) Setup(router *router.Router[*core.RequestEvent], ia pagem
 	rg.POST(URL_EXPORTS_RUN, p.runHandler(appInstance))
 	rg.GET(URL_EXPORTS_DOWNLOAD+"{id}", p.downloadHandler(appInstance))
 	rg.POST(URL_EXPORTS_DELETE+"{id}", p.deleteHandler(appInstance))
+	rg.POST(URL_EXPORTS_SETTINGS+"save/", handleSettingSave(appInstance, URL_EXPORTS_ADMIN))
+	rg.POST(URL_EXPORTS_SETTINGS+"delete/", handleSettingDelete(appInstance, URL_EXPORTS_ADMIN))
+	rg.POST(URL_EXPORTS_FTS5_REBUILD, p.fts5RunHandler(appInstance))
+	rg.GET(URL_EXPORTS_FTS5_STATUS, p.fts5StatusHandler(appInstance))
 	return nil
 }
 
@@ -82,6 +91,12 @@ func (p *ExportsAdmin) pageHandler(engine *templating.Engine, app core.App) Hand
 		if err != nil {
 			return engine.Response500(e, err, nil)
 		}
+		if msg := popFlashSuccess(e); msg != "" {
+			data["success"] = msg
+		}
+		if errMsg := strings.TrimSpace(e.Request.URL.Query().Get("error")); errMsg != "" {
+			data["error"] = errMsg
+		}
 		return engine.Response200(e, TEMPLATE_EXPORTS, data, pagemodels.LAYOUT_LOGIN_PAGES)
 	}
 }
@@ -93,6 +108,61 @@ func (p *ExportsAdmin) listHandler(engine *templating.Engine, app core.App) Hand
 			return engine.Response500(e, err, nil)
 		}
 		return engine.Response200(e, TEMPLATE_EXPORTS_LIST, data, LAYOUT_EXPORTS_FRAGMENT)
+	}
+}
+
+func (p *ExportsAdmin) fts5RunHandler(app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if err := e.Request.ParseForm(); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{"error": "Formulardaten ungueltig."})
+		}
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return e.JSON(http.StatusUnauthorized, map[string]any{"error": err.Error()})
+		}
+
+		status, err := imports.StartFTS5Rebuild(app, true)
+		if err != nil {
+			return e.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
+		}
+
+		if status == "running" {
+			return e.JSON(http.StatusConflict, map[string]any{"error": "FTS5-Neuaufbau läuft bereits."})
+		}
+		if status == "restarting" {
+			return e.JSON(http.StatusOK, map[string]any{"success": true, "status": "restarting"})
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{"success": true, "status": "started"})
+	}
+}
+
+func (p *ExportsAdmin) fts5StatusHandler(app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		status := settingString(app, "fts5_rebuild_status")
+		if status == "" {
+			status = "idle"
+		}
+		message := normalizeGermanMessage(settingString(app, "fts5_rebuild_message"))
+		errMsg := normalizeGermanMessage(settingString(app, "fts5_rebuild_error"))
+		done := 0
+		total := 0
+		if setting, err := dbmodels.Settings_Key(app, "fts5_rebuild_done"); err == nil && setting != nil {
+			done = parseSettingInt(setting.Value())
+		}
+		if setting, err := dbmodels.Settings_Key(app, "fts5_rebuild_total"); err == nil && setting != nil {
+			total = parseSettingInt(setting.Value())
+		}
+		lastRebuild := formatLastRebuild(app)
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"status":       status,
+			"message":      message,
+			"error":        errMsg,
+			"done":         done,
+			"total":        total,
+			"last_rebuild": lastRebuild,
+		})
 	}
 }
 
@@ -234,7 +304,7 @@ func (p *ExportsAdmin) deleteHandler(app core.App) HandleFunc {
 
 		status := record.GetString(dbmodels.EXPORT_STATUS_FIELD)
 		if status == dbmodels.EXPORT_STATUS_RUNNING || status == dbmodels.EXPORT_STATUS_QUEUED {
-			return e.JSON(http.StatusConflict, map[string]any{"error": "Export laeuft noch."})
+			return e.JSON(http.StatusConflict, map[string]any{"error": "Export läuft noch."})
 		}
 
 		exportDir, err := exports.ExportDir(app)
@@ -264,12 +334,19 @@ func exportsData(e *core.RequestEvent, app core.App) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	settings, err := settingsData(app)
+	if err != nil {
+		return nil, err
+	}
 
 	data["exports"] = exportsList
 	data["has_running"] = hasRunning
 	data["csrf_token"] = ""
 	if req.Session() != nil {
 		data["csrf_token"] = req.Session().Token
+	}
+	for key, value := range settings {
+		data[key] = value
 	}
 	return data, nil
 }
@@ -334,4 +411,74 @@ func formatBytes(size int64) string {
 		return fmt.Sprintf("%.1f %s", value, units[unitIdx])
 	}
 	return fmt.Sprintf("%.2f %s", value, units[unitIdx])
+}
+
+func settingString(app core.App, key string) string {
+	setting, err := dbmodels.Settings_Key(app, key)
+	if err != nil || setting == nil {
+		return ""
+	}
+	if value, ok := setting.Value().(string); ok {
+		return normalizeSettingString(value)
+	}
+	return normalizeSettingString(fmt.Sprintf("%v", setting.Value()))
+}
+
+func formatLastRebuild(app core.App) string {
+	setting, err := dbmodels.Settings_Key(app, "fts5_last_rebuild")
+	if err != nil || setting == nil {
+		return ""
+	}
+	if formatted, ok := formatSettingGermanDateTime(setting.Value()); ok {
+		return normalizeSettingString(formatted)
+	}
+	if value, ok := parseSettingString(setting.Value()); ok {
+		return normalizeSettingString(value)
+	}
+	return normalizeSettingString(fmt.Sprintf("%v", setting.Value()))
+}
+
+func parseSettingInt(value any) int {
+	switch v := value.(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case string:
+		if parsed, err := strconv.Atoi(v); err == nil {
+			return parsed
+		}
+	default:
+		if parsed, err := strconv.Atoi(fmt.Sprintf("%v", value)); err == nil {
+			return parsed
+		}
+	}
+	return 0
+}
+
+func normalizeSettingString(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if len(trimmed) >= 2 && strings.HasPrefix(trimmed, "\"") && strings.HasSuffix(trimmed, "\"") {
+		if unquoted, err := strconv.Unquote(trimmed); err == nil {
+			return unquoted
+		}
+		return strings.Trim(trimmed, "\"")
+	}
+	return trimmed
+}
+
+func normalizeGermanMessage(value string) string {
+	replacer := strings.NewReplacer(
+		"laeuft", "läuft",
+		"Laeuft", "Läuft",
+		"Loescht", "Löscht",
+		"loescht", "löscht",
+		"fuellt", "füllt",
+		"Fuellt", "Füllt",
+		"Eintraegen", "Einträgen",
+		"eintraegen", "einträgen",
+	)
+	return replacer.Replace(value)
 }

@@ -747,6 +747,8 @@ func (app *App) bindPages(engine *templating.Engine) ServeFunc {
 			page.Setup(e.Router, app, engine)
 		}
 
+		StartWeeklyFTS5Rebuild(e.App)
+
 		return e.Next()
 	}
 }

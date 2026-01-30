@@ -159,6 +159,17 @@ func Data_All(app core.App) ([]*Data, error) {
 	return data, err
 }
 
+func Settings_Key(app core.App, key string) (*Setting, error) {
+	ret, err := TableByField[Setting](app, SETTINGS_TABLE, KEY_FIELD, key)
+	return &ret, err
+}
+
+func Settings_All(app core.App) ([]*Setting, error) {
+	settings := make([]*Setting, 0)
+	err := app.RecordQuery(SETTINGS_TABLE).All(&settings)
+	return settings, err
+}
+
 func Pages_All(app core.App) ([]*Page, error) {
 	pages := make([]*Page, 0)
 	err := app.RecordQuery(PAGES_TABLE).All(&pages)

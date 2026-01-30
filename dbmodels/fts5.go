@@ -269,8 +269,40 @@ func CreateFTS5TableQuery(tablename string, fields ...string) string {
 	return str
 }
 
+func CreateFTS5Tables(app core.App) error {
+	err1 := createFTS5Table(app, AGENTS_TABLE, AGENTS_FTS5_FIELDS)
+	err2 := createFTS5Table(app, PLACES_TABLE, PLACES_FTS5_FIELDS)
+	err3 := createFTS5Table(app, SERIES_TABLE, SERIES_FTS5_FIELDS)
+	err4 := createFTS5Table(app, ITEMS_TABLE, ITEMS_FTS5_FIELDS)
+	err5 := createFTS5Table(app, ENTRIES_TABLE, ENTRIES_FTS5_FIELDS)
+	err6 := createFTS5Table(app, CONTENTS_TABLE, CONTENTS_FTS5_FIELDS)
+	return errors.Join(err1, err2, err3, err4, err5, err6)
+}
+
+func DropFTS5Tables(app core.App) error {
+	err1 := dropFTS5Table(app, FTS5TableName(AGENTS_TABLE))
+	err2 := dropFTS5Table(app, FTS5TableName(PLACES_TABLE))
+	err3 := dropFTS5Table(app, FTS5TableName(SERIES_TABLE))
+	err4 := dropFTS5Table(app, FTS5TableName(ITEMS_TABLE))
+	err5 := dropFTS5Table(app, FTS5TableName(ENTRIES_TABLE))
+	err6 := dropFTS5Table(app, FTS5TableName(CONTENTS_TABLE))
+	return errors.Join(err1, err2, err3, err4, err5, err6)
+}
+
 func FTS5TableName(table string) string {
 	return FTS5_PREFIX + table
+}
+
+func createFTS5Table(app core.App, table string, fields []string) error {
+	query := CreateFTS5TableQuery(table, fields...)
+	_, err := app.DB().NewQuery(query).Execute()
+	return err
+}
+
+func dropFTS5Table(app core.App, table string) error {
+	query := "DROP TABLE IF EXISTS " + table
+	_, err := app.DB().NewQuery(query).Execute()
+	return err
 }
 
 func InsertFTS5Agent(app core.App, agent *Agent) error {

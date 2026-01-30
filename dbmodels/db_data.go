@@ -440,6 +440,7 @@ const (
 	SESSIONS_TABLE      = "sessions"
 	ACCESS_TOKENS_TABLE = "access_tokens"
 	DATA_TABLE          = "data"
+	SETTINGS_TABLE      = "settings"
 	IMAGES_TABLE        = "images"
 	FILES_TABLE         = "files"
 	HTML_TABLE          = "html"
