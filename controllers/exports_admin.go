@@ -121,19 +121,16 @@ func (p *ExportsAdmin) fts5RunHandler(app core.App) HandleFunc {
 			return e.JSON(http.StatusUnauthorized, map[string]any{"error": err.Error()})
 		}
 
-		status, err := imports.StartFTS5Rebuild(app, true)
-		if err != nil {
-			return e.JSON(http.StatusInternalServerError, map[string]any{"error": err.Error()})
-		}
+		go func() {
+			status, err := imports.StartFTS5Rebuild(app, true)
+			if err != nil {
+				app.Logger().Error("FTS5 rebuild start failed", "error", err)
+				return
+			}
+			app.Logger().Info("FTS5 rebuild triggered", "status", status)
+		}()
 
-		if status == "running" {
-			return e.JSON(http.StatusConflict, map[string]any{"error": "FTS5-Neuaufbau läuft bereits."})
-		}
-		if status == "restarting" {
-			return e.JSON(http.StatusOK, map[string]any{"success": true, "status": "restarting"})
-		}
-
-		return e.JSON(http.StatusOK, map[string]any{"success": true, "status": "started"})
+		return e.JSON(http.StatusAccepted, map[string]any{"success": true, "status": "queued"})
 	}
 }
 
@@ -152,6 +149,16 @@ func (p *ExportsAdmin) fts5StatusHandler(app core.App) HandleFunc {
 		}
 		if setting, err := dbmodels.Settings_Key(app, "fts5_rebuild_total"); err == nil && setting != nil {
 			total = parseSettingInt(setting.Value())
+		}
+
+		if snapshot, ok := imports.FTS5Status(); ok {
+			if imports.FTS5IsRunning() || status == "" || status == "idle" || status == "running" || status == "restarting" {
+				status = snapshot.Status
+				message = normalizeGermanMessage(snapshot.Message)
+				errMsg = normalizeGermanMessage(snapshot.Error)
+				done = snapshot.Done
+				total = snapshot.Total
+			}
 		}
 		lastRebuild := formatLastRebuild(app)
 

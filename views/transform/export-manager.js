@@ -349,6 +349,11 @@ export class ExportManager extends HTMLElement {
 		if (!this.fts5RebuildUrl) return;
 		const button = event.target.closest("[data-role='fts5-rebuild']");
 		if (button) button.disabled = true;
+		if (this.fts5Status) {
+			this.fts5Status.textContent = "FTS5-Neuaufbau wird gestartet...";
+			this.fts5Status.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+			this.fts5Status.classList.add("text-slate-700", "bg-slate-50", "border-slate-200");
+		}
 		if (this.fts5Progress) {
 			this.fts5Progress.classList.remove("hidden");
 		}
@@ -375,7 +380,8 @@ export class ExportManager extends HTMLElement {
 				const message = await this.extractError(response);
 				if (this.fts5Status) {
 					this.fts5Status.textContent = message || "FTS5-Neuaufbau konnte nicht gestartet werden.";
-					this.fts5Status.classList.add("text-red-600");
+					this.fts5Status.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+					this.fts5Status.classList.add("text-red-700", "bg-red-50", "border-red-200");
 				}
 				return;
 			}
@@ -383,7 +389,8 @@ export class ExportManager extends HTMLElement {
 			if (json && json.error) {
 				if (this.fts5Status) {
 					this.fts5Status.textContent = json.error;
-					this.fts5Status.classList.add("text-red-600");
+					this.fts5Status.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+					this.fts5Status.classList.add("text-red-700", "bg-red-50", "border-red-200");
 				}
 				return;
 			}
@@ -399,7 +406,8 @@ export class ExportManager extends HTMLElement {
 		} catch {
 			if (this.fts5Status) {
 				this.fts5Status.textContent = "FTS5-Neuaufbau konnte nicht gestartet werden.";
-				this.fts5Status.classList.add("text-red-600");
+				this.fts5Status.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+				this.fts5Status.classList.add("text-red-700", "bg-red-50", "border-red-200");
 			}
 		} finally {
 			if (button) button.disabled = false;

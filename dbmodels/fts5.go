@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
@@ -566,12 +567,71 @@ func InsertFTS5Record(query *dbx.Query, id string, fields []string, values ...st
 		return errors.New("fields and values must have the same length")
 	}
 
-	params := dbx.Params{ID_FIELD: id}
+	params := fts5ParamsPool.Get().(dbx.Params)
+	for key := range params {
+		delete(params, key)
+	}
+	params[ID_FIELD] = id
 	for i, v := range fields {
 		params[v] = values[i]
 	}
-
 	_, err := query.Bind(params).Execute()
+	for key := range params {
+		delete(params, key)
+	}
+	fts5ParamsPool.Put(params)
+	return err
+}
+
+type FTS5Row struct {
+	Id     string
+	Values []string
+}
+
+var fts5ParamsPool = sync.Pool{
+	New: func() any {
+		return dbx.Params{}
+	},
+}
+
+func InsertFTS5Batch(dbBuilder dbx.Builder, table string, fields []string, rows []FTS5Row) error {
+	if len(rows) == 0 {
+		return nil
+	}
+	query := strings.Builder{}
+	query.WriteString("INSERT INTO ")
+	query.WriteString(FTS5TableName(table))
+	query.WriteString(" (")
+	query.WriteString(ID_FIELD)
+	query.WriteString(", ")
+	query.WriteString(strings.Join(fields, ", "))
+	query.WriteString(") VALUES ")
+
+	params := dbx.Params{}
+	for i := 0; i < len(rows); i++ {
+		if i > 0 {
+			query.WriteString(", ")
+		}
+		row := rows[i]
+		if len(row.Values) != len(fields) {
+			return errors.New("fields and values must have the same length")
+		}
+		idKey := "id_" + strconv.Itoa(i)
+		params[idKey] = row.Id
+		query.WriteString("({:")
+		query.WriteString(idKey)
+		query.WriteString("}")
+		for j, field := range fields {
+			key := field + "_" + strconv.Itoa(i)
+			params[key] = row.Values[j]
+			query.WriteString(", {:")
+			query.WriteString(key)
+			query.WriteString("}")
+		}
+		query.WriteString(")")
+	}
+
+	_, err := dbBuilder.NewQuery(query.String()).Bind(params).Execute()
 	return err
 }
 

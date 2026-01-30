@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -32,18 +33,18 @@ type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
-	PB              *pocketbase.PocketBase
-	MAConfig        Config
-	Pages           []pagemodels.IPage
-	dataCache       *PrefixCache
-	dataMutex       sync.RWMutex
-	htmlCache       *PrefixCache
-	htmlMutex       sync.RWMutex
-	pagesCache      map[string]PageMetaData
-	pagesMutex      sync.RWMutex
-	imagesCache     map[string]*dbmodels.Image
-	imagesMutex     sync.RWMutex
-	baendeCache     *BaendeCache
+	PB               *pocketbase.PocketBase
+	MAConfig         Config
+	Pages            []pagemodels.IPage
+	dataCache        *PrefixCache
+	dataMutex        sync.RWMutex
+	htmlCache        *PrefixCache
+	htmlMutex        sync.RWMutex
+	pagesCache       map[string]PageMetaData
+	pagesMutex       sync.RWMutex
+	imagesCache      map[string]*dbmodels.Image
+	imagesMutex      sync.RWMutex
+	baendeCache      *BaendeCache
 	baendeCacheMutex sync.RWMutex
 }
 
@@ -91,6 +92,7 @@ func (bc *BaendeCache) GetItems() interface{} {
 func (bc *BaendeCache) GetUsers() interface{} {
 	return bc.Users
 }
+
 const (
 	TEST_SUPERUSER_MAIL = "demo@example.com"
 	TEST_SUPERUSER_PASS = "password"
@@ -195,6 +197,10 @@ func (app *App) Serve() error {
 
 	// INFO: we use OnServe, but here is also OnBootstrap
 	app.PB.OnServe().BindFunc(app.bindPages(engine))
+	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		imports.MarkInterruptedFTS5Rebuild(e.App)
+		return e.Next()
+	})
 	return app.PB.Start()
 }
 
@@ -210,8 +216,8 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		"site": map[string]interface{}{
 			"title": "Musenalm",
 			"lang":  "de",
-		"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
-	}})
+			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
+		}})
 
 	app.ResetDataCache()
 	engine.AddFunc("data", func(key string) any {
