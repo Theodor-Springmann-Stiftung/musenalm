@@ -9,7 +9,7 @@
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
-							@click="changeSort('alm')">
+							@click="changeSort('alm', $event)">
 							<span class="font-semibold tracking-wide">Alm-Nr</span>
 							<i class="text-xs opacity-70 transition-colors"
 							   :class="{
@@ -26,7 +26,7 @@
 					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
-						@click="changeSort('title')">
+						@click="changeSort('title', $event)">
 						<span class="font-semibold tracking-wide">Titel</span>
 						<i class="text-xs opacity-70 transition-colors"
 						   :class="{
@@ -41,7 +41,7 @@
 					<div class="flex flex-col items-start gap-0.5 h-full justify-end">
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm leading-tight"
-							@click="changeSort('responsibility')">
+							@click="changeSort('responsibility', $event)">
 							<span class="font-semibold tracking-wide">Herausgeber</span>
 							<i class="text-xs opacity-70 transition-colors"
 							   :class="{
@@ -53,7 +53,7 @@
 						</button>
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm leading-tight"
-							@click="changeSort('place')">
+							@click="changeSort('place', $event)">
 							<span class="font-semibold tracking-wide">Ortsangabe</span>
 							<i class="text-xs opacity-70 transition-colors"
 							   :class="{
@@ -69,7 +69,7 @@
 					:aria-sort="sortField === 'year' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
-						@click="changeSort('year')">
+						@click="changeSort('year', $event)">
 						<span class="font-semibold tracking-wide">Jahr</span>
 						<i class="text-xs opacity-70 transition-colors"
 						   :class="{
@@ -90,7 +90,7 @@
 					:aria-sort="sortField === 'signatur' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
-						@click="changeSort('signatur')">
+						@click="changeSort('signatur', $event)">
 						<span class="font-semibold tracking-wide">Signaturen</span>
 						<i class="text-xs opacity-70 transition-colors"
 						   :class="{
@@ -106,7 +106,7 @@
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
-							@click="changeSort('updated')">
+							@click="changeSort('updated', $event)">
 							<span class="font-semibold tracking-wide">Bearbeitet am</span>
 							<i class="text-xs opacity-70 transition-colors"
 							   :class="{

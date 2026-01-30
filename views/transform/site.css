@@ -663,11 +663,11 @@
 	}
 
 	.global-notice {
-		@apply fixed right-6 bottom-6 z-50 hidden;
+		@apply fixed left-24 bottom-12 z-50 hidden;
 	}
 
 	.global-notice-inner {
-		@apply flex items-center gap-2 rounded-md border border-slate-200 bg-white/95 px-3 py-2 text-sm font-semibold text-gray-700 shadow-lg backdrop-blur;
+		@apply flex items-center gap-2 rounded-md border-2 border-slate-600 bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-md;
 	}
 
 	.global-notice[data-state="error"] .global-notice-inner {

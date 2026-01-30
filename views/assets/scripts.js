@@ -5808,18 +5808,16 @@ class od extends HTMLElement {
               scroll-to-top
               fixed bottom-12 right-8 z-50
               hidden
-              bg-gray-800 text-white
-              p-2
-              rounded-md
+              w-12 h-12
+              bg-slate-700 hover:bg-slate-800 text-white
+              rounded border-2 border-slate-600
+              shadow-sm transition-all duration-200
+              flex items-center justify-center
               cursor-pointer
-              text-2xl
-              hover:opacity-80
-              transition-opacity
-              border-0
             "
             aria-label="Scroll to top"
           >
-					<i class="ri-arrow-up-double-line"></i>
+					<i class="ri-arrow-up-double-line text-2xl"></i>
           </button>
         `, this._button = this.querySelector(".scroll-to-top"), window.addEventListener("scroll", this.handleScroll), this._button.addEventListener("click", this.scrollToTop);
   }
@@ -8910,206 +8908,206 @@ class Ec extends HTMLElement {
     jt && jt.value, this.hasContext = l || u || f || I || U || p || h;
     let tt = "";
     n && l ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihe
 				</div>
-				<a href="/reihe/${c}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/reihe/${c}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
 			` : n && u ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Person
 				</div>
-				<a href="/person/${m}/edit/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/person/${m}/edit/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
 			` : n && f ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Almanach
 				</div>
-				<a href="/almanach/${A}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${A}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				<a href="/almanach/${A}/contents/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${A}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Beiträge bearbeiten</span>
 				</a>
-				<a href="/almanach/${A}/contents/new" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${A}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Beitrag</span>
 				</a>
 			` : n && I && R ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Beitrag
 				</div>
-				<a href="/almanach/${R}/contents/${$}/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${R}/contents/${$}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				<a href="/almanach/${R}/contents/edit" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${R}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Beiträge bearbeiten</span>
 				</a>
-				<a href="/almanach/${R}/contents/new" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach/${R}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Beitrag</span>
 				</a>
 			` : n && p ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihen
 				</div>
-				<a href="/reihen/new/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/reihen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Reihe</span>
 				</a>
 			` : n && h ? tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Personen
 				</div>
-				<a href="/personen/new/" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/personen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Person</span>
 				</a>
 			` : n && U && (tt = `
-				<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Seite
 				</div>
-				<a href="/redaktion/seiten/?key=${_}" hx-boost="false" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/redaktion/seiten/?key=${_}" hx-boost="false" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Seite bearbeiten</span>
 				</a>
 			`);
     const _i = n ? `
-			<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+			<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 				Erstellen
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/almanach-new/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/almanach-new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-book-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Band</span>
 				</a>
-				<a href="/almanach-new/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/almanach-new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/reihen/new/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/reihen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-stack-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Reihe</span>
 				</a>
-				<a href="/reihen/new/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/reihen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/orte/new/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/orte/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-map-pin-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Ort</span>
 				</a>
-				<a href="/orte/new/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/orte/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/personen/new/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/personen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Person</span>
 				</a>
-				<a href="/personen/new/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/personen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="border-t border-gray-200 my-1"></div>
 		` : "", vi = n ? `
-			<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+			<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 				Listen
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/reihen/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/reihen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-stack-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Reihen</span>
 				</a>
-				<a href="/reihen/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/reihen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/baende/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/baende/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-book-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bände</span>
 				</a>
-				<a href="/baende/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/baende/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/orte/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/orte/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-map-pin-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Orte</span>
 				</a>
-				<a href="/orte/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/orte/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/personen/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/personen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Personen</span>
 				</a>
-				<a href="/personen/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/personen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/abkuerzungen/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/abkuerzungen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-text text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Abkürzungen</span>
 				</a>
-				<a href="/abkuerzungen/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/abkuerzungen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/redaktion/seiten/" hx-boost="false" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/redaktion/seiten/" hx-boost="false" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-pages-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Seiten</span>
 				</a>
-				<a href="/redaktion/seiten/" target="_blank" hx-boost="false" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/redaktion/seiten/" target="_blank" hx-boost="false" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="border-t border-gray-200 my-1"></div>
 		` : "", yi = r ? `
-			<div class="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+			<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 				Administration
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/redaktion/exports/" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/redaktion/exports/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-download-2-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Datenexport</span>
 				</a>
-				<a href="/redaktion/exports/" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/redaktion/exports/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/user/management/access/User?redirectTo=${a}" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/user/management/access/User?redirectTo=${a}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Nutzer einladen</span>
 				</a>
-				<a href="/user/management/access/User?redirectTo=${a}" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/user/management/access/User?redirectTo=${a}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/user/management?redirectTo=${a}" class="flex items-center px-4 py-2 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/user/management?redirectTo=${a}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-2-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Benutzerverwaltung</span>
 				</a>
-				<a href="/user/management?redirectTo=${a}" target="_blank" class="flex items-center justify-center px-3 py-2 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/user/management?redirectTo=${a}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -9118,7 +9116,7 @@ class Ec extends HTMLElement {
     this.innerHTML = `
 			<div class="fixed bottom-12 left-8 z-50">
 				<!-- Unified Menu Container -->
-				<div class="fab-menu hidden absolute bottom-16 left-0 w-64 bg-white rounded border border-gray-300 shadow transition-all duration-100 ease-out">
+				<div class="fab-menu hidden absolute bottom-16 left-0 w-64 max-h-[85vh] overflow-y-auto bg-white rounded border border-gray-300 shadow transition-all duration-100 ease-out">
 					<!-- Contextual actions (always at top when present) -->
 					${Me}
 					${Ai}
@@ -9128,15 +9126,15 @@ class Ec extends HTMLElement {
 						${_i}
 						${vi}
 						${yi}
-						<div class="px-4 py-2">
+						<div class="px-3 py-1.5">
 							<div class="font-semibold text-gray-900 text-sm">${t}</div>
 							<div class="text-xs text-gray-600 truncate">${e}</div>
 						</div>
-						<a href="/user/${i}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+						<a href="/user/${i}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 							<i class="ri-user-3-line text-base text-gray-700 mr-2.5"></i>
 							<span class="text-gray-900">Profil bearbeiten</span>
 						</a>
-						<a href="/logout?redirectTo=${a}" class="flex items-center px-4 py-2 hover:bg-gray-100 transition-colors no-underline text-sm">
+						<a href="/logout?redirectTo=${a}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 							<i class="ri-logout-box-line text-base text-gray-700 mr-2.5 mb-1"></i>
 							<span class="text-gray-900">Logout</span>
 						</a>
@@ -9158,13 +9156,17 @@ class Ec extends HTMLElement {
     t.stopPropagation(), this.nextState();
   }
   handleClickAway(t) {
-    this.contains(t.target) || this.setState("closed");
+    this.contains(t.target) || (this.hasContext ? this.setState("half") : this.setState("closed"));
   }
   nextState() {
-    this.state === "closed" ? this.setState(this.hasContext ? "half" : "full") : this.state === "half" ? this.setState("full") : this.setState("closed");
+    if (this.hasContext) {
+      this.setState(this.state === "half" ? "full" : "half");
+      return;
+    }
+    this.state === "closed" ? this.setState("full") : this.setState("closed");
   }
   setState(t) {
-    if (this.state = t, t === "closed")
+    if (this.hasContext && t === "closed" && (t = "half"), this.state = t, t === "closed")
       this._menu.style.opacity = "0", this._menu.style.transform = "translateY(8px)", this._fullContent.style.maxHeight = "0", this._fullContent.style.opacity = "0", setTimeout(() => {
         this.state === "closed" && this._menu.classList.add("hidden");
       }, 200), this._icon.classList.remove("ri-arrow-up-s-line", "ri-close-line"), this._icon.classList.add("ri-menu-line"), this._button.style.backgroundColor = "", this._button.style.borderColor = "", this._button.classList.remove("shadow-md"), this._button.classList.add("shadow-sm");

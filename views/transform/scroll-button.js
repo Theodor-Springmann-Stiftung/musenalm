@@ -13,18 +13,16 @@ export class ScrollButton extends HTMLElement {
               scroll-to-top
               fixed bottom-12 right-8 z-50
               hidden
-              bg-gray-800 text-white
-              p-2
-              rounded-md
+              w-12 h-12
+              bg-slate-700 hover:bg-slate-800 text-white
+              rounded border-2 border-slate-600
+              shadow-sm transition-all duration-200
+              flex items-center justify-center
               cursor-pointer
-              text-2xl
-              hover:opacity-80
-              transition-opacity
-              border-0
             "
             aria-label="Scroll to top"
           >
-					<i class="ri-arrow-up-double-line"></i>
+					<i class="ri-arrow-up-double-line text-2xl"></i>
           </button>
         `;
 

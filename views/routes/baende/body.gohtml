@@ -91,7 +91,7 @@
 		const query = params.toString();
 		return query ? `/baende/?${query}` : '/baende/';
 	},
-	applyFilter(overrides = {}, indicator = 'body') {
+	applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
 		Object.entries(overrides).forEach(([key, value]) => {
 			this[key] = value;
 		});
@@ -102,6 +102,7 @@
 			target: '#baenderesults',
 			swap: 'outerHTML',
 			indicator,
+			source: sourceEl || (indicator && document.querySelector(indicator)) || undefined,
 		});
 	},
 	clearFilters() {
@@ -116,7 +117,7 @@
 			if (d !== current) d.open = false;
 		});
 	},
-	changeSort(field) {
+	changeSort(field, event = null) {
 		if (this.sortField === field) {
 			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -142,7 +143,7 @@
 		htmx.ajax('GET', `/baende/results/?${queryString}`, {
 			target: '#baenderesults',
 			swap: 'outerHTML',
-			indicator: 'body'
+			source: event?.currentTarget || undefined,
 		});
 	},
 	updateUrl() {
@@ -199,7 +200,7 @@ class="container-normal font-sans mt-10">
 		<div class="mt-2">
 			<div class="border-b px-3 border-zinc-300">
 				<!-- Row 1: Filters -->
-				<div class="flex flex-wrap items-end justify-center min-h-14 gap-x-2 gap-y-3 pb-3">
+				<div class="flex flex-wrap items-end justify-center min-h-14 gap-x-2 gap-y-3 pb-3" hx-boost="false">
 					<!-- Alphabet navigation toggle -->
 					<div class="relative">
 						<details class="font-sans text-base list-none" data-role="alphabet-toggle" @toggle="alphabetOpen = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
@@ -215,18 +216,25 @@ class="container-normal font-sans mt-10">
 								<div class="p-2 w-[26rem]">
 									<a :href="buildPageUrl({ letter: '', offset: 0 })"
 									   hx-indicator="#baende-alphabet-spinner"
-									   @click.prevent="alphabetOpen = false; applyFilter({ selectedLetter: '' }, '#baende-alphabet-spinner')"
+									   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, '#baende-alphabet-spinner', $el)"
 									   x-show="selectedLetter"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
-									<div class="grid grid-cols-13 gap-1 text-sm text-gray-700">
+									<div class="grid grid-cols-13 gap-1 text-sm text-gray-700" x-effect="
+										const active = selectedLetter || '';
+										$el.querySelectorAll('[data-letter]').forEach((el) => {
+											const isActive = el.dataset.letter === active;
+											el.classList.toggle('bg-stone-200', isActive);
+											el.classList.toggle('font-bold', isActive);
+										});
+									">
 										{{- range $_, $ch := $model.letters -}}
 											<a :href="buildPageUrl({ letter: '{{ $ch }}', offset: 0 })"
 											   hx-indicator="#baende-alphabet-spinner"
-											   @click.prevent="alphabetOpen = false; applyFilter({ selectedLetter: '{{ $ch }}' }, '#baende-alphabet-spinner')"
-											   :class="selectedLetter === '{{ $ch }}' ? 'bg-stone-200 font-bold' : ''"
+											   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, '#baende-alphabet-spinner', $el)"
+											   data-letter="{{ $ch }}"
 											   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
 												{{ $ch }}
 											</a>
@@ -253,7 +261,7 @@ class="container-normal font-sans mt-10">
 									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 										<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ status: '', offset: 0 })"
 										   hx-indicator="#baende-status-spinner"
-										   @click.prevent="open = false; applyFilter({ status: '' }, '#baende-status-spinner')"
+										   @click.prevent="open = false; $el.closest('details').open = false; applyFilter({ status: '' }, '#baende-status-spinner', $el)"
 										   x-show="status"
 										   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 											<i class="ri-filter-off-line text-base"></i>
@@ -262,7 +270,7 @@ class="container-normal font-sans mt-10">
 										{{- range $_, $s := $model.filter_statuses -}}
 											<a data-role="filter-item" data-label="{{ $s.label }}" :href="buildPageUrl({ status: '{{ $s.value }}', offset: 0 })"
 											   hx-indicator="#baende-status-spinner"
-											   @click.prevent="open = false; applyFilter({ status: '{{ $s.value }}' }, '#baende-status-spinner')"
+											   @click.prevent="open = false; $el.closest('details').open = false; applyFilter({ status: '{{ $s.value }}' }, '#baende-status-spinner', $el)"
 											   :class="status === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
 											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $s.label }}
@@ -286,14 +294,21 @@ class="container-normal font-sans mt-10">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ person: '', offset: 0 })"
 									   hx-indicator="#baende-person-spinner"
-									   @click.prevent="open = false; applyFilter({ person: '' }, '#baende-person-spinner')"
+									   @click.prevent="
+										open = false;
+										const root = $el.closest('details');
+										const input = root?.querySelector('[data-role=filter-search]');
+										if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+										root.open = false;
+										applyFilter({ person: '' }, '#baende-person-spinner', $el);
+									   "
 									   x-show="person"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
 									<div class="relative">
-										<input data-role="filter-search" type="search" placeholder="Personen filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<input data-role="filter-search" type="search" autocomplete="off" placeholder="Personen filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
 										<span id="baende-person-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
 											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
 										</span>
@@ -302,7 +317,14 @@ class="container-normal font-sans mt-10">
 										{{- range $_, $a := $model.filter_agents -}}
 											<a data-role="filter-item" data-label="{{ $a.Name }}" :href="buildPageUrl({ person: '{{ $a.Id }}', offset: 0 })"
 											   hx-indicator="#baende-person-spinner"
-											   @click.prevent="open = false; applyFilter({ person: '{{ $a.Id }}' }, '#baende-person-spinner')"
+											   @click.prevent="
+												open = false;
+												const root = $el.closest('details');
+												const input = root?.querySelector('[data-role=filter-search]');
+												if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+												root.open = false;
+												applyFilter({ person: '{{ $a.Id }}' }, '#baende-person-spinner', $el);
+											   "
 											   :class="person === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
 											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
@@ -331,14 +353,21 @@ class="container-normal font-sans mt-10">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ user: '', offset: 0 })"
 									   hx-indicator="#baende-user-spinner"
-									   @click.prevent="open = false; applyFilter({ user: '' }, '#baende-user-spinner')"
+									   @click.prevent="
+										open = false;
+										const root = $el.closest('details');
+										const input = root?.querySelector('[data-role=filter-search]');
+										if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+										root.open = false;
+										applyFilter({ user: '' }, '#baende-user-spinner', $el);
+									   "
 									   x-show="user"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
 									<div class="relative">
-										<input data-role="filter-search" type="search" placeholder="Benutzer filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<input data-role="filter-search" type="search" autocomplete="off" placeholder="Benutzer filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
 										<span id="baende-user-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
 											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
 										</span>
@@ -347,7 +376,14 @@ class="container-normal font-sans mt-10">
 										{{- range $_, $u := $model.filter_users -}}
 											<a data-role="filter-item" data-label="{{ $u.Name }}" :href="buildPageUrl({ user: '{{ $u.Id }}', offset: 0 })"
 											   hx-indicator="#baende-user-spinner"
-											   @click.prevent="open = false; applyFilter({ user: '{{ $u.Id }}' }, '#baende-user-spinner')"
+											   @click.prevent="
+												open = false;
+												const root = $el.closest('details');
+												const input = root?.querySelector('[data-role=filter-search]');
+												if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+												root.open = false;
+												applyFilter({ user: '{{ $u.Id }}' }, '#baende-user-spinner', $el);
+											   "
 											   :class="user === '{{ $u.Id }}' ? 'bg-stone-100 font-semibold' : ''"
 											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												<span class="filter-list-searchable mr-1">{{ $u.Name }}</span>
@@ -371,14 +407,21 @@ class="container-normal font-sans mt-10">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ year: '', offset: 0 })"
 									   hx-indicator="#baende-year-spinner"
-									   @click.prevent="open = false; applyFilter({ year: '' }, '#baende-year-spinner')"
+									   @click.prevent="
+										open = false;
+										const root = $el.closest('details');
+										const input = root?.querySelector('[data-role=filter-search]');
+										if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+										root.open = false;
+										applyFilter({ year: '' }, '#baende-year-spinner', $el);
+									   "
 									   x-show="year"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
 									<div class="relative">
-										<input data-role="filter-search" type="search" placeholder="Jahre filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<input data-role="filter-search" type="search" autocomplete="off" placeholder="Jahre filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
 										<span id="baende-year-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
 											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
 										</span>
@@ -389,7 +432,14 @@ class="container-normal font-sans mt-10">
 											{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
 											<a data-role="filter-item" data-label="{{ $label }}" :href="buildPageUrl({ year: '{{ $y }}', offset: 0 })"
 											   hx-indicator="#baende-year-spinner"
-											   @click.prevent="open = false; applyFilter({ year: '{{ $y }}' }, '#baende-year-spinner')"
+											   @click.prevent="
+												open = false;
+												const root = $el.closest('details');
+												const input = root?.querySelector('[data-role=filter-search]');
+												if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+												root.open = false;
+												applyFilter({ year: '{{ $y }}' }, '#baende-year-spinner', $el);
+											   "
 											   :class="year === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
 											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $label }}
@@ -413,14 +463,21 @@ class="container-normal font-sans mt-10">
 								<div class="p-3">
 									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ place: '', offset: 0 })"
 									   hx-indicator="#baende-place-spinner"
-									   @click.prevent="open = false; applyFilter({ place: '' }, '#baende-place-spinner')"
+									   @click.prevent="
+										open = false;
+										const root = $el.closest('details');
+										const input = root?.querySelector('[data-role=filter-search]');
+										if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+										root.open = false;
+										applyFilter({ place: '' }, '#baende-place-spinner', $el);
+									   "
 									   x-show="place"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
 										<span>Alle</span>
 									</a>
 									<div class="relative">
-										<input data-role="filter-search" type="search" placeholder="Orte filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
+										<input data-role="filter-search" type="search" autocomplete="off" placeholder="Orte filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
 										<span id="baende-place-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
 											<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
 										</span>
@@ -429,7 +486,14 @@ class="container-normal font-sans mt-10">
 										{{- range $_, $p := $model.filter_places -}}
 											<a data-role="filter-item" data-label="{{ $p.Name }}" :href="buildPageUrl({ place: '{{ $p.Id }}', offset: 0 })"
 											   hx-indicator="#baende-place-spinner"
-											   @click.prevent="open = false; applyFilter({ place: '{{ $p.Id }}' }, '#baende-place-spinner')"
+											   @click.prevent="
+												open = false;
+												const root = $el.closest('details');
+												const input = root?.querySelector('[data-role=filter-search]');
+												if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+												root.open = false;
+												applyFilter({ place: '{{ $p.Id }}' }, '#baende-place-spinner', $el);
+											   "
 											   :class="place === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
 											   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 												{{ $p.Name }}
