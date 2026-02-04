@@ -4,21 +4,19 @@
 	}
 
 	.dbform .inputwrapper {
-		@apply rounded-xs border-2 border-transparent
-				border-l-2 focus-within:border-l-slate-600
-				bg-stone-100 focus-within:bg-slate-100 transition-all duration-100;
+		@apply rounded-xs transition-all duration-100 border-stone-300 border bg-white;
 	}
 
 	.dbform .inputwrapper .inputlabel {
-		@apply pl-3 pr-0 text-gray-800 font-bold py-1;
+		@apply pl-2 pr-0 text-gray-800 font-bold py-0.5;
 	}
 
 	.dbform .inputwrapper .inputinput {
-		@apply block w-full focus:border-none focus:outline-none px-3 py-1;
+		@apply block w-full focus:border-none focus:outline-none px-2 py-0.5;
 	}
 
 	.dbform .inputwrapper .inputtextarea {
-		@apply block w-full focus:border-none focus:outline-none resize-y px-3 py-1;
+		@apply block w-full focus:border-none focus:outline-none resize-y px-2 py-0.5;
 	}
 
 	.dbform .inputwrapper textarea {

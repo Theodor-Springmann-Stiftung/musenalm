@@ -258,6 +258,40 @@ document.addEventListener("htmx:afterSwap", (event) => {
 	setupCancelLinks(root);
 });
 
+function resolveLineHeightPx(textarea, computed) {
+	const lineHeight = computed.lineHeight;
+	if (lineHeight && lineHeight !== "normal") {
+		const parsed = parseFloat(lineHeight);
+		if (!Number.isNaN(parsed)) {
+			return parsed;
+		}
+	}
+
+	const fontSize = parseFloat(computed.fontSize) || 16;
+	if (!document.body) {
+		return fontSize * 1.2;
+	}
+
+	const probe = document.createElement("span");
+	probe.textContent = "M";
+	probe.style.position = "absolute";
+	probe.style.visibility = "hidden";
+	probe.style.whiteSpace = "pre";
+	probe.style.padding = "0";
+	probe.style.margin = "0";
+	probe.style.border = "0";
+	probe.style.fontFamily = computed.fontFamily;
+	probe.style.fontSize = computed.fontSize;
+	probe.style.fontWeight = computed.fontWeight;
+	probe.style.fontStyle = computed.fontStyle;
+	probe.style.letterSpacing = computed.letterSpacing;
+	probe.style.lineHeight = "normal";
+	document.body.appendChild(probe);
+	const height = probe.getBoundingClientRect().height;
+	probe.remove();
+	return height || fontSize * 1.2;
+}
+
 // Simple textarea auto-resize function
 function TextareaAutoResize(textarea) {
 	console.log("TextareaAutoResize called for:", textarea.name || textarea.id);
@@ -284,7 +318,13 @@ function TextareaAutoResize(textarea) {
 
 	// Special case: annotation textarea has 2 rows minimum
 	const isAnnotation = textarea.name === "annotation";
-	const minHeight = isAnnotation ? 76 : 38; // 2 rows vs 1 row
+	const computed = getComputedStyle(textarea);
+	const rows = isAnnotation ? 2 : 1;
+	const lineHeight = resolveLineHeightPx(textarea, computed);
+	const paddingY = parseFloat(computed.paddingTop) + parseFloat(computed.paddingBottom);
+	const borderY = parseFloat(computed.borderTopWidth) + parseFloat(computed.borderBottomWidth);
+	const minContentHeight = lineHeight * rows + paddingY;
+	const minHeight = computed.boxSizing === "border-box" ? minContentHeight + borderY : minContentHeight;
 
 	// For empty textareas, set minimum height
 	if (textarea.value.trim() === "") {
@@ -298,7 +338,8 @@ function TextareaAutoResize(textarea) {
 
 	// Set to content height (scrollHeight is the actual content height)
 	const contentHeight = textarea.scrollHeight;
-	const newHeight = Math.max(contentHeight, minHeight) + "px";
+	const contentHeightWithBox = computed.boxSizing === "border-box" ? contentHeight + borderY : contentHeight;
+	const newHeight = Math.max(contentHeightWithBox, minHeight) + "px";
 	console.log("Setting height to:", newHeight);
 	textarea.style.height = newHeight;
 }
