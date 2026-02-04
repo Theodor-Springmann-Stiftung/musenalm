@@ -237,7 +237,7 @@
 			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
 				{{ template "_status_edit" (Arr $agent "status" "status" "agents") }}
 				<div class="mt-2">
-					{{ template "_linked_items" (Arr $model.result.Entries $model.result.Contents $model.result.EntryTypes $model.result.ContentTypes $model.result.ContentEntries) }}
+					{{ template "_linked_items" (Arr $model.result.Entries $model.result.Contents $model.result.EntryTypes $model.result.ContentTypes $model.result.ContentEntries true $model.csrf_token) }}
 				</div>
 			</div>
 		</div>
@@ -312,6 +312,280 @@
 				</div>
 			</div>
 		</dialog>
+		<dialog data-role="baende-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[26rem]">
+				<div class="text-base font-bold text-gray-900">Band löschen?</div>
+				<div data-role="baende-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+				<div data-role="baende-delete-impacts" class="mt-2 text-sm text-gray-700">
+					Lade Informationen …
+				</div>
+				<div data-role="baende-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="baende-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="baende-delete-confirm">
+						Löschen
+					</button>
+				</div>
+				<input type="hidden" data-role="baende-delete-csrf" value="{{ $model.csrf_token }}" />
+			</div>
+		</dialog>
+		<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[26rem]">
+				<div class="text-base font-bold text-gray-900">Beitrag löschen?</div>
+				<div data-role="content-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+				<div data-role="content-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="content-delete-confirm">
+						Löschen
+					</button>
+				</div>
+				<input type="hidden" data-role="content-delete-csrf" value="{{ $model.csrf_token }}" />
+			</div>
+		</dialog>
+		<script>
+			(() => {
+				const dialog = document.querySelector("[data-role='baende-delete-dialog']");
+				if (!dialog) return;
+				const titleEl = dialog.querySelector("[data-role='baende-delete-title']");
+				const impactsEl = dialog.querySelector("[data-role='baende-delete-impacts']");
+				const errorEl = dialog.querySelector("[data-role='baende-delete-error']");
+				const cancelBtn = dialog.querySelector("[data-role='baende-delete-cancel']");
+				const confirmBtn = dialog.querySelector("[data-role='baende-delete-confirm']");
+				const csrfInput = dialog.querySelector("[data-role='baende-delete-csrf']");
+
+				let currentEntryId = "";
+				let currentDeleteEndpoint = "";
+
+				const closeDialog = (event) => {
+					if (event) {
+						event.preventDefault();
+					}
+					if (dialog.open) {
+						dialog.close();
+					}
+				};
+
+				const openDialog = () => {
+					if (typeof dialog.showModal === "function") {
+						dialog.showModal();
+					}
+				};
+
+				const setError = (message) => {
+					if (!errorEl) return;
+					if (message) {
+						errorEl.textContent = message;
+						errorEl.classList.remove("hidden");
+					} else {
+						errorEl.textContent = "";
+						errorEl.classList.add("hidden");
+					}
+				};
+
+				const handleDeleteClick = async (event) => {
+					let button = null;
+					const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+					for (const node of path) {
+						if (node && node.getAttribute && node.getAttribute("data-role") === "baende-delete") {
+							button = node;
+							break;
+						}
+					}
+					if (!button && event.target && event.target.closest) {
+						button = event.target.closest("[data-role='baende-delete']");
+					}
+					if (!button) return;
+					event.preventDefault();
+					event.stopPropagation();
+
+					currentEntryId = button.getAttribute("data-entry-id") || "";
+					currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+					const entryTitle = button.getAttribute("data-entry-title") || "";
+
+					if (titleEl) {
+						titleEl.textContent = entryTitle ? entryTitle : "Unbekannter Eintrag";
+					}
+					if (impactsEl) {
+						impactsEl.textContent = "Lade Informationen …";
+					}
+					setError("");
+					openDialog();
+
+					if (!currentEntryId || !impactsEl) return;
+					try {
+						const response = await fetch(`/baende/delete-info/${encodeURIComponent(currentEntryId)}`);
+						if (!response.ok) {
+							throw new Error("Infos konnten nicht geladen werden.");
+						}
+						const html = await response.text();
+						impactsEl.innerHTML = html;
+					} catch (error) {
+						impactsEl.textContent = "Infos konnten nicht geladen werden.";
+					}
+				};
+
+				document.addEventListener("click", handleDeleteClick, true);
+
+				if (cancelBtn) {
+					cancelBtn.addEventListener("click", closeDialog);
+				}
+				dialog.addEventListener("cancel", closeDialog);
+
+				if (confirmBtn) {
+					confirmBtn.addEventListener("click", async (event) => {
+						event.preventDefault();
+						if (!currentDeleteEndpoint || !csrfInput) return;
+						setError("");
+						try {
+							const response = await fetch(currentDeleteEndpoint, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+									Accept: "application/json",
+								},
+								body: JSON.stringify({
+									csrf_token: csrfInput.value || "",
+								}),
+							});
+							let data = null;
+							try {
+								data = await response.clone().json();
+							} catch {
+								data = null;
+							}
+							if (!response.ok) {
+								throw new Error(data?.error || "Löschen fehlgeschlagen.");
+							}
+							closeDialog();
+							if (currentEntryId) {
+								const items = document.querySelectorAll(`[data-entry-id='${CSS.escape(currentEntryId)}']`);
+								items.forEach((item) => {
+									const row = item.closest("li");
+									if (row) row.remove();
+								});
+							}
+						} catch (error) {
+							setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+						}
+					});
+				}
+			})();
+		</script>
+		<script>
+			(() => {
+				const dialog = document.querySelector("[data-role='content-delete-dialog']");
+				if (!dialog) return;
+				const titleEl = dialog.querySelector("[data-role='content-delete-title']");
+				const errorEl = dialog.querySelector("[data-role='content-delete-error']");
+				const cancelBtn = dialog.querySelector("[data-role='content-delete-cancel']");
+				const confirmBtn = dialog.querySelector("[data-role='content-delete-confirm']");
+				const csrfInput = dialog.querySelector("[data-role='content-delete-csrf']");
+
+				let currentContentId = "";
+				let currentDeleteEndpoint = "";
+
+				const closeDialog = (event) => {
+					if (event) {
+						event.preventDefault();
+					}
+					if (dialog.open) {
+						dialog.close();
+					}
+				};
+
+				const openDialog = () => {
+					if (typeof dialog.showModal === "function") {
+						dialog.showModal();
+					}
+				};
+
+				const setError = (message) => {
+					if (!errorEl) return;
+					if (message) {
+						errorEl.textContent = message;
+						errorEl.classList.remove("hidden");
+					} else {
+						errorEl.textContent = "";
+						errorEl.classList.add("hidden");
+					}
+				};
+
+				const handleDeleteClick = (event) => {
+					let button = null;
+					const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+					for (const node of path) {
+						if (node && node.getAttribute && node.getAttribute("data-role") === "content-delete") {
+							button = node;
+							break;
+						}
+					}
+					if (!button && event.target && event.target.closest) {
+						button = event.target.closest("[data-role='content-delete']");
+					}
+					if (!button) return;
+					event.preventDefault();
+					event.stopPropagation();
+
+					currentContentId = button.getAttribute("data-content-id") || "";
+					currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+					const contentTitle = button.getAttribute("data-content-title") || "";
+
+					if (titleEl) {
+						titleEl.textContent = contentTitle ? contentTitle : "Unbekannter Beitrag";
+					}
+					setError("");
+					openDialog();
+				};
+
+				document.addEventListener("click", handleDeleteClick, true);
+
+				if (cancelBtn) {
+					cancelBtn.addEventListener("click", closeDialog);
+				}
+				dialog.addEventListener("cancel", closeDialog);
+
+				if (confirmBtn) {
+					confirmBtn.addEventListener("click", async (event) => {
+						event.preventDefault();
+						if (!currentDeleteEndpoint || !csrfInput || !currentContentId) return;
+						setError("");
+						const payload = new URLSearchParams();
+						payload.set("csrf_token", csrfInput.value || "");
+						payload.set("content_id", currentContentId);
+						try {
+							const response = await fetch(currentDeleteEndpoint, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/x-www-form-urlencoded",
+									"HX-Request": "true",
+								},
+								body: payload.toString(),
+							});
+							if (!response.ok) {
+								throw new Error("Löschen fehlgeschlagen.");
+							}
+							closeDialog();
+							if (currentContentId) {
+								const items = document.querySelectorAll(`[data-content-id='${CSS.escape(currentContentId)}']`);
+								items.forEach((item) => {
+									const row = item.closest("li");
+									if (row) row.remove();
+								});
+							}
+						} catch (error) {
+							setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+						}
+					});
+				}
+			})();
+		</script>
 		{{- end -}}
 	</form>
 </div>

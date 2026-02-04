@@ -190,31 +190,31 @@
 	}
 
 	.header-tabs {
-		@apply inline-flex items-center gap-1 rounded-sm bg-stone-200/70 px-0.5 py-0.5 mb-1.5;
+		@apply inline-flex items-center gap-1 text-sm text-gray-600 mb-1.5;
 	}
 
 	.header-tab {
-		@apply inline-flex items-center gap-1 rounded-sm px-2.5 py-1 text-sm font-semibold text-gray-700 no-underline transition-all duration-100;
+		@apply inline-flex items-center gap-1 px-1.5 py-0.5 font-semibold text-gray-700 no-underline transition-colors duration-100;
 	}
 
 	.header-tab:hover {
-		@apply bg-stone-300 text-slate-900;
+		@apply text-slate-900 underline;
 	}
 
 	.header-tab-active {
-		@apply bg-white text-slate-900 pointer-events-none;
+		@apply text-slate-900 pointer-events-none;
 	}
 
 	.header-tab-active:hover {
-		@apply bg-white text-slate-900;
+		@apply text-slate-900;
 	}
 
 	.header-tab-disabled {
-		@apply opacity-50 cursor-default;
+		@apply opacity-40 cursor-default;
 	}
 
 	.header-tab-sep {
-		@apply inline-flex items-center px-1 text-gray-500;
+		@apply inline-flex items-center px-1 text-gray-400;
 	}
 
 	.save-feedback {

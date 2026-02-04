@@ -41,9 +41,20 @@ type AlmanachResult struct {
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
 			<div class="header-tabs">
+				{{- if and (not $model.is_new) $preferredSeriesMusenalmID -}}
+					<a href="/reihe/{{- $preferredSeriesMusenalmID -}}/edit" class="header-tab">
+						<i class="ri-book-shelf-line"></i> Reihe
+					</a>
+				{{- else -}}
+					<span class="header-tab header-tab-disabled">
+						<i class="ri-book-shelf-line"></i> Reihe
+					</span>
+				{{- end -}}
+				<span class="header-tab-sep">›</span>
 				<span class="header-tab header-tab-active">
 					<i class="ri-book-line"></i> Almanach
 				</span>
+				<span class="header-tab-sep">›</span>
 				{{- if not $model.is_new -}}
 					<a href="/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
 						<i class="ri-file-list-3-line"></i> Beiträge
@@ -948,6 +959,65 @@ type AlmanachResult struct {
 				</div>
 			</details>
 			{{- end -}}
+			<details class="mt-4">
+				<summary class="flex items-center gap-2 text-lg font-bold text-stone-700 cursor-pointer select-none rounded-xs py-1 hover:bg-stone-50 hover:text-stone-900">
+					<i class="ri-article-line"></i>
+					<span>Beiträge</span>
+					<span class="text-xs bg-stone-200 text-gray-800 px-2 py-0.5 rounded-sm">{{ len $model.result.Contents }}</span>
+					<i class="ri-arrow-down-s-line text-base legacy-toggle-icon"></i>
+				</summary>
+				<hr class="border-slate-400 mt-2 mb-3" />
+				<div class="text-sm text-gray-800 max-h-96 overflow-auto pr-1 pl-0 ml-0">
+					{{- if $model.result.Contents -}}
+						<ul class="flex flex-col pl-0 pr-0 m-0 ml-0 list-none">
+							{{- range $content := $model.result.Contents -}}
+								<li class="flex flex-col gap-1 ml-0 p-1 odd:bg-stone-100 px-1">
+									<div class="flex items-baseline justify-between gap-3">
+										<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
+											{{- if $content.PreferredTitle -}}
+												{{- $content.PreferredTitle -}}
+											{{- else if $content.TitleStmt -}}
+												<span class="italic font-normal">{{ $content.TitleStmt }}</span>
+											{{- end -}}
+										</a>
+										<span class="flex items-center gap-2 text-xs text-gray-500 whitespace-nowrap">
+											<span class="inline-flex min-w-[4ch] justify-end text-slate-700">
+												{{- if $content.Extent -}}S.&thinsp;{{- $content.Extent -}}{{- else -}}&nbsp;&nbsp;{{- end -}}
+											</span>
+											<tool-tip position="top" class="inline">
+												<a
+													href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+													class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
+													aria-label="Beitrag bearbeiten">
+													<i class="ri-edit-line"></i>
+												</a>
+												<div class="data-tip">Bearbeiten</div>
+											</tool-tip>
+											<tool-tip position="top" class="inline">
+												<button
+													type="button"
+													data-role="content-delete"
+													data-entry-id="{{ $model.result.Entry.MusenalmID }}"
+													data-content-id="{{ $content.MusenalmID }}"
+													data-content-title="{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}"
+													data-delete-endpoint="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/delete"
+													class="inline-flex items-center text-red-700 hover:text-red-900"
+													aria-label="Beitrag löschen">
+													<i class="ri-delete-bin-line"></i>
+												</button>
+												<div class="data-tip">Löschen</div>
+											</tool-tip>
+										</span>
+									</div>
+									<div class="text-xs text-gray-800"></div>
+								</li>
+							{{- end -}}
+						</ul>
+					{{- else -}}
+						<div class="italic text-gray-500">Keine Beiträge verknüpft.</div>
+					{{- end -}}
+				</div>
+			</details>
 			<!-- Exemplare -->
 			<div class="">
 				<items-editor class="block mt-4">
@@ -1255,8 +1325,8 @@ type AlmanachResult struct {
 			</div>
 		</div>
 		{{- if not $model.is_new -}}
-			<dialog data-role="almanach-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
-				<div class="p-5 w-[22rem]">
+		<dialog data-role="almanach-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[22rem]">
 					<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
 					<div class="text-sm font-bold text-gray-900 mt-1">{{ $model.result.Entry.PreferredTitle }}</div>
 					<p class="text-sm text-gray-700 mt-2">
@@ -1271,8 +1341,133 @@ type AlmanachResult struct {
 							Löschen
 						</button>
 					</div>
+			</div>
+		</dialog>
+		<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[26rem]">
+				<div class="text-base font-bold text-gray-900">Beitrag löschen?</div>
+				<div data-role="content-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+				<div data-role="content-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="content-delete-confirm">
+						Löschen
+					</button>
 				</div>
-			</dialog>
+				<input type="hidden" data-role="content-delete-csrf" value="{{ $model.csrf_token }}" />
+			</div>
+		</dialog>
+		<script>
+			(() => {
+				const dialog = document.querySelector("[data-role='content-delete-dialog']");
+				if (!dialog) return;
+				const titleEl = dialog.querySelector("[data-role='content-delete-title']");
+				const errorEl = dialog.querySelector("[data-role='content-delete-error']");
+				const cancelBtn = dialog.querySelector("[data-role='content-delete-cancel']");
+				const confirmBtn = dialog.querySelector("[data-role='content-delete-confirm']");
+				const csrfInput = dialog.querySelector("[data-role='content-delete-csrf']");
+
+				let currentContentId = "";
+				let currentDeleteEndpoint = "";
+
+				const closeDialog = (event) => {
+					if (event) {
+						event.preventDefault();
+					}
+					if (dialog.open) {
+						dialog.close();
+					}
+				};
+
+				const openDialog = () => {
+					if (typeof dialog.showModal === "function") {
+						dialog.showModal();
+					}
+				};
+
+				const setError = (message) => {
+					if (!errorEl) return;
+					if (message) {
+						errorEl.textContent = message;
+						errorEl.classList.remove("hidden");
+					} else {
+						errorEl.textContent = "";
+						errorEl.classList.add("hidden");
+					}
+				};
+
+				const handleDeleteClick = (event) => {
+					let button = null;
+					const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+					for (const node of path) {
+						if (node && node.getAttribute && node.getAttribute("data-role") === "content-delete") {
+							button = node;
+							break;
+						}
+					}
+					if (!button && event.target && event.target.closest) {
+						button = event.target.closest("[data-role='content-delete']");
+					}
+					if (!button) return;
+					event.preventDefault();
+					event.stopPropagation();
+
+					currentContentId = button.getAttribute("data-content-id") || "";
+					currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+					const contentTitle = button.getAttribute("data-content-title") || "";
+
+					if (titleEl) {
+						titleEl.textContent = contentTitle ? contentTitle : "Unbekannter Beitrag";
+					}
+					setError("");
+					openDialog();
+				};
+
+				document.addEventListener("click", handleDeleteClick, true);
+
+				if (cancelBtn) {
+					cancelBtn.addEventListener("click", closeDialog);
+				}
+				dialog.addEventListener("cancel", closeDialog);
+
+				if (confirmBtn) {
+					confirmBtn.addEventListener("click", async (event) => {
+						event.preventDefault();
+						if (!currentDeleteEndpoint || !csrfInput || !currentContentId) return;
+						setError("");
+						const payload = new URLSearchParams();
+						payload.set("csrf_token", csrfInput.value || "");
+						payload.set("content_id", currentContentId);
+						try {
+							const response = await fetch(currentDeleteEndpoint, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/x-www-form-urlencoded",
+									"HX-Request": "true",
+								},
+								body: payload.toString(),
+							});
+							if (!response.ok) {
+								throw new Error("Löschen fehlgeschlagen.");
+							}
+							closeDialog();
+							if (currentContentId) {
+								const items = document.querySelectorAll(`[data-content-id='${CSS.escape(currentContentId)}']`);
+								items.forEach((item) => {
+									const row = item.closest("li");
+									if (row) row.remove();
+								});
+							}
+						} catch (error) {
+							setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+						}
+					});
+				}
+			})();
+		</script>
 		{{- end -}}
 	</form>
 </div>

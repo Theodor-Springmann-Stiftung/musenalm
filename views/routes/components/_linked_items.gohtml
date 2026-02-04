@@ -3,6 +3,8 @@
 {{- $entryTypes := index . 2 -}}
 {{- $contentTypes := index . 3 -}}
 {{- $contentEntries := index . 4 -}}
+{{- $entryControls := index . 5 -}}
+{{- $csrfToken := index . 6 -}}
 
 <tab-list
 	data-default-index="{{ if gt (len $entries) 0 }}0{{ else if $contents }}{{ if gt (len $contents) 0 }}1{{ end }}{{ end }}"
@@ -30,7 +32,7 @@
 					{{- if $entryTypes -}}
 						{{- $types = index $entryTypes $entry.Id -}}
 					{{- end -}}
-					<li class="flex items-baseline justify-between ml-0 p-1 odd:bg-stone-100">
+					<li class="flex items-baseline justify-between gap-3 ml-0 p-1 odd:bg-stone-100">
 						<div class="flex flex-col gap-1">
 							<a href="/almanach/{{ $entry.MusenalmID }}" class="font-bold no-underline hover:text-slate-900">
 								{{- $entry.PreferredTitle -}}
@@ -43,7 +45,42 @@
 								</div>
 							{{- end -}}
 						</div>
-						<span class="text-xs text-gray-500 whitespace-nowrap">Alm {{ $entry.MusenalmID }}</span>
+						<span class="flex items-center gap-2 text-xs text-gray-600 whitespace-nowrap">
+							<span class="text-slate-700 font-semibold">Alm {{ $entry.MusenalmID }}</span>
+							{{- if and $entryControls $csrfToken -}}
+								<tool-tip position="top" class="inline">
+									<a
+										href="/almanach/{{ $entry.MusenalmID }}/edit"
+										class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
+										aria-label="Bearbeiten">
+										<i class="ri-edit-line"></i>
+									</a>
+									<div class="data-tip">Bearbeiten</div>
+								</tool-tip>
+								<tool-tip position="top" class="inline">
+									<a
+										href="/almanach/{{ $entry.MusenalmID }}/contents/edit"
+										class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
+										aria-label="Beiträge bearbeiten">
+										<i class="ri-file-list-3-line"></i>
+									</a>
+									<div class="data-tip">Beiträge bearbeiten</div>
+								</tool-tip>
+								<tool-tip position="top" class="inline">
+									<button
+										type="button"
+										data-role="baende-delete"
+										data-entry-id="{{ $entry.MusenalmID }}"
+										data-entry-title="{{- if $entry.PreferredTitle -}}{{ $entry.PreferredTitle }}{{- else if ne $entry.Year 0 -}}{{ $entry.Year }}{{- else -}}[o.J.]{{- end -}}"
+										data-delete-endpoint="/almanach/{{ $entry.MusenalmID }}/edit/delete"
+										class="inline-flex items-center text-red-700 hover:text-red-900"
+										aria-label="Löschen">
+										<i class="ri-delete-bin-line"></i>
+									</button>
+									<div class="data-tip">Löschen</div>
+								</tool-tip>
+							{{- end -}}
+						</span>
 					</li>
 				{{- end -}}
 			</ul>
@@ -65,9 +102,38 @@
 						{{- $types = index $contentTypes $content.Id -}}
 					{{- end -}}
 					<li class="flex flex-col gap-1 ml-0 p-1 odd:bg-stone-100 px-1">
-						<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
-							{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
-						</a>
+						<div class="flex items-baseline justify-between gap-3">
+							<a href="/beitrag/{{ $content.MusenalmID }}" class="no-underline hover:text-slate-900 font-semibold">
+								{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}
+							</a>
+							{{- if and $entryControls $csrfToken $entry -}}
+								<span class="flex items-center gap-2 text-xs text-gray-500 whitespace-nowrap">
+									<tool-tip position="top" class="inline">
+										<a
+											href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+											class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
+											aria-label="Beitrag bearbeiten">
+											<i class="ri-edit-line"></i>
+										</a>
+										<div class="data-tip">Bearbeiten</div>
+									</tool-tip>
+									<tool-tip position="top" class="inline">
+										<button
+											type="button"
+											data-role="content-delete"
+											data-entry-id="{{ $entry.MusenalmID }}"
+											data-content-id="{{ $content.MusenalmID }}"
+											data-content-title="{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}"
+											data-delete-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/delete"
+											class="inline-flex items-center text-red-700 hover:text-red-900"
+											aria-label="Beitrag löschen">
+											<i class="ri-delete-bin-line"></i>
+										</button>
+										<div class="data-tip">Löschen</div>
+									</tool-tip>
+								</span>
+							{{- end -}}
+						</div>
 						<div class="text-xs text-gray-800 ">
 							{{- if $types -}}
 							<span>
