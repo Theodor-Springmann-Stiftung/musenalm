@@ -52,7 +52,6 @@ func init() {
 		var r_contents_agents map[string][]*dbmodels.RContentsAgents
 
 		var items []*dbmodels.Item
-		var contents []*dbmodels.Content
 
 		wg := sync.WaitGroup{}
 		wg.Add(3)
@@ -137,18 +136,17 @@ func init() {
 		}()
 
 		go func() {
-			contents, err := seed.RecordsFromInhalteWithLegacy(app, adb.Inhalte, legacyContents, entriesmap)
+			records, err := seed.RecordsFromInhalteWithLegacy(app, adb.Inhalte, legacyContents, entriesmap)
 			if err != nil {
 				panic(err)
 			}
-			for _, record := range contents {
+			for _, record := range records {
 				if err = app.Save(record); err != nil {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
 			}
-			contents = records
-			contentsmap = datatypes.MakeMap(contents, func(record *dbmodels.Content) int { return record.MusenalmID() })
-			contentsmapid = datatypes.MakeMap(contents, func(record *dbmodels.Content) string { return record.Id })
+			contentsmap = datatypes.MakeMap(records, func(record *dbmodels.Content) int { return record.MusenalmID() })
+			contentsmapid = datatypes.MakeMap(records, func(record *dbmodels.Content) string { return record.Id })
 			wg.Done()
 		}()
 
