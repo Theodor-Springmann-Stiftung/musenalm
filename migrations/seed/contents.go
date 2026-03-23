@@ -92,6 +92,151 @@ func RecordsFromInhalte(
 	return records, nil
 }
 
+func RecordsFromInhalteWithLegacy(
+	app core.App,
+	inhalte xmlmodels.Inhalte,
+	legacy map[int][]xmlmodels.LegacyINHTabRow,
+	entries map[int]*dbmodels.Entry,
+) ([]*dbmodels.Content, error) {
+	records, err := RecordsFromInhalte(app, inhalte, entries)
+	if err != nil {
+		return nil, err
+	}
+
+	legacyRecords, err := RecordsFromLegacyINHTab(app, legacy, entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(records, legacyRecords...), nil
+}
+
+func RecordsFromLegacyINHTab(
+	app core.App,
+	legacy map[int][]xmlmodels.LegacyINHTabRow,
+	entries map[int]*dbmodels.Entry,
+) ([]*dbmodels.Content, error) {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	records := []*dbmodels.Content{}
+
+	for entryID, rows := range legacy {
+		entry, ok := entries[entryID]
+		if !ok {
+			app.Logger().Error("Entry not found for legacy content fallback", "entry", entryID)
+			continue
+		}
+
+		for _, row := range rows {
+			record := dbmodels.NewContent(core.NewRecord(collection))
+			record.SetEntry(entry.Id)
+			record.SetAnnotation(NormalizeString(row.AnmerkungInhalt))
+			record.SetMusenalmID(row.INHNR)
+			record.SetResponsibilityStmt(NormalizeString(row.Autor))
+			record.SetMusenalmType(legacyMusenalmTypes(row.Objekt))
+			if row.Seite != 0 {
+				record.SetExtent(strconv.FormatFloat(row.Seite, 'f', -1, 64))
+			}
+			record.SetTitleStmt(NormalizeString(row.Titel))
+			record.SetIncipitStmt(NormalizeString(row.Incipit))
+			record.SetYear(entry.Year())
+
+			if counting, ok := dbmodels.MUSENALM_PAGINATION_VALUES[row.Paginierung]; ok {
+				record.SetMusenalmPagination(counting)
+			}
+
+			record.SetNumbering(row.Objektzaehl)
+
+			handleLegacyPreferredTitle(row, record)
+			n := record.PreferredTitle()
+			if n == "" || n == NO_TITLE {
+				record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
+			} else {
+				record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+			}
+
+			records = append(records, record)
+		}
+	}
+
+	return records, nil
+}
+
+func legacyMusenalmTypes(raw string) []string {
+	raw = normalizeAgentString(raw)
+	if raw == "" {
+		return nil
+	}
+
+	replacer := strings.NewReplacer(
+		" u. ", "|",
+		" und ", "|",
+		" & ", "|",
+	)
+
+	parts := strings.Split(replacer.Replace(raw), "|")
+	ret := []string{}
+	seen := map[string]bool{}
+
+	for _, part := range parts {
+		normalized := NormalizeString(strings.TrimSpace(part))
+		if normalized == "" || seen[normalized] {
+			continue
+		}
+		seen[normalized] = true
+		ret = append(ret, normalized)
+	}
+
+	return ret
+}
+
+func handleLegacyPreferredTitle(row xmlmodels.LegacyINHTabRow, record *dbmodels.Content) {
+	if row.Titel != "" {
+		record.SetPreferredTitle(NormalizeString(row.Titel))
+		return
+	}
+
+	if row.Incipit != "" {
+		record.SetPreferredTitle(NormalizeString(row.Incipit) + "…")
+		return
+	}
+
+	types := record.MusenalmType()
+	if len(types) > 0 {
+		str := strings.Join(types, ", ")
+		if str != "" {
+			creator := normalizeLegacyCreatorForTitle(row.Autor)
+			if creator != "" {
+				str += " (" + creator + ")"
+			}
+			record.SetPreferredTitle("[" + str + "]")
+			return
+		}
+	}
+
+	record.SetPreferredTitle(NO_TITLE)
+}
+
+func normalizeLegacyCreatorForTitle(raw string) string {
+	if raw == "" {
+		return ""
+	}
+
+	lower := strings.ToLower(raw)
+	if strings.Contains(lower, "unbezeichnet") ||
+		strings.Contains(lower, "unbekannt") ||
+		strings.Contains(lower, "unleserlich") {
+		return ""
+	}
+
+	creator := NormalizeString(raw)
+	creator = strings.ReplaceAll(creator, "#", "")
+	return NormalizeString(creator)
+}
+
 func handlePreferredTitle(inhalt xmlmodels.Inhalt, record *dbmodels.Content) {
 	if inhalt.Titelangabe != "" {
 		record.SetPreferredTitle(NormalizeString(inhalt.Titelangabe))

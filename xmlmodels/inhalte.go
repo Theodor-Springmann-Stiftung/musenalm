@@ -23,3 +23,6 @@ type Inhalt struct {
 type Typ struct {
 	Value []string `xml:"Value"`
 }
+
+
+

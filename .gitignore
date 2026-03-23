@@ -1,6 +1,8 @@
 pb_data/
 backup/
 _tmp/
+.gocache/
+.gomodcache/
 import/Almanach-Bilder/
 Almanach-Bilder/
 musenalm

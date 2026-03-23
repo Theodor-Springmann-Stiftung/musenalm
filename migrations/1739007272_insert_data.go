@@ -29,6 +29,10 @@ func init() {
 		if err != nil {
 			return err
 		}
+		legacyData, err := xmlmodels.ReadLegacyFallbackData(xmlmodels.DATA_PATH, app.Logger())
+		if err != nil {
+			return err
+		}
 
 		adb.Reihen = xmlmodels.SanitizeReihen(adb.Reihen, adb.Relationen_Bände_Reihen)
 
@@ -40,12 +44,15 @@ func init() {
 		var entriesmapid map[string]*dbmodels.Entry
 		var seriesmapid map[string]*dbmodels.Series
 		var agentsmapid map[string]*dbmodels.Agent
+		var agentsmapname map[string]*dbmodels.Agent
 		var contentsmap map[int]*dbmodels.Content
+		var contentsmapid map[string]*dbmodels.Content
 		var r_entries_series map[string][]*dbmodels.REntriesSeries
 		var r_entries_agents map[string][]*dbmodels.REntriesAgents
 		var r_contents_agents map[string][]*dbmodels.RContentsAgents
 
 		var items []*dbmodels.Item
+		var contents []*dbmodels.Content
 
 		wg := sync.WaitGroup{}
 		wg.Add(3)
@@ -63,6 +70,7 @@ func init() {
 			}
 			agentsmap = datatypes.MakeMap(agents, func(record *dbmodels.Agent) int { return record.MusenalmID() })
 			agentsmapid = datatypes.MakeMap(agents, func(record *dbmodels.Agent) string { return record.Id })
+			agentsmapname = datatypes.MakeMap(agents, func(record *dbmodels.Agent) string { return record.Name() })
 			wg.Done()
 		}()
 
@@ -98,6 +106,7 @@ func init() {
 		wg.Wait()
 
 		contentCounts := seed.ContentCountsAfterFilter(adb.Inhalte)
+		legacyContents := seed.LegacyFallbackContentsByEntry(adb.Bände, contentCounts, legacyData)
 		entries, err := seed.RecordsFromBände(app, *adb, placesmap, contentCounts)
 		if err != nil {
 			panic(err)
@@ -128,7 +137,7 @@ func init() {
 		}()
 
 		go func() {
-			contents, err := seed.RecordsFromInhalte(app, adb.Inhalte, entriesmap)
+			contents, err := seed.RecordsFromInhalteWithLegacy(app, adb.Inhalte, legacyContents, entriesmap)
 			if err != nil {
 				panic(err)
 			}
@@ -137,7 +146,9 @@ func init() {
 					app.Logger().Error("Error saving record", "error", err, "record", record)
 				}
 			}
+			contents = records
 			contentsmap = datatypes.MakeMap(contents, func(record *dbmodels.Content) int { return record.MusenalmID() })
+			contentsmapid = datatypes.MakeMap(contents, func(record *dbmodels.Content) string { return record.Id })
 			wg.Done()
 		}()
 
@@ -195,6 +206,44 @@ func init() {
 
 		wg.Wait()
 
+		resolver, err := seed.NewAgentResolver(app, agentsmapname, agentsmapid)
+		if err != nil {
+			panic(err)
+		}
+
+		legacyRowsByINHNR := seed.LegacyRowsByINHNR(legacyContents)
+
+		contentFallbackRelations, err := seed.RecordsFromFallbackContentsAgents(
+			app,
+			contentsmapid,
+			r_contents_agents,
+			legacyRowsByINHNR,
+			resolver,
+		)
+		if err != nil {
+			panic(err)
+		}
+		for _, record := range contentFallbackRelations {
+			if err = app.Save(record); err != nil {
+				app.Logger().Error("Error saving fallback content-agent relation", "error", err, "record", record)
+			}
+		}
+
+		entryFallbackRelations, err := seed.RecordsFromFallbackEntriesAgents(
+			app,
+			entriesmapid,
+			r_entries_agents,
+			resolver,
+		)
+		if err != nil {
+			panic(err)
+		}
+		for _, record := range entryFallbackRelations {
+			if err = app.Save(record); err != nil {
+				app.Logger().Error("Error saving fallback entry-agent relation", "error", err, "record", record)
+			}
+		}
+
 		// INFO: We need to get places again, sice it has changed in entries
 		places := []*dbmodels.Place{}
 		err = app.RecordQuery(dbmodels.PLACES_TABLE).All(&places)
@@ -218,7 +267,7 @@ func init() {
 			}
 		}
 
-		for _, agent := range agentsmap {
+		for _, agent := range agentsmapid {
 			if err = dbmodels.BulkInsertFTS5Agent(qa, agent); err != nil {
 				app.Logger().Error("Error inserting agent", "error", err, "agent", agent)
 			}

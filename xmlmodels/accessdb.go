@@ -39,72 +39,72 @@ func ReadAccessDB(path string, logger *slog.Logger) (*AccessDB, error) {
 	wg.Add(9)
 
 	go func() {
-		if err := unmarshalFile(path+"GM-BIBLIO.xml", &BIBLIO); err != nil {
-			logger.Error("Error while unmarshalling GM-BIBLIO.xml: ", "error", err, "path", path+"GM-BIBLIO.xml")
+		if err := unmarshalFile(path+GM_BIBLIO_FN, &BIBLIO); err != nil {
+			logger.Error("Error while unmarshalling GM-BIBLIO.xml: ", "error", err, "path", path+GM_BIBLIO_FN)
 		}
 		DB.BIBLIO = datatypes.MakeMap(BIBLIO.Einträge, func(e BIBLIOEintrag) int { return e.Nummer })
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"Akteure.xml", &Akteure); err != nil {
-			logger.Error("Error while unmarshalling Akteure.xml: ", "error", err, "path", path+"Akteure.xml")
+		if err := unmarshalFile(path+AKTEURE_FN, &Akteure); err != nil {
+			logger.Error("Error while unmarshalling Akteure.xml: ", "error", err, "path", path+AKTEURE_FN)
 		}
 		DB.Akteure = Akteure
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"Orte.xml", &Orte); err != nil {
-			logger.Error("Error while unmarshalling Orte.xml: ", "error", err, "path", path+"Orte.xml")
+		if err := unmarshalFile(path+ORTE_FN, &Orte); err != nil {
+			logger.Error("Error while unmarshalling Orte.xml: ", "error", err, "path", path+ORTE_FN)
 		}
 		DB.Orte = Orte
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"Reihen.xml", &Reihentitel); err != nil {
-			logger.Error("Error while unmarshalling Reihen.xml: ", "error", err, "path", path+"Reihen.xml")
+		if err := unmarshalFile(path+REIHEN_FN, &Reihentitel); err != nil {
+			logger.Error("Error while unmarshalling Reihen.xml: ", "error", err, "path", path+REIHEN_FN)
 		}
 		DB.Reihen = Reihentitel
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"Baende.xml", &Bände); err != nil {
-			logger.Error("Error while unmarshalling Baende.xml: ", "error", err, "path", path+"Baende.xml")
+		if err := unmarshalFile(path+BAENDE_FN, &Bände); err != nil {
+			logger.Error("Error while unmarshalling Baende.xml: ", "error", err, "path", path+BAENDE_FN)
 		}
 		DB.Bände = Bände
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"Inhalte.xml", &Inhalte); err != nil {
-			logger.Error("Error while unmarshalling Inhalte.xml: ", "error", err, "path", path+"Inhalte.xml")
+		if err := unmarshalFile(path+INHALTE_FN, &Inhalte); err != nil {
+			logger.Error("Error while unmarshalling Inhalte.xml: ", "error", err, "path", path+INHALTE_FN)
 		}
 		DB.Inhalte = Inhalte
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"_RELATION_BaendeAkteure.xml", &Relationen_Bände_Akteure); err != nil {
-			logger.Error("Error while unmarshalling RELATION_BaendeAkteure.xml: ", "error", err, "path", path+"_RELATION_BaendeAkteure.xml")
+		if err := unmarshalFile(path+RELATION_BAENDE_AKTEURE_FN, &Relationen_Bände_Akteure); err != nil {
+			logger.Error("Error while unmarshalling RELATION_BaendeAkteure.xml: ", "error", err, "path", path+RELATION_BAENDE_AKTEURE_FN)
 		}
 		DB.Relationen_Bände_Akteure = Relationen_Bände_Akteure
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"_RELATION_BaendeReihen.xml", &Relationen_Bände_Reihen); err != nil {
-			logger.Error("Error while unmarshalling RELATION_BaendeReihen.xml: ", "error", err, "path", path+"_RELATION_BaendeReihen.xml")
+		if err := unmarshalFile(path+RELATION_BAENDE_REIHEN_FN, &Relationen_Bände_Reihen); err != nil {
+			logger.Error("Error while unmarshalling RELATION_BaendeReihen.xml: ", "error", err, "path", path+RELATION_BAENDE_REIHEN_FN)
 		}
 		DB.Relationen_Bände_Reihen = Relationen_Bände_Reihen
 		wg.Done()
 	}()
 
 	go func() {
-		if err := unmarshalFile(path+"_RELATION_InhalteAkteure.xml", &Relationen_Inhalte_Akteure); err != nil {
-			logger.Error("Error while unmarshalling RELATION_InhalteAkteure.xml: ", "error", err, "path", path+"_RELATION_InhalteAkteure.xml")
+		if err := unmarshalFile(path+RELATION_INHALTE_AKTEURE_FN, &Relationen_Inhalte_Akteure); err != nil {
+			logger.Error("Error while unmarshalling RELATION_InhalteAkteure.xml: ", "error", err, "path", path+RELATION_INHALTE_AKTEURE_FN)
 		}
 		DB.Relationen_Inhalte_Akteure = Relationen_Inhalte_Akteure
 		wg.Done()
@@ -131,4 +131,21 @@ func unmarshalFile[T any](filename string, data *T) error {
 	xml.Unmarshal(byteValue, data)
 
 	return nil
+}
+
+func unmarshalFileStrict[T any](filename string, data *T) error {
+	xmlFile, err := os.Open(filename)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println("Successfully opened " + filename)
+	defer xmlFile.Close()
+
+	byteValue, err := io.ReadAll(xmlFile)
+	if err != nil {
+		return err
+	}
+
+	return xml.Unmarshal(byteValue, data)
 }
