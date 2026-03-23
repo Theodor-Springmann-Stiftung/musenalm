@@ -255,6 +255,10 @@ func determineEntryEditState(
 		return dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1]
 	}
 
+	if strings.TrimSpace(record.TitleStmt()) != "" {
+		return dbmodels.EDITORSTATE_VALUES[2]
+	}
+
 	autopsied := band.Gesichtet
 	if hasLegacy && legacy.LegacyAlm.Autopsie {
 		autopsied = true

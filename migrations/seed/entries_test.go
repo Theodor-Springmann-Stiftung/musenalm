@@ -152,9 +152,18 @@ func TestDetermineEntryEditStateSeenWhenAutopsiedAndDescribed(t *testing.T) {
 	}
 }
 
-func TestDetermineEntryEditStateUnknownWithoutAutopsie(t *testing.T) {
+func TestDetermineEntryEditStateSeenWhenTitleStmtExists(t *testing.T) {
 	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
 	entry.SetTitleStmt("Some title")
+
+	got := determineEntryEditState(entry, xmlmodels.Band{}, LegacyBandMatch{}, false, 0)
+	if got != dbmodels.EDITORSTATE_VALUES[2] {
+		t.Fatalf("expected Seen, got %q", got)
+	}
+}
+
+func TestDetermineEntryEditStateUnknownWithoutAutopsie(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
 
 	got := determineEntryEditState(entry, xmlmodels.Band{}, LegacyBandMatch{}, false, 1)
 	if got != dbmodels.EDITORSTATE_VALUES[0] {

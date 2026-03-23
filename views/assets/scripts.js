@@ -9869,7 +9869,7 @@ class bc extends HTMLElement {
         this.setStatus(a.error, !0);
         return;
       }
-      this.setStatus("Export läuft im Hintergrund."), await this.refreshList(), this.startPolling();
+      this.setStatus("Export läuft..."), await this.refreshList(), this.startPolling();
     } catch {
       this.setStatus("Export konnte nicht gestartet werden.", !0);
     } finally {

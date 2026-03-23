@@ -90,7 +90,7 @@ export class ExportManager extends HTMLElement {
 				return;
 			}
 
-			this.setStatus("Export läuft im Hintergrund.");
+			this.setStatus("Export läuft...");
 			await this.refreshList();
 			this.startPolling();
 		} catch (err) {
