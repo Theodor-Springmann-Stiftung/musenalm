@@ -3,10 +3,11 @@ package xmlmodels
 import "log/slog"
 
 type LegacyFallbackData struct {
-	INHTab           LegacyINHTab
-	AlmNeu           LegacyAlmNeu
-	AlmByBiblioID    map[int]LegacyAlmNeuRow
-	InhalteByEntryID map[int][]LegacyINHTabRow
+	INHTab             LegacyINHTab
+	AlmNeu             LegacyAlmNeu
+	AlmByBiblioID      map[int]LegacyAlmNeuRow
+	AlmByLegacyEntryID map[int]LegacyAlmNeuRow
+	InhalteByEntryID   map[int][]LegacyINHTabRow
 }
 
 func ReadLegacyFallbackData(path string, logger *slog.Logger) (*LegacyFallbackData, error) {
@@ -24,10 +25,11 @@ func ReadLegacyFallbackData(path string, logger *slog.Logger) (*LegacyFallbackDa
 	}
 
 	data := &LegacyFallbackData{
-		INHTab:           inhtab,
-		AlmNeu:           almneu,
-		AlmByBiblioID:    make(map[int]LegacyAlmNeuRow),
-		InhalteByEntryID: make(map[int][]LegacyINHTabRow),
+		INHTab:             inhtab,
+		AlmNeu:             almneu,
+		AlmByBiblioID:      make(map[int]LegacyAlmNeuRow),
+		AlmByLegacyEntryID: make(map[int]LegacyAlmNeuRow),
+		InhalteByEntryID:   make(map[int][]LegacyINHTabRow),
 	}
 
 	for _, row := range inhtab.Rows {
@@ -35,6 +37,10 @@ func ReadLegacyFallbackData(path string, logger *slog.Logger) (*LegacyFallbackDa
 	}
 
 	for _, row := range almneu.Rows {
+		if entryID := row.LegacyEntryID(); entryID > 0 {
+			data.AlmByLegacyEntryID[entryID] = row
+		}
+
 		if row.BiblioNr == 0 {
 			continue
 		}

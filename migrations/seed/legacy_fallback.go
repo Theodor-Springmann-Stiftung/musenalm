@@ -23,11 +23,7 @@ func LegacyBandMatches(
 	}
 
 	for _, band := range baende.Bände {
-		if !UsesLegacyContents(band.ID) || band.BiblioID == 0 {
-			continue
-		}
-
-		oldEntry, ok := legacy.AlmByBiblioID[band.BiblioID]
+		oldEntry, ok := legacyAlmForBand(band, legacy)
 		if !ok {
 			continue
 		}
@@ -37,13 +33,36 @@ func LegacyBandMatches(
 			continue
 		}
 
-		ret[band.ID] = LegacyBandMatch{
-			LegacyAlm: oldEntry,
-			Rows:      legacy.InhalteByEntryID[oldEntryID],
+		match := LegacyBandMatch{LegacyAlm: oldEntry}
+		if UsesLegacyContents(band.ID) {
+			match.Rows = legacy.InhalteByEntryID[oldEntryID]
 		}
+
+		ret[band.ID] = match
 	}
 
 	return ret
+}
+
+func legacyAlmForBand(
+	band xmlmodels.Band,
+	legacy *xmlmodels.LegacyFallbackData,
+) (xmlmodels.LegacyAlmNeuRow, bool) {
+	if legacy == nil {
+		return xmlmodels.LegacyAlmNeuRow{}, false
+	}
+
+	if !UsesLegacyContents(band.ID) {
+		row, ok := legacy.AlmByLegacyEntryID[band.ID]
+		return row, ok
+	}
+
+	if band.BiblioID == 0 {
+		return xmlmodels.LegacyAlmNeuRow{}, false
+	}
+
+	row, ok := legacy.AlmByBiblioID[band.BiblioID]
+	return row, ok
 }
 
 func LegacyFallbackContentsByEntry(matches map[int]LegacyBandMatch) map[int][]xmlmodels.LegacyINHTabRow {

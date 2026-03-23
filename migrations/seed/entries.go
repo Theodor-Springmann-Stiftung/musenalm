@@ -66,22 +66,15 @@ func RecordsFromBände(
 			record.SetYear(band.Jahr)
 		}
 
-		if match, ok := legacy[band.ID]; ok {
+		match, hasLegacy := legacy[band.ID]
+		if hasLegacy {
 			enrichEntryFromLegacy(record, match.LegacyAlm)
 		}
 
 		contentCount := contentCounts[band.ID]
-		hasAutopsieFromData := entryHasAutopsieFromData(band)
-		if band.Erfasst && contentCount == 0 {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[2])
-		} else if band.Erfasst {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
-		} else if band.Gesichtet || hasAutopsieFromData {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[2])
-		} else {
-			record.SetEditState(dbmodels.EDITORSTATE_VALUES[0])
-		}
+		record.SetEditState(determineEntryEditState(record, band, match, hasLegacy, contentCount))
 
+		hasAutopsieFromData := entryHasAutopsieFromData(band)
 		if band.BiblioID != 0 && !band.Erfasst && !(band.Gesichtet || hasAutopsieFromData) {
 			appendEntryComment(record, "Weder erfasst noch autopsiert, obwohl eine Biblio-ID vergeben wurde; bitte überprüfen.")
 		}
@@ -92,7 +85,7 @@ func RecordsFromBände(
 			appendEntryComment(record, "Quelle für autopsiert oder Erfassung fehlt.")
 		}
 
-		handlePreferredTitleEntry(record, band, rmap, relmap)
+		handlePreferredTitleEntry(record, band, rmap, relmap, match, hasLegacy)
 		handleDeprecated(record, band)
 		handleOrte(record, band, omap, app, ocoll, places)
 
@@ -107,7 +100,16 @@ func handlePreferredTitleEntry(
 	band xmlmodels.Band,
 	rmap map[int]xmlmodels.Reihe,
 	rrelmap map[int][]xmlmodels.Relation_Band_Reihe,
+	legacy LegacyBandMatch,
+	hasLegacy bool,
 ) {
+	if hasLegacy {
+		if oldTitle := normalizeLegacyEntryPreferredTitle(legacy.LegacyAlm.Reihentitel); oldTitle != "" {
+			record.SetPreferredTitle(oldTitle)
+			return
+		}
+	}
+
 	rels := rrelmap[band.ID]
 	if len(rels) == 0 {
 		record.SetPreferredTitle(NormalizeString(band.ReihentitelALT))
@@ -239,5 +241,108 @@ func enrichEntryFromLegacy(record *dbmodels.Entry, legacy xmlmodels.LegacyAlmNeu
 
 	if strings.TrimSpace(record.Extent()) == "" && strings.TrimSpace(legacy.Struktur) != "" {
 		record.SetExtent(NormalizeString(legacy.Struktur))
+	}
+}
+
+func determineEntryEditState(
+	record *dbmodels.Entry,
+	band xmlmodels.Band,
+	legacy LegacyBandMatch,
+	hasLegacy bool,
+	contentCount int,
+) string {
+	if contentCount > 1 {
+		return dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1]
+	}
+
+	autopsied := band.Gesichtet
+	if hasLegacy && legacy.LegacyAlm.Autopsie {
+		autopsied = true
+	}
+
+	if autopsied && entryHasDescriptiveData(record) {
+		return dbmodels.EDITORSTATE_VALUES[2]
+	}
+
+	return dbmodels.EDITORSTATE_VALUES[0]
+}
+
+func entryHasDescriptiveData(record *dbmodels.Entry) bool {
+	if strings.TrimSpace(record.TitleStmt()) != "" {
+		return true
+	}
+	if strings.TrimSpace(record.ResponsibilityStmt()) != "" {
+		return true
+	}
+	if strings.TrimSpace(record.PlaceStmt()) != "" {
+		return true
+	}
+	if strings.TrimSpace(record.Annotation()) != "" {
+		return true
+	}
+	if strings.TrimSpace(record.References()) != "" {
+		return true
+	}
+	if strings.TrimSpace(record.Extent()) != "" {
+		return true
+	}
+
+	return false
+}
+
+func normalizeLegacyEntryPreferredTitle(raw string) string {
+	raw = datatypes.DeleteTags(raw)
+	raw = NormalizeString(raw)
+	raw = datatypes.NormalizeWhitespace(raw)
+
+	parts := strings.Split(raw, "/)")
+	if len(parts) == 0 {
+		return ""
+	}
+
+	base := strings.TrimSpace(parts[0])
+	if len(parts) == 1 {
+		return base
+	}
+
+	suffixes := make([]string, 0, len(parts)-1)
+	for _, part := range parts[1:] {
+		part = datatypes.NormalizeWhitespace(NormalizeString(part))
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		if isWrappedLegacyTitleNote(part) {
+			suffixes = append(suffixes, part)
+		} else {
+			suffixes = append(suffixes, "["+part+"]")
+		}
+	}
+
+	if len(suffixes) == 0 {
+		return base
+	}
+
+	if base == "" {
+		return strings.Join(suffixes, " ")
+	}
+
+	return base + " " + strings.Join(suffixes, " ")
+}
+
+func isWrappedLegacyTitleNote(part string) bool {
+	if len(part) < 2 {
+		return false
+	}
+
+	switch {
+	case strings.HasPrefix(part, "(") && strings.HasSuffix(part, ")"):
+		return true
+	case strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]"):
+		return true
+	case strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}"):
+		return true
+	default:
+		return false
 	}
 }

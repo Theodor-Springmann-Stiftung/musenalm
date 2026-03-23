@@ -44,6 +44,9 @@ func SelectedContentCounts(
 	}
 
 	for bandID, match := range legacy {
+		if !UsesLegacyContents(bandID) {
+			continue
+		}
 		filteredCounts[bandID] = len(match.Rows)
 	}
 

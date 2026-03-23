@@ -17,6 +17,9 @@ func TestLegacyBandMatches(t *testing.T) {
 	}
 
 	legacy := &xmlmodels.LegacyFallbackData{
+		AlmByLegacyEntryID: map[int]xmlmodels.LegacyAlmNeuRow{
+			4848: {Nummer: 4848, Reihentitel: "Alt 4848"},
+		},
 		AlmByBiblioID: map[int]xmlmodels.LegacyAlmNeuRow{
 			101: {BiblioNr: 101, Nummer: 9001, ID: 0},
 			102: {BiblioNr: 102, Nummer: 0, ID: 0},
@@ -32,12 +35,16 @@ func TestLegacyBandMatches(t *testing.T) {
 
 	got := LegacyBandMatches(baende, legacy)
 
-	if len(got) != 2 {
-		t.Fatalf("expected 2 legacy band matches, got %d", len(got))
+	if len(got) != 3 {
+		t.Fatalf("expected 3 legacy band matches, got %d", len(got))
 	}
 
-	if _, ok := got[4848]; ok {
-		t.Fatalf("band 4848 should not use legacy contents")
+	if got[4848].LegacyAlm.LegacyEntryID() != 4848 {
+		t.Fatalf("expected band 4848 to resolve by legacy entry id, got %+v", got[4848].LegacyAlm)
+	}
+
+	if len(got[4848].Rows) != 0 {
+		t.Fatalf("band 4848 should not receive legacy content rows")
 	}
 
 	if got[4849].LegacyAlm.LegacyEntryID() != 9001 {
