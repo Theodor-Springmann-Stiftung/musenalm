@@ -79,3 +79,13 @@ func TestLegacyAlmNeuUnmarshal(t *testing.T) {
 		t.Fatalf("unexpected row: %+v", row)
 	}
 }
+
+func TestLegacyAlmNeuRowLegacyEntryID(t *testing.T) {
+	if got := (LegacyAlmNeuRow{Nummer: 4909, ID: 0}).LegacyEntryID(); got != 4909 {
+		t.Fatalf("expected NUMMER to be used as legacy entry id, got %d", got)
+	}
+
+	if got := (LegacyAlmNeuRow{Nummer: 0, ID: 42}).LegacyEntryID(); got != 42 {
+		t.Fatalf("expected ID fallback to be used as legacy entry id, got %d", got)
+	}
+}

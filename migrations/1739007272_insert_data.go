@@ -104,9 +104,9 @@ func init() {
 
 		wg.Wait()
 
-		contentCounts := seed.ContentCountsAfterFilter(adb.Inhalte)
-		legacyContents := seed.LegacyFallbackContentsByEntry(adb.Bände, contentCounts, legacyData)
-		entries, err := seed.RecordsFromBände(app, *adb, placesmap, contentCounts)
+		legacyMatches := seed.LegacyBandMatches(adb.Bände, legacyData)
+		contentCounts := seed.SelectedContentCounts(adb.Inhalte, legacyMatches)
+		entries, err := seed.RecordsFromBände(app, *adb, placesmap, contentCounts, legacyMatches)
 		if err != nil {
 			panic(err)
 		}
@@ -136,7 +136,12 @@ func init() {
 		}()
 
 		go func() {
-			records, err := seed.RecordsFromInhalteWithLegacy(app, adb.Inhalte, legacyContents, entriesmap)
+			records, err := seed.RecordsFromInhalteWithLegacy(
+				app,
+				seed.SelectModernInhalteForImport(adb.Inhalte),
+				legacyMatches,
+				entriesmap,
+			)
 			if err != nil {
 				panic(err)
 			}
@@ -209,7 +214,7 @@ func init() {
 			panic(err)
 		}
 
-		legacyRowsByINHNR := seed.LegacyRowsByINHNR(legacyContents)
+		legacyRowsByINHNR := seed.LegacyRowsByINHNR(legacyMatches)
 
 		contentFallbackRelations, err := seed.RecordsFromFallbackContentsAgents(
 			app,

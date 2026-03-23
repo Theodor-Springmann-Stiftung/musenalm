@@ -45,11 +45,11 @@ func ReadLegacyFallbackData(path string, logger *slog.Logger) (*LegacyFallbackDa
 			continue
 		}
 
-		if existing.ID > 0 {
+		if existing.LegacyEntryID() > 0 {
 			continue
 		}
 
-		if row.ID > 0 {
+		if row.LegacyEntryID() > 0 {
 			data.AlmByBiblioID[row.BiblioNr] = row
 		}
 	}

@@ -17,6 +17,27 @@ import (
 
 const NO_TITLE = "[No Title]"
 
+type imageIndex struct {
+	byContentID          map[int][]string
+	byLegacyEntryContent map[string][]string
+}
+
+func legacyImageKey(entryID, contentID int) string {
+	return strconv.Itoa(entryID) + ":" + strconv.Itoa(contentID)
+}
+
+func (idx imageIndex) PathsForModernContent(contentID int) []string {
+	return idx.byContentID[contentID]
+}
+
+func (idx imageIndex) PathsForLegacyContent(entryID, contentID int) []string {
+	if paths := idx.byLegacyEntryContent[legacyImageKey(entryID, contentID)]; len(paths) > 0 {
+		return paths
+	}
+
+	return idx.byContentID[contentID]
+}
+
 func RecordsFromInhalte(
 	app core.App,
 	inhalte xmlmodels.Inhalte,
@@ -63,10 +84,10 @@ func RecordsFromInhalte(
 		}
 		record.SetNumbering(no)
 
-		images, ok := images[inhalt.ID]
-		if ok {
+		paths := images.PathsForModernContent(inhalt.ID)
+		if len(paths) > 0 {
 			files := []*filesystem.File{}
-			for _, image := range images {
+			for _, image := range paths {
 				file, err := filesystem.NewFileFromPath(image)
 				if err != nil {
 					app.Logger().Error("Error creating file from path", "error", err, "path", image)
@@ -95,7 +116,7 @@ func RecordsFromInhalte(
 func RecordsFromInhalteWithLegacy(
 	app core.App,
 	inhalte xmlmodels.Inhalte,
-	legacy map[int][]xmlmodels.LegacyINHTabRow,
+	legacy map[int]LegacyBandMatch,
 	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Content, error) {
 	records, err := RecordsFromInhalte(app, inhalte, entries)
@@ -113,7 +134,7 @@ func RecordsFromInhalteWithLegacy(
 
 func RecordsFromLegacyINHTab(
 	app core.App,
-	legacy map[int][]xmlmodels.LegacyINHTabRow,
+	legacy map[int]LegacyBandMatch,
 	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Content, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
@@ -122,15 +143,18 @@ func RecordsFromLegacyINHTab(
 	}
 
 	records := []*dbmodels.Content{}
+	images := getImages(xmlmodels.IMG_PATH)
 
-	for entryID, rows := range legacy {
+	for entryID, match := range legacy {
 		entry, ok := entries[entryID]
 		if !ok {
 			app.Logger().Error("Entry not found for legacy content fallback", "entry", entryID)
 			continue
 		}
 
-		for _, row := range rows {
+		legacyEntryID := match.LegacyAlm.LegacyEntryID()
+
+		for _, row := range match.Rows {
 			record := dbmodels.NewContent(core.NewRecord(collection))
 			record.SetEntry(entry.Id)
 			record.SetAnnotation(NormalizeString(row.AnmerkungInhalt))
@@ -149,6 +173,20 @@ func RecordsFromLegacyINHTab(
 			}
 
 			record.SetNumbering(row.Objektzaehl)
+
+			paths := images.PathsForLegacyContent(legacyEntryID, row.INHNR)
+			if len(paths) > 0 {
+				files := []*filesystem.File{}
+				for _, image := range paths {
+					file, err := filesystem.NewFileFromPath(image)
+					if err != nil {
+						app.Logger().Error("Error creating file from path", "error", err, "path", image)
+						continue
+					}
+					files = append(files, file)
+				}
+				record.SetScans(files)
+			}
 
 			handleLegacyPreferredTitle(row, record)
 			n := record.PreferredTitle()
@@ -281,9 +319,12 @@ func commatizeArray(array []string) string {
 	return array[0]
 }
 
-func getImages(path string) map[int][]string {
+func getImages(path string) imageIndex {
 	/// FIXED: there is a bug somewhere, where files ending with numbers after a comma (",001") etc dont get added
-	ret := make(map[int][]string)
+	ret := imageIndex{
+		byContentID:          make(map[int][]string),
+		byLegacyEntryContent: make(map[string][]string),
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return ret
 	}
@@ -297,6 +338,11 @@ func getImages(path string) map[int][]string {
 			}
 			basesplit := strings.Split(filename, "-")
 			if len(basesplit) >= 3 {
+				legacyEntryID, err := strconv.Atoi(NormalizeString(basesplit[1]))
+				if err != nil {
+					slog.Error("Error parsing legacy entry id", "error", err, "id", basesplit[1])
+					return nil
+				}
 				commaseperatorsplit := strings.Split(basesplit[2], ",")
 				id := commaseperatorsplit[0]
 				no, err := strconv.Atoi(NormalizeString(id))
@@ -304,10 +350,16 @@ func getImages(path string) map[int][]string {
 					slog.Error("Error parsing id", "error", err, "id", id)
 					return nil
 				}
-				if _, ok := ret[no]; !ok {
-					ret[no] = make([]string, 0)
+				if _, ok := ret.byContentID[no]; !ok {
+					ret.byContentID[no] = make([]string, 0)
 				}
-				ret[no] = append(ret[no], path)
+				ret.byContentID[no] = append(ret.byContentID[no], path)
+
+				key := legacyImageKey(legacyEntryID, no)
+				if _, ok := ret.byLegacyEntryContent[key]; !ok {
+					ret.byLegacyEntryContent[key] = make([]string, 0)
+				}
+				ret.byLegacyEntryContent[key] = append(ret.byLegacyEntryContent[key], path)
 			}
 		}
 		return nil

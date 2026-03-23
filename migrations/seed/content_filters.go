@@ -26,7 +26,44 @@ func ContentCountsAfterFilter(inhalte xmlmodels.Inhalte) map[int]int {
 	return filteredCounts
 }
 
-func shouldSkipDummyContent(inhalt xmlmodels.Inhalt, images map[int][]string) bool {
+func SelectedContentCounts(
+	inhalte xmlmodels.Inhalte,
+	legacy map[int]LegacyBandMatch,
+) map[int]int {
+	images := getImages(xmlmodels.IMG_PATH)
+	filteredCounts := make(map[int]int)
+
+	for _, inhalt := range inhalte.Inhalte {
+		if UsesLegacyContents(inhalt.Band) {
+			continue
+		}
+		if shouldSkipDummyContent(inhalt, images) {
+			continue
+		}
+		filteredCounts[inhalt.Band]++
+	}
+
+	for bandID, match := range legacy {
+		filteredCounts[bandID] = len(match.Rows)
+	}
+
+	return filteredCounts
+}
+
+func SelectModernInhalteForImport(inhalte xmlmodels.Inhalte) xmlmodels.Inhalte {
+	ret := xmlmodels.Inhalte{Inhalte: make([]xmlmodels.Inhalt, 0, len(inhalte.Inhalte))}
+
+	for _, inhalt := range inhalte.Inhalte {
+		if UsesLegacyContents(inhalt.Band) {
+			continue
+		}
+		ret.Inhalte = append(ret.Inhalte, inhalt)
+	}
+
+	return ret
+}
+
+func shouldSkipDummyContent(inhalt xmlmodels.Inhalt, images imageIndex) bool {
 	if len(inhalt.Typ.Value) != 1 || strings.TrimSpace(inhalt.Typ.Value[0]) != "Gedicht/Lied" {
 		return false
 	}
@@ -44,7 +81,7 @@ func shouldSkipDummyContent(inhalt xmlmodels.Inhalt, images map[int][]string) bo
 		return false
 	}
 
-	if len(images[inhalt.ID]) > 0 {
+	if len(images.PathsForModernContent(inhalt.ID)) > 0 {
 		return false
 	}
 

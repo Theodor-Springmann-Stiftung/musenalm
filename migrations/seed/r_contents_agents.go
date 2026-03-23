@@ -25,7 +25,6 @@ func RecordsFromRelationInhalteAkteure(
 	for _, relation := range relations.Relationen {
 		content, ok := contents[relation.Inhalt]
 		if !ok {
-			app.Logger().Error("Error finding Content", "error", err, "relation", relation)
 			continue
 		}
 

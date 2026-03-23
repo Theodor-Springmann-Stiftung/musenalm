@@ -13,6 +13,7 @@ type AgentResolver struct {
 	collection *core.Collection
 	byName     map[string]*dbmodels.Agent
 	byID       map[string]*dbmodels.Agent
+	nextFreeID int
 }
 
 func NewAgentResolver(
@@ -25,12 +26,44 @@ func NewAgentResolver(
 		return nil, err
 	}
 
+	nextFreeID, err := nextFreeAgentMusenalmID(app, byID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &AgentResolver{
 		app:        app,
 		collection: collection,
 		byName:     byName,
 		byID:       byID,
+		nextFreeID: nextFreeID,
 	}, nil
+}
+
+func nextFreeAgentMusenalmID(app core.App, byID map[string]*dbmodels.Agent) (int, error) {
+	maxID := 0
+	for _, agent := range byID {
+		if agent == nil {
+			continue
+		}
+		if id := agent.MusenalmID(); id > maxID {
+			maxID = id
+		}
+	}
+
+	var row struct {
+		MusenalmID int `db:"musenalm_id"`
+	}
+	err := app.RecordQuery(dbmodels.AGENTS_TABLE).
+		Select(dbmodels.MUSENALMID_FIELD).
+		OrderBy(dbmodels.MUSENALMID_FIELD + " DESC").
+		Limit(1).
+		One(&row)
+	if err == nil && row.MusenalmID > maxID {
+		maxID = row.MusenalmID
+	}
+
+	return maxID + 1, nil
 }
 
 func ParseAgentNames(raw string) []string {
@@ -130,11 +163,14 @@ func (r *AgentResolver) resolveOne(name string, createMissing bool) (*dbmodels.A
 
 	agent := dbmodels.NewAgent(core.NewRecord(r.collection))
 	agent.SetName(name)
+	agent.SetMusenalmID(r.nextFreeID)
 	agent.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
 
 	if err := r.app.Save(agent); err != nil {
 		return nil, err
 	}
+
+	r.nextFreeID++
 
 	r.byName[name] = agent
 	r.byID[agent.Id] = agent
@@ -142,11 +178,11 @@ func (r *AgentResolver) resolveOne(name string, createMissing bool) (*dbmodels.A
 	return agent, nil
 }
 
-func LegacyRowsByINHNR(legacy map[int][]xmlmodels.LegacyINHTabRow) map[int]xmlmodels.LegacyINHTabRow {
+func LegacyRowsByINHNR(legacy map[int]LegacyBandMatch) map[int]xmlmodels.LegacyINHTabRow {
 	ret := make(map[int]xmlmodels.LegacyINHTabRow)
 
-	for _, rows := range legacy {
-		for _, row := range rows {
+	for _, match := range legacy {
+		for _, row := range match.Rows {
 			ret[row.INHNR] = row
 		}
 	}

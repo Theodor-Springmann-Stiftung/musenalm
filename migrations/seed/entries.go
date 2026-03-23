@@ -18,6 +18,7 @@ func RecordsFromBände(
 	// INFO: this is a string map, bc it's not by ID but by place name
 	places map[string]*dbmodels.Place,
 	contentCounts map[int]int,
+	legacy map[int]LegacyBandMatch,
 ) ([]*dbmodels.Entry, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
 	records := make([]*dbmodels.Entry, 0, len(adb.Bände.Bände))
@@ -63,6 +64,10 @@ func RecordsFromBände(
 
 		if band.Jahr != 0 {
 			record.SetYear(band.Jahr)
+		}
+
+		if match, ok := legacy[band.ID]; ok {
+			enrichEntryFromLegacy(record, match.LegacyAlm)
 		}
 
 		contentCount := contentCounts[band.ID]
@@ -209,4 +214,30 @@ func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band) {
 	}
 
 	record.SetDeprecated(depr)
+}
+
+func enrichEntryFromLegacy(record *dbmodels.Entry, legacy xmlmodels.LegacyAlmNeuRow) {
+	if record.Year() == 0 && legacy.Jahr != 0 {
+		record.SetYear(legacy.Jahr)
+	}
+
+	if strings.TrimSpace(record.ResponsibilityStmt()) == "" && strings.TrimSpace(legacy.Herausgeber) != "" {
+		record.SetResponsibilityStmt(NormalizeString(legacy.Herausgeber))
+	}
+
+	if strings.TrimSpace(record.PlaceStmt()) == "" && strings.TrimSpace(legacy.Ort) != "" {
+		record.SetPlaceStmt(NormalizeString(legacy.Ort))
+	}
+
+	if strings.TrimSpace(record.Annotation()) == "" && strings.TrimSpace(legacy.Anmerkungen) != "" {
+		record.SetAnnotation(NormalizeString(legacy.Anmerkungen))
+	}
+
+	if strings.TrimSpace(record.References()) == "" && strings.TrimSpace(legacy.Nachweis) != "" {
+		record.SetReferences(NormalizeString(legacy.Nachweis))
+	}
+
+	if strings.TrimSpace(record.Extent()) == "" && strings.TrimSpace(legacy.Struktur) != "" {
+		record.SetExtent(NormalizeString(legacy.Struktur))
+	}
 }

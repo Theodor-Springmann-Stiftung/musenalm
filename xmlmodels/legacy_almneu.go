@@ -28,3 +28,11 @@ type LegacyAlmNeuRow struct {
 	VollstaendigErfasst bool   `xml:"VOLLSTÄNDIG_x0020_ERFASST"`
 	HRSGRealname        string `xml:"HRSGREALNAME"`
 }
+
+func (r LegacyAlmNeuRow) LegacyEntryID() int {
+	if r.Nummer > 0 {
+		return r.Nummer
+	}
+
+	return r.ID
+}
