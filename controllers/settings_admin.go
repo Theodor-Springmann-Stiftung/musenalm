@@ -10,7 +10,6 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -38,10 +37,11 @@ func (p *SettingsAdmin) Setup(router *router.Router[*core.RequestEvent], ia page
 	rg := router.Group(URL_SETTINGS_ADMIN)
 	rg.BindFunc(middleware.Authenticated(appInstance))
 	rg.BindFunc(middleware.IsAdmin())
-	rg.GET("", p.redirectHandler())
+	rg.GET("", p.pageHandler(engine, appInstance))
 	rg.POST(URL_SETTINGS_SAVE, handleSettingSave(appInstance, URL_SETTINGS_ADMIN))
 	rg.POST(URL_SETTINGS_DELETE, handleSettingDelete(appInstance, URL_SETTINGS_ADMIN))
-	rg.POST(URL_SETTINGS_FTS5_REBUILD, handleFTS5Rebuild(appInstance, URL_SETTINGS_ADMIN))
+	rg.POST(URL_SETTINGS_FTS5_REBUILD, handleFTS5Run(appInstance))
+	rg.GET(URL_SETTINGS_FTS5_STATUS, handleFTS5Status(appInstance))
 	return nil
 }
 
@@ -51,9 +51,27 @@ type settingView struct {
 	Updated types.DateTime
 }
 
-func (p *SettingsAdmin) redirectHandler() HandleFunc {
+func (p *SettingsAdmin) pageHandler(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		return e.Redirect(http.StatusSeeOther, URL_EXPORTS_ADMIN)
+		data, err := settingsData(app)
+		if err != nil {
+			return engine.Response500(e, err, nil)
+		}
+
+		req := templating.NewRequest(e)
+		data["csrf_token"] = ""
+		if session := req.Session(); session != nil {
+			data["csrf_token"] = session.Token
+		}
+
+		if msg := popFlashSuccess(e); msg != "" {
+			data["success"] = msg
+		}
+		if errMsg := strings.TrimSpace(e.Request.URL.Query().Get("error")); errMsg != "" {
+			data["error"] = errMsg
+		}
+
+		return engine.Response200(e, TEMPLATE_SETTINGS, data, pagemodels.LAYOUT_LOGIN_PAGES)
 	}
 }
 
@@ -134,33 +152,6 @@ func handleSettingDelete(app core.App, redirectBase string) HandleFunc {
 		}
 
 		setFlashSuccess(e, "Einstellung entfernt.")
-		return e.Redirect(http.StatusSeeOther, redirectBase)
-	}
-}
-
-func handleFTS5Rebuild(app core.App, redirectBase string) HandleFunc {
-	return func(e *core.RequestEvent) error {
-		req := templating.NewRequest(e)
-		if err := e.Request.ParseForm(); err != nil {
-			return redirectSettingsError(e, redirectBase, "Formulardaten ungueltig.")
-		}
-		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return redirectSettingsError(e, redirectBase, err.Error())
-		}
-
-		status, err := imports.StartFTS5Rebuild(app, true)
-		if err != nil {
-			return redirectSettingsError(e, redirectBase, err.Error())
-		}
-		if status == "running" {
-			return redirectSettingsError(e, redirectBase, "FTS5-Neuaufbau läuft bereits.")
-		}
-		if status == "restarting" {
-			setFlashSuccess(e, "FTS5-Neuaufbau wird neu gestartet.")
-			return e.Redirect(http.StatusSeeOther, redirectBase)
-		}
-
-		setFlashSuccess(e, "FTS5-Neuaufbau gestartet.")
 		return e.Redirect(http.StatusSeeOther, redirectBase)
 	}
 }

@@ -1,47 +1,38 @@
 {{ $model := . }}
 
 <edit-page>
-<div class="flex container-normal bg-slate-100 mx-auto px-8">
-	<div class="flex flex-row w-full justify-between">
-		<div class="flex flex-col justify-end-safe flex-2/5">
-			<div class="mb-1">
-				<i class="ri-text"></i> Verwaltung
-			</div>
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
-				Abkürzungen
-			</h1>
-			<div class="flex flex-row gap-x-3">
+<div class="admin-page-shell">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div class="flex w-full items-start justify-between gap-4">
 				<div>
-					<a href="/admin/abkuerzungen/" class="text-gray-700 hover:text-slate-950 block no-underline">
-						<i class="ri-eye-line"></i> Anschauen
-					</a>
+					<h1 class="admin-page-title">Abkürzungen</h1>
+					<p class="admin-page-description">Abkürzungen und ihre Auflösungen für die Redaktion zentral pflegen.</p>
 				</div>
+				{{- if (IsAdminOrEditor $model.request.user) -}}
+					<button type="button" onclick="window.addAbkuerzungRow?.()" class="inline-flex items-center gap-1.5 rounded-xs bg-slate-800 px-3 py-1.5 font-sans text-[0.98rem] font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">
+						<i class="ri-add-line"></i>
+						<span>Neu</span>
+					</button>
+				{{- end -}}
 			</div>
 		</div>
-	</div>
-</div>
+	</header>
 
-<div class="container-normal mx-auto mt-4 !px-0">
+<div class="admin-page-body admin-page-body-wide admin-page-body-flush pt-0">
 	{{/* usermessage moved into action bar */}}
 
 	{{- if (IsAdminOrEditor $model.request.user) -}}
 		{{/* Editable form for admin/editor */}}
 		<form
 			autocomplete="off"
-			class="w-full dbform"
+			class="w-full dbform form-with-action-bar"
 			id="abkform"
 			method="POST"
 			action="/admin/abkuerzungen/">
 			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 
-			<div class="mb-4 flex items-center gap-3">
-				<button type="button" id="add-row-btn" class="resetbutton w-auto px-3 py-1.5 flex items-center gap-2">
-					<i class="ri-add-line"></i>
-					<span>Abkürzung hinzufügen</span>
-				</button>
-			</div>
-
-			<div class="overflow-x-auto bg-white border border-gray-200 rounded">
+			<div class="w-full overflow-x-auto bg-white">
 				<table class="w-full table-fixed" style="table-layout: fixed;">
 					<colgroup>
 						<col style="width: 12rem;" />
@@ -57,7 +48,7 @@
 					</thead>
 					<tbody id="abk-tbody">
 						{{- range $index, $entry := $model.result.Entries -}}
-							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100" data-rel-row data-row="{{ $index }}">
+							<tr class="hover:bg-gray-50 odd:bg-stone-100" data-rel-row data-row="{{ $index }}">
 								<td class="px-4 py-2.5" style="width: 12rem;">
 									<input type="text"
 										name="abkuerzungen[{{ $index }}][key]"
@@ -87,27 +78,29 @@
 				</table>
 			</div>
 
-			<div class="w-full flex items-end justify-between gap-4 mt-6 flex-wrap">
-				<p
-					id="abk-save-feedback"
-					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
-					{{ if $model.success }}data-autohide="true"{{ end }}
-					aria-live="polite">
-					{{- if $model.error -}}
-						{{ $model.error }}
-					{{- else if $model.success -}}
-						{{ $model.success }}
-					{{- end -}}
-				</p>
-				<div class="flex items-center gap-3 self-end flex-wrap">
-					<a href="/admin/abkuerzungen/" class="resetbutton w-40 flex items-center gap-2 justify-center">
-						<i class="ri-close-line"></i>
-						<span>Abbrechen</span>
-					</a>
-					<button type="submit" class="submitbutton w-48 flex items-center gap-2 justify-center">
-						<i class="ri-save-line"></i>
-						<span>Alle speichern</span>
-					</button>
+			<div class="form-action-bar">
+				<div class="form-action-bar-inner">
+					<p
+						id="abk-save-feedback"
+						class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+						{{ if $model.success }}data-autohide="true"{{ end }}
+						aria-live="polite">
+						{{- if $model.error -}}
+							{{ $model.error }}
+						{{- else if $model.success -}}
+							{{ $model.success }}
+						{{- end -}}
+					</p>
+					<div class="form-action-bar-actions">
+						<a href="/admin/abkuerzungen/" class="resetbutton w-40 flex items-center gap-2 justify-center">
+							<i class="ri-close-line"></i>
+							<span>Abbrechen</span>
+						</a>
+						<button type="submit" class="submitbutton w-48 flex items-center gap-2 justify-center">
+							<i class="ri-save-line"></i>
+							<span>Alle speichern</span>
+						</button>
+					</div>
 				</div>
 			</div>
 		</form>
@@ -115,7 +108,6 @@
 		<script>
 			(function() {
 				const tbody = document.getElementById('abk-tbody');
-				const addBtn = document.getElementById('add-row-btn');
 				let rowIndex = {{ len $model.result.Entries }};
 
 				const updateDeleteLabel = (button, deleted, hovered) => {
@@ -212,10 +204,9 @@
 					}
 				};
 
-				// Add new row
-				addBtn.addEventListener('click', function() {
+				const addRow = function() {
 					const tr = document.createElement('tr');
-					tr.className = 'border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100';
+					tr.className = 'hover:bg-gray-50 odd:bg-stone-100';
 					tr.dataset.row = rowIndex;
 					tr.setAttribute('data-rel-row', '');
 					tr.innerHTML = `
@@ -252,7 +243,9 @@
 					if (newKeyInput) {
 						newKeyInput.focus();
 					}
-				});
+				};
+
+				window.addAbkuerzungRow = addRow;
 
 				const deleteButtons = tbody.querySelectorAll('.delete-btn');
 				deleteButtons.forEach((button) => wireDeleteButton(button));
@@ -261,7 +254,7 @@
 
 	{{- else -}}
 		{{/* Read-only view for public */}}
-		<div class="bg-white border border-gray-200 rounded overflow-hidden">
+		<div class="w-full overflow-x-auto bg-white">
 			{{- if $model.result.Entries -}}
 				<table class="w-full">
 					<thead>
@@ -272,17 +265,18 @@
 					</thead>
 					<tbody>
 						{{- range $entry := $model.result.Entries -}}
-							<tr class="border-b border-gray-200 hover:bg-gray-50 odd:bg-stone-100">
+							<tr class="hover:bg-gray-50 odd:bg-stone-100">
 								<td class="px-4 py-2.5 font-bold font-mono text-base">{{ $entry.Key }}</td>
 								<td class="px-4 py-2.5 text-base">{{ $entry.Value }}</td>
 							</tr>
 						{{- end -}}
 					</tbody>
 				</table>
-			{{- else -}}
-				<div class="px-4 py-8 text-center text-gray-500">Keine Abkürzungen gefunden.</div>
-			{{- end -}}
+		{{- else -}}
+			<div class="px-4 py-8 text-center text-gray-500">Keine Abkürzungen gefunden.</div>
+		{{- end -}}
 		</div>
 	{{- end -}}
+</div>
 </div>
 </edit-page>

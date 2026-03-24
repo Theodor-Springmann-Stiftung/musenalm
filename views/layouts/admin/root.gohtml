@@ -9,7 +9,33 @@
 	</head>
 
 	<body id="body" class="w-full min-h-full" hx-ext="response-targets" hx-boost="true">
-		<div class="admin-layout">
+		<div
+			x-data="{
+				sidebarCollapsed: false,
+				init() {
+					this.sidebarCollapsed = window.localStorage.getItem('admin-sidebar-collapsed') === 'true';
+					if (this.sidebarCollapsed) {
+						this.$nextTick(() => {
+							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
+								el.open = true;
+							});
+						});
+					}
+				},
+				toggleSidebar() {
+					this.sidebarCollapsed = !this.sidebarCollapsed;
+					window.localStorage.setItem('admin-sidebar-collapsed', String(this.sidebarCollapsed));
+					if (this.sidebarCollapsed) {
+						this.$nextTick(() => {
+							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
+								el.open = true;
+							});
+						});
+					}
+				}
+			}"
+			:class="{ 'admin-layout-sidebar-collapsed': sidebarCollapsed }"
+			class="admin-layout">
 			<aside class="admin-sidebar-frame" id="header">
 				{{ template "_admin_sidebar" . }}
 			</aside>
@@ -20,7 +46,6 @@
 						<!-- Default app body... -->
 					{{ end }}
 				</main>
-				{{ template "_footer" . }}
 			</div>
 
 			{{ block "scripts" . }}

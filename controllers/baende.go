@@ -18,10 +18,12 @@ import (
 
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 const (
-	BAENDE_PAGE_SIZE = 100
+	BAENDE_PAGE_SIZE = 80
 )
 
 func init() {
@@ -44,12 +46,18 @@ type BaendeResult struct {
 	Entries       []*dbmodels.Entry
 	Series        map[string]*dbmodels.Series
 	EntriesSeries map[string][]*dbmodels.REntriesSeries
+	SeriesLinks   map[string][]*BaendeSeriesLink
 	Places        map[string]*dbmodels.Place
 	Agents        map[string]*dbmodels.Agent
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
 	Items         map[string][]*dbmodels.Item
 	Users         map[string]*dbmodels.User
 	ContentsCount map[string]int
+}
+
+type BaendeSeriesLink struct {
+	Series   *dbmodels.Series
+	Relation *dbmodels.REntriesSeries
 }
 
 type BaendeDetailsResult struct {
@@ -150,11 +158,24 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 			}
 		}
 
+		series, relations, err := Series_Entries(app, []*dbmodels.Entry{entry})
+		if err != nil {
+			app.Logger().Error("Failed to get series for row entry", "error", err)
+		}
+		seriesMap := make(map[string]*dbmodels.Series, len(series))
+		for _, s := range series {
+			if s == nil {
+				continue
+			}
+			seriesMap[s.Id] = s
+		}
+
 		data := map[string]any{
 			"entry":          entry,
 			"items":          items,
 			"editor_user":    editorUser,
 			"contents_count": contentsCount,
+			"series_links":   buildBaendeSeriesLinks(seriesMap, relations),
 			"is_admin":       req.IsAdmin(),
 			"csrf_token":     req.Session().Token,
 		}
@@ -286,6 +307,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	user := strings.TrimSpace(e.Request.URL.Query().Get("user"))
 	yearStr := strings.TrimSpace(e.Request.URL.Query().Get("year"))
 	place := strings.TrimSpace(e.Request.URL.Query().Get("place"))
+	series := strings.TrimSpace(e.Request.URL.Query().Get("series"))
 
 	// Validate letter
 	if letter != "" {
@@ -411,6 +433,9 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if place != "" {
 		filteredEntries = filterEntriesByPlace(filteredEntries, place)
 	}
+	if series != "" {
+		filteredEntries = filterEntriesBySeries(filteredEntries, entrySeriesMap, series)
+	}
 
 	// Apply sorting based on sort parameter
 	switch sort {
@@ -477,6 +502,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		Entries:       pageEntries,
 		Series:        seriesMap,
 		EntriesSeries: entrySeriesMap,
+		SeriesLinks:   buildBaendeSeriesLinksMap(pageEntries, seriesMap, entrySeriesMap),
 		Places:        placesMap,
 		Agents:        agentsMap,
 		EntriesAgents: entryAgentsMap,
@@ -495,6 +521,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["user"] = user
 	data["year"] = yearStr
 	data["place"] = place
+	data["series"] = series
 	data["sort_field"] = sort
 	data["sort_order"] = order
 	data["csrf_token"] = req.Session().Token
@@ -517,6 +544,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["filter_place_labels"] = buildPlaceLabelMap(placesMap)
 	data["filter_years"] = buildYearFilters(allEntries)
 	data["filter_year_labels"] = buildYearLabelMap(allEntries)
+	data["filter_series"] = buildSeriesFilters(seriesMap, entrySeriesMap)
+	data["filter_series_labels"] = buildSeriesLabelMap(seriesMap, entrySeriesMap)
 
 	return data, nil
 }
@@ -816,6 +845,23 @@ func filterEntriesByEditor(entries []*dbmodels.Entry, userID string) []*dbmodels
 	return results
 }
 
+func filterEntriesBySeries(entries []*dbmodels.Entry, entrySeriesMap map[string][]*dbmodels.REntriesSeries, seriesID string) []*dbmodels.Entry {
+	if seriesID == "" {
+		return entries
+	}
+	results := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		rels := entrySeriesMap[entry.Id]
+		for _, rel := range rels {
+			if rel.Series() == seriesID {
+				results = append(results, entry)
+				break
+			}
+		}
+	}
+	return results
+}
+
 func buildStatusFilters() []map[string]string {
 	labels := buildStatusLabelMap()
 	allowed := []string{"Unknown", "ToDo", "Review", "Seen", "Edited"}
@@ -927,4 +973,80 @@ func buildYearLabelMap(entries []*dbmodels.Entry) map[string]string {
 		}
 	}
 	return labels
+}
+
+func buildSeriesFilters(seriesMap map[string]*dbmodels.Series, entrySeriesMap map[string][]*dbmodels.REntriesSeries) []*dbmodels.Series {
+	usedSeries := map[string]*dbmodels.Series{}
+	for _, rels := range entrySeriesMap {
+		for _, rel := range rels {
+			if rel == nil {
+				continue
+			}
+			series := seriesMap[rel.Series()]
+			if series == nil {
+				continue
+			}
+			usedSeries[series.Id] = series
+		}
+	}
+
+	series := make([]*dbmodels.Series, 0, len(usedSeries))
+	for _, s := range usedSeries {
+		series = append(series, s)
+	}
+	dbmodels.Sort_Series_Title(series)
+	return series
+}
+
+func buildSeriesLabelMap(seriesMap map[string]*dbmodels.Series, entrySeriesMap map[string][]*dbmodels.REntriesSeries) map[string]string {
+	labels := map[string]string{}
+	for _, series := range buildSeriesFilters(seriesMap, entrySeriesMap) {
+		if series != nil {
+			labels[series.Id] = series.Title()
+		}
+	}
+	return labels
+}
+
+func buildBaendeSeriesLinksMap(entries []*dbmodels.Entry, seriesMap map[string]*dbmodels.Series, entrySeriesMap map[string][]*dbmodels.REntriesSeries) map[string][]*BaendeSeriesLink {
+	linksMap := make(map[string][]*BaendeSeriesLink, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		linksMap[entry.Id] = buildBaendeSeriesLinks(seriesMap, entrySeriesMap[entry.Id])
+	}
+	return linksMap
+}
+
+func buildBaendeSeriesLinks(seriesMap map[string]*dbmodels.Series, rels []*dbmodels.REntriesSeries) []*BaendeSeriesLink {
+	links := make([]*BaendeSeriesLink, 0, len(rels))
+	for _, rel := range rels {
+		if rel == nil {
+			continue
+		}
+		series := seriesMap[rel.Series()]
+		if series == nil {
+			continue
+		}
+		links = append(links, &BaendeSeriesLink{
+			Series:   series,
+			Relation: rel,
+		})
+	}
+
+	collator := collate.New(language.German)
+	slices.SortFunc(links, func(i, j *BaendeSeriesLink) int {
+		iPreferred := i.Relation != nil && i.Relation.Type() == preferredSeriesRelationType
+		jPreferred := j.Relation != nil && j.Relation.Type() == preferredSeriesRelationType
+		if iPreferred != jPreferred {
+			if iPreferred {
+				return -1
+			}
+			return 1
+		}
+		return collator.CompareString(i.Series.Title(), j.Series.Title())
+	})
+
+	return links
 }

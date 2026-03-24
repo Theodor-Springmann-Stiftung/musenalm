@@ -7,18 +7,18 @@
 		hx-get="/admin/baende/details/{{ $entry.MusenalmID }}"
 		hx-target="this"
 		hx-swap="outerHTML">
-		<td class="py-2 pr-4 pl-2 whitespace-nowrap w-[10rem]">
+		<td class="py-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem]">
 			<div class="flex flex-col gap-1">
-				<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">Alm {{ $entry.MusenalmID }}</span>
+				<span class="inline-flex w-full items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">Alm {{ $entry.MusenalmID }}</span>
 				{{- if $entry.References -}}
-					<span class="inline-flex items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 max-w-[10rem] whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
+					<span class="inline-flex w-full items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-xs text-slate-700 whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
 				{{- end -}}
-			<div class="flex flex-wrap items-center gap-1.5 pt-1">
+			<div class="flex flex-nowrap items-center gap-1.5 pt-1">
 				<tool-tip position="top" class="inline">
-					<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
-						<i class="ri-eye-line"></i>
+					<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+						<i class="ri-external-link-line"></i>
 					</a>
-						<div class="data-tip">Ansehen</div>
+						<div class="data-tip">In neuem Tab öffnen</div>
 					</tool-tip>
 					{{- if (IsAdminOrEditor $model.request.user) -}}
 						<tool-tip position="top" class="inline">
@@ -102,6 +102,11 @@
 				</div>
 			{{- end -}}
 		</td>
+		<td class="py-2 pr-4 whitespace-nowrap col-year hidden w-[5.5rem]">
+			{{- if ne $entry.Year 0 -}}
+				{{ $entry.Year }}
+			{{- end -}}
+		</td>
 		<td class="py-2 pr-4 col-appearance">
 			{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
 				<div class="flex flex-col gap-2 text-sm text-gray-700">
@@ -126,11 +131,6 @@
 				</div>
 			{{- end -}}
 		</td>
-		<td class="py-2 pr-4 whitespace-nowrap col-year hidden">
-			{{- if ne $entry.Year 0 -}}
-				{{ $entry.Year }}
-			{{- end -}}
-		</td>
 		<td class="py-2 pr-4 col-extent">
 			{{- if or $entry.Extent $entry.Dimensions $entry.Language -}}
 				<div class="flex flex-col gap-1 text-sm text-gray-700">
@@ -144,16 +144,16 @@
 						<div class="h-1"></div>
 					{{- end -}}
 					{{- if $entry.Language -}}
-					<div class="flex flex-wrap gap-1.5 pt-0.5">
+					<div class="flex flex-wrap gap-x-2 gap-y-1 pt-0.5 font-serif text-sm italic text-gray-700">
 						{{- range $i, $lang := $entry.Language -}}
-							<span class="inline-flex items-center rounded-xs border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700">{{ LanguageNameGerman $lang }}</span>
+							<span>{{ LanguageNameGerman $lang }}</span>
 						{{- end -}}
 					</div>
 					{{- end -}}
 				</div>
 			{{- end -}}
 		</td>
-		<td class="py-2 pr-4 col-signatures">
+		<td class="py-2 pr-4 col-signatures w-[7.5rem]">
 			{{- $items := index $model.result.Items $entry.Id -}}
 			{{- if $items -}}
 				<div class="flex flex-col gap-2 text-sm text-gray-700">
@@ -172,7 +172,19 @@
 				</div>
 			{{- end -}}
 		</td>
-		<td class="py-2 pr-4 col-modified hidden w-[11.25rem]">
+		<td class="py-2 pr-4 col-series hidden w-[18rem]">
+			{{- $seriesLinks := index $model.result.SeriesLinks $entry.Id -}}
+			{{- if $seriesLinks -}}
+				<div class="flex flex-col gap-1.5 text-sm text-gray-700">
+					{{- range $_, $link := $seriesLinks -}}
+						<div>
+							<a href="/reihe/{{ $link.Series.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body">{{ $link.Series.Title }}</a>
+						</div>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-8 col-modified w-[11.25rem]">
 			<div class="flex flex-col gap-1 text-sm text-gray-700">
 				{{- if $entry.Updated -}}
 					<div class="tabular-nums">{{ GermanShortDateTime $entry.Updated }}</div>

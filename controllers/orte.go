@@ -35,6 +35,7 @@ func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodel
 	rg := router.Group(URL_ORTE)
 	rg.BindFunc(middleware.IsAdmin())
 	rg.GET("", func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
 		places := []*dbmodels.Place{}
 		if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
 			return engine.Response500(e, err, nil)
@@ -62,8 +63,9 @@ func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodel
 		}
 
 		data := map[string]any{
-			"result": &OrteResult{Places: places},
-			"bcount": bcount,
+			"result":     &OrteResult{Places: places},
+			"bcount":     bcount,
+			"csrf_token": req.Session().Token,
 		}
 		return engine.Response200(e, p.Template, data, p.Layout)
 	})

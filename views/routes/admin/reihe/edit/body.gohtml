@@ -4,12 +4,12 @@
 <edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
 <div class="edit-header-shell">
-	<div class="flex flex-row w-full justify-between">
-		<div class="flex flex-col justify-end-safe flex-2/5">
-		<div class="mb-1">
+	<div class="edit-header-layout">
+		<div class="edit-header-main">
+		<div class="edit-header-overline">
 			<i class="ri-book-shelf-fill"></i> Reihe
 		</div>
-			<h1 class="text-[1.7rem] leading-tight w-full font-bold text-slate-900 mb-0.5">
+			<h1 class="edit-header-title">
 				{{- if $model.is_new -}}
 					Neue Reihe anlegen
 				{{- else -}}
@@ -17,11 +17,11 @@
 				{{- end -}}
 			</h1>
 			{{- if not $model.is_new -}}
-				<div class="flex flex-row gap-x-3">
+				<div class="edit-header-links">
 					<div>
 						<a
 							href="/reihe/{{ $series.MusenalmID }}"
-							class="text-gray-700 hover:text-slate-950 block no-underline">
+							class="edit-header-link">
 							<i class="ri-eye-line"></i> Anschauen
 						</a>
 					</div>
@@ -29,7 +29,7 @@
 			{{- end -}}
 		</div>
 		{{- if not $model.is_new -}}
-		<div class="flex flex-row" id="series-header-data">
+		<div class="edit-header-meta" id="series-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
 					<div class="font-bold text-sm">

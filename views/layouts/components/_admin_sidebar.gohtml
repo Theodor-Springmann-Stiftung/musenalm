@@ -1,9 +1,33 @@
 {{ $model := . }}
 {{- $accountHref := "/login/" -}}
+{{- $profilePathPrefix := "" -}}
 {{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
+{{- $path := "" -}}
 {{- if and $model.request $model.request.user -}}
 	{{- $accountHref = (printf "/admin/user/%s/edit/" $model.request.user.Id) -}}
+	{{- $profilePathPrefix = (printf "/admin/user/%s/edit" $model.request.user.Id) -}}
 {{- end -}}
+{{- if and $model.request $model.request.path -}}
+	{{- $path = $model.request.path -}}
+{{- end -}}
+{{- $isNewBandActive := HasPrefix $path "/admin/almanach-new/" -}}
+{{- $isBandsActive := or (HasPrefix $path "/admin/baende/") (HasPrefix $path "/admin/almanach/") -}}
+{{- $isNewSeriesActive := HasPrefix $path "/admin/reihen/new/" -}}
+{{- $isSeriesActive := or (eq $path "/reihen") (HasPrefix $path "/reihen/") (HasPrefix $path "/reihe/") (HasPrefix $path "/admin/reihe/") -}}
+{{- $isNewPlaceActive := HasPrefix $path "/admin/orte/new/" -}}
+{{- $isPlacesActive := or (HasPrefix $path "/admin/orte/") (HasPrefix $path "/admin/ort/") -}}
+{{- $isNewPersonActive := HasPrefix $path "/admin/personen/new/" -}}
+{{- $isPersonsActive := or (eq $path "/personen") (HasPrefix $path "/personen/") (HasPrefix $path "/person/") (HasPrefix $path "/admin/person/") -}}
+{{- $isAbbreviationsActive := HasPrefix $path "/admin/abkuerzungen/" -}}
+{{- $isPagesActive := HasPrefix $path "/admin/seiten/" -}}
+{{- $isSettingsActive := HasPrefix $path "/admin/settings/" -}}
+{{- $isExportsActive := HasPrefix $path "/admin/exports/" -}}
+{{- $isUserInviteActive := HasPrefix $path "/admin/user/management/access" -}}
+{{- $isUserManagementActive := and (HasPrefix $path "/admin/user/management") (not $isUserInviteActive) -}}
+{{- $isProfileActive := and $profilePathPrefix (HasPrefix $path $profilePathPrefix) -}}
+{{- $isCreateSectionActive := or $isNewBandActive $isNewSeriesActive $isNewPlaceActive $isNewPersonActive -}}
+{{- $isListsSectionActive := or $isBandsActive $isSeriesActive $isPlacesActive $isPersonsActive $isAbbreviationsActive $isPagesActive -}}
+{{- $isAdminSectionActive := or $isSettingsActive $isExportsActive $isUserInviteActive $isUserManagementActive -}}
 
 <div id="admin-sidebar" class="admin-sidebar-inner">
 	<div class="admin-sidebar-brand">
@@ -12,59 +36,107 @@
 		</a>
 		<div class="admin-brand-copy">
 			<h1 class="admin-brand-title">
-				<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
-				<span class="admin-mode-pill">Administration</span>
+				<a href="/" class="no-underline admin-brand-link">{{ .site.title }}</a>
 			</h1>
+			<div class="admin-mode-pill">Verwaltung</div>
+		</div>
+		<button
+			type="button"
+			class="admin-sidebar-toggle"
+			@click="toggleSidebar()"
+			:aria-label="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'"
+			:title="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'">
+			<i class="ri-layout-left-line" x-show="!sidebarCollapsed" aria-hidden="true"></i>
+			<i class="ri-layout-right-line" x-show="sidebarCollapsed" x-cloak aria-hidden="true"></i>
+		</button>
+	</div>
+
+	<div class="admin-sidebar-collapsed-create" x-data="{ open: false }" @click.outside="open = false">
+		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" title="Neu" @click="open = !open">
+			<i class="ri-add-circle-line" aria-hidden="true"></i>
+		</button>
+		<div x-cloak x-show="open" class="admin-sidebar-collapsed-create-popout">
+			<a href="/admin/almanach-new/" class="admin-sidebar-collapsed-create-link{{ if $isNewBandActive }} active{{ end }}">Neuer Band</a>
+			<a href="/admin/reihen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewSeriesActive }} active{{ end }}">Neue Reihe</a>
+			<a href="/admin/orte/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPlaceActive }} active{{ end }}">Neuer Ort</a>
+			<a href="/admin/personen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPersonActive }} active{{ end }}">Neue Person</a>
 		</div>
 	</div>
 
 	<nav class="admin-sidebar-nav" aria-label="Administration Navigation">
-		<div class="admin-sidebar-section">
-			<div class="admin-sidebar-section-title">Neu</div>
+		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-create-section" {{ if $isCreateSectionActive }}open data-section-current="true"{{ end }}>
+			<summary class="admin-sidebar-section-title">
+				<span>Neu</span>
+				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
+			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/almanach-new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/almanach-new/") }}aria-current="page"{{ end }}>Neuer Band</a>
-				<a href="/admin/reihen/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/reihen/new/") }}aria-current="page"{{ end }}>Neue Reihe</a>
-				<a href="/admin/orte/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/orte/new/") }}aria-current="page"{{ end }}>Neuer Ort</a>
-				<a href="/admin/personen/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/personen/new/") }}aria-current="page"{{ end }}>Neue Person</a>
+				<a href="/admin/almanach-new/" title="Neuer Band" class="admin-sidebar-link" {{ if $isNewBandActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Band</span></span></a>
+				<a href="/admin/reihen/new/" title="Neue Reihe" class="admin-sidebar-link" {{ if $isNewSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Reihe</span></span></a>
+				<a href="/admin/orte/new/" title="Neuer Ort" class="admin-sidebar-link" {{ if $isNewPlaceActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Ort</span></span></a>
+				<a href="/admin/personen/new/" title="Neue Person" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Person</span></span></a>
 			</div>
-		</div>
+		</details>
 
-		<div class="admin-sidebar-section">
-			<div class="admin-sidebar-section-title">Listen</div>
+		<details class="admin-sidebar-section" open {{ if $isListsSectionActive }}data-section-current="true"{{ end }}>
+			<summary class="admin-sidebar-section-title">
+				<span>Listen</span>
+			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/baende/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/baende/") }}aria-current="page"{{ end }}>B&auml;nde</a>
-				<a href="/reihen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/reihe") }}aria-current="page"{{ end }}>Reihen</a>
-				<a href="/admin/orte/" class="admin-sidebar-link" {{ if and $model.request (or (HasPrefix $model.request.path "/admin/orte/") (HasPrefix $model.request.path "/admin/ort/")) }}aria-current="page"{{ end }}>Orte</a>
-				<a href="/personen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/person") }}aria-current="page"{{ end }}>Personen</a>
-				<a href="/admin/abkuerzungen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/abkuerzungen/") }}aria-current="page"{{ end }}>Abk&uuml;rzungen</a>
-				<a href="/admin/seiten/" hx-boost="false" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/seiten/") }}aria-current="page"{{ end }}>Seiten</a>
+				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span></a>
+				<a href="/reihen/" title="Reihen" class="admin-sidebar-link" {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span></a>
+				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span></a>
+				<a href="/personen/" title="Personen" class="admin-sidebar-link" {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span></a>
+				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
+				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>
-		</div>
+		</details>
 
 		{{- if $isAdminUser -}}
-		<div class="admin-sidebar-section">
-			<div class="admin-sidebar-section-title">Administration</div>
+		<details class="admin-sidebar-section" open {{ if $isAdminSectionActive }}data-section-current="true"{{ end }}>
+			<summary class="admin-sidebar-section-title">
+				<span>Administration</span>
+			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/settings/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/settings/") }}aria-current="page"{{ end }}>Einstellungen</a>
-				<a href="/admin/exports/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/exports/") }}aria-current="page"{{ end }}>Daten und Suche</a>
-				<a href="/admin/user/management/access/User" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/user/management/access") }}aria-current="page"{{ end }}>Nutzer einladen</a>
-				<a href="/admin/user/management" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/user/management") }}aria-current="page"{{ end }}>Benutzerverwaltung</a>
+				<a href="/admin/settings/" title="Einstellungen" class="admin-sidebar-link" {{ if $isSettingsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-settings-3-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Einstellungen</span></span></a>
+				<a href="/admin/exports/" title="Daten &amp; Export" class="admin-sidebar-link" {{ if $isExportsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-database-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Daten &amp; Export</span></span></a>
+				<a href="/admin/user/management/access/User" title="Nutzer einladen" class="admin-sidebar-link" {{ if $isUserInviteActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-key-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Nutzer einladen</span></span></a>
+				<a href="/admin/user/management" title="Benutzerverwaltung" class="admin-sidebar-link" {{ if $isUserManagementActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Benutzerverwaltung</span></span></a>
 			</div>
-		</div>
+		</details>
 		{{- end -}}
 	</nav>
 
 	<div class="admin-sidebar-account">
-		<div class="admin-sidebar-section-title">
+		<div class="admin-sidebar-account-name">
 			{{- if and $model.request $model.request.user $model.request.user.Name -}}
 				{{ $model.request.user.Name }}
 			{{- else -}}
 				Account
 			{{- end -}}
 		</div>
-		<div class="admin-sidebar-sub">
-			<a href="{{ $accountHref }}" class="admin-sidebar-link">Profil bearbeiten</a>
-			<a href="/logout/?redirectTo={{ if and $model.request $model.request.path }}{{ $model.request.path }}{{ else }}/{{ end }}" class="admin-sidebar-link">Logout</a>
+		<div class="admin-sidebar-account-role">
+			{{- if and $model.request $model.request.user -}}
+				{{- if eq $model.request.user.Role "Admin" -}}
+					Administrator
+				{{- else if eq $model.request.user.Role "Editor" -}}
+					Redaktion
+				{{- else -}}
+					Benutzer
+				{{- end -}}
+			{{- else -}}
+				Nicht angemeldet
+			{{- end -}}
+		</div>
+		<div class="admin-sidebar-account-links">
+			<span class="admin-sidebar-account-icon" title="Konto">
+				<i class="ri-user-line" aria-hidden="true"></i>
+			</span>
+			<a href="{{ $accountHref }}" title="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
+				<span class="admin-sidebar-link-label"><i class="ri-pencil-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Bearbeiten</span></span>
+			</a>
+			<a href="/logout/?redirectTo=/reihen/" title="Logout" class="admin-sidebar-link admin-sidebar-account-link">
+				<span class="admin-sidebar-link-label"><i class="ri-logout-box-r-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Logout</span></span>
+			</a>
 		</div>
 	</div>
 </div>

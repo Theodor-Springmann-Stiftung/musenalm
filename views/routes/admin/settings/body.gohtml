@@ -1,34 +1,58 @@
 {{ $model := . }}
 
-<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
-	<div class="flex-col w-full">
-		<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
-		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Einstellungen</h1>
-		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[70ch]">
-			<i class="ri-settings-3-line"></i>
-			Globale Einstellungen fuer die Seite und Systemfunktionen.
-		</div>
-	</div>
-</div>
-
-<div class="container-normal mx-auto px-8">
-	{{ template "_usermessage" $model }}
-
-	<div class="flex flex-col gap-8">
-		<section class="bg-white rounded-md shadow-sm border border-slate-200 p-6">
-			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-				<div>
-					<h2 class="text-lg font-semibold text-slate-900">FTS5 neu aufbauen</h2>
-					<p class="text-sm text-slate-600 mt-1">Löscht und erstellt die FTS5-Tabellen neu und füllt sie aus den bestehenden Einträgen.</p>
-				</div>
-				<form method="post" action="/admin/settings/fts5/rebuild/" class="flex items-center">
-					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-					<button type="submit" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50">
-						<i class="ri-refresh-line"></i> Neuaufbau starten
-					</button>
-				</form>
+<export-manager
+	class="admin-page-shell block"
+	data-fts5-rebuild-url="/admin/settings/fts5/rebuild/"
+	data-fts5-status-url="/admin/settings/fts5/status/"
+	data-csrf="{{ $model.csrf_token }}">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div>
+				<h1 class="admin-page-title">Einstellungen</h1>
+				<p class="admin-page-description">
+					Übergeordnete Verwaltungswerkzeuge und künftige globale Konfigurationen werden hier gebündelt.
+				</p>
 			</div>
-			<div class="text-xs text-slate-500 mt-3">Automatischer Neuaufbau: jeden Sonntag um 00:00 Uhr.</div>
+		</div>
+	</header>
+
+	<div class="admin-page-body admin-page-body-simple">
+		{{ template "_usermessage" $model }}
+		<section class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 p-6">
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div class="min-w-0">
+						<h2 class="text-lg font-semibold text-slate-900">Suchindex neu aufbauen</h2>
+						<p class="text-sm text-slate-600 mt-1">Löscht und erstellt den Suchindex aus den
+						bestehenden Einträgen neu. Kann bei Problemen bei der Suche und Auffindbarkeit von
+						Bänden und Beiträgen hilfreich sein. <em>Die Datenbank sollte während dem Aufbau möglichst
+						nicht verändert werden.</em> Ein automatischer Rebuild findet jeden Sonntag um 00:00 Uhr statt.</p>
+					</div>
+					<div class="flex items-center gap-3 shrink-0">
+						<button type="button" class="inline-flex items-center gap-2 rounded-xs bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50 whitespace-nowrap" data-role="fts5-rebuild">
+							<i class="ri-refresh-line"></i>
+							<span data-role="fts5-rebuild-label">Neuaufbau starten</span>
+						</button>
+					</div>
+				</div>
+				<div>
+					{{- if $model.fts5_last_rebuild_dt.IsZero | not -}}
+						<div class="text-xs text-slate-500">Zuletzt aufgebaut: <span data-role="fts5-last-rebuild">{{ GermanDate $model.fts5_last_rebuild_dt }} {{ GermanTime $model.fts5_last_rebuild_dt }}</span></div>
+					{{- else -}}
+						<div class="text-xs text-slate-500 hidden" data-role="fts5-last-rebuild-wrap">Zuletzt aufgebaut: <span data-role="fts5-last-rebuild"></span></div>
+					{{- end -}}
+					<div class="mt-3 hidden rounded-xs border px-3 py-2 text-sm" data-role="fts5-status"></div>
+					<div class="mt-3 hidden" data-role="fts5-progress">
+						<div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+							<span data-role="fts5-progress-text"></span>
+							<span data-role="fts5-progress-percent"></span>
+						</div>
+						<div class="h-2 w-full bg-slate-200 rounded">
+							<div class="h-2 bg-slate-700 rounded transition-all duration-200" style="width: 0%;" data-role="fts5-progress-bar"></div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</section>
 	</div>
-</div>
+</export-manager>

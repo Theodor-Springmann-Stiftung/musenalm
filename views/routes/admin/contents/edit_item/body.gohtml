@@ -2,9 +2,9 @@
 
 <edit-page>
 <div class="edit-header-shell">
-	<div class="flex flex-row w-full justify-between">
-		<div class="flex flex-col justify-end-safe flex-2/5">
-		<div class="mb-1">
+	<div class="edit-header-layout">
+		<div class="edit-header-main">
+		<div class="edit-header-overline">
 			<div class="header-tabs">
 				{{- if $model.result -}}
 					<a href="/admin/almanach/{{- $model.result.Entry.MusenalmID -}}/edit/" class="header-tab">
@@ -26,25 +26,25 @@
 				</span>
 			</div>
 		</div>
-		<h1 class="text-[1.7rem] leading-tight w-full font-bold text-slate-900 mb-0.5">
+		<h1 class="edit-header-title">
 			{{- if $model.result -}}
 				{{- $model.result.Entry.PreferredTitle -}}<br>
 				{{- if $model.is_new -}}
-					<span class="text-base font-semibold text-slate-700">Neuer Beitrag</span>
+					<span class="edit-header-subtitle">Neuer Beitrag</span>
 				{{- else -}}
-					<span class="mt-1 mb-1 block text-base font-semibold text-slate-900">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
+					<span class="edit-header-subtitle">Beitrag Nr. {{ $model.content.MusenalmID }}</span>
 				{{- end -}}
 			{{- else -}}
 				Beiträge bearbeiten
 			{{- end -}}
 		</h1>
 			{{- if $model.result -}}
-				<div class="flex flex-row gap-x-3">
+				<div class="edit-header-links">
 					{{- if not $model.is_new -}}
 					<div>
 						<a
 							href="/beitrag/{{ $model.content.MusenalmID }}"
-							class="text-gray-700 hover:text-slate-950 block no-underline">
+							class="edit-header-link">
 							<i class="ri-eye-line"></i> Anschauen
 						</a>
 					</div>
@@ -73,7 +73,7 @@
 			{{- end -}}
 		</div>
 		{{- if $model.result -}}
-		<div class="flex flex-row" id="contents-header-data">
+		<div class="edit-header-meta" id="contents-header-data">
 			<div class="flex flex-col justify-end gap-y-6 pr-20">
 				<div class="">
 					<div class="font-bold text-sm">

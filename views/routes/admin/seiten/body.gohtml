@@ -1,47 +1,45 @@
 {{ $model := . }}
 
-<div class="flex container-normal bg-slate-100 mx-auto px-8">
-	<div class="flex flex-row w-full justify-between">
-		<div class="flex flex-col justify-end-safe flex-2/5">
-			<div class="mb-1">
-				<i class="ri-pages-line"></i> Seiten
-			</div>
-			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
-				Seiteneditor
-			</h1>
-			{{- if and $model.selected $model.selected.URL -}}
-				<div class="flex flex-row gap-x-3">
-					<div>
-						<a href="{{ $model.selected.URL }}" class="text-gray-700 hover:text-slate-950 block no-underline">
-							<i class="ri-eye-line"></i> Anschauen
-						</a>
+<div class="admin-page-shell">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div>
+				<div class="admin-page-tagline">
+					<i class="ri-pages-line"></i>
+					<span>Seiten</span>
+				</div>
+				<h1 class="admin-page-title">Seiteneditor</h1>
+				<div class="admin-page-controls">
+					<div class="flex flex-wrap items-center gap-3">
+						<div class="inputwrapper !mb-0">
+							<select
+								id="page-editor-select"
+								name="key"
+								class="admin-page-select"
+								onchange="window.location.href = '/admin/seiten/?key=' + encodeURIComponent(this.value);">
+								{{- if $model.pages -}}
+									{{- range $page := $model.pages -}}
+										<option value="{{ $page.Key }}" {{ if eq $page.Key $model.selected_key }}selected{{ end }}>{{ $page.Title }}</option>
+									{{- end -}}
+								{{- else -}}
+									<option value="">Keine Seiten gefunden</option>
+								{{- end -}}
+							</select>
+						</div>
+						{{- if and $model.selected $model.selected.URL -}}
+							<a href="{{ $model.selected.URL }}" target="_blank" rel="noopener" class="admin-page-inline-link">
+								<i class="ri-external-link-line"></i>
+							</a>
+						{{- end -}}
 					</div>
 				</div>
-			{{- end -}}
-		</div>
-
-		<div class="flex flex-col justify-end gap-y-4 pr-4">
-			<div class="inputwrapper !mb-0">
-				<select
-					id="page-editor-select"
-					name="key"
-					class="inputinput px-4 py-2 bg-white rounded-md border border-slate-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-400/30"
-					onchange="window.location.href = '/admin/seiten/?key=' + encodeURIComponent(this.value);">
-					{{- if $model.pages -}}
-						{{- range $page := $model.pages -}}
-							<option value="{{ $page.Key }}" {{ if eq $page.Key $model.selected_key }}selected{{ end }}>{{ $page.Title }}</option>
-						{{- end -}}
-					{{- else -}}
-						<option value="">Keine Seiten gefunden</option>
-					{{- end -}}
-				</select>
 			</div>
 		</div>
-	</div>
-</div>
+	</header>
 
-<div class="container-normal mx-auto mt-4 !px-0">
+<div class="admin-page-body admin-page-body-wide">
 	{{ template "_page_form" $model }}
+</div>
 </div>
 
 <script>

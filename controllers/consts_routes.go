@@ -195,6 +195,7 @@ const (
 	URL_SETTINGS_SAVE         = "save/"
 	URL_SETTINGS_DELETE       = "delete/"
 	URL_SETTINGS_FTS5_REBUILD = "fts5/rebuild/"
+	URL_SETTINGS_FTS5_STATUS  = "fts5/status/"
 	TEMPLATE_SETTINGS         = "/admin/settings/"
 
 	URL_FILES_ADMIN     = "/admin/files/"

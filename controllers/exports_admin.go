@@ -49,8 +49,8 @@ func (p *ExportsAdmin) Setup(router *router.Router[*core.RequestEvent], ia pagem
 	rg.POST(URL_EXPORTS_DELETE+"{id}", p.deleteHandler(appInstance))
 	rg.POST(URL_EXPORTS_SETTINGS+"save/", handleSettingSave(appInstance, URL_EXPORTS_ADMIN))
 	rg.POST(URL_EXPORTS_SETTINGS+"delete/", handleSettingDelete(appInstance, URL_EXPORTS_ADMIN))
-	rg.POST(URL_EXPORTS_FTS5_REBUILD, p.fts5RunHandler(appInstance))
-	rg.GET(URL_EXPORTS_FTS5_STATUS, p.fts5StatusHandler(appInstance))
+	rg.POST(URL_EXPORTS_FTS5_REBUILD, handleFTS5Run(appInstance))
+	rg.GET(URL_EXPORTS_FTS5_STATUS, handleFTS5Status(appInstance))
 	return nil
 }
 
@@ -97,7 +97,7 @@ func (p *ExportsAdmin) listHandler(engine *templating.Engine, app core.App) Hand
 	}
 }
 
-func (p *ExportsAdmin) fts5RunHandler(app core.App) HandleFunc {
+func handleFTS5Run(app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if err := e.Request.ParseForm(); err != nil {
@@ -120,7 +120,7 @@ func (p *ExportsAdmin) fts5RunHandler(app core.App) HandleFunc {
 	}
 }
 
-func (p *ExportsAdmin) fts5StatusHandler(app core.App) HandleFunc {
+func handleFTS5Status(app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		status := settingString(app, "fts5_rebuild_status")
 		if status == "" {

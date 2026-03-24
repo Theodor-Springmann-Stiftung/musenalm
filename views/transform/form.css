@@ -202,15 +202,61 @@
 	}
 
 	.edit-header-shell {
-		@apply flex w-full max-w-[112rem] bg-transparent mx-auto px-6 py-2 relative;
+		@apply sticky top-0 z-20 w-full border-b border-stone-300 bg-stone-50 px-8 pt-8 pb-6;
 	}
 
 	.edit-content-shell {
-		@apply w-full max-w-[112rem] mx-auto mt-3 px-0 relative;
+		@apply w-full max-w-none px-8 pt-6 relative;
+	}
+
+	.edit-header-layout {
+		@apply flex flex-col gap-7;
+	}
+
+	.edit-header-main {
+		@apply flex flex-col items-start;
+	}
+
+	.edit-header-overline {
+		@apply mb-3 inline-flex items-center gap-2 text-[0.95rem] font-serif font-semibold text-stone-600;
+	}
+
+	.edit-header-title {
+		@apply text-2xl font-bold leading-tight text-slate-950;
+	}
+
+	.edit-header-subtitle {
+		@apply mt-2 block font-serif text-[1.05rem] font-normal italic leading-relaxed text-stone-700;
+	}
+
+	.edit-header-links {
+		@apply mt-4 flex flex-wrap items-center gap-x-3 gap-y-2;
+	}
+
+	.edit-header-link {
+		@apply inline-flex items-center gap-2 text-sm font-semibold text-slate-700 no-underline transition-colors duration-100 hover:text-slate-950;
+	}
+
+	.edit-header-meta {
+		@apply flex flex-wrap items-start gap-x-10 gap-y-6;
+	}
+
+	.edit-header-meta > div {
+		padding-right: 0 !important;
+	}
+
+	@media (max-width: 1024px) {
+		.edit-header-shell {
+			@apply px-6;
+		}
+
+		.edit-content-shell {
+			@apply px-6;
+		}
 	}
 
 	.edit-header-shell .header-tabs {
-		@apply mb-1 text-[0.82rem];
+		@apply mb-0 text-[0.9rem];
 	}
 
 	.edit-header-shell .header-tab {
@@ -218,11 +264,11 @@
 	}
 
 	.header-tabs {
-		@apply inline-flex items-center gap-1 text-sm text-gray-600 mb-1.5;
+		@apply inline-flex flex-wrap items-center gap-1 text-[0.95rem] font-serif text-stone-600;
 	}
 
 	.header-tab {
-		@apply inline-flex items-center gap-1 px-1.5 py-0.5 font-semibold text-gray-700 no-underline transition-colors duration-100;
+		@apply inline-flex items-center gap-1 px-1.5 py-0.5 font-semibold text-slate-700 no-underline transition-colors duration-100;
 	}
 
 	.header-tab:hover {
@@ -242,7 +288,7 @@
 	}
 
 	.header-tab-sep {
-		@apply inline-flex items-center px-1 text-gray-400;
+		@apply inline-flex items-center px-1 text-stone-400;
 	}
 
 	.save-feedback {
