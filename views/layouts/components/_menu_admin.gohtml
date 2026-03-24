@@ -1,0 +1,112 @@
+{{ $model := . }}
+{{- $accountHref := "/login/" -}}
+{{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
+{{- if and $model.request $model.request.user -}}
+	{{- $accountHref = (printf "/admin/user/%s/edit/" $model.request.user.Id) -}}
+{{- end -}}
+<div
+	id="mainmenu"
+	class="menu-shell-admin"
+	x-data="{ openadminmenu: '' }">
+	<div class="flex flex-row justify-between">
+		<div class="flex flex-row gap-x-3">
+			<div class="grow-0">
+				<a href="/" class="no-underline">
+					<img class="h-14 w-14 border" src="/assets/favicon_transparent.png" />
+				</a>
+			</div>
+			<div class="flex flex-col">
+				<h1 class="font-bold text-2xl tracking-wide">
+					<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
+					<span class="admin-mode-pill">Administration</span>
+				</h1>
+				<h2 class="italic text-slate-800">{{ .site.desc }}</h2>
+			</div>
+		</div>
+
+		<nav
+			class="self-end font-serif font-bold flex flex-row gap-x-4 [&>a]:no-underline
+		[&>*]:px-2 [&>*]:pt-1 [&>*]:-mb-1.5">
+			<button
+				:aria-current="openadminmenu === 'neu' ? 'true' : null"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100 !pr-2.5"
+				:class="openadminmenu === 'neu' ? 'bg-slate-100' : 'closed'"
+				@click="openadminmenu = openadminmenu === 'neu' ? '' : 'neu'">
+				<i class="ri-add-line"></i>
+				Neu
+			</button>
+			<button
+				:aria-current="openadminmenu === 'listen' ? 'true' : null"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100 !pr-2.5"
+				:class="openadminmenu === 'listen' ? 'bg-slate-100' : 'closed'"
+				@click="openadminmenu = openadminmenu === 'listen' ? '' : 'listen'">
+				<i class="ri-list-check"></i>
+				Listen
+			</button>
+			{{- if $isAdminUser -}}
+			<button
+				:aria-current="openadminmenu === 'administration' ? 'true' : null"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100 !pr-2.5"
+				:class="openadminmenu === 'administration' ? 'bg-slate-100' : 'closed'"
+				@click="openadminmenu = openadminmenu === 'administration' ? '' : 'administration'">
+				<i class="ri-tools-line"></i>
+				Administration
+			</button>
+			{{- end -}}
+			<button
+				:aria-current="openadminmenu === 'account' ? 'true' : null"
+				class="text-slate-600 hover:text-slate-900 hover:cursor-pointer hover:bg-slate-100 !pr-2.5"
+				:class="openadminmenu === 'account' ? 'bg-slate-100' : 'closed'"
+				@click="openadminmenu = openadminmenu === 'account' ? '' : 'account'">
+				<i class="ri-user-line"></i>
+				{{- if and $model.request $model.request.user $model.request.user.Name -}}
+					{{ $model.request.user.Name }}
+				{{- else -}}
+					Account
+				{{- end -}}
+			</button>
+		</nav>
+	</div>
+	<nav
+		:class="openadminmenu === 'neu' ? 'open' : 'closed'"
+		x-show="openadminmenu === 'neu'"
+		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
+		<a href="/admin/almanach-new/">Neuer Band</a>
+		<a href="/admin/reihen/new/">Neue Reihe</a>
+		<a href="/admin/orte/new/">Neuer Ort</a>
+		<a href="/admin/personen/new/">Neue Person</a>
+	</nav>
+	<nav
+		:class="openadminmenu === 'listen' ? 'open' : 'closed'"
+		x-show="openadminmenu === 'listen'"
+		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
+		<a href="/admin/baende/">Bände</a>
+		<a href="/reihen/">Reihen</a>
+		<a href="/admin/orte/">Orte</a>
+		<a href="/personen/">Personen</a>
+		<a href="/admin/abkuerzungen/">Abkürzungen</a>
+		<a href="/admin/seiten/" hx-boost="false">Seiten</a>
+	</nav>
+	{{- if $isAdminUser -}}
+	<nav
+		:class="openadminmenu === 'administration' ? 'open' : 'closed'"
+		x-show="openadminmenu === 'administration'"
+		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
+		<a href="/admin/settings/">Einstellungen</a>
+		<a href="/admin/exports/">Daten &amp; Suche</a>
+		<a href="/admin/user/management/access/User">Nutzer einladen</a>
+		<a href="/admin/user/management">Benutzerverwaltung</a>
+	</nav>
+	{{- end -}}
+	<nav
+		:class="openadminmenu === 'account' ? 'open' : 'closed'"
+		x-show="openadminmenu === 'account'"
+		class="submenu flex flex-row justify-end pt-3.5 gap-x-4 font-bold font-serif
+		[&>a]:no-underline [&>*]:-mb-1.5 w-full pr-2.5 [&>*]:px-1.5">
+		<a href="{{ $accountHref }}">Profil bearbeiten</a>
+		<a href="/logout/?redirectTo={{ if and $model.request $model.request.path }}{{ $model.request.path }}{{ else }}/{{ end }}">Logout</a>
+	</nav>
+</div>

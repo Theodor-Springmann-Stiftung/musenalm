@@ -36,7 +36,7 @@ type AlmanachResult struct {
 <almanach-edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
 
-<div class="flex container-normal bg-slate-100 mx-auto px-8">
+<div class="edit-header-shell">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
@@ -66,7 +66,7 @@ type AlmanachResult struct {
 				{{- end -}}
 			</div>
 		</div>
-		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+		<h1 class="text-[1.7rem] leading-tight w-full font-bold text-slate-900 mb-0.5">
 			{{- if $model.is_new -}}
 				 Neuen Almanach anlegen
 			{{- else -}}
@@ -184,7 +184,7 @@ type AlmanachResult struct {
 	</div>
 </div>
 
-<div class="container-normal mx-auto mt-4 !px-0">
+<div class="edit-content-shell">
 	{{/* usermessage moved into action bar */}}
 		<form
 			autocomplete="off"

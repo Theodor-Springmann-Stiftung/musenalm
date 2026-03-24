@@ -1,7 +1,7 @@
 {{ $model := . }}
 
 <edit-page>
-<div class="flex container-normal bg-slate-100 mx-auto px-8">
+<div class="edit-header-shell">
 	<div class="flex flex-row w-full justify-between">
 		<div class="flex flex-col justify-end-safe flex-2/5">
 		<div class="mb-1">
@@ -20,7 +20,7 @@
 				</span>
 			</div>
 		</div>
-		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+		<h1 class="text-[1.7rem] leading-tight w-full font-bold text-slate-900 mb-0.5">
 			{{- if $model.result -}}
 				{{- $model.result.Entry.PreferredTitle -}}
 			{{- else -}}
@@ -130,7 +130,7 @@
 	</div>
 </div>
 
-<div class="container-normal mx-auto mt-1 !px-0">
+<div class="edit-content-shell !mt-1">
 	{{ template "_usermessage" $model }}
 	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
 		<i class="ri-loader-4-line spinning mr-2"></i>

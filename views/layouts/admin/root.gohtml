@@ -12,9 +12,7 @@
 		<div class="flex flex-col min-h-screen w-full">
 			{{ template "_global_notice" . }}
 			<header class="border-b border-zinc-300 pb-0" id="header">
-				{{ block "_menu" . }}
-					<!-- Default app menu... -->
-				{{ end }}
+				{{ template "_menu_admin" . }}
 			</header>
 
 			<main class="">

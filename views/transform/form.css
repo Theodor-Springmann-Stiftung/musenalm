@@ -189,6 +189,22 @@
 		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-base font-semibold text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
 	}
 
+	.edit-header-shell {
+		@apply flex w-full max-w-[112rem] bg-transparent mx-auto px-6 py-2 relative;
+	}
+
+	.edit-content-shell {
+		@apply w-full max-w-[112rem] mx-auto mt-3 px-0 relative;
+	}
+
+	.edit-header-shell .header-tabs {
+		@apply mb-1 text-[0.82rem];
+	}
+
+	.edit-header-shell .header-tab {
+		@apply py-0;
+	}
+
 	.header-tabs {
 		@apply inline-flex items-center gap-1 text-sm text-gray-600 mb-1.5;
 	}
