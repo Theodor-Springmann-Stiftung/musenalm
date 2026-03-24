@@ -125,39 +125,6 @@
 						</div>
 					</details>
 				</div>
-				<div class="relative" @click.outside="if (searchOpen) closeSearch()">
-					<button
-						type="button"
-						x-cloak
-						x-show="!searchOpen"
-						@click="openSearch()"
-						class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
-						:class="search ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
-						<span x-text="search ? `Suche: ${search}` : 'Suche'"></span>
-						<i class="ri-search-line"></i>
-					</button>
-					<form
-						x-cloak
-						x-show="searchOpen"
-						@submit.prevent
-						class="flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 ring-1 ring-slate-300">
-						<input
-							x-ref="orteSearchInput"
-							x-model="search"
-							@input.debounce.120ms="filterRows()"
-							type="search"
-							class="search-input-no-native-clear min-w-[15rem] bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
-							placeholder="Ort oder Pseudonym" />
-						<button
-							type="button"
-							@click="clearSearch()"
-							class="text-gray-500 hover:text-slate-900"
-							aria-label="Suche leeren">
-							<i class="ri-close-line"></i>
-						</button>
-						<button x-show="false">Suchen</button>
-					</form>
-				</div>
 				<div class="relative" @click.outside="fictionalOpen = false">
 					<details class="font-sans text-base list-none" @toggle="fictionalOpen = $el.open">
 						<summary class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
@@ -192,6 +159,39 @@
 							</div>
 						</div>
 					</details>
+				</div>
+				<div class="relative" @click.outside="if (searchOpen) closeSearch()">
+					<button
+						type="button"
+						x-cloak
+						x-show="!searchOpen"
+						@click="openSearch()"
+						class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+						:class="search ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+						<span x-text="search ? `Suche: ${search}` : 'Suche'"></span>
+						<i class="ri-search-line"></i>
+					</button>
+					<form
+						x-cloak
+						x-show="searchOpen"
+						@submit.prevent
+						class="flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 ring-1 ring-slate-300">
+						<input
+							x-ref="orteSearchInput"
+							x-model="search"
+							@input.debounce.120ms="filterRows()"
+							type="search"
+							class="search-input-no-native-clear min-w-[15rem] bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
+							placeholder="Ort oder Pseudonym" />
+						<button
+							type="button"
+							@click="clearSearch()"
+							class="text-gray-500 hover:text-slate-900"
+							aria-label="Suche leeren">
+							<i class="ri-close-line"></i>
+						</button>
+						<button x-show="false">Suchen</button>
+					</form>
 				</div>
 			</div>
 			<div class="shrink-0 self-start whitespace-nowrap text-lg font-semibold font-sans text-gray-600">
