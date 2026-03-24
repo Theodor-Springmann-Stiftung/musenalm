@@ -1,0 +1,70 @@
+{{ $model := . }}
+{{- $accountHref := "/login/" -}}
+{{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
+{{- if and $model.request $model.request.user -}}
+	{{- $accountHref = (printf "/admin/user/%s/edit/" $model.request.user.Id) -}}
+{{- end -}}
+
+<div id="admin-sidebar" class="admin-sidebar-inner">
+	<div class="admin-sidebar-brand">
+		<a href="/" class="no-underline admin-brand-logo-wrap" aria-label="Startseite">
+			<img class="admin-brand-logo" src="/assets/favicon_transparent.png" />
+		</a>
+		<div class="admin-brand-copy">
+			<h1 class="admin-brand-title">
+				<a href="/" class="no-underline text-slate-800">{{ .site.title }}</a>
+				<span class="admin-mode-pill">Administration</span>
+			</h1>
+		</div>
+	</div>
+
+	<nav class="admin-sidebar-nav" aria-label="Administration Navigation">
+		<div class="admin-sidebar-section">
+			<div class="admin-sidebar-section-title">Neu</div>
+			<div class="admin-sidebar-sub">
+				<a href="/admin/almanach-new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/almanach-new/") }}aria-current="page"{{ end }}>Neuer Band</a>
+				<a href="/admin/reihen/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/reihen/new/") }}aria-current="page"{{ end }}>Neue Reihe</a>
+				<a href="/admin/orte/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/orte/new/") }}aria-current="page"{{ end }}>Neuer Ort</a>
+				<a href="/admin/personen/new/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/personen/new/") }}aria-current="page"{{ end }}>Neue Person</a>
+			</div>
+		</div>
+
+		<div class="admin-sidebar-section">
+			<div class="admin-sidebar-section-title">Listen</div>
+			<div class="admin-sidebar-sub">
+				<a href="/admin/baende/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/baende/") }}aria-current="page"{{ end }}>B&auml;nde</a>
+				<a href="/reihen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/reihe") }}aria-current="page"{{ end }}>Reihen</a>
+				<a href="/admin/orte/" class="admin-sidebar-link" {{ if and $model.request (or (HasPrefix $model.request.path "/admin/orte/") (HasPrefix $model.request.path "/admin/ort/")) }}aria-current="page"{{ end }}>Orte</a>
+				<a href="/personen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/person") }}aria-current="page"{{ end }}>Personen</a>
+				<a href="/admin/abkuerzungen/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/abkuerzungen/") }}aria-current="page"{{ end }}>Abk&uuml;rzungen</a>
+				<a href="/admin/seiten/" hx-boost="false" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/seiten/") }}aria-current="page"{{ end }}>Seiten</a>
+			</div>
+		</div>
+
+		{{- if $isAdminUser -}}
+		<div class="admin-sidebar-section">
+			<div class="admin-sidebar-section-title">Administration</div>
+			<div class="admin-sidebar-sub">
+				<a href="/admin/settings/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/settings/") }}aria-current="page"{{ end }}>Einstellungen</a>
+				<a href="/admin/exports/" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/exports/") }}aria-current="page"{{ end }}>Daten und Suche</a>
+				<a href="/admin/user/management/access/User" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/user/management/access") }}aria-current="page"{{ end }}>Nutzer einladen</a>
+				<a href="/admin/user/management" class="admin-sidebar-link" {{ if and $model.request (HasPrefix $model.request.path "/admin/user/management") }}aria-current="page"{{ end }}>Benutzerverwaltung</a>
+			</div>
+		</div>
+		{{- end -}}
+	</nav>
+
+	<div class="admin-sidebar-account">
+		<div class="admin-sidebar-section-title">
+			{{- if and $model.request $model.request.user $model.request.user.Name -}}
+				{{ $model.request.user.Name }}
+			{{- else -}}
+				Account
+			{{- end -}}
+		</div>
+		<div class="admin-sidebar-sub">
+			<a href="{{ $accountHref }}" class="admin-sidebar-link">Profil bearbeiten</a>
+			<a href="/logout/?redirectTo={{ if and $model.request $model.request.path }}{{ $model.request.path }}{{ else }}/{{ end }}" class="admin-sidebar-link">Logout</a>
+		</div>
+	</div>
+</div>

@@ -163,6 +163,12 @@
 		padding-bottom: env(safe-area-inset-bottom);
 	}
 
+	/* In admin layout, action bar should stay in content frame only */
+	.admin-layout .form-action-bar {
+		left: 19rem;
+		right: 0;
+	}
+
 	.form-action-bar-inner {
 		@apply w-full px-20 py-3 flex items-center justify-between gap-4 flex-wrap;
 	}
@@ -183,6 +189,12 @@
 	.form-action-bar.is-stuck {
 		@apply border-t border-slate-200;
 		background-color: rgb(250 250 249);
+	}
+
+	@media (max-width: 1024px) {
+		.admin-layout .form-action-bar {
+			left: 0;
+		}
 	}
 
 	.content-action-button {

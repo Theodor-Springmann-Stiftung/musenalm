@@ -9,21 +9,19 @@
 	</head>
 
 	<body id="body" class="w-full min-h-full" hx-ext="response-targets" hx-boost="true">
-		<div class="flex flex-col min-h-screen w-full">
-			{{ template "_global_notice" . }}
-			<header class="border-b border-zinc-300 pb-0" id="header">
-				{{ template "_menu_admin" . }}
-			</header>
-
-			<main class="">
-				{{ block "body" . }}
-					<!-- Default app body... -->
-				{{ end }}
-			</main>
-
-			{{ template "_footer" . }}
-
-		{{ template "_fab" . }}
+		<div class="admin-layout">
+			<aside class="admin-sidebar-frame" id="header">
+				{{ template "_admin_sidebar" . }}
+			</aside>
+			<div class="admin-layout-main">
+				{{ template "_global_notice" . }}
+				<main class="admin-main">
+					{{ block "body" . }}
+						<!-- Default app body... -->
+					{{ end }}
+				</main>
+				{{ template "_footer" . }}
+			</div>
 
 			{{ block "scripts" . }}
 				<!-- Default scripts... -->

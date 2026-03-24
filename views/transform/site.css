@@ -147,12 +147,102 @@
 		@apply !border-zinc-300;
 	}
 
-	.menu-shell-admin {
-		@apply w-full max-w-[112rem] mx-auto px-3 pt-4 pb-1.5 relative;
+	.admin-layout {
+		@apply flex min-h-screen w-full;
+	}
+
+	.admin-sidebar-frame {
+		@apply w-[19rem] shrink-0 border-r border-zinc-300 bg-stone-100;
+	}
+
+	.admin-layout-main {
+		@apply min-w-0 flex-1 flex flex-col;
+	}
+
+	.admin-main {
+		@apply grow;
+	}
+
+	.admin-sidebar-inner {
+		@apply sticky top-0 h-screen flex flex-col px-3 pt-4 pb-3;
+	}
+
+	.admin-sidebar-brand {
+		@apply flex items-start gap-3 pb-4 border-b border-zinc-300;
+	}
+
+	.admin-brand-copy {
+		@apply flex flex-col min-w-0;
+	}
+
+	.admin-brand-logo-wrap {
+		@apply block h-14 w-14 min-h-14 min-w-14 shrink-0 border;
+	}
+
+	.admin-brand-title {
+		@apply font-bold text-2xl tracking-wide;
+	}
+
+	.admin-brand-logo {
+		@apply block h-full w-full max-w-none max-h-none aspect-square object-contain;
+	}
+
+	.admin-sidebar-nav {
+		@apply flex-1 overflow-y-auto pt-4 pr-1 space-y-4;
+	}
+
+	.admin-sidebar-section {
+		@apply flex flex-col gap-1.5;
+	}
+
+	.admin-sidebar-section-title {
+		@apply text-sm font-serif font-black uppercase tracking-[0.12em] text-slate-900 px-2 py-1 border-b border-zinc-300;
+	}
+
+	.admin-sidebar-sub {
+		@apply ml-2 pl-3 border-l-2 border-zinc-300 flex flex-col gap-0.5;
+	}
+
+	.admin-sidebar-link {
+		@apply no-underline text-slate-700 hover:text-slate-950 px-2 py-1 rounded-sm font-sans font-semibold text-[0.95rem] transition-colors duration-100;
+	}
+
+	.admin-sidebar-link:hover {
+		@apply bg-slate-100;
+	}
+
+	.admin-sidebar-link[aria-current="page"] {
+		@apply text-slate-950 bg-slate-200;
+	}
+
+	.admin-sidebar-account {
+		@apply pt-4 mt-3 border-t border-zinc-300 flex flex-col gap-1;
 	}
 
 	.admin-mode-pill {
 		@apply ml-2 align-middle inline-flex items-center rounded-sm border border-slate-950 bg-slate-950 px-2 py-1 text-xs font-serif font-bold text-white;
+	}
+
+	@media (max-width: 1024px) {
+		.admin-layout {
+			@apply flex-col;
+		}
+
+		.admin-sidebar-frame {
+			@apply w-full border-r-0 border-b;
+		}
+
+		.admin-sidebar-inner {
+			@apply h-auto sticky z-40 bg-stone-100;
+		}
+
+		.admin-sidebar-brand {
+			@apply pb-3;
+		}
+
+		.admin-sidebar-nav {
+			@apply max-h-none overflow-visible;
+		}
 	}
 
 	main {
