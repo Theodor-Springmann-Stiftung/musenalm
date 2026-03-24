@@ -1,0 +1,60 @@
+{{ $model := . }}
+
+<div id="baenderesults"
+     x-data="{ 
+        hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }}, 
+        offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }}, 
+        loading: false,
+        search: '{{ $model.search }}',
+        letter: '{{ $model.letter }}',
+        status: '{{ $model.status }}',
+        person: '{{ $model.person }}',
+        user: '{{ $model.user }}',
+        year: '{{ $model.year }}',
+        place: '{{ $model.place }}',
+        sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
+        sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
+     }">
+
+	<span id="baende-count"
+		  hx-swap-oob="outerHTML"
+		  class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
+	</span>
+
+	{{ template "_baende_table" $model }}
+
+	<!-- Load More Button -->
+	<div class="mt-6 flex justify-center" x-show="hasMore">
+		<button
+			type="button"
+			class="content-action-button"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (person) params.set('person', person); if (user) params.set('user', user); if (year) params.set('year', year); if (place) params.set('place', place); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/baende/more/?${params.toString()}`; })()"
+			hx-replace-url="true"
+			hx-target="#baende-tbody"
+			hx-swap="beforeend"
+			hx-indicator="this"
+			@htmx:before-request="loading = true"
+			@htmx:after-request="
+                loading = false;
+                hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+                offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+            "
+			:disabled="loading">
+			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 100 laden'"></span>
+		</button>
+	</div>
+
+	{{ if $model.search }}
+		<script type="module">
+			let elements = document.querySelectorAll('.baende-text');
+			let mark_instance = new Mark(elements);
+			setTimeout(() => {
+				mark_instance.mark('{{ $model.search }}', {
+					"seperateWordSearch": true,
+				});
+			}, 200);
+		</script>
+	{{ end }}
+</div>

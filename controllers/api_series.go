@@ -15,11 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_API_SERIES        = "/api/series"
-	URL_API_SERIES_SEARCH = "/search"
-)
-
 func init() {
 	app.Register(&SeriesAPI{})
 }

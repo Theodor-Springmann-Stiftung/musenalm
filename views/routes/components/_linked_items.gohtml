@@ -50,7 +50,7 @@
 							{{- if and $entryControls $csrfToken -}}
 								<tool-tip position="top" class="inline">
 									<a
-										href="/almanach/{{ $entry.MusenalmID }}/edit"
+										href="/admin/almanach/{{ $entry.MusenalmID }}/edit"
 										class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
 										aria-label="Bearbeiten">
 										<i class="ri-edit-line"></i>
@@ -59,7 +59,7 @@
 								</tool-tip>
 								<tool-tip position="top" class="inline">
 									<a
-										href="/almanach/{{ $entry.MusenalmID }}/contents/edit"
+										href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
 										class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
 										aria-label="Beiträge bearbeiten">
 										<i class="ri-file-list-3-line"></i>
@@ -72,7 +72,7 @@
 										data-role="baende-delete"
 										data-entry-id="{{ $entry.MusenalmID }}"
 										data-entry-title="{{- if $entry.PreferredTitle -}}{{ $entry.PreferredTitle }}{{- else if ne $entry.Year 0 -}}{{ $entry.Year }}{{- else -}}[o.J.]{{- end -}}"
-										data-delete-endpoint="/almanach/{{ $entry.MusenalmID }}/edit/delete"
+										data-delete-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/edit/delete"
 										class="inline-flex items-center text-red-700 hover:text-red-900"
 										aria-label="Löschen">
 										<i class="ri-delete-bin-line"></i>
@@ -110,7 +110,7 @@
 								<span class="flex items-center gap-2 text-xs text-gray-500 whitespace-nowrap">
 									<tool-tip position="top" class="inline">
 										<a
-											href="/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+											href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
 											class="no-underline inline-flex items-center text-slate-600 hover:text-slate-900"
 											aria-label="Beitrag bearbeiten">
 											<i class="ri-edit-line"></i>
@@ -124,7 +124,7 @@
 											data-entry-id="{{ $entry.MusenalmID }}"
 											data-content-id="{{ $content.MusenalmID }}"
 											data-content-title="{{- if $content.PreferredTitle -}}{{ $content.PreferredTitle }}{{- else -}}Inhalt #{{ $content.MusenalmID }}{{- end -}}"
-											data-delete-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/delete"
+											data-delete-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/contents/delete"
 											class="inline-flex items-center text-red-700 hover:text-red-900"
 											aria-label="Beitrag löschen">
 											<i class="ri-delete-bin-line"></i>

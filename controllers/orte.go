@@ -3,15 +3,11 @@ package controllers
 import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-)
-
-const (
-	URL_ORTE      = "/orte/"
-	TEMPLATE_ORTE = "/orte/"
 )
 
 func init() {
@@ -20,7 +16,7 @@ func init() {
 			Name:     pagemodels.P_ORTE_NAME,
 			URL:      URL_ORTE,
 			Template: TEMPLATE_ORTE,
-			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
 	app.Register(op)
@@ -36,7 +32,9 @@ type OrteResult struct {
 
 func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	router.GET(URL_ORTE, func(e *core.RequestEvent) error {
+	rg := router.Group(URL_ORTE)
+	rg.BindFunc(middleware.IsAdmin())
+	rg.GET("", func(e *core.RequestEvent) error {
 		places := []*dbmodels.Place{}
 		if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
 			return engine.Response500(e, err, nil)

@@ -10,11 +10,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_BEITRAG      = "/beitrag/{id}"
-	TEMPLATE_BEITRAG = "/beitrag/"
-)
-
 func init() {
 	rp := &BeitragPage{
 		StaticPage: pagemodels.StaticPage{

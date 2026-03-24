@@ -130,7 +130,7 @@
 						</tool-tip>
 					</div>
 					<div class="flex items-center gap-3">
-						<a href="/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
+						<a href="/admin/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
 							<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
 						</a>
 						<button type="button" id="{{ $agentsAddToggleID }}" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
@@ -290,7 +290,7 @@
 											data-role="relation-add-select"
 											name="{{ $agentsPrefix }}_new_id"
 											placeholder="Akteur suchen..."
-											data-endpoint="/api/agents/search"
+											data-endpoint="/admin/api/agents/search"
 											data-result-key="agents"
 											data-minchars="1"
 											data-limit="15">

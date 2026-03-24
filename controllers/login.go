@@ -15,11 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_LOGIN      = "/login/"
-	TEMPLATE_LOGIN = "/login/"
-)
-
 var CSRF_CACHE *security.CSRFProtector
 
 // TODO:
@@ -35,7 +30,7 @@ func init() {
 	lp := &LoginPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_LOGIN_NAME,
-			Layout:   "blank",
+			Layout:   pagemodels.LAYOUT_BLANK_PAGE,
 			Template: TEMPLATE_LOGIN,
 			URL:      URL_LOGIN,
 		},
@@ -91,7 +86,7 @@ func Unauthorized(
 
 	SetRedirect(data, e)
 
-	htm, err := engine.RenderToString(e, data, TEMPLATE_LOGIN, "blank")
+	htm, err := engine.RenderToString(e, data, TEMPLATE_LOGIN, pagemodels.LAYOUT_BLANK_PAGE)
 	if err != nil {
 		return engine.Response500(e, err, data)
 	}

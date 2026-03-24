@@ -16,12 +16,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_PERSON_EDIT       = "edit"
-	URL_PERSON_EDIT_SLASH = "edit/"
-	TEMPLATE_PERSON_EDIT  = "/person/edit/"
-)
-
 func init() {
 	pep := &PersonEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -40,26 +34,26 @@ type PersonEditPage struct {
 
 func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	rg := router.Group("/person/{id}/")
+	rg := router.Group(URL_PERSON_EDIT_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
 	rg.GET(URL_PERSON_EDIT_SLASH, p.GET(engine, app))
 	rg.POST(URL_PERSON_EDIT, p.POST(engine, app))
 	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app))
-	rg.POST(URL_PERSON_EDIT+"/delete", p.POSTDelete(engine, app))
+	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app))
 	return nil
 }
 
 type PersonEditResult struct {
-	Agent *dbmodels.Agent
-	User  *dbmodels.User
-	Prev  *dbmodels.Agent
-	Next  *dbmodels.Agent
-	Entries []*dbmodels.Entry
-	EntryTypes map[string][]string
-	Contents []*dbmodels.Content
+	Agent          *dbmodels.Agent
+	User           *dbmodels.User
+	Prev           *dbmodels.Agent
+	Next           *dbmodels.Agent
+	Entries        []*dbmodels.Entry
+	EntryTypes     map[string][]string
+	Contents       []*dbmodels.Content
 	ContentEntries map[string]*dbmodels.Entry
-	ContentTypes map[string][]string
+	ContentTypes   map[string][]string
 }
 
 func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
@@ -100,15 +94,15 @@ func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
 	}
 
 	return &PersonEditResult{
-		Agent:   agent,
-		User:    user,
-		Prev:    prev,
-		Next:    next,
-		Entries: entries,
-		EntryTypes: entryTypes,
-		Contents: contents,
+		Agent:          agent,
+		User:           user,
+		Prev:           prev,
+		Next:           next,
+		Entries:        entries,
+		EntryTypes:     entryTypes,
+		Contents:       contents,
 		ContentEntries: contentEntries,
-		ContentTypes: contentTypes,
+		ContentTypes:   contentTypes,
 	}, nil
 }
 
@@ -355,11 +349,11 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 		}(app, agent.Id, nameChanged)
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf("/person/%s", id)
+			redirect := fmt.Sprintf(URL_PERSON_VIEW_FORMAT, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")
-		redirect := fmt.Sprintf("/person/%s/edit/", id)
+		redirect := fmt.Sprintf(URL_PERSON_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -428,7 +422,7 @@ func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App) Han
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
-			"redirect": "/personen/",
+			"redirect": URL_PERSONEN_REDIRECT,
 		})
 	}
 }

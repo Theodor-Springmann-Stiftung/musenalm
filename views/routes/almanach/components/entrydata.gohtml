@@ -53,11 +53,11 @@
 			{{- if (IsAdminOrEditor $model.request.user) -}}
 				<div>
 					<i class="ri-edit-line"></i>
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/edit/">Bearbeiten</a>
+					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/edit/">Bearbeiten</a>
 				</div>
 				<div>
 					<i class="ri-file-edit-line"></i>
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">Beiträge bearbeiten</a>
+					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">Beiträge bearbeiten</a>
 				</div>
 			{{- end -}}
 		</div>

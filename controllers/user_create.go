@@ -12,17 +12,11 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_USER_CREATE      = "/user/new/"
-	PATH_VALUE_ROLE      = "role"
-	TEMPLATE_USER_CREATE = "/user/new/"
-)
-
 func init() {
 	ucp := &UserCreatePage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_USER_CREATE_NAME,
-			Layout:   "blank",
+			Layout:   pagemodels.LAYOUT_BLANK_PAGE,
 			Template: TEMPLATE_USER_CREATE,
 			URL:      URL_USER_CREATE,
 		},
@@ -80,7 +74,7 @@ func InvalidSignupResponse(engine *templating.Engine, e *core.RequestEvent, erro
 
 	SetRedirect(data, e)
 
-	str, err := engine.RenderToString(e, data, TEMPLATE_USER_CREATE, "blank")
+	str, err := engine.RenderToString(e, data, TEMPLATE_USER_CREATE, pagemodels.LAYOUT_BLANK_PAGE)
 	if err != nil {
 		return engine.Response500(e, err, data)
 	}

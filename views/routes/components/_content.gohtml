@@ -221,7 +221,7 @@
 				</a>
 				{{- if and $request (IsAdminOrEditor $request.user) -}}
 					<a
-						href="/almanach/{{- $entry.MusenalmID -}}/contents/{{- $content.MusenalmID -}}/edit/"
+						href="/admin/almanach/{{- $entry.MusenalmID -}}/contents/{{- $content.MusenalmID -}}/edit/"
 						class="no-underline rounded bg-stone-100 px-1.5">
 						<i class="ri-edit-line"></i> Bearbeiten
 					</a>

@@ -21,20 +21,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_EXPORTS_ADMIN        = "/redaktion/exports/"
-	URL_EXPORTS_RUN          = "run/"
-	URL_EXPORTS_LIST         = "list/"
-	URL_EXPORTS_DOWNLOAD     = "download/"
-	URL_EXPORTS_DELETE       = "delete/"
-	URL_EXPORTS_SETTINGS     = "settings/"
-	URL_EXPORTS_FTS5_REBUILD = "fts5/rebuild/"
-	URL_EXPORTS_FTS5_STATUS  = "fts5/status/"
-	TEMPLATE_EXPORTS         = "/redaktion/exports/"
-	TEMPLATE_EXPORTS_LIST    = "/redaktion/exports/list/"
-	LAYOUT_EXPORTS_FRAGMENT  = "fragment"
-)
-
 func init() {
 	app.Register(&ExportsAdmin{})
 }
@@ -107,7 +93,7 @@ func (p *ExportsAdmin) listHandler(engine *templating.Engine, app core.App) Hand
 		if err != nil {
 			return engine.Response500(e, err, nil)
 		}
-		return engine.Response200(e, TEMPLATE_EXPORTS_LIST, data, LAYOUT_EXPORTS_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_EXPORTS_LIST, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

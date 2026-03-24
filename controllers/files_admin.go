@@ -15,15 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_FILES_ADMIN       = "/redaktion/files/"
-	URL_FILES_LIST        = "list/"
-	URL_FILES_UPLOAD      = "upload/"
-	URL_FILES_DELETE      = "delete/"
-	TEMPLATE_FILES_LIST   = "/components/file_uploader_list/"
-	LAYOUT_FILES_FRAGMENT = "fragment"
-)
-
 func init() {
 	app.Register(&FilesAdmin{})
 }
@@ -67,7 +58,7 @@ func (p *FilesAdmin) listHandler(engine *templating.Engine, app core.App) Handle
 			"csrf_token": csrf,
 		}
 
-		return engine.Response200(e, TEMPLATE_FILES_LIST, data, LAYOUT_FILES_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_FILES_LIST, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

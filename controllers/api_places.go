@@ -15,11 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_API_PLACES        = "/api/places"
-	URL_API_PLACES_SEARCH = "/search"
-)
-
 func init() {
 	app.Register(&PlacesAPI{})
 }

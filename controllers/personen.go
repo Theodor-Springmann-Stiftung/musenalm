@@ -11,7 +11,6 @@ import (
 
 // INFO: V0 of these
 const (
-	URL_PERSONEN = "/personen/"
 	PARAM_FILTER = "filter"
 )
 

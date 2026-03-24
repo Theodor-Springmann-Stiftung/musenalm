@@ -15,10 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_PERSONEN_NEW = "/personen/new/"
-)
-
 func init() {
 	pnp := &PersonNewPage{
 		StaticPage: pagemodels.StaticPage{
@@ -147,7 +143,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			}
 		}(app, createdAgent.Id)
 
-		redirect := fmt.Sprintf("/person/%s", createdAgent.Id)
+		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, createdAgent.Id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

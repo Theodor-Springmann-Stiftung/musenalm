@@ -13,11 +13,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_PERSON      = "/person/{id}"
-	TEMPLATE_PERSON = "/person/"
-)
-
 func init() {
 	rp := &PersonPage{
 		StaticPage: pagemodels.StaticPage{

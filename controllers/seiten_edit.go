@@ -20,12 +20,6 @@ import (
 )
 
 const (
-	URL_SEITEN_EDITOR       = "/redaktion/seiten/"
-	URL_SEITEN_EDITOR_FORM  = "form/"
-	URL_SEITEN_EDITOR_SAVE  = "save/"
-	TEMPLATE_SEITEN_EDITOR  = "/redaktion/seiten/"
-	TEMPLATE_SEITEN_FORM    = "/redaktion/seiten/form/"
-	LAYOUT_FRAGMENT         = "fragment"
 	pageHTMLPrefixSeparator = "."
 )
 
@@ -91,7 +85,7 @@ func (p *SeitenEditPage) GETForm(engine *templating.Engine, app core.App) Handle
 		if err != nil {
 			return engine.Response500(e, err, nil)
 		}
-		return engine.Response200(e, TEMPLATE_SEITEN_FORM, data, LAYOUT_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_SEITEN_FORM, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -314,21 +308,21 @@ func seitenEditorSelected(app core.App, key string) (*SeitenEditorSelected, erro
 	if pageURL == "" {
 		switch key {
 		case pagemodels.P_INDEX_NAME:
-			pageURL = "/"
+			pageURL = URL_SEITEN_HOME
 		case pagemodels.P_REIHEN_NAME:
-			pageURL = "/reihen/"
+			pageURL = URL_REIHEN
 		case pagemodels.P_DANK_NAME:
-			pageURL = "/redaktion/danksagungen/"
+			pageURL = URL_REDAKTION_DANKSAGUNGEN
 		case pagemodels.P_EINFUEHRUNG_NAME:
-			pageURL = "/redaktion/einleitung/"
+			pageURL = URL_REDAKTION_EINLEITUNG
 		case pagemodels.P_KONTAKT_NAME:
-			pageURL = "/redaktion/kontakt/"
+			pageURL = URL_REDAKTION_KONTAKT
 		case pagemodels.P_LIT_NAME:
-			pageURL = "/redaktion/literatur/"
+			pageURL = URL_REDAKTION_LITERATUR
 		case pagemodels.P_DOK_NAME:
-			pageURL = "/redaktion/benutzerhinweise/"
+			pageURL = URL_REDAKTION_HINWEISE
 		case pagemodels.P_KABINETT_NAME:
-			pageURL = "/redaktion/lesekabinett/"
+			pageURL = URL_REDAKTION_LESEKABINETT
 		}
 	}
 

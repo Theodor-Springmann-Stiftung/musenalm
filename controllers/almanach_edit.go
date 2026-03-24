@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	URL_ALMANACH_EDIT           = "edit/"
-	TEMPLATE_ALMANACH_EDIT      = "/almanach/edit/"
 	preferredSeriesRelationType = "Bevorzugter Reihentitel"
 )
 
@@ -42,7 +40,7 @@ type AlmanachEditPage struct {
 
 func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	rg := router.Group(URL_ALMANACH)
+	rg := router.Group(URL_ALMANACH_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))
 	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app, ia))
@@ -234,7 +232,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			"success":  true,
 			"message":  "Änderungen gespeichert.",
 			"updated":  updatedInfo,
-			"redirect": fmt.Sprintf("/almanach/%s/", id),
+			"redirect": fmt.Sprintf(URL_ALMANACH_VIEW_FORMAT, id),
 		})
 	}
 }
@@ -315,7 +313,7 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, m
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
-			"redirect": "/reihen",
+			"redirect": URL_ALMANACH_REIHEN_REDIRECT,
 		})
 	}
 }

@@ -15,10 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_REIHEN_NEW = "/reihen/new/"
-)
-
 func init() {
 	rnp := &ReiheNewPage{
 		StaticPage: pagemodels.StaticPage{
@@ -147,7 +143,7 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			}
 		}(app, createdSeries.Id)
 
-		redirect := fmt.Sprintf("/reihe/%d/", createdSeries.MusenalmID())
+		redirect := fmt.Sprintf(URL_REIHE_REDIRECT, createdSeries.MusenalmID())
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

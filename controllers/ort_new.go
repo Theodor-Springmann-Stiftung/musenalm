@@ -15,10 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_ORTE_NEW = "/orte/new/"
-)
-
 func init() {
 	pnp := &OrtNewPage{
 		StaticPage: pagemodels.StaticPage{
@@ -144,7 +140,7 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 		}(app, createdPlace.Id)
 
 		setFlashSuccess(e, "Änderungen gespeichert.")
-		redirect := fmt.Sprintf("/ort/%s/edit", createdPlace.Id)
+		redirect := fmt.Sprintf(URL_ORT_EDIT_REDIRECT, createdPlace.Id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

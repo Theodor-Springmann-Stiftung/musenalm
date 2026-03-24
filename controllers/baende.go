@@ -21,13 +21,7 @@ import (
 )
 
 const (
-	URL_BAENDE         = "/baende/"
-	URL_BAENDE_RESULTS = "/baende/results/"
-	URL_BAENDE_MORE    = "/baende/more/"
-	URL_BAENDE_DELETE  = "/baende/delete-info/{id}"
-	TEMPLATE_BAENDE    = "/baende/"
-	URL_BAENDE_DETAILS = "/baende/details/{id}"
-	BAENDE_PAGE_SIZE   = 100
+	BAENDE_PAGE_SIZE = 100
 )
 
 func init() {
@@ -36,7 +30,7 @@ func init() {
 			Name:     pagemodels.P_BAENDE_NAME,
 			URL:      URL_BAENDE,
 			Template: TEMPLATE_BAENDE,
-			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
 	app.Register(bp)
@@ -88,7 +82,7 @@ func (p *BaendePage) handlePage(engine *templating.Engine, app core.App, ma page
 		req := templating.NewRequest(e)
 		if req.User() == nil {
 			redirectTo := url.QueryEscape(req.FullURL())
-			return e.Redirect(303, "/login/?redirectTo="+redirectTo)
+			return e.Redirect(303, URL_BAENDE_LOGIN_REDIRECT+redirectTo)
 		}
 
 		data, err := p.buildResultData(app, ma, e, req, true)
@@ -104,14 +98,14 @@ func (p *BaendePage) handleResults(engine *templating.Engine, app core.App, ma p
 		req := templating.NewRequest(e)
 		if req.User() == nil {
 			redirectTo := url.QueryEscape(req.FullURL())
-			return e.Redirect(303, "/login/?redirectTo="+redirectTo)
+			return e.Redirect(303, URL_BAENDE_LOGIN_REDIRECT+redirectTo)
 		}
 
 		data, err := p.buildResultData(app, ma, e, req, true)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		return engine.Response200(e, URL_BAENDE_RESULTS, data, "fragment")
+		return engine.Response200(e, URL_BAENDE_RESULTS, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -119,7 +113,7 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_BAENDE_LOGIN)
 		}
 
 		id := e.Request.PathValue("id")
@@ -165,7 +159,7 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 			"csrf_token":     req.Session().Token,
 		}
 
-		return engine.Response200(e, "/baende/row/", data, "fragment")
+		return engine.Response200(e, TEMPLATE_BAENDE_ROW, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -173,7 +167,7 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_BAENDE_LOGIN)
 		}
 
 		id := e.Request.PathValue("id")
@@ -230,7 +224,7 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 			},
 		}
 
-		return engine.Response200(e, "/baende/details/", data, "fragment")
+		return engine.Response200(e, TEMPLATE_BAENDE_DETAILS, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -238,7 +232,7 @@ func (p *BaendePage) handleDeleteInfo(engine *templating.Engine, app core.App) H
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_BAENDE_LOGIN)
 		}
 
 		id := e.Request.PathValue("id")
@@ -269,7 +263,7 @@ func (p *BaendePage) handleDeleteInfo(engine *templating.Engine, app core.App) H
 			"contents": contents,
 		}
 
-		return engine.Response200(e, "/baende/delete_info/", data, "fragment")
+		return engine.Response200(e, TEMPLATE_BAENDE_DELETE_INFO, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -531,7 +525,7 @@ func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma page
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_BAENDE_LOGIN)
 		}
 
 		data, err := p.buildResultData(app, ma, e, req, false)
@@ -551,7 +545,7 @@ func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma page
 			e.Response.Header().Set("X-Next-Offset", "0")
 		}
 
-		return engine.Response200(e, URL_BAENDE_MORE, data, "fragment")
+		return engine.Response200(e, URL_BAENDE_MORE, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

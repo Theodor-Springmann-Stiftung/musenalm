@@ -33,7 +33,7 @@ export class FabMenu extends HTMLElement {
 		let hasPage = false,
 			pageKey = "";
 
-		// Reihe detail page: /reihe/{id} (but not /reihe/new or /reihe/{id}/edit)
+		// Reihe detail page (excluding new/edit views)
 		const reiheMatch = path.match(/^\/reihe\/([^\/]+)\/?$/);
 		if (reiheMatch && reiheMatch[1] !== "new") {
 			hasReihe = true;
@@ -45,14 +45,14 @@ export class FabMenu extends HTMLElement {
 			}
 		}
 
-		// Person detail page: /person/{id} (but not /person/new or /person/{id}/edit)
+		// Person detail page (excluding new/edit views)
 		const personMatch = path.match(/^\/person\/([^\/]+)\/?$/);
 		if (personMatch && personMatch[1] !== "new") {
 			hasPerson = true;
 			personId = personMatch[1];
 		}
 
-		// Almanach detail page: /almanach/{id} (but not /almanach-new or /almanach/{id}/edit)
+		// Almanach detail page (excluding new/edit views)
 		const almanachMatch = path.match(/^\/almanach\/([^\/]+)\/?$/);
 		if (almanachMatch && almanachMatch[1] !== "new") {
 			hasEntry = true;
@@ -131,7 +131,7 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihe
 				</div>
-				<a href="/reihe/${reiheId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/reihe/${reiheId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
@@ -141,7 +141,7 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Person
 				</div>
-				<a href="/person/${personId}/edit/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/person/${personId}/edit/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
@@ -151,15 +151,15 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Almanach
 				</div>
-				<a href="/almanach/${entryId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${entryId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				<a href="/almanach/${entryId}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${entryId}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Beiträge bearbeiten</span>
 				</a>
-				<a href="/almanach/${entryId}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${entryId}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Beitrag</span>
 				</a>
@@ -169,15 +169,15 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Beitrag
 				</div>
-				<a href="/almanach/${contentEntryId}/contents/${contentId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${contentEntryId}/contents/${contentId}/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bearbeiten</span>
 				</a>
-				<a href="/almanach/${contentEntryId}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${contentEntryId}/contents/edit" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-file-list-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Beiträge bearbeiten</span>
 				</a>
-				<a href="/almanach/${contentEntryId}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach/${contentEntryId}/contents/new" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Beitrag</span>
 				</a>
@@ -187,7 +187,7 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Reihen
 				</div>
-				<a href="/reihen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/reihen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Reihe</span>
 				</a>
@@ -197,7 +197,7 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Personen
 				</div>
-				<a href="/personen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/personen/new/" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-add-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Person</span>
 				</a>
@@ -207,7 +207,7 @@ export class FabMenu extends HTMLElement {
 				<div class="px-2.5 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
 					Seite
 				</div>
-				<a href="/redaktion/seiten/?key=${pageKey}" hx-boost="false" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/seiten/?key=${pageKey}" hx-boost="false" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-edit-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Seite bearbeiten</span>
 				</a>
@@ -221,38 +221,38 @@ export class FabMenu extends HTMLElement {
 				Erstellen
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/almanach-new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/almanach-new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-book-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Band</span>
 				</a>
-				<a href="/almanach-new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/almanach-new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/reihen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/reihen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-stack-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Reihe</span>
 				</a>
-				<a href="/reihen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/reihen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/orte/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/orte/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-map-pin-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neuer Ort</span>
 				</a>
-				<a href="/orte/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/orte/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/personen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/personen/new/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Neue Person</span>
 				</a>
-				<a href="/personen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/personen/new/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -275,20 +275,20 @@ export class FabMenu extends HTMLElement {
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/baende/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/baende/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-book-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Bände</span>
 				</a>
-				<a href="/baende/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/baende/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/orte/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/orte/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-map-pin-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Orte</span>
 				</a>
-				<a href="/orte/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/orte/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -302,20 +302,20 @@ export class FabMenu extends HTMLElement {
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/abkuerzungen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/abkuerzungen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-text text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Abkürzungen</span>
 				</a>
-				<a href="/abkuerzungen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/abkuerzungen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/redaktion/seiten/" hx-boost="false" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/seiten/" hx-boost="false" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-pages-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Seiten</span>
 				</a>
-				<a href="/redaktion/seiten/" target="_blank" hx-boost="false" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/seiten/" target="_blank" hx-boost="false" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -329,29 +329,29 @@ export class FabMenu extends HTMLElement {
 				Administration
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/redaktion/exports/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/exports/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-tools-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Daten &amp; Suche</span>
 				</a>
-				<a href="/redaktion/exports/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/exports/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/user/management/access/User?redirectTo=${redirectPath}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/user/management/access/User?redirectTo=${redirectPath}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-3-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Nutzer einladen</span>
 				</a>
-				<a href="/user/management/access/User?redirectTo=${redirectPath}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/user/management/access/User?redirectTo=${redirectPath}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/user/management?redirectTo=${redirectPath}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/user/management?redirectTo=${redirectPath}" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-2-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Benutzerverwaltung</span>
 				</a>
-				<a href="/user/management?redirectTo=${redirectPath}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/user/management?redirectTo=${redirectPath}" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -381,7 +381,7 @@ export class FabMenu extends HTMLElement {
 							<div class="font-semibold text-gray-900 text-sm">${userName}</div>
 							<div class="text-xs text-gray-600 truncate">${userEmail}</div>
 						</div>
-						<a href="/user/${userId}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+						<a href="/admin/user/${userId}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 							<i class="ri-user-3-line text-base text-gray-700 mr-2.5"></i>
 							<span class="text-gray-900">Profil bearbeiten</span>
 						</a>

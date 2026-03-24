@@ -19,14 +19,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_SETTINGS_ADMIN        = "/redaktion/settings/"
-	URL_SETTINGS_SAVE         = "save/"
-	URL_SETTINGS_DELETE       = "delete/"
-	URL_SETTINGS_FTS5_REBUILD = "fts5/rebuild/"
-	TEMPLATE_SETTINGS         = "/redaktion/settings/"
-)
-
 func init() {
 	app.Register(&SettingsAdmin{})
 }

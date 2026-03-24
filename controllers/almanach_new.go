@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -11,11 +11,6 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-)
-
-const (
-	URL_ALMANACH_NEW      = "/almanach-new/"
-	URL_ALMANACH_NEW_SAVE = "save"
 )
 
 func init() {
@@ -162,9 +157,9 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 			}
 		}(app, entry.Id)
 
-		redirect := "/"
+		redirect := URL_HOME
 		if entry != nil {
-			redirect = "/almanach/" + strconv.Itoa(entry.MusenalmID()) + "/"
+			redirect = fmt.Sprintf(URL_ALMANACH_VIEW, entry.MusenalmID())
 		}
 
 		return e.JSON(http.StatusOK, map[string]any{

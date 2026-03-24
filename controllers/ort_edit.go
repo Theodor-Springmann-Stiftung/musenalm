@@ -17,13 +17,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_ORT           = "/ort/{id}/"
-	URL_ORT_EDIT      = "edit"
-	URL_ORT_DELETE    = "edit/delete"
-	TEMPLATE_ORT_EDIT = "/ort/edit/"
-)
-
 func init() {
 	pep := &OrtEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -240,15 +233,15 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 		}(app, place.Id, nameChanged)
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf("/reihen/?place=%s", id)
+			redirect := fmt.Sprintf(URL_REIHEN_PLACE_FILTER, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf("/ort/%s", id)
+			redirect := fmt.Sprintf(URL_ORT_VIEW_FORMAT, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")
-		redirect := fmt.Sprintf("/ort/%s/edit", id)
+		redirect := fmt.Sprintf(URL_ORT_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -346,7 +339,7 @@ func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App) Handle
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
-			"redirect": "/orte",
+			"redirect": URL_ORTE_REDIRECT,
 		})
 	}
 }

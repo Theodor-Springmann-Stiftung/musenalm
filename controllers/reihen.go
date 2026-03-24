@@ -15,14 +15,12 @@ import (
 )
 
 const (
-	URL_REIHEN         = "/reihen/"
-	URL_REIHEN_RESULTS = "/reihen/results/"
-	PARAM_LETTER       = "letter"
-	PARAM_SEARCH       = "search"
-	PARAM_PERSON       = "agent"
-	PARAM_PLACE        = "place"
-	PARAM_YEAR         = "year"
-	PARAM_HIDDEN       = "hidden"
+	PARAM_LETTER = "letter"
+	PARAM_SEARCH = "search"
+	PARAM_PERSON = "agent"
+	PARAM_PLACE  = "place"
+	PARAM_YEAR   = "year"
+	PARAM_HIDDEN = "hidden"
 )
 
 func init() {
@@ -67,7 +65,7 @@ func (p *ReihenPage) handleResults(engine *templating.Engine, app core.App) Hand
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		return engine.Response200(e, URL_REIHEN_RESULTS, data, "fragment")
+		return engine.Response200(e, URL_REIHEN_RESULTS, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

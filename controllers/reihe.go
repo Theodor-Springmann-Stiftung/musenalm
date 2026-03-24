@@ -9,11 +9,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_REIHE      = "/reihe/{id}/"
-	TEMPLATE_REIHE = "/reihe/"
-)
-
 func init() {
 	rp := &ReihePage{
 		StaticPage: pagemodels.StaticPage{

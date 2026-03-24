@@ -81,7 +81,7 @@
 						Alm
 						{{ $bd.MusenalmID }}
 						{{- if (IsAdminOrEditor $request.user) -}}
-						<a href="/almanach/{{ $bd.MusenalmID }}/edit/" class="no-underline rounded bg-stone-100 px-1.5">
+						<a href="/admin/almanach/{{ $bd.MusenalmID }}/edit/" class="no-underline rounded bg-stone-100 px-1.5">
 						<i class="ri-edit-line"></i>
 						</a>
 						{{- end -}}

@@ -15,11 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_API_AGENTS        = "/api/agents"
-	URL_API_AGENTS_SEARCH = "/search"
-)
-
 func init() {
 	app.Register(&AgentsAPI{})
 }

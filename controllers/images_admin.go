@@ -16,14 +16,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_IMAGES_ADMIN     = "/redaktion/images/"
-	URL_IMAGES_LIST      = "list/"
-	URL_IMAGES_UPLOAD    = "upload/"
-	URL_IMAGES_DELETE    = "delete/"
-	TEMPLATE_IMAGES_LIST = "/components/image_uploader_list/"
-)
-
 func init() {
 	app.Register(&ImagesAdmin{})
 }
@@ -69,7 +61,7 @@ func (p *ImagesAdmin) listHandler(engine *templating.Engine, app core.App) Handl
 			data := map[string]any{
 				"image": image,
 			}
-			return engine.Response200(e, "/components/image_uploader_single_view/", data, LAYOUT_FRAGMENT)
+			return engine.Response200(e, TEMPLATE_IMAGE_SINGLE_VIEW, data, pagemodels.LAYOUT_FRAGMENT)
 		}
 
 		prefix := strings.TrimSpace(e.Request.URL.Query().Get("prefix"))
@@ -87,7 +79,7 @@ func (p *ImagesAdmin) listHandler(engine *templating.Engine, app core.App) Handl
 			"images": images,
 		}
 
-		return engine.Response200(e, TEMPLATE_IMAGES_LIST, data, LAYOUT_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_IMAGES_LIST, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

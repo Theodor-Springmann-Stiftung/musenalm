@@ -1,0 +1,159 @@
+{{ $model := . }}
+
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<div class="mb-1">
+				<i class="ri-pages-line"></i> Seiten
+			</div>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+				Seiteneditor
+			</h1>
+			{{- if and $model.selected $model.selected.URL -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a href="{{ $model.selected.URL }}" class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+
+		<div class="flex flex-col justify-end gap-y-4 pr-4">
+			<div class="inputwrapper !mb-0">
+				<select
+					id="page-editor-select"
+					name="key"
+					class="inputinput px-4 py-2 bg-white rounded-md border border-slate-300 shadow-sm focus:border-slate-500 focus:ring-2 focus:ring-slate-400/30"
+					onchange="window.location.href = '/admin/seiten/?key=' + encodeURIComponent(this.value);">
+					{{- if $model.pages -}}
+						{{- range $page := $model.pages -}}
+							<option value="{{ $page.Key }}" {{ if eq $page.Key $model.selected_key }}selected{{ end }}>{{ $page.Title }}</option>
+						{{- end -}}
+					{{- else -}}
+						<option value="">Keine Seiten gefunden</option>
+					{{- end -}}
+				</select>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{ template "_page_form" $model }}
+</div>
+
+<script>
+(function () {
+	if (window.pageEditorTinyMCEInit) {
+		return;
+	}
+	window.pageEditorTinyMCEInit = true;
+
+	const selector = "textarea.page-html-editor";
+	const formId = "page-editor-form";
+
+	function initEditors(root) {
+		if (!window.tinymce) return;
+		cleanupEditors(document);
+		const container = root || document;
+		const targets = Array.from(container.querySelectorAll(selector));
+		if (targets.length === 0) return;
+
+		targets.forEach((textarea) => {
+			if (!textarea.id) {
+				textarea.id = "page-html-editor-" + Math.random().toString(36).slice(2);
+			}
+			const existing = tinymce.get(textarea.id);
+			if (existing) {
+				existing.remove();
+			}
+		});
+
+		targets.reduce((chain, textarea) => {
+			return chain.then(() => {
+				if (tinymce.get(textarea.id)) return Promise.resolve();
+				textarea.style.visibility = "hidden";
+				return tinymce.init({
+					target: textarea,
+					base_url: "/assets/vendor/tinymce",
+					suffix: ".min",
+					license_key: "gpl",
+					menubar: false,
+					branding: false,
+					plugins: "advlist lists link table code autoresize",
+					toolbar: "undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | link table | code removeformat",
+					block_formats: "Absatz=p;Überschrift 2=h2;Überschrift 3=h3;Zitat=blockquote;Vorformatiert=pre",
+					forced_root_block: "p",
+					autoresize_bottom_margin: 16,
+					content_css: "/assets/style.css",
+					body_class: "text",
+					content_style: "html, body { outline: none !important; box-shadow: none !important; } body, body.text { padding: 0 0 0 1.5rem !important; font-size: 1rem; } .mce-content-body { outline: none !important; }",
+					init_instance_callback: function (editor) {
+						if (editor && editor.targetElm) {
+							editor.targetElm.style.visibility = "";
+						}
+					},
+				});
+			});
+		}, Promise.resolve());
+	}
+
+	function cleanupEditors(root) {
+		if (!window.tinymce) return;
+		tinymce.remove();
+	}
+
+	function waitForTinyMCE(callback) {
+		if (window.tinymce) {
+			callback();
+			return;
+		}
+		let retries = 0;
+		const timer = setInterval(() => {
+			if (window.tinymce || retries > 40) {
+				clearInterval(timer);
+				if (window.tinymce) callback();
+				return;
+			}
+			retries += 1;
+		}, 50);
+	}
+
+	waitForTinyMCE(() => initEditors(document));
+
+	window.PageEditorCleanup = function () {
+		cleanupEditors(document);
+	};
+
+	window.PageEditorInit = function () {
+		const form = document.getElementById(formId);
+		waitForTinyMCE(() => {
+			requestAnimationFrame(() => {
+				setTimeout(() => initEditors(form || document), 0);
+			});
+		});
+	};
+
+	const observer = new MutationObserver((mutations) => {
+		let shouldInit = false;
+		mutations.forEach((mutation) => {
+			mutation.addedNodes.forEach((node) => {
+				if (!(node instanceof Element)) return;
+				if (node.id === formId) {
+					shouldInit = true;
+					return;
+				}
+				if (node.querySelector && node.querySelector(selector)) {
+					shouldInit = true;
+				}
+			});
+		});
+		if (shouldInit) {
+			window.PageEditorInit();
+		}
+	});
+	observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>

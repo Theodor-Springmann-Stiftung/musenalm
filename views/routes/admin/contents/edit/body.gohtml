@@ -1,0 +1,948 @@
+{{ $model := . }}
+
+<edit-page>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+		<div class="mb-1">
+			<div class="header-tabs">
+				{{- if $model.result -}}
+					<a href="/admin/almanach/{{- $model.result.Entry.MusenalmID -}}/edit/" class="header-tab">
+						<i class="ri-book-line"></i> Almanach
+					</a>
+				{{- else -}}
+					<span class="header-tab header-tab-disabled">
+						<i class="ri-book-line"></i> Almanach
+					</span>
+				{{- end -}}
+				<span class="header-tab header-tab-active">
+					<i class="ri-file-list-3-line"></i> Beiträge
+				</span>
+			</div>
+		</div>
+		<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+			{{- if $model.result -}}
+				{{- $model.result.Entry.PreferredTitle -}}
+			{{- else -}}
+				Beiträge bearbeiten
+			{{- end -}}
+		</h1>
+			{{- if $model.result -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a
+							href="/almanach/{{ $model.result.Entry.MusenalmID }}"
+							class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div class="flex flex-row">
+						{{- if $model.result.PrevByID -}}
+							<div>
+								<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
+							{{ $model.result.Entry.MusenalmID }}
+						</div>
+						{{- if $model.result.NextByID -}}
+							<div>
+								<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/contents/edit" class="text-gray-700 hover:text-slate-950 no-underline block">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</div>
+						{{- end -}}
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+		{{- if $model.result -}}
+		<div class="flex flex-row" id="contents-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-2">
+						{{- if $model.result.PrevByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
+								<a
+									href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/contents/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-left-s-line"></i>
+							</span>
+						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						A&thinsp;-&thinsp;Z
+						</span>
+						{{- if $model.result.NextByTitle -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
+								<a
+									href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/contents/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-right-s-line"></i>
+							</span>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="whitespace-nowrap tabular-nums">{{ $model.result.Entry.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums">
+							<span>{{ GermanDate $model.result.Entry.Updated }}</span>,
+							<span>{{ GermanTime $model.result.Entry.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}">
+							<i class="ri-user-line mr-1"></i>
+							<span>{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{- end -}}
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-1 !px-0">
+	{{ template "_usermessage" $model }}
+	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
+		<i class="ri-loader-4-line spinning mr-2"></i>
+		Reihenfolge wird gespeichert
+	</div>
+	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
+	<div class="flex items-center gap-3 px-4 hidden">
+		<form
+			method="POST"
+			action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit/extent"
+			class="extent-inline flex-1 grid grid-cols-[max-content_minmax(12rem,1fr)_max-content] items-center gap-2">
+			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+			<label for="contents-extent" class="text-base font-bold text-gray-700">Struktur</label>
+			<input
+				id="contents-extent"
+				name="extent"
+				type="text"
+				class="min-w-[10rem] w-full max-w-none flex-1 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="z. B. 12 Bl., 3 Taf."
+				value="{{- $model.result.Entry.Extent -}}" />
+			<button type="submit" class="rounded-xs border border-slate-300 bg-stone-50 px-3 py-1.5 text-base font-semibold text-gray-700 shadow-sm hover:bg-stone-100">
+				Struktur speichern
+			</button>
+		</form>
+	</div>
+	<div class="px-4 mt-1 flex items-center justify-between gap-3">
+		<div class="flex items-center gap-2 text-lg font-bold text-gray-700">
+			<i class="ri-folder-open-line"></i>
+			<span>Inhalt</span>
+		</div>
+		<span id="content-filter-count" class="text-sm font-semibold text-gray-600 whitespace-nowrap" data-role="content-filter-count">
+			{{ len $model.result.Contents }} Einträge
+		</span>
+	</div>
+	{{- $hasContents := gt (len $model.result.Contents) 0 -}}
+	{{- if $hasContents -}}
+		<hr class="mx-4 mt-2 mb-1 border-slate-300" />
+		<div class="px-4 py-2 flex flex-wrap items-center gap-3">
+			<input
+				id="content-filter"
+				type="text"
+				autocomplete="off"
+				class="flex-1 min-w-48 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="Suche nach Titel, Person, Anmerkung..."
+				data-role="content-filter-input"
+			/>
+			<input
+				id="content-filter-page"
+				type="text"
+				autocomplete="off"
+				class="w-28 border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				placeholder="Seite"
+				data-role="content-filter-page"
+			/>
+			<select
+				id="content-filter-type"
+				class="border border-slate-300 rounded-xs bg-white px-3 py-1.5 text-base leading-6 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+				data-role="content-filter-type">
+				<option value="">Alle Typen</option>
+			</select>
+			<button
+				type="button"
+				class="content-action-button"
+				onclick="window.location.assign('/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
+				<i class="ri-add-line"></i>
+				<span>Neuer Beitrag</span>
+			</button>
+		</div>
+		<div class="mx-4 mt-2 rounded-md border border-slate-300 bg-white flex flex-col overflow-hidden p-1" data-role="contents-panel">
+			<div class="flex-1 min-h-0 overflow-y-scroll">
+				<div class="flex flex-col gap-0"
+					data-role="contents-list"
+					data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+					{{- range $_, $content := $model.result.Contents -}}
+						{{- template "_content_item" (Dict
+							"content" $content
+							"entry" $model.result.Entry
+							"csrf_token" $model.csrf_token
+							"content_types" $model.content_types
+							"musenalm_types" $model.musenalm_types
+							"pagination_values" $model.pagination_values
+							"agents" $model.result.Agents
+							"content_agents" (index $model.result.ContentsAgents $content.Id)
+							"agent_relations" $model.agent_relations
+							"open_edit" false
+							"is_new" false
+						) -}}
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+	{{- else -}}
+		<div class="mx-4 mt-2">
+			<div class="min-h-[18rem] flex items-center justify-center text-center px-6 py-12">
+				<div class="text-lg text-gray-700 font-semibold flex flex-col items-center gap-4">
+					<i class="ri-information-line text-3xl text-gray-600"></i>
+					<span>Keine Beiträge verzeichnet.</span>
+					<button
+						type="button"
+						class="content-action-button"
+						onclick="window.location.assign('/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
+						<i class="ri-add-line"></i>
+						<span>Neuen Beitrag anlegen</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+</div>
+
+<dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+	<div class="p-5 w-[22rem]">
+		<div class="text-base font-bold text-gray-900">Eintrag löschen?</div>
+		<div id="content-delete-dialog-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+		<p class="text-sm text-gray-700 mt-2">
+			Der Eintrag wird dauerhaft gelöscht. Verknüpfungen, Exemplare und Beiträge werden entfernt.
+		</p>
+		<div class="flex items-center justify-end gap-3 mt-4">
+			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+			<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
+				Löschen
+			</button>
+		</div>
+	</div>
+</dialog>
+</edit-page>
+
+<script>
+	// Search index: object keyed by content ID with all searchable fields
+	window.contentsSearchIndex = {
+		{{- range $i, $content := $model.result.Contents -}}
+		{{- if $i }},{{ end }}
+		"{{ $content.Id }}": {
+			extent: "{{ $content.Extent }}",
+			musenalmType: [{{- range $j, $t := $content.MusenalmType -}}{{- if $j }},{{ end }}"{{ $t }}"{{- end -}}],
+			preferredTitle: "{{ $content.PreferredTitle }}",
+			titleStmt: "{{ $content.TitleStmt }}",
+			status: "{{ $content.EditState }}",
+			subtitleStmt: "{{ $content.SubtitleStmt }}",
+			incipitStmt: "{{ $content.IncipitStmt }}",
+			responsibilityStmt: "{{ $content.ResponsibilityStmt }}",
+			parallelTitle: "{{ $content.ParallelTitle }}",
+			variantTitle: "{{ $content.VariantTitle }}",
+			placeStmt: "{{ $content.PlaceStmt }}",
+			language: [{{- range $j, $lang := $content.Language -}}{{- if $j }},{{ end }}"{{ $lang }}"{{- end -}}],
+			contentType: [{{- range $j, $ct := $content.ContentType -}}{{- if $j }},{{ end }}"{{ $ct }}"{{- end -}}],
+			comment: "{{ $content.Comment }}",
+			agents: [
+				{{- $contentAgents := index $model.result.ContentsAgents $content.Id -}}
+				{{- range $j, $rel := $contentAgents -}}
+					{{- $agent := index $model.result.Agents $rel.Agent -}}
+					{{- if $agent -}}
+						{{- if $j }},{{ end }}{name: "{{ $agent.Name }}", bio: "{{ $agent.BiographicalData }}"}
+					{{- end -}}
+				{{- end -}}
+			],
+			annotation: {{ SafeJS $content.Annotation }}
+		}
+		{{- end -}}
+	};
+</script>
+
+<script type="module">
+	let list = null;
+
+	// Normalize function for accent-insensitive matching
+	const normalizeText = (text) => {
+		if (!text) return '';
+		return text
+			.toString()
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+			.trim();
+	};
+
+	// Filter functionality
+	const initFilter = () => {
+		const filterInput = document.querySelector("[data-role='content-filter-input']");
+		const filterPage = document.querySelector("[data-role='content-filter-page']");
+		const filterType = document.querySelector("[data-role='content-filter-type']");
+		const filterCount = document.querySelector("[data-role='content-filter-count']");
+		const list = document.querySelector("[data-role='contents-list']");
+
+		if (!filterInput || !list) return;
+		if (filterInput.dataset.init === "true") return;
+		filterInput.dataset.init = "true";
+
+		// Populate type select from search index
+		if (filterType && window.contentsSearchIndex) {
+			const types = new Set();
+			Object.values(window.contentsSearchIndex).forEach(content => {
+				(content.musenalmType || []).forEach(t => types.add(t));
+			});
+			Array.from(types).sort().forEach(type => {
+				const option = document.createElement('option');
+				option.value = type;
+				option.textContent = type;
+				filterType.appendChild(option);
+			});
+		}
+
+		let filterTimeout = null;
+		const totalCount = list.querySelectorAll("[data-role='content-item']").length;
+
+		// Field labels for display
+		const fieldLabels = {
+			extent: 'Seite',
+			musenalmType: 'Typ',
+			titleStmt: 'Titel',
+			subtitleStmt: 'Untertitel',
+			incipitStmt: 'Incipit',
+			responsibilityStmt: 'Autorangabe',
+			parallelTitle: 'Paralleltitel',
+			variantTitle: 'Titelvarianten',
+			placeStmt: 'Ortsangabe',
+			contentType: 'Beitragstyp',
+			comment: 'Kommentar',
+			agents: 'Personen',
+			annotation: 'Anmerkung'
+		};
+
+		const getMarkTargets = () => {
+			if (!list) {
+				return [];
+			}
+			const visibleItems = Array.from(list.querySelectorAll("[data-role='content-item']")).filter((item) => item.style.display !== "none");
+			const targets = [];
+			visibleItems.forEach((item) => {
+				targets.push(...item.querySelectorAll(".content-search-text"));
+			});
+			return targets;
+		};
+
+		const updateMarks = () => {
+			if (typeof Mark !== "function") {
+				return;
+			}
+			const terms = [];
+			const rawQuery = (filterInput.value || "").trim();
+			const rawPage = (filterPage?.value || "").trim();
+			const rawType = (filterType?.value || "").trim();
+			if (rawQuery) {
+				terms.push(rawQuery);
+			}
+			if (rawPage) {
+				terms.push(rawPage);
+			}
+			if (rawType) {
+				terms.push(rawType);
+			}
+			const targets = getMarkTargets();
+			if (targets.length === 0) {
+				return;
+			}
+			const markInstance = new Mark(targets);
+			markInstance.unmark({
+				done: () => {
+					if (terms.length > 0) {
+						markInstance.mark(terms, {
+							separateWordSearch: true,
+						});
+					}
+				},
+			});
+		};
+
+		const performFilter = () => {
+			const query = normalizeText(filterInput.value);
+			const pageQuery = normalizeText(filterPage?.value || '');
+			const typeQuery = filterType?.value || '';
+			const items = list.querySelectorAll("[data-role='content-item']");
+			let visibleCount = 0;
+
+			const hasAnyFilter = query || pageQuery || typeQuery;
+
+			if (!hasAnyFilter) {
+				list.removeAttribute('data-filtering');
+				items.forEach(item => {
+					item.style.display = '';
+					const matchDisplay = item.querySelector('[data-role="content-match-display"]');
+					if (matchDisplay) {
+						matchDisplay.classList.add('hidden');
+						matchDisplay.innerHTML = '';
+					}
+				});
+				visibleCount = totalCount;
+			} else {
+				list.setAttribute('data-filtering', 'true');
+				items.forEach(item => {
+					const contentId = item.dataset.contentId;
+					const contentData = window.contentsSearchIndex[contentId];
+					const matchDisplay = item.querySelector('[data-role="content-match-display"]');
+
+					if (!contentData) {
+						item.style.display = 'none';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						return;
+					}
+
+					// Check type filter (exact match)
+					if (typeQuery && !(contentData.musenalmType || []).includes(typeQuery)) {
+						item.style.display = 'none';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						return;
+					}
+
+					// Check page filter (substring match on extent)
+					if (pageQuery) {
+						const extentMatch = normalizeText(contentData.extent || '').includes(pageQuery);
+						if (!extentMatch) {
+							item.style.display = 'none';
+							if (matchDisplay) {
+								matchDisplay.classList.add('hidden');
+								matchDisplay.innerHTML = '';
+							}
+							return;
+						}
+					}
+
+					// If only type/page filters are active (no text query), show item without match display
+					if (!query) {
+						item.style.display = '';
+						if (matchDisplay) {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+						visibleCount++;
+						return;
+					}
+
+					// Check each field individually and collect matches for text query
+					const matchedFields = [];
+
+					const checkField = (key, value, label) => {
+						if (!value) return;
+						const normalizedValue = normalizeText(String(value));
+						if (normalizedValue.includes(query)) {
+							matchedFields.push({ label, value: String(value) });
+						}
+					};
+
+					const checkArrayField = (key, values, label) => {
+						if (!values || !values.length) return;
+						const matchingValues = values.filter(v => normalizeText(String(v)).includes(query));
+						if (matchingValues.length > 0) {
+							matchedFields.push({ label, value: matchingValues.join(', ') });
+						}
+					};
+
+					// Check text search fields (excluding language, status, preferredTitle)
+					checkArrayField('musenalmType', contentData.musenalmType, fieldLabels.musenalmType);
+					checkField('titleStmt', contentData.titleStmt, fieldLabels.titleStmt);
+					checkField('subtitleStmt', contentData.subtitleStmt, fieldLabels.subtitleStmt);
+					checkField('incipitStmt', contentData.incipitStmt, fieldLabels.incipitStmt);
+					checkField('responsibilityStmt', contentData.responsibilityStmt, fieldLabels.responsibilityStmt);
+					checkField('parallelTitle', contentData.parallelTitle, fieldLabels.parallelTitle);
+					checkField('variantTitle', contentData.variantTitle, fieldLabels.variantTitle);
+					checkField('placeStmt', contentData.placeStmt, fieldLabels.placeStmt);
+					checkArrayField('contentType', contentData.contentType, fieldLabels.contentType);
+					checkField('comment', contentData.comment, fieldLabels.comment);
+
+					// Check agents
+					if (contentData.agents && contentData.agents.length > 0) {
+						const matchingAgents = contentData.agents.filter(a => {
+							const agentText = normalizeText(`${a.name} ${a.bio}`);
+							return agentText.includes(query);
+						});
+						if (matchingAgents.length > 0) {
+							matchedFields.push({
+								label: fieldLabels.agents,
+								value: matchingAgents.map(a => a.bio ? `${a.name} (${a.bio})` : a.name).join(', ')
+							});
+						}
+					}
+
+					// Check annotation (strip HTML for display)
+					if (contentData.annotation) {
+						const plainAnnotation = contentData.annotation.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+						if (normalizeText(plainAnnotation).includes(query)) {
+							const displayValue = plainAnnotation.length > 100
+								? plainAnnotation.substring(0, 100) + '…'
+								: plainAnnotation;
+							matchedFields.push({ label: fieldLabels.annotation, value: displayValue });
+						}
+					}
+
+					const hasMatch = matchedFields.length > 0;
+					item.style.display = hasMatch ? '' : 'none';
+
+					if (matchDisplay) {
+						if (hasMatch) {
+							matchDisplay.classList.remove('hidden');
+							matchDisplay.innerHTML = matchedFields
+								.map(f => `<span class="inline-block mr-3"><strong>${f.label}:</strong> ${f.value}</span>`)
+								.join('');
+						} else {
+							matchDisplay.classList.add('hidden');
+							matchDisplay.innerHTML = '';
+						}
+					}
+
+					if (hasMatch) visibleCount++;
+				});
+			}
+
+			if (filterCount) {
+				filterCount.textContent = !hasAnyFilter
+					? `${totalCount} Einträge`
+					: `${visibleCount} von ${totalCount} Einträgen`;
+			}
+
+			updateMarks();
+		};
+
+		const debounceFilter = () => {
+			if (filterTimeout) clearTimeout(filterTimeout);
+			filterTimeout = setTimeout(performFilter, 150);
+		};
+
+		filterInput.addEventListener('input', debounceFilter);
+		filterPage?.addEventListener('input', debounceFilter);
+		filterType?.addEventListener('change', performFilter);
+
+		// Clear all filters on Escape
+		const clearFilters = () => {
+			filterInput.value = '';
+			if (filterPage) filterPage.value = '';
+			if (filterType) filterType.value = '';
+			performFilter();
+		};
+
+		filterInput.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				clearFilters();
+				filterInput.blur();
+			}
+		});
+
+		filterPage?.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				clearFilters();
+				filterPage.blur();
+			}
+		});
+	};
+
+	const setContentsPanelHeight = () => {
+		const panel = document.querySelector("[data-role='contents-panel']");
+		if (!panel) {
+			return;
+		}
+		const rect = panel.getBoundingClientRect();
+		const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+		const bottomGap = 16;
+		const available = Math.max(200, viewportHeight - rect.top - bottomGap);
+		panel.style.height = `${available}px`;
+	};
+
+	const initPage = () => {
+		list = document.querySelector("[data-role='contents-list']");
+		if (!list) {
+			return;
+		}
+
+		setContentsPanelHeight();
+
+		const getItems = () => Array.from(list.querySelectorAll("[data-role='content-item']"));
+		if (getItems().length === 0) {
+			return;
+		}
+
+		const orderEndpoint = list.dataset.orderEndpoint || getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
+		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
+		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
+		const syncIndicator = document.querySelector("#contents-sync-indicator");
+		let orderSyncTimer = null;
+		let isOrderSyncing = false;
+		let pendingOrderSync = false;
+		if (list.__contentsDragController) {
+			list.__contentsDragController.abort();
+		}
+		list.__contentsDragController = new AbortController();
+		const { signal: dragSignal } = list.__contentsDragController;
+
+		const setSyncIndicator = (active) => {
+			if (!syncIndicator) {
+				return;
+			}
+			syncIndicator.classList.toggle("hidden", !active);
+		};
+		const setDraggingState = (active) => {
+			if (active) {
+				document.body.dataset.dragging = "true";
+			} else {
+				delete document.body.dataset.dragging;
+			}
+			window.__toolTipDragging = active;
+			window.dispatchEvent(new CustomEvent("contentsdragging", { detail: { active } }));
+		};
+		// Shared delete dialog
+		const deleteDialog = document.getElementById("content-delete-dialog");
+		const deleteDialogTitle = document.getElementById("content-delete-dialog-title");
+		const deleteConfirmBtn = deleteDialog?.querySelector("[data-role='content-delete-confirm']");
+		const deleteCancelBtn = deleteDialog?.querySelector("[data-role='content-delete-cancel']");
+		let itemToDelete = null;
+
+		const deleteContent = (item) => {
+			if (!item) {
+				return;
+			}
+			const contentId = item.dataset.contentId || "";
+			if (!contentId || !csrfToken) {
+				return;
+			}
+			if (window.htmx?.ajax) {
+				window.htmx.ajax("POST", deleteEndpoint, {
+					target: item,
+					swap: "outerHTML",
+					values: {
+						csrf_token: csrfToken,
+						content_id: contentId,
+					},
+				});
+				deleteDialog?.close();
+				return;
+			}
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			payload.set("content_id", contentId);
+			fetch(deleteEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"HX-Request": "true",
+				},
+				body: payload.toString(),
+			})
+				.then(() => {
+					removeItem(item);
+				})
+				.catch(() => null)
+				.finally(() => {
+					deleteDialog?.close();
+				});
+		};
+
+		// Setup shared delete dialog events
+		if (deleteDialog && deleteDialog.dataset.init !== "true") {
+			deleteDialog.dataset.init = "true";
+			deleteCancelBtn?.addEventListener("click", () => deleteDialog.close());
+			deleteDialog.addEventListener("cancel", (e) => {
+				e.preventDefault();
+				deleteDialog.close();
+			});
+			deleteConfirmBtn?.addEventListener("click", () => {
+				if (itemToDelete) {
+					deleteContent(itemToDelete);
+					itemToDelete = null;
+				}
+			});
+		}
+
+		const performOrderSync = () => {
+			if (!list || !orderEndpoint || !csrfToken || isOrderSyncing) {
+				pendingOrderSync = true;
+				return;
+			}
+			isOrderSyncing = true;
+			pendingOrderSync = false;
+			setSyncIndicator(true);
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			list.querySelectorAll("[data-role='content-item']").forEach((card) => {
+				// Skip filtered-out items during reorder
+				if (card.style.display === 'none') return;
+
+				const contentId = card.dataset.contentId;
+				if (!contentId) {
+					return;
+				}
+				payload.append("content_order[]", contentId);
+			});
+			fetch(orderEndpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+				body: payload.toString(),
+			})
+				.catch(() => null)
+				.finally(() => {
+					isOrderSyncing = false;
+					setSyncIndicator(false);
+					if (pendingOrderSync) {
+						performOrderSync();
+					}
+				});
+		};
+
+		const syncOrder = () => {
+			if (orderSyncTimer) {
+				clearTimeout(orderSyncTimer);
+			}
+			orderSyncTimer = setTimeout(() => {
+				performOrderSync();
+			}, 300);
+		};
+
+		const removeItem = (item) => {
+			item.remove();
+		};
+
+		const setupItem = (item) => {
+			if (!item || item.dataset.init === "true") {
+				return;
+			}
+			item.dataset.init = "true";
+
+			const deleteButtonView = item.querySelector("[data-role='content-delete-view']");
+
+			if (deleteButtonView && deleteDialog) {
+				deleteButtonView.addEventListener("click", () => {
+					itemToDelete = item;
+					// Get title from search index for the dialog
+					const contentId = item.dataset.contentId;
+					const contentData = window.contentsSearchIndex?.[contentId];
+					const title = contentData?.titleStmt || contentData?.preferredTitle || '';
+					if (deleteDialogTitle) {
+						deleteDialogTitle.textContent = title;
+						deleteDialogTitle.style.display = title ? '' : 'none';
+					}
+					deleteDialog.showModal();
+				});
+			}
+		};
+
+		getItems().forEach((item) => {
+			setupItem(item);
+		});
+
+		list.dataset.pageInit = "true";
+		let draggedItem = null;
+		let pointerDrag = null;
+		let lastDragOverTime = 0;
+		const DRAG_THROTTLE_MS = 100;
+		const startPointerDrag = (event) => {
+			const handle = event.target.closest("[data-role='content-drag-handle']");
+			if (!handle || event.button !== 0) {
+				return;
+			}
+			const item = handle.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			event.preventDefault();
+			pointerDrag = {
+				item,
+				pointerId: event.pointerId,
+			};
+			item.dataset.dragging = "true";
+			item.classList.add("opacity-60");
+			setDraggingState(true);
+			if (handle.setPointerCapture) {
+				handle.setPointerCapture(event.pointerId);
+			}
+		};
+
+		const movePointerDrag = (event) => {
+			if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+				return;
+			}
+			const now = Date.now();
+			if (now - lastDragOverTime < DRAG_THROTTLE_MS) {
+				return;
+			}
+			lastDragOverTime = now;
+			const item = pointerDrag.item;
+			const targetItem = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-role='content-item']");
+			if (!targetItem || targetItem === item) {
+				return;
+			}
+			const rect = targetItem.getBoundingClientRect();
+			const before = event.clientY - rect.top < rect.height / 2;
+			if (before) {
+				targetItem.before(item);
+			} else {
+				targetItem.after(item);
+			}
+		};
+
+		const endPointerDrag = (event) => {
+			if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+				return;
+			}
+			pointerDrag.item.classList.remove("opacity-60");
+			pointerDrag.item.dataset.dragging = "";
+			pointerDrag = null;
+			setDraggingState(false);
+			syncOrder();
+		};
+		list.addEventListener("click", (event) => {
+			const moveUp = event.target.closest("[data-role='content-move-up']");
+			const moveDown = event.target.closest("[data-role='content-move-down']");
+			if (!moveUp && !moveDown) {
+				return;
+			}
+			event.preventDefault();
+			const item = event.target.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			if (moveUp) {
+				let prev = item.previousElementSibling;
+				while (prev && !prev.matches("[data-role='content-item']")) {
+					prev = prev.previousElementSibling;
+				}
+				if (prev) {
+					prev.before(item);
+				}
+			} else {
+				let next = item.nextElementSibling;
+				while (next && !next.matches("[data-role='content-item']")) {
+					next = next.nextElementSibling;
+				}
+				if (next) {
+					next.after(item);
+				}
+			}
+			syncOrder();
+		}, { signal: dragSignal });
+
+		list.addEventListener("dragstart", (event) => {
+			if (pointerDrag) {
+				event.preventDefault();
+				return;
+			}
+			if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
+				return;
+			}
+			if (event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
+				return;
+			}
+			const handle = event.target.closest("[data-role='content-drag-handle']");
+			if (!handle) {
+				event.preventDefault();
+				return;
+			}
+			const item = handle.closest("[data-role='content-item']");
+			if (!item) {
+				return;
+			}
+			draggedItem = item;
+			item.dataset.dragging = "true";
+			draggedItem.classList.add("opacity-60");
+			setDraggingState(true);
+			event.dataTransfer.effectAllowed = "move";
+			event.dataTransfer.setData("text/plain", "move");
+		}, { signal: dragSignal });
+
+		list.addEventListener("dragover", (event) => {
+			if (!draggedItem) {
+				return;
+			}
+			event.preventDefault();
+			const targetItem = event.target.closest("[data-role='content-item']");
+			if (!targetItem || targetItem === draggedItem) {
+				return;
+			}
+			const rect = targetItem.getBoundingClientRect();
+			const before = event.clientY - rect.top < rect.height / 2;
+			if (before) {
+				targetItem.before(draggedItem);
+			} else {
+				targetItem.after(draggedItem);
+			}
+		}, { signal: dragSignal });
+
+		list.addEventListener("dragend", () => {
+			if (draggedItem) {
+				draggedItem.classList.remove("opacity-60");
+				draggedItem.dataset.dragging = "";
+			}
+			draggedItem = null;
+			setDraggingState(false);
+			syncOrder();
+		}, { signal: dragSignal });
+
+		list.addEventListener("pointerdown", startPointerDrag, { signal: dragSignal });
+		list.addEventListener("pointermove", movePointerDrag, { signal: dragSignal });
+		list.addEventListener("pointerup", endPointerDrag, { signal: dragSignal });
+		list.addEventListener("pointercancel", endPointerDrag, { signal: dragSignal });
+	};
+
+	initFilter();
+	initPage();
+	window.addEventListener("pageshow", (event) => {
+		if (event.persisted) {
+			initFilter();
+			initPage();
+		}
+	});
+	if (!window.__contentsPanelResizeBound) {
+		window.__contentsPanelResizeBound = true;
+		window.addEventListener("resize", () => {
+			setContentsPanelHeight();
+		});
+	}
+</script>

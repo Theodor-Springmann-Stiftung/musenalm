@@ -16,9 +16,9 @@ func init() {
 	lp := &LogoutPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_LOGOUT_NAME,
-			Layout:   "blank",
-			Template: "/logout/",
-			URL:      "/logout/",
+			Layout:   pagemodels.LAYOUT_BLANK_PAGE,
+			Template: TEMPLATE_LOGOUT,
+			URL:      URL_LOGOUT,
 		},
 	}
 	app.Register(lp)
@@ -70,7 +70,7 @@ func Logout(e *core.RequestEvent, app *core.App) {
 }
 
 func RedirectTo(e *core.RequestEvent) error {
-	redirect := "/reihen"
+	redirect := URL_REIHEN_LIST
 
 	if r := e.Request.URL.Query().Get("redirectTo"); r != "" {
 		redirect = r

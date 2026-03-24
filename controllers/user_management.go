@@ -13,14 +13,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_USER_MANAGEMENT      = "/user/management"
-	TEMPLATE_USER_MANAGEMENT = "/user/management/"
-	URL_DEACTIVATE_USER      = "/deactivate/"
-	URL_ACTIVATE_USER        = "/activate/"
-	URL_LOGOUT_USER          = "/logout/"
-)
-
 type SessionCount struct {
 	Count  int    `json:"count" db:"count"`
 	UserId string `json:"user" db:"user"`
@@ -162,7 +154,7 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 		p.getData(app, req, data)
 
 		if req.User() != nil && req.User().Id == u.Id {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_USER_MGMT_LOGIN)
 		}
 
 		e.Response.Header().Add("HX-Push-Url", "false")
@@ -205,7 +197,7 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 		p.getData(app, req, data)
 
 		if req.User() != nil && req.User().Id == u.Id {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_USER_MGMT_LOGIN)
 		}
 
 		e.Response.Header().Add("HX-Push-Url", "false")
@@ -242,11 +234,11 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 		p.getData(app, req, data)
 
 		if req.User() != nil && req.User().Id == u.Id {
-			return e.Redirect(301, "/login/")
+			return e.Redirect(301, URL_USER_MGMT_LOGIN)
 		}
 
 		// TODO: is there a better way to do this?
-		// This destroys the URL FullPath thing, bc fullURL is set to /user/management/logout/
+		// This destroys the URL FullPath thing, bc fullURL is set to /admin/user/management/logout/
 		// Same above
 		e.Response.Header().Add("HX-Push-Url", "false")
 		return engine.Response200(e, p.Template, data, p.Layout)

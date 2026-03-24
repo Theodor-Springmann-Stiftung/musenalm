@@ -21,19 +21,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_ALMANACH_CONTENTS_EDIT              = "contents/edit"
-	URL_ALMANACH_CONTENTS_NEW               = "contents/new"
-	URL_ALMANACH_CONTENTS_ITEM_EDIT         = "contents/{contentMusenalmId}/edit"
-	URL_ALMANACH_CONTENTS_DELETE            = "contents/delete"
-	URL_ALMANACH_CONTENTS_EDIT_EXTENT       = "contents/edit/extent"
-	URL_ALMANACH_CONTENTS_UPLOAD            = "contents/upload"
-	URL_ALMANACH_CONTENTS_DELETE_SCAN       = "contents/scan/delete"
-	TEMPLATE_ALMANACH_CONTENTS_EDIT         = "/contents/edit/"
-	TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT    = "/contents/edit_item/"
-	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/contents/images_panel/"
-)
-
 func init() {
 	ep := &AlmanachContentsEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -52,7 +39,7 @@ type AlmanachContentsEditPage struct {
 
 func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	rg := router.Group(URL_ALMANACH)
+	rg := router.Group(URL_ALMANACH_CONTENTS_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
@@ -603,17 +590,17 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			if effectiveContentID != "" {
 				if resolved, err := dbmodels.Contents_IDs(app, []any{effectiveContentID}); err == nil && len(resolved) > 0 {
 					if saveAction == "view" {
-						redirect := fmt.Sprintf("/beitrag/%d", resolved[0].MusenalmID())
+						redirect := fmt.Sprintf(URL_BEITRAG_VIEW_FORMAT, resolved[0].MusenalmID())
 						return e.Redirect(http.StatusSeeOther, redirect)
 					}
 					setFlashSuccess(e, savedMessage)
-					redirect := fmt.Sprintf("/almanach/%s/contents/%d/edit", id, resolved[0].MusenalmID())
+					redirect := fmt.Sprintf(URL_ALMANACH_CONTENT_ITEM_EDIT_FORMAT, id, resolved[0].MusenalmID())
 					return e.Redirect(http.StatusSeeOther, redirect)
 				}
 			}
 		}
 		setFlashSuccess(e, savedMessage)
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -654,7 +641,7 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 		}(app, entry)
 
 		setFlashSuccess(e, "Struktur/Umfang gespeichert.")
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -741,7 +728,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			return e.HTML(http.StatusOK, success)
 		}
 
-		redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
@@ -796,7 +783,7 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 		}
 
 		if !isHTMX {
-			redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+			redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 
@@ -811,7 +798,7 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 			"is_new":     false,
 		}
 		var builder strings.Builder
-		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, "fragment"); err != nil {
+		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, pagemodels.LAYOUT_FRAGMENT); err != nil {
 			app.Logger().Error("Failed to render images panel", "entry_id", entry.Id, "content_id", content.Id, "error", err)
 			return e.String(http.StatusInternalServerError, "")
 		}
@@ -869,7 +856,7 @@ func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app
 		}
 
 		if !isHTMX {
-			redirect := fmt.Sprintf("/almanach/%s/contents/edit", id)
+			redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 
@@ -884,7 +871,7 @@ func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app
 			"is_new":     false,
 		}
 		var builder strings.Builder
-		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, "fragment"); err != nil {
+		if err := engine.Render(&builder, TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL, data, pagemodels.LAYOUT_FRAGMENT); err != nil {
 			app.Logger().Error("Failed to render images panel", "entry_id", entry.Id, "content_id", content.Id, "error", err)
 			return e.String(http.StatusInternalServerError, "")
 		}

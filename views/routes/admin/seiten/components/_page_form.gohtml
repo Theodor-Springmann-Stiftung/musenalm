@@ -1,0 +1,85 @@
+{{ $model := . }}
+
+<div id="page-editor-form">
+	{{ template "_usermessage" $model }}
+
+	{{- if not $model.selected -}}
+		<div class="text-gray-700 bg-slate-100 border border-slate-200 rounded-xs p-4">
+			Keine Seite ausgewählt.
+		</div>
+	{{- else -}}
+		<form
+			class="w-full dbform"
+			method="POST"
+			action="/admin/seiten/save/"
+			hx-boost="false">
+			<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+			<input type="hidden" name="page_key" value="{{ $model.selected.Key }}" />
+
+			<div class="flex flex-col gap-4">
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<label for="page-title" class="inputlabel">Titel</label>
+					</div>
+					<input type="text" id="page-title" name="title" class="inputinput" value="{{ $model.selected.Title }}" autocomplete="off" />
+				</div>
+
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<label for="page-description" class="inputlabel">Beschreibung</label>
+					</div>
+					<textarea id="page-description" name="description" class="inputinput" rows="3" autocomplete="off">{{ $model.selected.Description }}</textarea>
+				</div>
+
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<label for="page-keywords" class="inputlabel">Stichworte</label>
+					</div>
+					<input type="text" id="page-keywords" name="keywords" class="inputinput" value="{{ $model.selected.Keywords }}" autocomplete="off" />
+				</div>
+
+				<div class="flex items-center gap-2 text-lg font-bold text-gray-700 mt-4">
+					<i class="ri-file-edit-line"></i>
+					<span>Seiteninhalte</span>
+				</div>
+
+				{{ template "_file_uploader" $model }}
+				{{- if and $model.images_index $model.images_index_prefix -}}
+					{{ template "_image_uploader" (Dict "images" $model.images_index "prefix" $model.images_index_prefix "csrf_token" $model.csrf_token) }}
+				{{- end -}}
+				{{- if and $model.image_reihen $model.image_reihen_key -}}
+					{{ template "_image_uploader_single" (Dict "image" $model.image_reihen "key" $model.image_reihen_key "csrf_token" $model.csrf_token) }}
+				{{- end -}}
+
+				{{- if not $model.selected.Sections -}}
+					<div class="text-gray-700 bg-slate-100 border border-slate-200 rounded-xs p-4">
+						Keine HTML-Bereiche gefunden.
+					</div>
+				{{- else -}}
+					{{- range $index, $section := $model.selected.Sections -}}
+						<div class="inputwrapper">
+							<div class="inputlabelrow">
+								<div class="flex flex-col">
+									<label for="page-html-{{ $index }}" class="inputlabel">{{ $section.Label }}</label>
+								</div>
+							</div>
+
+							<textarea
+								id="page-html-{{ $index }}"
+								name="html[{{ $section.Key }}]"
+								class="inputinput page-html-editor"
+								rows="12"
+								autocomplete="off">{{- $section.HTML -}}</textarea>
+						</div>
+					{{- end -}}
+				{{- end -}}
+
+				<div class="flex justify-end mt-6">
+					<button type="submit" class="submitbutton w-40 flex items-center gap-2 justify-center">
+						<i class="ri-save-line"></i> Speichern
+					</button>
+				</div>
+			</div>
+		</form>
+	{{- end -}}
+</div>

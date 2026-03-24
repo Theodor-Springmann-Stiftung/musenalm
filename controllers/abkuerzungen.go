@@ -19,18 +19,13 @@ import (
 	"golang.org/x/text/language"
 )
 
-const (
-	URL_ABKUERZUNGEN      = "/abkuerzungen/"
-	TEMPLATE_ABKUERZUNGEN = "/abkuerzungen/"
-)
-
 func init() {
 	ap := &AbkuerzungenPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_ABKUERZUNGEN_NAME,
 			URL:      URL_ABKUERZUNGEN,
 			Template: TEMPLATE_ABKUERZUNGEN,
-			Layout:   templating.DEFAULT_LAYOUT_NAME,
+			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
 	app.Register(ap)
@@ -51,10 +46,9 @@ type AbkuerzungenResult struct {
 
 func (p *AbkuerzungenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	router.GET(URL_ABKUERZUNGEN, p.GET(engine, app))
-
 	rg := router.Group(URL_ABKUERZUNGEN)
-	rg.BindFunc(middleware.IsAdminOrEditor())
+	rg.BindFunc(middleware.IsAdmin())
+	rg.GET("", p.GET(engine, app))
 	rg.POST("", p.POST(engine, ia))
 
 	return nil

@@ -1,0 +1,447 @@
+{{ $model := . }}
+
+<image-uploader-single
+	class="block"
+	data-upload-url="/admin/images/upload/"
+	data-list-url="/admin/images/list/"
+	data-delete-url="/admin/images/delete/"
+	data-key="{{ $model.key }}"
+	data-csrf="{{ $model.csrf_token }}">
+	<button type="button" class="w-full flex items-center justify-between rounded-md border border-slate-300 bg-white px-4 py-3 text-lg font-semibold text-slate-900 hover:bg-slate-50" data-role="collapse-toggle">
+		<span>Bild</span>
+		<i class="ri-arrow-down-s-line transition-transform" data-role="collapse-icon"></i>
+	</button>
+
+	<div class="mt-4 hidden" data-role="collapse-panel">
+		<div class="flex items-center justify-between gap-4">
+			<div>
+				<h2 class="text-lg font-semibold text-slate-900">Bild</h2>
+				<p class="text-sm text-slate-600 mt-1">
+					Ersetzt das Bild der Reihen-Seite. Der Schlüssel bleibt fest.
+				</p>
+			</div>
+			<button type="button" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-role="toggle-upload">
+				<i class="ri-image-add-line"></i> Bild ersetzen
+			</button>
+		</div>
+
+		<div class="mt-4 hidden grid grid-cols-1 md:grid-cols-12 gap-3 items-end" data-role="upload-form">
+			<div class="md:col-span-4 flex flex-col gap-1">
+				<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Bild</label>
+				<div class="border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-600 bg-white min-h-[2.5rem] flex items-center" data-role="image-dropzone">
+					<div class="flex items-center justify-between gap-3 w-full">
+						<span data-role="image-dropzone-text">Bild ablegen oder auswählen</span>
+						<button type="button" class="text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="image-choose">Auswählen</button>
+					</div>
+					<input type="file" class="hidden" data-role="image-input" />
+				</div>
+			</div>
+			<div class="md:col-span-4 flex flex-col gap-1">
+				<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Vorschau</label>
+				<div class="border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-600 bg-white min-h-[2.5rem] flex items-center" data-role="preview-dropzone">
+					<div class="flex items-center justify-between gap-3 w-full">
+						<span data-role="preview-dropzone-text">Optional – Vorschau ablegen</span>
+						<button type="button" class="text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="preview-choose">Auswählen</button>
+					</div>
+					<input type="file" class="hidden" data-role="preview-input" />
+				</div>
+			</div>
+			<div class="md:col-span-4 flex flex-col gap-1">
+				<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Titel</label>
+				<input type="text" class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:ring-2 focus:ring-slate-400/30 min-h-[2.5rem]" data-role="title-input" autocomplete="off" value="{{- if $model.image -}}{{ $model.image.Title }}{{- end -}}" />
+			</div>
+			<div class="md:col-span-12 flex flex-col gap-1">
+				<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Beschreibung</label>
+				<trix-toolbar data-role="description-toolbar">
+					<div class="trix-toolbar-container">
+						<span class="trix-toolbar-group">
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="bold" data-trix-key="b" title="Fett">
+								<i class="ri-bold"></i>
+							</button>
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="italic" data-trix-key="i" title="Kursiv">
+								<i class="ri-italic"></i>
+							</button>
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="strike" title="Gestrichen">
+								<i class="ri-strikethrough"></i>
+							</button>
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="href" data-trix-action="link" data-trix-key="k" title="Link">
+								<i class="ri-links-line"></i>
+							</button>
+						</span>
+						<span class="trix-toolbar-group">
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="bullet" title="Liste">
+								<i class="ri-list-unordered"></i>
+							</button>
+							<button type="button" class="trix-toolbar-button" data-trix-attribute="number" title="Aufzählung">
+								<i class="ri-list-ordered"></i>
+							</button>
+						</span>
+						<span class="trix-toolbar-group">
+							<button type="button" class="trix-toolbar-button" data-trix-action="undo" data-trix-key="z" title="Rückgängig">
+								<i class="ri-arrow-go-back-line"></i>
+							</button>
+							<button type="button" class="trix-toolbar-button" data-trix-action="redo" data-trix-key="shift+z" title="Wiederholen">
+								<i class="ri-arrow-go-forward-line"></i>
+							</button>
+						</span>
+					</div>
+					<div class="trix-dialogs" data-trix-dialogs>
+						<div class="trix-dialog trix-dialog--link" data-trix-dialog="href" data-trix-dialog-attribute="href">
+							<div class="trix-dialog__link-fields flex flex-row">
+								<input type="url" name="href" class="trix-input trix-input--dialog" placeholder="URL eingeben…" aria-label="URL" required data-trix-input>
+								<div class="trix-button-group flex-row">
+									<input type="button" class="trix-button trix-button--dialog" value="Link" data-trix-method="setAttribute">
+									<input type="button" class="trix-button trix-button--dialog" value="Unlink" data-trix-method="removeAttribute">
+								</div>
+							</div>
+						</div>
+					</div>
+				</trix-toolbar>
+				<textarea hidden data-role="description-input" autocomplete="off">{{- if $model.image -}}{{ $model.image.Description }}{{- end -}}</textarea>
+				<trix-editor data-role="description-editor" class="rounded-md border border-slate-300 bg-white p-2"></trix-editor>
+			</div>
+			<div class="md:col-span-12 flex items-center justify-end">
+				<tool-tip position="top" class="inline-block">
+					<button type="button" class="inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50 disabled:opacity-60" data-role="upload-button">
+						<i class="ri-upload-2-line"></i>
+					</button>
+					<div class="data-tip">Bild speichern</div>
+				</tool-tip>
+			</div>
+			<div class="md:col-span-12">
+				<span class="text-sm text-slate-600" data-role="status"></span>
+			</div>
+		</div>
+
+		<div class="mt-6 rounded-sm border border-slate-200 bg-white p-3" data-role="image-view">
+			{{ template "_image_uploader_single_view" $model }}
+		</div>
+	</div>
+</image-uploader-single>
+
+<script>
+(() => {
+	if (window.ImageUploaderSingleDefined) return;
+	window.ImageUploaderSingleDefined = true;
+
+	class ImageUploaderSingle extends HTMLElement {
+		connectedCallback() {
+			this.uploadUrl = this.dataset.uploadUrl || "";
+			this.listUrl = this.dataset.listUrl || "";
+			this.deleteUrl = this.dataset.deleteUrl || "";
+			this.imageKey = this.dataset.key || "";
+			this.csrf = this.dataset.csrf || "";
+			this.form = this.querySelector("[data-role='upload-form']");
+			this.view = this.querySelector("[data-role='image-view']");
+			this.status = this.querySelector("[data-role='status']");
+			this.uploadButton = this.querySelector("[data-role='upload-button']");
+			this.collapseToggle = this.querySelector("[data-role='collapse-toggle']");
+			this.collapsePanel = this.querySelector("[data-role='collapse-panel']");
+			this.collapseIcon = this.querySelector("[data-role='collapse-icon']");
+			this.toggleButton = this.querySelector("[data-role='toggle-upload']");
+			this.titleInput = this.querySelector("[data-role='title-input']");
+			this.descriptionInput = this.querySelector("[data-role='description-input']");
+			this.descriptionEditor = this.querySelector("[data-role='description-editor']");
+			this.descriptionToolbar = this.querySelector("[data-role='description-toolbar']");
+			this.imageInput = this.querySelector("[data-role='image-input']");
+			this.previewInput = this.querySelector("[data-role='preview-input']");
+			this.imageDropzone = this.querySelector("[data-role='image-dropzone']");
+			this.previewDropzone = this.querySelector("[data-role='preview-dropzone']");
+			this.imageDropText = this.querySelector("[data-role='image-dropzone-text']");
+			this.previewDropText = this.querySelector("[data-role='preview-dropzone-text']");
+			this.imageChoose = this.querySelector("[data-role='image-choose']");
+			this.previewChoose = this.querySelector("[data-role='preview-choose']");
+
+			if (this.uploadButton) {
+				this.uploadButton.addEventListener("click", (event) => this.handleUpload(event));
+			}
+			if (this.collapseToggle) {
+				this.collapseToggle.addEventListener("click", () => this.togglePanel());
+			}
+			if (this.toggleButton && this.form) {
+				this.toggleButton.addEventListener("click", () => this.toggleForm());
+			}
+			if (this.imageChoose && this.imageInput) {
+				this.imageChoose.addEventListener("click", () => this.imageInput.click());
+			}
+			if (this.previewChoose && this.previewInput) {
+				this.previewChoose.addEventListener("click", () => this.previewInput.click());
+			}
+			if (this.imageInput) {
+				this.imageInput.addEventListener("change", () => this.updateDropzone());
+			}
+			if (this.previewInput) {
+				this.previewInput.addEventListener("change", () => this.updateDropzone());
+			}
+			if (this.imageDropzone) {
+				this.imageDropzone.addEventListener("dragover", (event) => this.onDragOver(event, this.imageDropzone));
+				this.imageDropzone.addEventListener("dragleave", (event) => this.onDragLeave(event, this.imageDropzone));
+				this.imageDropzone.addEventListener("drop", (event) => this.onDrop(event, this.imageInput, "image"));
+			}
+			if (this.previewDropzone) {
+				this.previewDropzone.addEventListener("dragover", (event) => this.onDragOver(event, this.previewDropzone));
+				this.previewDropzone.addEventListener("dragleave", (event) => this.onDragLeave(event, this.previewDropzone));
+				this.previewDropzone.addEventListener("drop", (event) => this.onDrop(event, this.previewInput, "preview"));
+			}
+			this.addEventListener("click", (event) => this.handleClick(event));
+			this.addEventListener("submit", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.stopImmediatePropagation();
+			}, true);
+			this.initTrix();
+			this.normalizeUrls();
+		}
+
+		initTrix() {
+			if (!this.descriptionInput || !this.descriptionEditor || !this.descriptionToolbar) return;
+			if (!this.descriptionInput.id) {
+				const id = "image-single-desc-" + Math.random().toString(36).slice(2);
+				this.descriptionInput.id = id;
+				this.descriptionToolbar.id = id + "-toolbar";
+				this.descriptionEditor.setAttribute("input", id);
+				this.descriptionEditor.setAttribute("toolbar", this.descriptionToolbar.id);
+			}
+		}
+
+		setStatus(message, isError) {
+			if (!this.status) return;
+			this.status.textContent = message || "";
+			this.status.classList.remove("text-red-600", "text-green-600");
+			if (isError) {
+				this.status.classList.add("text-red-600");
+			} else if (message) {
+				this.status.classList.add("text-green-600");
+			}
+		}
+
+		async handleUpload(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			event.stopImmediatePropagation();
+			if (!this.uploadUrl || !this.form) return;
+			if (!this.imageKey) {
+				this.setStatus("Schlüssel fehlt.", true);
+				return;
+			}
+			this.setStatus("Upload läuft…");
+			if (this.uploadButton) this.uploadButton.disabled = true;
+			if (!this.imageInput || !this.imageInput.files || this.imageInput.files.length === 0) {
+				this.setStatus("Bitte ein Bild auswählen.", true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+			const payload = new FormData();
+			payload.append("image", this.imageInput.files[0]);
+			if (this.previewInput && this.previewInput.files && this.previewInput.files[0]) {
+				payload.append("preview", this.previewInput.files[0]);
+			}
+			payload.append("key", this.imageKey);
+			if (this.titleInput && this.titleInput.value) {
+				payload.append("title", this.titleInput.value);
+			}
+			if (this.descriptionInput && this.descriptionInput.value) {
+				payload.append("description", this.descriptionInput.value);
+			}
+			payload.set("csrf_token", this.csrf);
+
+			const response = await fetch(this.uploadUrl, {
+				method: "POST",
+				body: payload,
+				credentials: "same-origin",
+			});
+
+			if (!response.ok) {
+				const message = await this.extractError(response);
+				this.setStatus(message || "Upload fehlgeschlagen.", true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+
+			const json = await this.safeJson(response);
+			if (json && json.error) {
+				this.setStatus(json.error, true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+			if (this.imageInput) this.imageInput.value = "";
+			if (this.previewInput) this.previewInput.value = "";
+			this.updateDropzone();
+			this.setStatus((json && json.message) || "Bild gespeichert.");
+			await this.refreshView();
+			if (this.form) this.form.classList.add("hidden");
+			if (this.uploadButton) this.uploadButton.disabled = false;
+		}
+
+		async handleClick(event) {
+			const target = event.target.closest("[data-action]");
+			if (!target) return;
+			const action = target.getAttribute("data-action");
+			if (action === "copy") {
+				const url = target.getAttribute("data-url");
+				if (!url) return;
+				try {
+					await navigator.clipboard.writeText(url);
+					this.setStatus("Link kopiert.");
+				} catch {
+					this.setStatus("Link kopieren fehlgeschlagen.", true);
+				}
+			}
+			if (action === "delete") {
+				const id = target.getAttribute("data-id");
+				if (!id || !this.deleteUrl) return;
+				if (!confirm("Bild wirklich löschen?")) return;
+				const payload = new FormData();
+				payload.set("csrf_token", this.csrf);
+				const response = await fetch(`${this.deleteUrl}${id}`, {
+					method: "POST",
+					body: payload,
+					credentials: "same-origin",
+				});
+				if (!response.ok) {
+					const message = await this.extractError(response);
+					this.setStatus(message || "Löschen fehlgeschlagen.", true);
+					return;
+				}
+				const json = await this.safeJson(response);
+				if (json && json.error) {
+					this.setStatus(json.error, true);
+					return;
+				}
+				this.setStatus((json && json.message) || "Bild gelöscht.");
+				await this.refreshView();
+			}
+		}
+
+		async refreshView() {
+			if (!this.listUrl || !this.view) return;
+			const url = `${this.listUrl}?key=${encodeURIComponent(this.imageKey)}`;
+			const response = await fetch(url, { credentials: "same-origin" });
+			if (!response.ok) {
+				this.setStatus("Aktualisieren fehlgeschlagen.", true);
+				return;
+			}
+			const html = await response.text();
+			this.view.innerHTML = html;
+			this.normalizeUrls();
+		}
+
+		normalizeUrls() {
+			if (!this.view) return;
+			const origin = window.location.origin;
+			const withOrigin = (url) => {
+				if (!url) return url;
+				if (url.startsWith("http://") || url.startsWith("https://")) return url;
+				try {
+					return new URL(url, origin).toString();
+				} catch {
+					return url;
+				}
+			};
+			const urlNodes = Array.from(this.view.querySelectorAll("[data-url]"));
+			urlNodes.forEach((node) => {
+				const raw = node.getAttribute("data-url");
+				const abs = withOrigin(raw);
+				node.setAttribute("data-url", abs);
+				if (node.tagName === "A") {
+					node.setAttribute("href", abs);
+				}
+			});
+		}
+
+		toggleForm() {
+			if (!this.form) return;
+			this.form.classList.toggle("hidden");
+		}
+
+		togglePanel() {
+			if (!this.collapsePanel) return;
+			const isHidden = this.collapsePanel.classList.contains("hidden");
+			this.collapsePanel.classList.toggle("hidden");
+			if (this.collapseIcon) {
+				this.collapseIcon.classList.toggle("rotate-180", isHidden);
+			}
+		}
+
+		updateDropzone() {
+			if (this.imageDropText && this.imageInput) {
+				const file = this.imageInput.files && this.imageInput.files[0];
+				this.imageDropText.textContent = file
+					? `${file.name} (${this.formatBytes(file.size) || "?"})`
+					: "Bild ablegen oder auswählen";
+			}
+			if (this.previewDropText && this.previewInput) {
+				const file = this.previewInput.files && this.previewInput.files[0];
+				this.previewDropText.textContent = file
+					? `${file.name} (${this.formatBytes(file.size) || "?"})`
+					: "Optional – Vorschau ablegen";
+			}
+		}
+
+		onDragOver(event, zone) {
+			event.preventDefault();
+			if (zone) {
+				zone.classList.add("border-slate-500", "bg-slate-50");
+			}
+		}
+
+		onDragLeave(event, zone) {
+			event.preventDefault();
+			if (zone) {
+				zone.classList.remove("border-slate-500", "bg-slate-50");
+			}
+		}
+
+		onDrop(event, input, kind) {
+			event.preventDefault();
+			if (!input) return;
+			const files = event.dataTransfer?.files;
+			if (!files || files.length === 0) return;
+			input.files = files;
+			this.updateDropzone();
+			this.onDragLeave(event, kind === "preview" ? this.previewDropzone : this.imageDropzone);
+		}
+
+		formatBytes(bytes) {
+			if (!bytes || Number.isNaN(bytes)) return "";
+			const units = ["B", "KB", "MB", "GB", "TB"];
+			let size = bytes;
+			let unit = 0;
+			while (size >= 1024 && unit < units.length - 1) {
+				size /= 1024;
+				unit += 1;
+			}
+			const precision = unit === 0 ? 0 : 1;
+			return `${size.toFixed(precision)} ${units[unit]}`;
+		}
+
+		async safeJson(response) {
+			const contentType = response.headers.get("content-type") || "";
+			if (!contentType.includes("application/json")) {
+				return null;
+			}
+			try {
+				return await response.json();
+			} catch {
+				return null;
+			}
+		}
+
+		async extractError(response) {
+			const json = await this.safeJson(response);
+			if (json) {
+				if (json.error) {
+					return json.error;
+				}
+				if (json.message) {
+					return json.message;
+				}
+			}
+			const text = await response.text().catch(() => "");
+			return text.trim();
+		}
+	}
+
+	customElements.define("image-uploader-single", ImageUploaderSingle);
+})();
+</script>

@@ -8,9 +8,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const URL_ERROR_404 = "/errors/404/"
-const URL_ERROR_500 = "/errors/500/"
-
 func init() {
 	rp := &ErrorPage{
 		StaticPage: pagemodels.StaticPage{

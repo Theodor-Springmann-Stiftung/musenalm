@@ -15,7 +15,7 @@
 		autocomplete="off"
 		class="w-full dbform form-with-action-bar"
 		method="POST"
-		action="/almanach/{{ $entry.MusenalmID }}/contents/edit">
+		action="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit">
 		<input type="hidden" name="csrf_token" value="{{ $csrf }}" />
 		{{- if $error -}}
 			<div class="mb-3 rounded-xs border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -36,7 +36,7 @@
 		<div class="form-action-bar">
 			<div class="form-action-bar-inner">
 				<div class="form-action-bar-actions">
-					<a href="/almanach/{{ $entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ index . "cancel_url" }}">
+					<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ index . "cancel_url" }}">
 						<i class="ri-close-line"></i>
 						<span>Zurueck</span>
 					</a>

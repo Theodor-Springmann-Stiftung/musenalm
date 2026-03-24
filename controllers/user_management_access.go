@@ -14,11 +14,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_USER_MANAGEMENT_ACCESS      = "/user/management/access/"
-	TEMPLATE_USER_MANAGEMENT_ACCESS = "/user/management/access/"
-)
-
 func init() {
 	ump := &UserManagementAccessPage{
 		StaticPage: pagemodels.StaticPage{

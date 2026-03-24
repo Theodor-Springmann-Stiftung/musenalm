@@ -1,0 +1,489 @@
+{{ $model := . }}
+
+<file-uploader
+	class="block"
+	data-upload-url="/admin/files/upload/"
+	data-list-url="/admin/files/list/"
+	data-delete-url="/admin/files/delete/"
+	data-csrf="{{ $model.csrf_token }}">
+	<button type="button" class="w-full flex items-center justify-between rounded-md border border-slate-300 bg-white px-4 py-3 text-lg font-semibold text-slate-900 hover:bg-slate-50" data-role="collapse-toggle">
+		<span>Dateien</span>
+		<i class="ri-arrow-down-s-line transition-transform" data-role="collapse-icon"></i>
+	</button>
+
+	<div class="mt-4 hidden" data-role="collapse-panel">
+		<div class="flex items-center justify-between gap-4">
+			<div>
+				<h2 class="text-lg font-semibold text-slate-900">Dateien</h2>
+				<p class="text-sm text-slate-600 mt-1">
+					Dateien sind öffentlich erreichbar. Verwenden Sie den Link in den Seiteninhalten.
+				</p>
+			</div>
+			<button type="button" class="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" data-role="toggle-upload">
+				<i class="ri-add-line"></i> Datei hinzufügen
+			</button>
+		</div>
+
+		<div class="mt-4 hidden grid grid-cols-1 md:grid-cols-12 gap-3 items-end" data-role="upload-form">
+		<div class="md:col-span-4 flex flex-col gap-1">
+			<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Datei</label>
+			<div class="border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-600 bg-white min-h-[2.5rem] flex items-center"
+				data-role="dropzone">
+				<div class="flex items-center justify-between gap-3 w-full">
+					<span data-role="dropzone-text">Datei hier ablegen oder auswählen</span>
+					<button type="button" class="text-sm font-semibold text-slate-700 hover:text-slate-900" data-role="choose-button">Auswählen</button>
+				</div>
+				<input type="file" class="hidden" data-role="file-input" />
+			</div>
+		</div>
+		<div class="md:col-span-3 flex flex-col gap-1">
+			<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Titel</label>
+			<input type="text" class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:ring-2 focus:ring-slate-400/30 min-h-[2.5rem]" placeholder="(Optional, sonst Dateiname)" data-role="title-input" autocomplete="off" />
+		</div>
+		<div class="md:col-span-4 flex flex-col gap-1">
+			<label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Beschreibung</label>
+			<input type="text" class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:ring-2 focus:ring-slate-400/30 min-h-[2.5rem]" data-role="description-input" autocomplete="off" />
+		</div>
+		<div class="md:col-span-1 flex items-center">
+			<tool-tip position="top" class="inline-block w-full">
+				<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50 disabled:opacity-60" data-role="upload-button">
+					<i class="ri-upload-2-line"></i>
+				</button>
+				<div class="data-tip">Datei hochladen</div>
+			</tool-tip>
+		</div>
+		<div class="md:col-span-12">
+			<span class="text-sm text-slate-600" data-role="status"></span>
+		</div>
+	</div>
+
+		<div class="mt-6 max-h-96 overflow-auto rounded-sm border border-slate-200 bg-white p-3" data-role="file-list">
+			{{ template "_file_uploader_list" $model }}
+		</div>
+	</div>
+</file-uploader>
+
+<script>
+(() => {
+	if (window.FileUploaderDefined) {
+		return;
+	}
+	window.FileUploaderDefined = true;
+
+	class FileUploader extends HTMLElement {
+		connectedCallback() {
+			this.uploadUrl = this.dataset.uploadUrl || "";
+			this.listUrl = this.dataset.listUrl || "";
+			this.deleteUrl = this.dataset.deleteUrl || "";
+			this.csrf = this.dataset.csrf || "";
+			this.form = this.querySelector("[data-role='upload-form']");
+			this.collapseToggle = this.querySelector("[data-role='collapse-toggle']");
+			this.collapsePanel = this.querySelector("[data-role='collapse-panel']");
+			this.collapseIcon = this.querySelector("[data-role='collapse-icon']");
+			this.toggleButton = this.querySelector("[data-role='toggle-upload']");
+			this.fileInput = this.querySelector("[data-role='file-input']");
+			this.dropzone = this.querySelector("[data-role='dropzone']");
+			this.dropzoneText = this.querySelector("[data-role='dropzone-text']");
+			this.chooseButton = this.querySelector("[data-role='choose-button']");
+			this.titleInput = this.querySelector("[data-role='title-input']");
+			this.descriptionInput = this.querySelector("[data-role='description-input']");
+			this.list = this.querySelector("[data-role='file-list']");
+			this.status = this.querySelector("[data-role='status']");
+			this.uploadButton = this.querySelector("[data-role='upload-button']");
+
+			if (this.uploadButton) {
+				this.uploadButton.addEventListener("click", (event) => this.handleUpload(event));
+			}
+			if (this.collapseToggle) {
+				this.collapseToggle.addEventListener("click", () => this.togglePanel());
+			}
+			if (this.toggleButton && this.form) {
+				this.toggleButton.addEventListener("click", () => this.toggleForm());
+			}
+			if (this.chooseButton && this.fileInput) {
+				this.chooseButton.addEventListener("click", () => this.fileInput.click());
+			}
+			if (this.fileInput) {
+				this.fileInput.addEventListener("change", () => this.updateDropzone());
+			}
+			if (this.dropzone) {
+				this.dropzone.addEventListener("dragover", (event) => this.onDragOver(event));
+				this.dropzone.addEventListener("dragleave", (event) => this.onDragLeave(event));
+				this.dropzone.addEventListener("drop", (event) => this.onDrop(event));
+			}
+			this.addEventListener("click", (event) => this.handleClick(event));
+			this.addEventListener("submit", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.stopImmediatePropagation();
+			}, true);
+			this.hydrateMeta();
+			this.initSort();
+			this.applyDefaultSort();
+			this.normalizeUrls();
+		}
+
+		setStatus(message, isError) {
+			if (!this.status) return;
+			this.status.textContent = message || "";
+			this.status.classList.remove("text-red-600", "text-green-600");
+			if (isError) {
+				this.status.classList.add("text-red-600");
+			} else if (message) {
+				this.status.classList.add("text-green-600");
+			}
+		}
+
+		async handleUpload(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			event.stopImmediatePropagation();
+			if (!this.uploadUrl || !this.form) return;
+			this.setStatus("Upload läuft…");
+			if (this.uploadButton) this.uploadButton.disabled = true;
+			if (!this.fileInput || !this.fileInput.files || this.fileInput.files.length === 0) {
+				this.setStatus("Bitte eine Datei auswählen.", true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+			const payload = new FormData();
+			payload.append("file", this.fileInput.files[0]);
+			if (this.titleInput && this.titleInput.value) {
+				payload.append("title", this.titleInput.value);
+			}
+			if (this.descriptionInput && this.descriptionInput.value) {
+				payload.append("description", this.descriptionInput.value);
+			}
+			payload.set("csrf_token", this.csrf);
+
+			const response = await fetch(this.uploadUrl, {
+				method: "POST",
+				body: payload,
+				credentials: "same-origin",
+			});
+
+			if (!response.ok) {
+				const message = await this.extractError(response);
+				this.setStatus(message || "Upload fehlgeschlagen.", true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+
+			const json = await this.safeJson(response);
+			if (json && json.error) {
+				this.setStatus(json.error, true);
+				if (this.uploadButton) this.uploadButton.disabled = false;
+				return;
+			}
+			if (this.fileInput) this.fileInput.value = "";
+			this.updateDropzone();
+			if (this.titleInput) this.titleInput.value = "";
+			if (this.descriptionInput) this.descriptionInput.value = "";
+			this.setStatus((json && json.message) || "Datei hochgeladen.");
+			this.lastUploadedId = json && json.id ? json.id : "";
+			await this.refreshList();
+			if (this.form) this.form.classList.add("hidden");
+			if (this.uploadButton) this.uploadButton.disabled = false;
+		}
+
+		async handleClick(event) {
+			const target = event.target.closest("[data-action]");
+			if (!target) return;
+			const action = target.getAttribute("data-action");
+			if (action === "copy") {
+				const url = target.getAttribute("data-url");
+				if (!url) return;
+				try {
+					await navigator.clipboard.writeText(url);
+					this.setStatus("Link kopiert.");
+				} catch {
+					this.setStatus("Link kopieren fehlgeschlagen.", true);
+				}
+			}
+			if (action === "delete") {
+				const id = target.getAttribute("data-id");
+				if (!id || !this.deleteUrl) return;
+				if (!confirm("Datei wirklich löschen?")) return;
+				const payload = new FormData();
+				payload.set("csrf_token", this.csrf);
+				const response = await fetch(`${this.deleteUrl}${id}`, {
+					method: "POST",
+					body: payload,
+					credentials: "same-origin",
+				});
+				if (!response.ok) {
+					const message = await this.extractError(response);
+					this.setStatus(message || "Löschen fehlgeschlagen.", true);
+					return;
+				}
+				const json = await this.safeJson(response);
+				if (json && json.error) {
+					this.setStatus(json.error, true);
+					return;
+				}
+				this.setStatus((json && json.message) || "Datei gelöscht.");
+				await this.refreshList();
+			}
+		}
+
+		async refreshList() {
+			if (!this.listUrl || !this.list) return;
+			if (window.htmx && typeof window.htmx.ajax === "function") {
+				window.htmx.ajax("GET", this.listUrl, {
+					target: this.list,
+					swap: "innerHTML",
+				}).then(() => {
+					this.hydrateMeta();
+					this.initSort();
+					this.applyDefaultSort();
+					this.normalizeUrls();
+					this.highlightNew();
+				});
+				return;
+			}
+			const response = await fetch(this.listUrl, { credentials: "same-origin" });
+			if (!response.ok) {
+				this.setStatus("Aktualisieren fehlgeschlagen.", true);
+				return;
+			}
+			const html = await response.text();
+			this.list.innerHTML = html;
+			this.hydrateMeta();
+			this.initSort();
+			this.applyDefaultSort();
+			this.normalizeUrls();
+			this.highlightNew();
+		}
+
+		hydrateMeta() {
+			if (!this.list) return;
+			const items = Array.from(this.list.querySelectorAll("[data-role='file-meta']"));
+			if (items.length === 0) return;
+			items.forEach((item) => this.loadMeta(item));
+		}
+
+		normalizeUrls() {
+			if (!this.list) return;
+			const origin = window.location.origin;
+			const withOrigin = (url) => {
+				if (!url) return url;
+				if (url.startsWith("http://") || url.startsWith("https://")) return url;
+				try {
+					return new URL(url, origin).toString();
+				} catch {
+					return url;
+				}
+			};
+
+			const urlNodes = Array.from(this.list.querySelectorAll("[data-url]"));
+			urlNodes.forEach((node) => {
+				const raw = node.getAttribute("data-url");
+				const abs = withOrigin(raw);
+				node.setAttribute("data-url", abs);
+				if (node.tagName === "A") {
+					node.setAttribute("href", abs);
+				}
+			});
+		}
+
+		initSort() {
+			if (!this.list) return;
+			const buttons = Array.from(this.list.querySelectorAll("[data-role='file-sort']"));
+			if (buttons.length === 0) return;
+			buttons.forEach((button) => {
+				button.addEventListener("click", () => this.sortBy(button));
+			});
+		}
+
+		sortBy(button) {
+			if (!this.list) return;
+			const key = button.getAttribute("data-sort-key");
+			const table = this.list.querySelector("table");
+			const tbody = table ? table.querySelector("tbody") : null;
+			if (!tbody || !key) return;
+
+			const current = button.getAttribute("data-sort-dir") || "desc";
+			const next = current === "asc" ? "desc" : "asc";
+			button.setAttribute("data-sort-dir", next);
+
+			const rows = Array.from(tbody.querySelectorAll("tr"));
+			rows.sort((a, b) => {
+				if (key === "created") {
+					const av = parseInt(a.getAttribute("data-created") || "0", 10);
+					const bv = parseInt(b.getAttribute("data-created") || "0", 10);
+					return next === "asc" ? av - bv : bv - av;
+				}
+				const at = (a.getAttribute("data-title") || "").toLowerCase();
+				const bt = (b.getAttribute("data-title") || "").toLowerCase();
+				if (at === bt) return 0;
+				const cmp = at < bt ? -1 : 1;
+				return next === "asc" ? cmp : -cmp;
+			});
+			rows.forEach((row) => tbody.appendChild(row));
+		}
+
+		applyDefaultSort() {
+			if (!this.list) return;
+			const createdButton = this.list.querySelector("[data-role='file-sort'][data-sort-key='created']");
+			if (!createdButton) return;
+			createdButton.setAttribute("data-sort-dir", "asc");
+			this.sortBy(createdButton);
+		}
+
+		highlightNew() {
+			if (!this.list || !this.lastUploadedId) return;
+			const row = this.list.querySelector(`tr[data-id="${this.lastUploadedId}"]`);
+			if (!row) return;
+			row.classList.add("bg-yellow-50");
+			setTimeout(() => row.classList.remove("bg-yellow-50"), 2000);
+			row.scrollIntoView({ block: "nearest" });
+			this.lastUploadedId = "";
+		}
+
+		toggleForm() {
+			if (!this.form) return;
+			this.form.classList.toggle("hidden");
+		}
+
+		togglePanel() {
+			if (!this.collapsePanel) return;
+			const isHidden = this.collapsePanel.classList.contains("hidden");
+			this.collapsePanel.classList.toggle("hidden");
+			if (this.collapseIcon) {
+				this.collapseIcon.classList.toggle("rotate-180", isHidden);
+			}
+		}
+
+		updateDropzone() {
+			if (!this.dropzoneText || !this.fileInput) return;
+			const file = this.fileInput.files && this.fileInput.files[0];
+			if (!file) {
+				this.dropzoneText.textContent = "Datei hier ablegen oder auswählen";
+				return;
+			}
+			this.dropzoneText.textContent = `${file.name} (${this.formatBytes(file.size) || "?"})`;
+		}
+
+		onDragOver(event) {
+			event.preventDefault();
+			if (this.dropzone) {
+				this.dropzone.classList.add("border-slate-500", "bg-slate-50");
+			}
+		}
+
+		onDragLeave(event) {
+			event.preventDefault();
+			if (this.dropzone) {
+				this.dropzone.classList.remove("border-slate-500", "bg-slate-50");
+			}
+		}
+
+		onDrop(event) {
+			event.preventDefault();
+			if (!this.fileInput) return;
+			const files = event.dataTransfer?.files;
+			if (!files || files.length === 0) return;
+			this.fileInput.files = files;
+			this.updateDropzone();
+			this.onDragLeave(event);
+		}
+
+		async loadMeta(item) {
+			const url = item.getAttribute("data-url");
+			const filename = item.getAttribute("data-filename") || "";
+			const value = item.querySelector("[data-role='file-meta-value']");
+			if (!url || !value) return;
+			try {
+				const response = await fetch(url, { method: "HEAD", credentials: "same-origin" });
+				const typeHeader = response.headers.get("content-type") || "";
+				const lengthHeader = response.headers.get("content-length") || "";
+				const typeLabel = this.formatType(typeHeader, filename);
+				const sizeLabel = this.formatBytes(parseInt(lengthHeader || "0", 10));
+				value.textContent = sizeLabel ? `${typeLabel} · ${sizeLabel}` : typeLabel;
+			} catch {
+				value.textContent = this.formatType("", filename);
+			}
+		}
+
+		formatType(mime, filename) {
+			if (mime) {
+				if (mime.includes("pdf")) return "PDF";
+				if (mime.startsWith("image/")) return "Bild";
+				if (mime.startsWith("audio/")) return "Audio";
+				if (mime.startsWith("video/")) return "Video";
+				if (mime.includes("zip")) return "ZIP";
+				if (mime.includes("msword") || mime.includes("officedocument.wordprocessingml")) return "DOC";
+				if (mime.includes("spreadsheetml")) return "XLS";
+				if (mime.includes("presentationml")) return "PPT";
+				return mime.split(";")[0].toUpperCase();
+			}
+			const ext = filename.split(".").pop();
+			if (!ext || ext === filename) return "Datei";
+			return ext.toUpperCase();
+		}
+
+		formatBytes(bytes) {
+			if (!bytes || Number.isNaN(bytes)) return "";
+			const units = ["B", "KB", "MB", "GB", "TB"];
+			let size = bytes;
+			let unit = 0;
+			while (size >= 1024 && unit < units.length - 1) {
+				size /= 1024;
+				unit += 1;
+			}
+			const precision = unit === 0 ? 0 : 1;
+			return `${size.toFixed(precision)} ${units[unit]}`;
+		}
+
+		async safeJson(response) {
+			const contentType = response.headers.get("content-type") || "";
+			if (!contentType.includes("application/json")) {
+				return null;
+			}
+			try {
+				return await response.json();
+			} catch {
+				return null;
+			}
+		}
+
+		async extractError(response) {
+			const json = await this.safeJson(response);
+			if (json) {
+				if (json.error) {
+					return this.localizeError(json.error);
+				}
+				if (json.message) {
+					return this.localizeError(json.message);
+				}
+			}
+			const text = await response.text().catch(() => "");
+			return this.localizeError(text.trim());
+		}
+
+		localizeError(message) {
+			if (!message) return message;
+			const lower = message.toLowerCase();
+			if (lower.includes("request entity too large") || lower.includes("entity too large")) {
+				return "Datei ist zu groß. Maximale Größe: 100 MB.";
+			}
+			if (lower.includes("maximum allowed file size")) {
+				return "Datei ist zu groß. Maximale Größe: 100 MB.";
+			}
+			if (lower.includes("mime type must be one of")) {
+				const parts = message.split("mime type must be one of:");
+				const list = parts.length > 1 ? parts[1].trim().replace(/\.+$/, "") : "";
+				return list
+					? `Dateityp nicht erlaubt. Erlaubte Typen: ${list}.`
+					: "Dateityp nicht erlaubt.";
+			}
+			if (lower.includes("failed to upload")) {
+				return "Datei-Upload fehlgeschlagen.";
+			}
+			return message;
+		}
+	}
+
+	customElements.define("file-uploader", FileUploader);
+})();
+</script>

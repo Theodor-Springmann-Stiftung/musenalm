@@ -1,0 +1,34 @@
+{{ $model := . }}
+
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
+	<div class="flex-col w-full">
+		<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Einstellungen</h1>
+		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[70ch]">
+			<i class="ri-settings-3-line"></i>
+			Globale Einstellungen fuer die Seite und Systemfunktionen.
+		</div>
+	</div>
+</div>
+
+<div class="container-normal mx-auto px-8">
+	{{ template "_usermessage" $model }}
+
+	<div class="flex flex-col gap-8">
+		<section class="bg-white rounded-md shadow-sm border border-slate-200 p-6">
+			<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+				<div>
+					<h2 class="text-lg font-semibold text-slate-900">FTS5 neu aufbauen</h2>
+					<p class="text-sm text-slate-600 mt-1">Löscht und erstellt die FTS5-Tabellen neu und füllt sie aus den bestehenden Einträgen.</p>
+				</div>
+				<form method="post" action="/admin/settings/fts5/rebuild/" class="flex items-center">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<button type="submit" class="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50">
+						<i class="ri-refresh-line"></i> Neuaufbau starten
+					</button>
+				</form>
+			</div>
+			<div class="text-xs text-slate-500 mt-3">Automatischer Neuaufbau: jeden Sonntag um 00:00 Uhr.</div>
+		</section>
+	</div>
+</div>

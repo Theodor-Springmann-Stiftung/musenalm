@@ -16,12 +16,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-const (
-	URL_REIHE_EDIT      = "edit"
-	URL_REIHE_DELETE    = "edit/delete"
-	TEMPLATE_REIHE_EDIT = "/reihe/edit/"
-)
-
 func init() {
 	rep := &ReiheEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -40,7 +34,7 @@ type ReiheEditPage struct {
 
 func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	rg := router.Group(URL_REIHE)
+	rg := router.Group(URL_REIHE_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_REIHE_EDIT, p.GET(engine, app))
 	rg.POST(URL_REIHE_EDIT, p.POST(engine, app))
@@ -49,14 +43,14 @@ func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], ia page
 }
 
 type ReiheEditResult struct {
-	Series *dbmodels.Series
-	User   *dbmodels.User
-	Prev   *dbmodels.Series
-	Next   *dbmodels.Series
-	Entries []*dbmodels.Entry
-	Contents []*dbmodels.Content
-	ContentEntries map[string]*dbmodels.Entry
-	ContentTypes map[string][]string
+	Series           *dbmodels.Series
+	User             *dbmodels.User
+	Prev             *dbmodels.Series
+	Next             *dbmodels.Series
+	Entries          []*dbmodels.Entry
+	Contents         []*dbmodels.Content
+	ContentEntries   map[string]*dbmodels.Entry
+	ContentTypes     map[string][]string
 	PreferredEntries []*dbmodels.Entry
 }
 
@@ -275,7 +269,7 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App) Hand
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
-			"redirect": "/reihen",
+			"redirect": URL_REIHEN_REDIRECT,
 		})
 	}
 }
@@ -452,11 +446,11 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 		}(app, series.Id, titleChanged)
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf("/reihe/%s/", id)
+			redirect := fmt.Sprintf(URL_REIHE_VIEW_FORMAT, id)
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")
-		redirect := fmt.Sprintf("/reihe/%s/edit", id)
+		redirect := fmt.Sprintf(URL_REIHE_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

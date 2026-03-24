@@ -10,13 +10,13 @@ import (
 type HandleFunc func(e *core.RequestEvent) error
 
 func init() {
-	RegisterStaticPage("/datenschutz/", pagemodels.P_DATENSCHUTZ_NAME)
-	RegisterTextPage("/redaktion/kontakt/", pagemodels.P_KONTAKT_NAME)
-	RegisterTextPage("/redaktion/danksagungen/", pagemodels.P_DANK_NAME)
-	RegisterTextPage("/redaktion/literatur/", pagemodels.P_LIT_NAME)
-	RegisterTextPage("/redaktion/einleitung/", pagemodels.P_EINFUEHRUNG_NAME)
-	RegisterTextPage("/redaktion/benutzerhinweise/", pagemodels.P_DOK_NAME)
-	RegisterTextPage("/redaktion/lesekabinett/", pagemodels.P_KABINETT_NAME)
+	RegisterStaticPage(URL_DATENSCHUTZ, pagemodels.P_DATENSCHUTZ_NAME)
+	RegisterTextPage(URL_REDAKTION_KONTAKT, pagemodels.P_KONTAKT_NAME)
+	RegisterTextPage(URL_REDAKTION_DANKSAGUNGEN, pagemodels.P_DANK_NAME)
+	RegisterTextPage(URL_REDAKTION_LITERATUR, pagemodels.P_LIT_NAME)
+	RegisterTextPage(URL_REDAKTION_EINLEITUNG, pagemodels.P_EINFUEHRUNG_NAME)
+	RegisterTextPage(URL_REDAKTION_HINWEISE, pagemodels.P_DOK_NAME)
+	RegisterTextPage(URL_REDAKTION_LESEKABINETT, pagemodels.P_KABINETT_NAME)
 }
 
 func RegisterStaticPage(url, name string, layout ...string) {

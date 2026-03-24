@@ -10,10 +10,10 @@
 
 <div class="flex flex-col gap-0.5"
 	data-role="contents-list"
-	data-insert-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/insert"
-	data-edit-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/edit/form"
-	data-detail-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/detail"
-	data-order-endpoint="/almanach/{{ $entry.MusenalmID }}/contents/edit">
+	data-insert-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/contents/insert"
+	data-edit-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/form"
+	data-detail-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/contents/detail"
+	data-order-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit">
 	{{- range $_, $content := $contents -}}
 		{{- template "_content_item" (Dict
 			"content" $content

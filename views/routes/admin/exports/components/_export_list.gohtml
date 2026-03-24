@@ -1,0 +1,97 @@
+{{ $model := . }}
+
+{{- if not $model.exports -}}
+	<div class="text-sm text-slate-500">Noch keine Exporte vorhanden.</div>
+{{- else -}}
+	{{- range $_, $export := $model.exports -}}
+		<div class="rounded-xs border border-slate-200 bg-white p-4 shadow-sm" data-export-id="{{ $export.Id }}" data-export-status="{{ $export.Status }}">
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+					<div>
+						<div class="flex items-center flex-wrap gap-2">
+							{{- if eq $export.Type "files" -}}
+								<span class="inline-flex items-center gap-1.5 rounded-xs bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-900">
+									<i class="ri-folder-zip-line"></i>
+									Dateien
+								</span>
+							{{- else -}}
+								<span class="inline-flex items-center gap-1.5 rounded-xs bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+									<i class="ri-database-2-line"></i>
+									Daten
+								</span>
+							{{- end -}}
+							<span class="text-xs text-slate-600">
+								{{ GermanDate $export.Created }} {{ GermanTime $export.Created }}
+							</span>
+							{{- if $export.Expires.IsZero | not -}}
+								<span class="inline-flex items-center gap-2 text-xs text-slate-600"><span class="inline-block w-[0.9ch] text-center">•</span>Läuft ab {{ GermanDate $export.Expires }} {{ GermanTime $export.Expires }}</span>
+							{{- end -}}
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
+						{{- if eq $export.Status "complete" -}}
+							<span class="status-badge px-2 py-1 text-xs font-semibold rounded-xs bg-green-100 text-green-900">Fertig</span>
+						{{- else if eq $export.Status "failed" -}}
+							<span class="status-badge px-2 py-1 text-xs font-semibold rounded-xs bg-red-100 text-red-900">Fehler</span>
+						{{- else if eq $export.Status "running" -}}
+							<span class="status-badge px-2 py-1 text-xs font-semibold rounded-xs bg-amber-100 text-amber-900">Läuft</span>
+						{{- else -}}
+							<span class="status-badge px-2 py-1 text-xs font-semibold rounded-xs bg-slate-100 text-slate-700">Wartend</span>
+						{{- end -}}
+					</div>
+				</div>
+
+				<div>
+					<div class="flex items-center justify-between text-xs text-slate-700 mb-2">
+						{{- if eq $export.Type "files" -}}
+							<div>{{ $export.TablesDone }} / {{ $export.TablesTotal }} Dateien</div>
+						{{- else -}}
+							<div>{{ $export.TablesDone }} / {{ $export.TablesTotal }} Tabellen</div>
+						{{- end -}}
+						<div>{{ $export.SizeLabel }}</div>
+					</div>
+					<div class="h-2 rounded-xs bg-slate-100 overflow-hidden">
+						{{- if eq $export.Status "failed" -}}
+							<div class="h-full bg-red-400" style="width: {{ $export.Progress }}%;"></div>
+						{{- else if eq $export.Status "complete" -}}
+							<div class="h-full bg-green-500" style="width: {{ $export.Progress }}%;"></div>
+						{{- else -}}
+							<div class="h-full bg-slate-700" style="width: {{ $export.Progress }}%;"></div>
+						{{- end -}}
+					</div>
+				</div>
+
+				{{- if $export.CurrentTable -}}
+					<div class="text-xs text-slate-500">Aktuell: {{ $export.CurrentTable }}</div>
+				{{- end -}}
+				{{- if $export.Error -}}
+					<div class="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xs px-3 py-2">{{ $export.Error }}</div>
+				{{- end -}}
+
+				<div class="flex items-center justify-between">
+					<div class="text-xs text-slate-500">
+						{{- if ne $export.Status "complete" -}}
+							Der Download ist verfügbar, sobald der Export abgeschlossen ist.
+						{{- end -}}
+					</div>
+					<div class="flex items-center gap-3">
+						{{- if or (eq $export.Status "running") (eq $export.Status "queued") -}}
+							<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-400 shadow-sm cursor-not-allowed" disabled title="Export läuft noch.">
+								<i class="ri-delete-bin-line"></i> Löschen
+							</button>
+						{{- else -}}
+							<button type="button" class="inline-flex items-center gap-2 rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-slate-200 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-200/70" data-action="delete" data-id="{{ $export.Id }}">
+								<i class="ri-delete-bin-line"></i> Löschen
+							</button>
+						{{- end -}}
+						{{- if eq $export.Status "complete" -}}
+							<a class="no-underline inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" href="/admin/exports/download/{{ $export.Id }}">
+								<i class="ri-download-line"></i> Download
+							</a>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+{{- end -}}

@@ -28,7 +28,7 @@ type IndexPage struct {
 // TODO:
 func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
-	router.GET("/{$}", func(e *core.RequestEvent) error {
+	router.GET(URL_INDEX_ROOT, func(e *core.RequestEvent) error {
 		bilder, err := dbmodels.Images_KeyPrefix(app, "page.index.image.")
 		if err != nil {
 			return engine.Response404(e, err, nil)
@@ -39,7 +39,7 @@ func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 			"bilder": bilder,
 		}
 
-		return engine.Response200(e, "/", data, "blank")
+		return engine.Response200(e, TEMPLATE_INDEX_ROOT, data, pagemodels.LAYOUT_BLANK_PAGE)
 
 	})
 	return nil

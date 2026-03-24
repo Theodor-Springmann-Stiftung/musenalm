@@ -14,16 +14,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_USER            = "/user/{uid}/"
-	URL_USER_EDIT       = "edit/"
-	URL_USER_LOGOUT     = "logout/"
-	URL_USER_DEACTIVATE = "deactivate/"
-	URL_USER_ACTIVATE   = "activate/"
-	UID_PATH_VALUE      = "uid"
-	TEMPLATE_USER_EDIT  = "/user/edit/"
-)
-
 func init() {
 	ump := &UserEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -162,7 +152,7 @@ func (p *UserEditPage) POSTDeactivate(engine *templating.Engine, app core.App) H
 		DeleteSessionsForUser(app, user.Id)
 
 		if req.User() != nil && req.User().Id == user.Id {
-			return e.Redirect(303, "/login/")
+			return e.Redirect(303, URL_USER_LOGIN)
 		}
 
 		fu := user.Fixed()
@@ -293,7 +283,7 @@ func (p *UserEditPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 
 			if user_proxy.Id == user.Id {
 				// INFO: user changed his own role, so we log him out
-				return e.Redirect(303, "/login/")
+				return e.Redirect(303, URL_USER_LOGIN)
 			}
 		}
 

@@ -16,13 +16,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	URL_ALMANACH               = "/almanach/{id}/"
-	URL_ALMANACH_CONTENTS      = "/almanach/{id}/contents-view/"
-	TEMPLATE_ALMANACH          = "/almanach/"
-	TEMPLATE_ALMANACH_CONTENTS = "/almanach/contents-view/"
-)
-
 // Simple in-memory cache for sorted entries
 var (
 	sortedEntriesCache struct {
@@ -125,7 +118,7 @@ func (p *AlmanachPage) GETContents(engine *templating.Engine, app core.App) Hand
 		data["result"] = result
 		data["filters"] = filters
 
-		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS, data, "fragment")
+		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

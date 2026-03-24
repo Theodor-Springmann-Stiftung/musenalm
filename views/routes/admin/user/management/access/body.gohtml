@@ -1,0 +1,133 @@
+{{ $model := . }}
+
+
+<script src="/assets/js/qrcode.min.js"></script>
+
+<script type="module">
+	GenQRCode(token.value);
+	SelectableInput(token);
+</script>
+
+<div class="flex container-normal bg-slate-100 mx-auto !pt-36 px-8">
+	<div class="flex-col w-full">
+		{{ if $model.redirect_url }}
+			<a href="{{ $model.redirect_url }}" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Zurück </a>
+		{{ else }}
+			<a href="/" class="text-gray-700 hover:text-slate-950"> <i class="ri-arrow-left-s-line"></i> Startseite </a>
+		{{ end }}
+		<h1 class="text-2xl self-baseline w-full mt-6 mb-2 font-bold text-slate-900">Nutzer einladen</h1>
+		<div class="text-sm text-slate-600 !hyphens-auto mb-6 max-w-[60ch]">
+			<i class="ri-question-line"></i>
+			Mit diesem Link können neue Accounts registriert werden. Geben Sie den Link an Personen weiter, die Sie einladen möchten.
+		</div>
+	</div>
+</div>
+
+<div class="user-invites flex container-normal mx-auto px-8 mt-4">
+	<div class="flex flex-row w-full">
+		<div class="flex-col max-w-xl w-full">
+			<!-- QR Code -->
+			<div class="mb-4 border rounded-xs min-w-full aspect-square">
+				<div id="qr" class="m-4 aspect-square"></div>
+			</div>
+
+			<!-- Access URL and Token -->
+			<div class="mb-6 flex flex-col" id="token-container">
+				<div class="flex flex-row">
+					<input
+						type="text"
+						name="token"
+						id="token"
+						class="w-full text-center border border-slate-300 rounded-xs
+					focus:border-slate-500 focus:ring-slate-500 p-1 px-2 overflow-ellipsis"
+						value="{{ $model.access_url }}"
+						deactive
+						readonly />
+					<tool-tip position="top">
+						<div class="data-tip font-bold hidden">Kopieren</div>
+						<button
+							type="button"
+							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
+					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
+					focus:outline-none no-underline
+					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
+							onclick="navigator.clipboard.writeText(token.value)">
+							<i class="ri-file-copy-line"></i>
+						</button>
+					</tool-tip>
+					<tool-tip position="top">
+						<div class="data-tip font-bold hidden">In neuem Fenster öffnen</div>
+						<a
+							id="access-link"
+							href="{{ $model.relative_url }}"
+							target="_blank"
+							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
+					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
+					focus:outline-none no-underline
+					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+							<i class="ri-external-link-line"></i>
+						</a>
+					</tool-tip>
+					<form class="" method="POST" hx-boost="false" x-target="token access-link qrinfo" @ajax:after="GenQRCode(token.value); SelectableInput(token)">
+						<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
+						<div class="col-span-9 flex flex-row items-center justify-center">
+							<tool-tip position="top">
+								<div class="data-tip font-bold hidden">Link invalidieren</div>
+								<button
+									type="submit"
+									class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
+					rounded-xs
+					shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer
+					focus:outline-none no-underline
+					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+									<i class="ri-loop-left-line"></i>
+								</button>
+							</tool-tip>
+						</div>
+					</form>
+				</div>
+				<div class="text-right text-slate-400 mb-1 mt-3" id="qrinfo">7 Tage gültig &ndash; {{ $model.validUntil }}</div>
+			</div>
+			<!-- End of Access URL and Token -->
+		</div>
+		<!-- End of First Column -->
+
+		<!-- Second column -->
+		<div class="ml-12 flex flex-col">
+			<!-- User Role Chooser -->
+			<div class="user-chooser flex flex-col gap-y-3">
+				<a href="/admin/user/management/access/User?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "User" }}aria-current="page"{{ end }}> Benutzer </a>
+				{{ if eq $model.role "User" }}
+					<div class="max-w-[60ch] text-sm text-blue-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>Benutzer können private Felder und Datensätze einsehen, aber nicht bearbeiten oder löschen.</div>
+					</div>
+				{{- end -}}
+				<a href="/admin/user/management/access/Editor?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "Editor" }}aria-current="page"{{ end }}> Redakteur </a>
+				{{- if eq $model.role "Editor" -}}
+					<div class="max-w-[60ch] text-sm text-orange-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>Redakteure können alle Felder und Datensätze der Datenbank einsehen, bearbeiten oder löschen.</div>
+					</div>
+				{{- end -}}
+				<a href="/admin/user/management/access/Admin?redirectTo={{ $model.redirect_url }}" {{ if eq $model.role "Admin" }}aria-current="page"{{ end }}> Admin </a>
+				{{- if eq $model.role "Admin" -}}
+					<div class="max-w-[60ch] text-sm text-red-600 flex flex-row gap-x-2 hyphens-auto">
+						<div>
+							<i class="ri-error-warning-line"></i>
+						</div>
+						<div>Administratoren können alle Felder und Datensätze einsehen, bearbeiten oder löschen. Administratoren können Passwörter setzen, Nutzer einladen und deaktivieren.</div>
+					</div>
+				{{- end -}}
+			</div>
+			<!-- End of User Role Chooser -->
+		</div>
+		<!-- End of second column -->
+	</div>
+</div>

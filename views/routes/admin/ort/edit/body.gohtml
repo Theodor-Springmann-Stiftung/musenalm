@@ -1,0 +1,558 @@
+{{ $model := . }}
+{{ $place := $model.result.Place }}
+
+<edit-page>
+<duplicate-warning-checker></duplicate-warning-checker>
+<div class="flex container-normal bg-slate-100 mx-auto px-8">
+	<div class="flex flex-row w-full justify-between">
+		<div class="flex flex-col justify-end-safe flex-2/5">
+			<div class="mb-1">
+				<i class="ri-map-pin-line"></i> Ort
+			</div>
+			<h1 class="text-2xl w-full font-bold text-slate-900 mb-1">
+				{{- if $model.is_new -}}
+					Neuen Ort anlegen
+				{{- else -}}
+					{{- $place.Name -}}
+				{{- end -}}
+			</h1>
+			{{- if not $model.is_new -}}
+				<div class="flex flex-row gap-x-3">
+					<div>
+						<a href="/reihen/?place={{ $place.Id }}" class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Anschauen
+						</a>
+					</div>
+					&middot;
+					<div>
+						<a href="/admin/orte/" class="text-gray-700 hover:text-slate-950 block no-underline">
+							<i class="ri-eye-line"></i> Orte
+						</a>
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+		{{- if not $model.is_new -}}
+		<div class="flex flex-row" id="place-header-data">
+			<div class="flex flex-col justify-end gap-y-6 pr-20">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-navigation-line"></i> Navigation
+					</div>
+					<div class="flex items-center gap-2">
+						{{- if $model.result.Prev -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Prev.Name }}</div>
+								<a
+									href="/admin/ort/{{ $model.result.Prev.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-left-s-line"></i>
+							</span>
+						{{- end -}}
+						<span class="text-gray-800 font-bold no-underline">
+						A&thinsp;-&thinsp;Z
+						</span>
+						{{- if $model.result.Next -}}
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ $model.result.Next.Name }}</div>
+								<a
+									href="/admin/ort/{{ $model.result.Next.Id }}/edit"
+									class="text-gray-700 hover:text-slate-950 no-underline">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+							</tool-tip>
+						{{- else -}}
+							<span class="text-gray-700 opacity-0 pointer-events-none">
+								<i class="ri-arrow-right-s-line"></i>
+							</span>
+						{{- end -}}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
+				<div class="">
+					<div class="font-bold text-sm">
+						<i class="ri-database-2-line"></i> Datenbank-ID
+					</div>
+					<div class="whitespace-nowrap tabular-nums">{{ $place.Id }}</div>
+				</div>
+			</div>
+			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
+				<div class="">
+					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
+					<div>
+						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums" id="place-updated-stamp">
+							<span id="place-updated-date">{{ GermanDate $place.Updated }}</span>,
+							<span id="place-updated-time">{{ GermanTime $place.Updated }}</span>h
+						</div>
+						<div
+							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
+							id="place-updated-user">
+							<i class="ri-user-line mr-1"></i>
+							<span id="place-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{- end -}}
+	</div>
+</div>
+
+<div class="container-normal mx-auto mt-4 !px-0">
+	{{/* usermessage moved into action bar */}}
+	<form
+		autocomplete="off"
+		class="w-full dbform form-with-action-bar"
+		id="changeplaceform"
+		method="POST"
+		action="{{ if $model.is_new }}/admin/orte/new/{{ else }}/admin/ort/{{ $place.Id }}/edit{{ end }}"
+		{{- if not $model.is_new -}}
+			data-delete-endpoint="/admin/ort/{{ $place.Id }}/edit/delete"
+		{{- end -}}>
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $place.Updated }}{{ end }}" />
+
+		<div class="flex gap-8">
+			<div class="flex-1 flex flex-col gap-4">
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<div class="flex items-center gap-1">
+							<label for="name" class="inputlabel">Name</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ help "places" "name" }}</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
+					</div>
+					<lookup-field
+						id="place-name-field"
+						name="name"
+						data-multiline="true"
+						data-no-enter="true"
+						data-required="true"
+						data-autocomplete="false"
+						data-valid-fn="lookupRequiredText"
+						data-dup-endpoint="/admin/api/places/search"
+						data-dup-result-key="places"
+						data-dup-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}"
+						value="{{- $place.Name -}}">
+					</lookup-field>
+				</div>
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<div class="flex items-center gap-1">
+							<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
+							<tool-tip position="top" class="!inline">
+								<div class="data-tip">{{ help "places" "pseudonyms" }}</div>
+								<i class="ri-question-line"></i>
+							</tool-tip>
+						</div>
+					</div>
+					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+					<div class="flex items-center gap-1">
+						<label for="uri" class="inputlabel">URL</label>
+						<tool-tip position="top" class="!inline">
+							<div class="data-tip">{{ help "places" "uri" }}</div>
+							<i class="ri-question-line"></i>
+						</tool-tip>
+					</div>
+					</div>
+					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
+				</div>
+				<div class="inputwrapper">
+				<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+				<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />
+				<label class="flex items-center gap-1 text-gray-700" for="fictional">
+					<span>Fiktional</span>
+					<tool-tip position="top" class="!inline">
+						<div class="data-tip">{{ help "places" "fictional" }}</div>
+						<i class="ri-question-line"></i>
+					</tool-tip>
+				</label>
+				</div>
+				</div>
+				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}
+			</div>
+
+			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+				{{ template "_status_edit" (Arr $place "status" "status" "places") }}
+				<div class="mt-2">
+					{{ template "_linked_items" (Arr $model.result.Entries nil nil nil nil true $model.csrf_token) }}
+				</div>
+			</div>
+		</div>
+
+		<div class="form-action-bar">
+			<div class="form-action-bar-inner">
+				<p
+					id="place-save-feedback"
+					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+					{{ if $model.success }}data-autohide="true"{{ end }}
+					aria-live="polite">
+					{{- if $model.error -}}
+						{{ $model.error }}
+					{{- else if $model.success -}}
+						{{ $model.success }}
+					{{- end -}}
+				</p>
+				<div class="form-action-bar-actions">
+					<a href="/admin/orte/" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
+						<i class="ri-close-line"></i>
+						<span>Abbrechen</span>
+					</a>
+					{{- if not $model.is_new -}}
+						<button
+							type="button"
+							class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+							data-role="edit-delete">
+							<i class="ri-delete-bin-line"></i>
+							<span>Ort löschen</span>
+						</button>
+					{{- end -}}
+					{{- if not $model.is_new -}}
+						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
+							<i class="ri-save-line"></i>
+							<span>Speichern</span>
+						</button>
+						<button
+							type="submit"
+							name="save_action"
+							value="view"
+							class="submitbutton flex items-center gap-2 justify-center"
+							>
+							<i class="ri-eye-line"></i>
+							<span>Speichern &amp; Anzeigen</span>
+						</button>
+					{{- end -}}
+					{{- if $model.is_new -}}
+						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
+							<i class="ri-save-line"></i>
+							<span>Speichern</span>
+						</button>
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+		{{- if not $model.is_new -}}
+		<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[22rem]">
+				<div class="text-base font-bold text-gray-900">Ort löschen?</div>
+				<div class="text-sm font-bold text-gray-900 mt-1">{{ $place.Name }}</div>
+				<p class="text-sm text-gray-700 mt-2">
+					Der Ort wird gelöscht und aus allen verknüpften Bänden entfernt.
+				</p>
+				<div class="mt-3">
+					<div class="text-sm font-semibold text-gray-700">Betroffene Bände</div>
+					<div class="mt-2 max-h-40 overflow-auto pr-1">
+						{{- if $model.result.Entries -}}
+							<ul class="flex flex-col gap-2 pl-0 pr-0 m-0 list-none">
+								{{- range $entry := $model.result.Entries -}}
+									<li class="flex items-baseline justify-between gap-3 ml-0 pl-0 text-sm text-gray-700">
+										<span>{{ $entry.PreferredTitle }}</span>
+										<span class="text-xs text-gray-500">{{ $entry.Year }}</span>
+									</li>
+								{{- end -}}
+							</ul>
+						{{- else -}}
+							<div class="italic text-gray-500">Keine Bände betroffen.</div>
+						{{- end -}}
+					</div>
+				</div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="edit-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="edit-delete-confirm">
+						Löschen
+					</button>
+				</div>
+			</div>
+		</dialog>
+		<dialog data-role="baende-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[26rem]">
+				<div class="text-base font-bold text-gray-900">Band löschen?</div>
+				<div data-role="baende-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+				<div data-role="baende-delete-impacts" class="mt-2 text-sm text-gray-700">
+					Lade Informationen …
+				</div>
+				<div data-role="baende-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="baende-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="baende-delete-confirm">
+						Löschen
+					</button>
+				</div>
+				<input type="hidden" data-role="baende-delete-csrf" value="{{ $model.csrf_token }}" />
+			</div>
+		</dialog>
+		<dialog data-role="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+			<div class="p-5 w-[26rem]">
+				<div class="text-base font-bold text-gray-900">Beitrag löschen?</div>
+				<div data-role="content-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+				<div data-role="content-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+				<div class="flex items-center justify-end gap-3 mt-4">
+					<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
+					<button
+						type="button"
+						class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm"
+						data-role="content-delete-confirm">
+						Löschen
+					</button>
+				</div>
+				<input type="hidden" data-role="content-delete-csrf" value="{{ $model.csrf_token }}" />
+			</div>
+		</dialog>
+		<script>
+			(() => {
+				const dialog = document.querySelector("[data-role='baende-delete-dialog']");
+				if (!dialog) return;
+				const titleEl = dialog.querySelector("[data-role='baende-delete-title']");
+				const impactsEl = dialog.querySelector("[data-role='baende-delete-impacts']");
+				const errorEl = dialog.querySelector("[data-role='baende-delete-error']");
+				const cancelBtn = dialog.querySelector("[data-role='baende-delete-cancel']");
+				const confirmBtn = dialog.querySelector("[data-role='baende-delete-confirm']");
+				const csrfInput = dialog.querySelector("[data-role='baende-delete-csrf']");
+
+				let currentEntryId = "";
+				let currentDeleteEndpoint = "";
+
+				const closeDialog = (event) => {
+					if (event) {
+						event.preventDefault();
+					}
+					if (dialog.open) {
+						dialog.close();
+					}
+				};
+
+				const openDialog = () => {
+					if (typeof dialog.showModal === "function") {
+						dialog.showModal();
+					}
+				};
+
+				const setError = (message) => {
+					if (!errorEl) return;
+					if (message) {
+						errorEl.textContent = message;
+						errorEl.classList.remove("hidden");
+					} else {
+						errorEl.textContent = "";
+						errorEl.classList.add("hidden");
+					}
+				};
+
+				const handleDeleteClick = async (event) => {
+					let button = null;
+					const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+					for (const node of path) {
+						if (node && node.getAttribute && node.getAttribute("data-role") === "baende-delete") {
+							button = node;
+							break;
+						}
+					}
+					if (!button && event.target && event.target.closest) {
+						button = event.target.closest("[data-role='baende-delete']");
+					}
+					if (!button) return;
+					event.preventDefault();
+					event.stopPropagation();
+
+					currentEntryId = button.getAttribute("data-entry-id") || "";
+					currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+					const entryTitle = button.getAttribute("data-entry-title") || "";
+
+					if (titleEl) {
+						titleEl.textContent = entryTitle ? entryTitle : "Unbekannter Eintrag";
+					}
+					if (impactsEl) {
+						impactsEl.textContent = "Lade Informationen …";
+					}
+					setError("");
+					openDialog();
+
+					if (!currentEntryId || !impactsEl) return;
+					try {
+						const response = await fetch(`/admin/baende/delete-info/${encodeURIComponent(currentEntryId)}`);
+						if (!response.ok) {
+							throw new Error("Infos konnten nicht geladen werden.");
+						}
+						const html = await response.text();
+						impactsEl.innerHTML = html;
+					} catch (error) {
+						impactsEl.textContent = "Infos konnten nicht geladen werden.";
+					}
+				};
+
+				document.addEventListener("click", handleDeleteClick, true);
+
+				if (cancelBtn) {
+					cancelBtn.addEventListener("click", closeDialog);
+				}
+				dialog.addEventListener("cancel", closeDialog);
+
+				if (confirmBtn) {
+					confirmBtn.addEventListener("click", async (event) => {
+						event.preventDefault();
+						if (!currentDeleteEndpoint || !csrfInput) return;
+						setError("");
+						try {
+							const response = await fetch(currentDeleteEndpoint, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+									Accept: "application/json",
+								},
+								body: JSON.stringify({
+									csrf_token: csrfInput.value || "",
+								}),
+							});
+							let data = null;
+							try {
+								data = await response.clone().json();
+							} catch {
+								data = null;
+							}
+							if (!response.ok) {
+								throw new Error(data?.error || "Löschen fehlgeschlagen.");
+							}
+							closeDialog();
+							if (currentEntryId) {
+								const items = document.querySelectorAll(`[data-entry-id='${CSS.escape(currentEntryId)}']`);
+								items.forEach((item) => {
+									const row = item.closest("li");
+									if (row) row.remove();
+								});
+							}
+						} catch (error) {
+							setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+						}
+					});
+				}
+			})();
+		</script>
+		<script>
+			(() => {
+				const dialog = document.querySelector("[data-role='content-delete-dialog']");
+				if (!dialog) return;
+				const titleEl = dialog.querySelector("[data-role='content-delete-title']");
+				const errorEl = dialog.querySelector("[data-role='content-delete-error']");
+				const cancelBtn = dialog.querySelector("[data-role='content-delete-cancel']");
+				const confirmBtn = dialog.querySelector("[data-role='content-delete-confirm']");
+				const csrfInput = dialog.querySelector("[data-role='content-delete-csrf']");
+
+				let currentContentId = "";
+				let currentDeleteEndpoint = "";
+
+				const closeDialog = (event) => {
+					if (event) {
+						event.preventDefault();
+					}
+					if (dialog.open) {
+						dialog.close();
+					}
+				};
+
+				const openDialog = () => {
+					if (typeof dialog.showModal === "function") {
+						dialog.showModal();
+					}
+				};
+
+				const setError = (message) => {
+					if (!errorEl) return;
+					if (message) {
+						errorEl.textContent = message;
+						errorEl.classList.remove("hidden");
+					} else {
+						errorEl.textContent = "";
+						errorEl.classList.add("hidden");
+					}
+				};
+
+				const handleDeleteClick = (event) => {
+					let button = null;
+					const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+					for (const node of path) {
+						if (node && node.getAttribute && node.getAttribute("data-role") === "content-delete") {
+							button = node;
+							break;
+						}
+					}
+					if (!button && event.target && event.target.closest) {
+						button = event.target.closest("[data-role='content-delete']");
+					}
+					if (!button) return;
+					event.preventDefault();
+					event.stopPropagation();
+
+					currentContentId = button.getAttribute("data-content-id") || "";
+					currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+					const contentTitle = button.getAttribute("data-content-title") || "";
+
+					if (titleEl) {
+						titleEl.textContent = contentTitle ? contentTitle : "Unbekannter Beitrag";
+					}
+					setError("");
+					openDialog();
+				};
+
+				document.addEventListener("click", handleDeleteClick, true);
+
+				if (cancelBtn) {
+					cancelBtn.addEventListener("click", closeDialog);
+				}
+				dialog.addEventListener("cancel", closeDialog);
+
+				if (confirmBtn) {
+					confirmBtn.addEventListener("click", async (event) => {
+						event.preventDefault();
+						if (!currentDeleteEndpoint || !csrfInput || !currentContentId) return;
+						setError("");
+						const payload = new URLSearchParams();
+						payload.set("csrf_token", csrfInput.value || "");
+						payload.set("content_id", currentContentId);
+						try {
+							const response = await fetch(currentDeleteEndpoint, {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/x-www-form-urlencoded",
+									"HX-Request": "true",
+								},
+								body: payload.toString(),
+							});
+							if (!response.ok) {
+								throw new Error("Löschen fehlgeschlagen.");
+							}
+							closeDialog();
+							if (currentContentId) {
+								const items = document.querySelectorAll(`[data-content-id='${CSS.escape(currentContentId)}']`);
+								items.forEach((item) => {
+									const row = item.closest("li");
+									if (row) row.remove();
+								});
+							}
+						} catch (error) {
+							setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+						}
+					});
+				}
+			})();
+		</script>
+		{{- end -}}
+	</form>
+</div>
+</edit-page>
