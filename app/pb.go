@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/exports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -97,6 +98,7 @@ func (bc *BaendeCache) GetUsers() interface{} {
 func (bc *BaendeCache) GetContentsCount() interface{} {
 	return bc.ContentsCount
 }
+
 const (
 	TEST_SUPERUSER_MAIL = "demo@example.com"
 	TEST_SUPERUSER_PASS = "password"
@@ -203,6 +205,7 @@ func (app *App) Serve() error {
 	app.PB.OnServe().BindFunc(app.bindPages(engine))
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		imports.MarkInterruptedFTS5Rebuild(e.App)
+		exports.CleanupInterrupted(e.App)
 		return e.Next()
 	})
 	return app.PB.Start()

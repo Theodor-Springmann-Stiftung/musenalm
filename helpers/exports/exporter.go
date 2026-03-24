@@ -41,6 +41,7 @@ func ListTables(app core.App) ([]string, error) {
 		"_authorigins":   {},
 		"_authOrigins":   {},
 		"access_tokens":  {},
+		dbmodels.SESSIONS_TABLE: {},
 	}
 
 	filtered := tables[:0]
