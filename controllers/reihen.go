@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -75,6 +76,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 	data := map[string]any{}
 	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 
+	// HINT: Param pparsing ahs a certian order of precedence
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	if search != "" {
 		data[PARAM_SEARCH] = search
@@ -125,10 +127,18 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 
 	letter := e.Request.URL.Query().Get(PARAM_LETTER)
 	if letter == "" {
-		data["startpage"] = true
 		letter = "A"
 	}
 	data[PARAM_LETTER] = letter
+
+	// When we came from the start page, we want the hero banner to show
+	ref := e.Request.Referer()
+	if ref != "" {
+		u, err := url.Parse(ref)
+		if err == nil && (u.Path == "/" || u.Path == "") {
+			data["startpage"] = true
+		}
+	}
 
 	result, err := NewSeriesListResult_Letter(app, letter)
 	if err != nil {

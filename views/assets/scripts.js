@@ -8844,16 +8844,7 @@ class ac extends HTMLElement {
         D && (R = D[1]);
       }
     }
-    const wt = /* @__PURE__ */ new Set([
-      "kontakt",
-      "danksagungen",
-      "literatur",
-      "einleitung",
-      "benutzerhinweise",
-      "lesekabinett",
-      "reihen",
-      "index"
-    ]), mt = o.replace(/\/+$/, "") || "/", li = (F) => !F || !wt.has(F) ? !1 : F === "index" ? mt === "/" || mt === "/index" : mt === `/${F}` || mt === `/redaktion/${F}`, Tt = document.querySelector('meta[name="page-key"]')?.content?.trim();
+    const wt = /* @__PURE__ */ new Set(["kontakt", "danksagungen", "literatur", "einleitung", "benutzerhinweise", "lesekabinett", "reihen", "index"]), mt = o.replace(/\/+$/, "") || "/", li = (F) => !F || !wt.has(F) ? !1 : F === "index" ? mt === "/" || mt === "/index" : mt === `/${F}` || mt === `/redaktion/${F}`, Tt = document.querySelector('meta[name="page-key"]')?.content?.trim();
     if (Tt && li(Tt))
       $ = !0, _ = Tt;
     else {
@@ -9079,7 +9070,7 @@ class ac extends HTMLElement {
 					${ui}
 
 					<!-- Rest of menu (hidden in half state, shown in full state) -->
-					<div class="fab-full-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0; opacity: 0;">
+					<div class="fab-full-content overflow-hidden transition-all duration-200 ease-in-out" style="max-height: 0; opacity: 0;">
 						${di}
 						${ci}
 						${hi}
@@ -9104,7 +9095,7 @@ class ac extends HTMLElement {
 				</button>
 
 			</div>
-		`, this._button = this.querySelector(".fab-button"), this._icon = this.querySelector(".fab-icon"), this._menu = this.querySelector(".fab-menu"), this._fullContent = this.querySelector(".fab-full-content"), this.state = this.hasContext ? "half" : "closed", this.setState(this.state), this._button.addEventListener("click", this.handleClick), document.addEventListener("click", this.handleClickAway);
+		`, this._button = this.querySelector(".fab-button"), this._icon = this.querySelector(".fab-icon"), this._menu = this.querySelector(".fab-menu"), this._fullContent = this.querySelector(".fab-full-content"), this.state = (this.hasContext, "closed"), this.setState(this.state), this._button.addEventListener("click", this.handleClick), document.addEventListener("click", this.handleClickAway);
   }
   disconnectedCallback() {
     this._button.removeEventListener("click", this.handleClick), document.removeEventListener("click", this.handleClickAway);
@@ -9113,17 +9104,17 @@ class ac extends HTMLElement {
     t.stopPropagation(), this.nextState();
   }
   handleClickAway(t) {
-    this.contains(t.target) || (this.hasContext ? this.setState("half") : this.setState("closed"));
+    this.contains(t.target) || (this.hasContext ? this.setState("closed") : this.setState("closed"));
   }
   nextState() {
     if (this.hasContext) {
-      this.setState(this.state === "half" ? "full" : "half");
+      this.setState(this.state === "closed" ? "full" : "closed");
       return;
     }
     this.state === "closed" ? this.setState("full") : this.setState("closed");
   }
   setState(t) {
-    if (this.hasContext && t === "closed" && (t = "half"), this.state = t, t === "closed")
+    if (this.hasContext && t === "closed" && (t = "closed"), this.state = t, t === "closed")
       this._menu.style.opacity = "0", this._menu.style.transform = "translateY(8px)", this._fullContent.style.maxHeight = "0", this._fullContent.style.opacity = "0", setTimeout(() => {
         this.state === "closed" && this._menu.classList.add("hidden");
       }, 200), this._icon.classList.remove("ri-arrow-up-s-line", "ri-close-line"), this._icon.classList.add("ri-menu-line"), this._button.style.backgroundColor = "", this._button.style.borderColor = "", this._button.classList.remove("shadow-md"), this._button.classList.add("shadow-sm");

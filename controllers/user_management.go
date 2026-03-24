@@ -30,7 +30,7 @@ func init() {
 	ump := &UserManagementPage{
 		StaticPage: pagemodels.StaticPage{
 			Name:     pagemodels.P_USER_MGMT_NAME,
-			Layout:   "blankfooter",
+			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 			Template: TEMPLATE_USER_MANAGEMENT,
 			URL:      URL_USER_MANAGEMENT,
 		},

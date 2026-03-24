@@ -68,7 +68,7 @@ const (
 <p>Adrian Braunbehrens</p>`
 
 	KONTAKT_TITLE       = "Kontakt"
-	KONTAKT_TEXT        = `<p>Martin Sietzen und Dr. Jakob Br&uuml;ssermann<br>Theodor-Springmann-Stiftung<br>Hirschgasse 2 <br><br>69120 Heidelberg<br><a href="mailto:info@musenalm.de">info@musenalm.de</a></p>`
+	KONTAKT_TEXT        = `<p>Dr. Jakob Br&uuml;ssermann<br>Theodor-Springmann-Stiftung<br>Hirschgasse 2 <br><br>69120 Heidelberg<br><a href="mailto:info@musenalm.de">info@musenalm.de</a></p>`
 	KONTAKT_DESCRIPTION = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Kontakt zur Redaktion."
 
 	LITERATUR_TITLE       = "Literatur"

@@ -78,16 +78,7 @@ export class FabMenu extends HTMLElement {
 			}
 		}
 
-		const knownPageKeys = new Set([
-			"kontakt",
-			"danksagungen",
-			"literatur",
-			"einleitung",
-			"benutzerhinweise",
-			"lesekabinett",
-			"reihen",
-			"index",
-		]);
+		const knownPageKeys = new Set(["kontakt", "danksagungen", "literatur", "einleitung", "benutzerhinweise", "lesekabinett", "reihen", "index"]);
 		const normalizedPath = path.replace(/\/+$/, "") || "/";
 		const matchesPageKeyPath = (key) => {
 			if (!key || !knownPageKeys.has(key)) {
@@ -382,7 +373,7 @@ export class FabMenu extends HTMLElement {
 					${contextualDivider}
 
 					<!-- Rest of menu (hidden in half state, shown in full state) -->
-					<div class="fab-full-content overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0; opacity: 0;">
+					<div class="fab-full-content overflow-hidden transition-all duration-200 ease-in-out" style="max-height: 0; opacity: 0;">
 						${createSection}
 						${listenSection}
 						${adminSection}
@@ -416,7 +407,7 @@ export class FabMenu extends HTMLElement {
 		this._fullContent = this.querySelector(".fab-full-content");
 
 		// Initialize state: if we have context, start half-open, otherwise closed
-		this.state = this.hasContext ? "half" : "closed";
+		this.state = this.hasContext ? "closed" : "closed";
 		this.setState(this.state);
 
 		// Add event listeners
@@ -437,7 +428,7 @@ export class FabMenu extends HTMLElement {
 	handleClickAway(e) {
 		if (!this.contains(e.target)) {
 			if (this.hasContext) {
-				this.setState("half");
+				this.setState("closed");
 			} else {
 				this.setState("closed");
 			}
@@ -446,7 +437,7 @@ export class FabMenu extends HTMLElement {
 
 	nextState() {
 		if (this.hasContext) {
-			this.setState(this.state === "half" ? "full" : "half");
+			this.setState(this.state === "closed" ? "full" : "closed");
 			return;
 		}
 		if (this.state === "closed") {
@@ -458,7 +449,7 @@ export class FabMenu extends HTMLElement {
 
 	setState(newState) {
 		if (this.hasContext && newState === "closed") {
-			newState = "half";
+			newState = "closed";
 		}
 		this.state = newState;
 

@@ -1,7 +1,7 @@
 package pagemodels
 
 const (
-	LAYOUT_LOGIN_PAGES = "blankfooter"
+	LAYOUT_LOGIN_PAGES = "admin"
 	P_KABINETT_NAME    = "lesekabinett"
 	P_BEITRAG_NAME     = "beitrag"
 	P_DATENSCHUTZ_NAME = "datenschutz"
@@ -12,14 +12,14 @@ const (
 	T_INDEX_BILDER = "bilder"
 	T_INDEX_TEXTE  = "texte"
 
-	P_REIHEN_NAME      = "reihen"
-	P_BAENDE_NAME      = "baende"
-	P_ORTE_NAME        = "orte"
+	P_REIHEN_NAME       = "reihen"
+	P_BAENDE_NAME       = "baende"
+	P_ORTE_NAME         = "orte"
 	P_ABKUERZUNGEN_NAME = "abkuerzungen"
-	P_DANK_NAME        = "danksagungen"
-	P_KONTAKT_NAME     = "kontakt"
-	P_LIT_NAME         = "literatur"
-	P_EINFUEHRUNG_NAME = "einleitung"
+	P_DANK_NAME         = "danksagungen"
+	P_KONTAKT_NAME      = "kontakt"
+	P_LIT_NAME          = "literatur"
+	P_EINFUEHRUNG_NAME  = "einleitung"
 
 	P_DOK_NAME = "benutzerhinweise"
 
@@ -46,13 +46,13 @@ const (
 
 	P_SEITEN_EDIT_NAME = "seiten_edit"
 
-	P_ALMANACH_EDIT_NAME = "almanach_edit"
+	P_ALMANACH_EDIT_NAME          = "almanach_edit"
 	P_ALMANACH_CONTENTS_EDIT_NAME = "almanach_contents_edit"
-	P_ALMANACH_NEW_NAME  = "almanach_new"
-	P_REIHE_EDIT_NAME    = "reihe_edit"
-	P_REIHE_NEW_NAME     = "reihe_new"
-	P_PERSON_EDIT_NAME   = "person_edit"
-	P_PERSON_NEW_NAME    = "person_new"
-	P_ORT_EDIT_NAME      = "ort_edit"
-	P_ORT_NEW_NAME       = "ort_new"
+	P_ALMANACH_NEW_NAME           = "almanach_new"
+	P_REIHE_EDIT_NAME             = "reihe_edit"
+	P_REIHE_NEW_NAME              = "reihe_new"
+	P_PERSON_EDIT_NAME            = "person_edit"
+	P_PERSON_NEW_NAME             = "person_new"
+	P_ORT_EDIT_NAME               = "ort_edit"
+	P_ORT_NEW_NAME                = "ort_new"
 )
