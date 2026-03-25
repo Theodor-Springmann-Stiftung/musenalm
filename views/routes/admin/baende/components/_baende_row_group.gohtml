@@ -1,0 +1,22 @@
+{{ $entry := .entry }}
+<tbody data-role="baende-row-group" data-entry-id="{{ $entry.MusenalmID }}">
+	<tr
+		class="align-top transition-colors{{ if not .expanded }} hover:bg-stone-100 cursor-pointer{{ end }}{{ if .expanded }} border-b-0{{ else }} border-b{{ end }}"
+		data-role="baende-row"
+		data-entry-id="{{ $entry.MusenalmID }}"
+		{{- if not .expanded -}}
+		hx-get="/admin/baende/details/{{ $entry.MusenalmID }}"
+		hx-target="closest tbody"
+		hx-swap="outerHTML"
+		{{- end -}}>
+		{{ template "_baende_row_cells" . }}
+	</tr>
+	{{- if and .expanded .details -}}
+		<tr class="border-b" data-role="baende-details" data-entry-id="{{ $entry.MusenalmID }}">
+			<td class="w-[12.5rem] py-0 pr-4 pl-4"></td>
+			<td colspan="7" class="py-0 pr-8 pb-4">
+				{{ template "_baende_detail_sections" (Dict "entry" $entry "details" .details) }}
+			</td>
+		</tr>
+	{{- end -}}
+</tbody>

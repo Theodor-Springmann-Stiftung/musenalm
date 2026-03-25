@@ -61,15 +61,19 @@ type BaendeSeriesLink struct {
 }
 
 type BaendeDetailsResult struct {
-	Entry      *dbmodels.Entry
-	Series     []*dbmodels.Series
-	Places     []*dbmodels.Place
-	Agents     []*dbmodels.Agent
-	Items      []*dbmodels.Item
-	SeriesRels []*dbmodels.REntriesSeries
-	AgentRels  []*dbmodels.REntriesAgents
-	IsAdmin    bool
-	CSRFToken  string
+	Entry         *dbmodels.Entry
+	Series        []*dbmodels.Series
+	SeriesLinks   []*BaendeSeriesLink
+	Places        []*dbmodels.Place
+	Agents        []*dbmodels.Agent
+	Items         []*dbmodels.Item
+	SeriesRels    []*dbmodels.REntriesSeries
+	AgentRels     []*dbmodels.REntriesAgents
+	EditorUser    *dbmodels.User
+	ContentsCount int
+	IsAdmin       bool
+	CanEdit       bool
+	CSRFToken     string
 }
 
 func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
@@ -177,6 +181,7 @@ func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFu
 			"contents_count": contentsCount,
 			"series_links":   buildBaendeSeriesLinks(seriesMap, relations),
 			"is_admin":       req.IsAdmin(),
+			"can_edit":       req.IsAdmin() || req.IsEditor(),
 			"csrf_token":     req.Session().Token,
 		}
 
@@ -231,17 +236,49 @@ func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) Hand
 			app.Logger().Error("Failed to get items for entry", "error", err)
 		}
 
+		contents, err := dbmodels.Contents_Entry(app, entry.Id)
+		if err != nil {
+			app.Logger().Error("Failed to get contents for entry", "error", err)
+		}
+		contentsCount := 0
+		if contents != nil {
+			contentsCount = len(contents)
+		}
+
+		var editorUser *dbmodels.User
+		if editorID := entry.Editor(); editorID != "" {
+			user, err := dbmodels.Users_ID(app, editorID)
+			if err != nil {
+				app.Logger().Error("Failed to get editor user for entry", "error", err)
+			} else {
+				editorUser = user
+			}
+		}
+
 		data := map[string]any{
 			"result": &BaendeDetailsResult{
-				Entry:      entry,
-				Series:     series,
-				Places:     places,
-				Agents:     agents,
-				Items:      items,
-				SeriesRels: relations,
-				AgentRels:  arelations,
-				IsAdmin:    req.IsAdmin(),
-				CSRFToken:  req.Session().Token,
+				Entry:  entry,
+				Series: series,
+				SeriesLinks: buildBaendeSeriesLinks(func() map[string]*dbmodels.Series {
+					seriesMap := make(map[string]*dbmodels.Series, len(series))
+					for _, s := range series {
+						if s == nil {
+							continue
+						}
+						seriesMap[s.Id] = s
+					}
+					return seriesMap
+				}(), relations),
+				Places:        places,
+				Agents:        agents,
+				Items:         items,
+				SeriesRels:    relations,
+				AgentRels:     arelations,
+				EditorUser:    editorUser,
+				ContentsCount: contentsCount,
+				IsAdmin:       req.IsAdmin(),
+				CanEdit:       req.IsAdmin() || req.IsEditor(),
+				CSRFToken:     req.Session().Token,
 			},
 		}
 

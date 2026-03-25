@@ -168,7 +168,7 @@
 	}
 
 	.admin-sidebar-frame {
-		@apply relative z-40 h-screen w-[19rem] shrink-0 overflow-visible border-r border-stone-400 bg-stone-50 transition-[width] duration-200;
+		@apply relative z-40 h-screen w-[17rem] shrink-0 overflow-visible border-r border-stone-400 bg-stone-50 transition-[width] duration-200;
 		box-shadow: 1px 0 0 rgba(68, 64, 60, 0.14);
 	}
 
@@ -369,7 +369,7 @@
 	}
 
 	.admin-layout-sidebar-collapsed .admin-sidebar-frame {
-		@apply w-[5.25rem] overflow-visible;
+		@apply w-[4.75rem] overflow-visible;
 	}
 
 	.admin-layout-sidebar-collapsed .admin-sidebar-brand {
@@ -804,6 +804,64 @@
 
 	.baende-details-card .annotation-small {
 		@apply text-sm;
+	}
+
+	.baende-detail-stack {
+		@apply flex flex-col gap-3 py-2;
+	}
+
+	.baende-detail-row {
+		@apply flex items-start gap-4 py-0.5;
+	}
+
+	.baende-detail-label {
+		@apply w-48 shrink-0 pt-0.5 font-serif text-base font-bold text-slate-800;
+	}
+
+	.baende-detail-value {
+		@apply min-w-0 flex-1 leading-snug text-slate-800;
+	}
+
+	.baende-detail-item-label {
+		@apply whitespace-nowrap text-xs font-semibold tracking-wide text-gray-500;
+	}
+
+	.baende-detail-item-value {
+		@apply min-w-0 leading-snug text-slate-800;
+	}
+
+	.baende-detail-row-items {
+		@apply items-start;
+	}
+
+	.baende-detail-items-grid {
+		@apply grid gap-3;
+		grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+	}
+
+	.baende-detail-item {
+		@apply divide-y divide-stone-200 rounded-sm border border-stone-200 bg-white;
+	}
+
+	.baende-detail-item-row {
+		@apply grid items-start gap-3 px-3 py-2;
+		grid-template-columns: 5.5rem minmax(0, 1fr);
+	}
+
+	#baende-table > tbody:nth-of-type(odd) > tr[data-role="baende-row"] {
+		@apply bg-white;
+	}
+
+	#baende-table > tbody:nth-of-type(even) > tr[data-role="baende-row"] {
+		@apply bg-stone-50/60;
+	}
+
+	#baende-table > tbody:nth-of-type(odd) > tr[data-role="baende-details"] {
+		@apply bg-white;
+	}
+
+	#baende-table > tbody:nth-of-type(even) > tr[data-role="baende-details"] {
+		@apply bg-stone-50/60;
 	}
 
 	/* Headings - bold with spacing, same font size */

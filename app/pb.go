@@ -688,27 +688,16 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		contentsCount = counts
 	}
 
-	// Load users (editors)
+	// Load all users so the quick filter can show every account, not only
+	// editors currently referenced by entries in the table.
 	usersMap := map[string]*dbmodels.User{}
-	editorIDs := map[string]struct{}{}
-	for _, entry := range entries {
-		if editorID := entry.Editor(); editorID != "" {
-			editorIDs[editorID] = struct{}{}
-		}
+	users, err := dbmodels.Users_All(app.PB.App)
+	if err != nil {
+		return nil, err
 	}
-	if len(editorIDs) > 0 {
-		userIDs := make([]any, 0, len(editorIDs))
-		for editorID := range editorIDs {
-			userIDs = append(userIDs, editorID)
-		}
-		users, err := dbmodels.TableByIDs[*dbmodels.User](app.PB.App, dbmodels.USERS_TABLE, userIDs)
-		if err != nil {
-			return nil, err
-		}
-		for _, user := range users {
-			if user != nil {
-				usersMap[user.Id] = user
-			}
+	for _, user := range users {
+		if user != nil {
+			usersMap[user.Id] = user
 		}
 	}
 

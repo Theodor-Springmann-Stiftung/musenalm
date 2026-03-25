@@ -1,0 +1,200 @@
+{{ $entry := .entry }}
+{{ $details := .details }}
+<div class="baende-detail-stack">
+	{{- if $entry.Annotation -}}
+		<div class="baende-detail-row">
+			<div class="baende-detail-label">Annotation</div>
+			<div class="baende-detail-value annotation-content">{{- Safe (ReplaceSlashParen $entry.Annotation) -}}</div>
+		</div>
+	{{- end -}}
+
+	{{- if $entry.Comment -}}
+		<div class="baende-detail-row">
+			<div class="baende-detail-label">Kommentar</div>
+			<div class="baende-detail-value annotation-content">{{- Safe (ReplaceSlashParen $entry.Comment) -}}</div>
+		</div>
+	{{- end -}}
+
+	{{- if ne $entry.Year 0 -}}
+		<div class="baende-detail-row detail-if-col-hidden-year hidden">
+			<div class="baende-detail-label">Jahr</div>
+			<div class="baende-detail-value">{{ $entry.Year }}</div>
+		</div>
+	{{- end -}}
+
+	{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
+		<div class="detail-if-col-hidden-appearance hidden">
+			{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Herausgaberangabe</div>
+					<div class="baende-detail-value">{{ $entry.ResponsibilityStmt }}</div>
+				</div>
+			{{- end -}}
+			{{- if $entry.PublicationStmt -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Publikationsangabe</div>
+					<div class="baende-detail-value">{{ $entry.PublicationStmt }}</div>
+				</div>
+			{{- end -}}
+			{{- if $entry.PlaceStmt -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Ortsangabe</div>
+					<div class="baende-detail-value">{{ $entry.PlaceStmt }}</div>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+
+	{{- if or $entry.Extent $entry.Dimensions $entry.Language -}}
+		<div class="detail-if-col-hidden-extent hidden">
+			{{- if $entry.Extent -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Umfang</div>
+					<div class="baende-detail-value">{{ $entry.Extent }}</div>
+				</div>
+			{{- end -}}
+			{{- if $entry.Dimensions -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Maße</div>
+					<div class="baende-detail-value">{{ $entry.Dimensions }}</div>
+				</div>
+			{{- end -}}
+			{{- if $entry.Language -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Sprache</div>
+					<div class="baende-detail-value">
+						{{- range $i, $lang := $entry.Language -}}{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}{{- end -}}
+					</div>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+
+	{{- if $details.SeriesLinks -}}
+		<div class="baende-detail-row detail-if-col-hidden-series hidden">
+			<div class="baende-detail-label">Reihen</div>
+			<div class="baende-detail-value">
+				<div class="flex flex-col gap-1">
+					{{- range $_, $link := $details.SeriesLinks -}}
+						<div>
+							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
+								<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $link.Relation.Type }}</span>
+							{{- end -}}
+							<a href="/reihe/{{ $link.Series.MusenalmID }}">{{ $link.Series.Title }}</a>
+						</div>
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+
+	{{- if $details.Places -}}
+		<div class="baende-detail-row">
+			<div class="baende-detail-label">Orte</div>
+			<div class="baende-detail-value">
+				<div class="flex flex-col gap-1">
+					{{- range $_, $place := $details.Places -}}
+						<div><a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a></div>
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+
+	{{- if $details.AgentRels -}}
+		<div class="baende-detail-row">
+			<div class="baende-detail-label">Personen</div>
+			<div class="baende-detail-value">
+				<div class="flex flex-col gap-1">
+					{{- range $_, $arel := $details.AgentRels -}}
+						{{- range $_, $agent := $details.Agents -}}
+							{{- if eq $agent.Id $arel.Agent -}}
+								<div>
+									<a href="/person/{{ $agent.Id }}">{{ $agent.Name }}</a>
+									<span class="ml-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $arel.Type }}</span>
+								</div>
+							{{- end -}}
+						{{- end -}}
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+
+	{{- $showItems := false -}}
+	{{- range $_, $item := $details.Items -}}
+		{{- if or $item.Identifier $item.Media $item.Location $item.Owner $item.Condition $item.Annotation $item.Uri -}}
+			{{- $showItems = true -}}
+		{{- end -}}
+	{{- end -}}
+	{{- if $showItems -}}
+		<div class="baende-detail-row baende-detail-row-items">
+			<div class="baende-detail-label">Exemplare</div>
+			<div class="baende-detail-value">
+				<div class="baende-detail-items-grid">
+					{{- range $_, $item := $details.Items -}}
+						<div class="baende-detail-item">
+							{{- if $item.Identifier -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Signatur</div>
+									<div class="baende-detail-item-value">{{ $item.Identifier }}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Media -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Status</div>
+									<div class="baende-detail-item-value">{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Location -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Standort</div>
+									<div class="baende-detail-item-value">{{ $item.Location }}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Owner -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Träger</div>
+									<div class="baende-detail-item-value">{{ $item.Owner }}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Condition -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Zustand</div>
+									<div class="baende-detail-item-value">{{ $item.Condition }}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Annotation -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">Anmerkung</div>
+									<div class="baende-detail-item-value annotation-content annotation-small">{{- Safe (ReplaceSlashParen $item.Annotation) -}}</div>
+								</div>
+							{{- end -}}
+							{{- if $item.Uri -}}
+								<div class="baende-detail-item-row">
+									<div class="baende-detail-item-label">URI</div>
+									<div class="baende-detail-item-value"><a href="{{ $item.Uri }}" target="_blank" rel="noopener">Link öffnen</a></div>
+								</div>
+							{{- end -}}
+						</div>
+					{{- end -}}
+				</div>
+			</div>
+		</div>
+	{{- end -}}
+
+	{{- if $entry.Updated -}}
+		<div class="detail-if-col-hidden-modified hidden">
+			<div class="baende-detail-row">
+				<div class="baende-detail-label">Bearbeitet am</div>
+				<div class="baende-detail-value tabular-nums">{{ GermanShortDateTime $entry.Updated }}</div>
+			</div>
+			{{- if $details.EditorUser -}}
+				<div class="baende-detail-row">
+					<div class="baende-detail-label">Benutzer</div>
+					<div class="baende-detail-value">{{ $details.EditorUser.Name }}</div>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</div>

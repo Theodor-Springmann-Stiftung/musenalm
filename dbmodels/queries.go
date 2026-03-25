@@ -143,6 +143,12 @@ func Users_ID(app core.App, id string) (*User, error) {
 	return &ret, err
 }
 
+func Users_All(app core.App) ([]*User, error) {
+	users := make([]*User, 0)
+	err := app.RecordQuery(USERS_TABLE).All(&users)
+	return users, err
+}
+
 func Sessions_ID(app core.App, id string) (*Session, error) {
 	ret, err := TableByID[Session](app, SESSIONS_TABLE, id)
 	return &ret, err

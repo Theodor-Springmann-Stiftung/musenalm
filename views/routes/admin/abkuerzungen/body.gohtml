@@ -7,7 +7,8 @@
 			<div class="flex w-full items-start justify-between gap-4">
 				<div>
 					<h1 class="admin-page-title">Abkürzungen</h1>
-					<p class="admin-page-description">Abkürzungen und ihre Auflösungen für die Redaktion zentral pflegen.</p>
+					<p class="admin-page-description">Abkürzungen können hier angeben, bearbeitet oder entfernt werden. Sie werden dann
+					im Feld »Strukur« bzw. »Umfang« für die Besucher mit Hinweisen versehen.</p>
 				</div>
 				{{- if (IsAdminOrEditor $model.request.user) -}}
 					<button type="button" onclick="window.addAbkuerzungRow?.()" class="inline-flex items-center gap-1.5 rounded-xs bg-slate-800 px-3 py-1.5 font-sans text-[0.98rem] font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">

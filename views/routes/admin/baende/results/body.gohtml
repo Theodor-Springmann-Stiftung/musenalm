@@ -31,7 +31,7 @@
 			class="content-action-button"
 			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (person) params.set('person', person); if (user) params.set('user', user); if (year) params.set('year', year); if (place) params.set('place', place); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/baende/more/?${params.toString()}`; })()"
 			hx-replace-url="true"
-			hx-target="#baende-tbody"
+			hx-target="#baende-table"
 			hx-swap="beforeend"
 			hx-indicator="this"
 			@htmx:before-request="loading = true"

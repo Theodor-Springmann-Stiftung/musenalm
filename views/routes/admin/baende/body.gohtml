@@ -640,7 +640,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						hx-swap="outerHTML"
 						hx-target="#baenderesults"
 						role="search"
-						@submit="offset = 0; hasMore = true"
+						@submit="searchOpen = false; offset = 0; hasMore = true"
 						@keydown.escape.prevent.stop="searchOpen = false"
 						aria-label="Bändesuche"
 						class="flex min-w-[18rem] max-w-[24rem] items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5">
@@ -662,8 +662,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 								value="{{ $model.search }}"
 								placeholder="Signatur oder Suchbegriff"
 								x-model="search"
-								@input.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
-								@search.debounce.500="((search.trim().length >= 3) || /^[0-9]+$/.test(search.trim()) || search === '') && $el.form.requestSubmit()"
 								autocomplete="off" />
 							<span id="baende-search-spinner" class="htmx-indicator absolute right-0 top-1/2 -translate-y-1/2 text-slate-900">
 								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
@@ -731,7 +729,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				type="button"
 				class="content-action-button"
 				:hx-get="loadMoreUrl()"
-				hx-target="#baende-tbody"
+				hx-target="#baende-table"
 				hx-swap="beforeend"
 				hx-indicator="this"
 				@htmx:before-request="loading = true"

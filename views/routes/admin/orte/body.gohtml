@@ -174,12 +174,11 @@
 					<form
 						x-cloak
 						x-show="searchOpen"
-						@submit.prevent
+						@submit.prevent="filterRows(); closeSearch()"
 						class="flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 ring-1 ring-slate-300">
 						<input
 							x-ref="orteSearchInput"
 							x-model="search"
-							@input.debounce.120ms="filterRows()"
 							type="search"
 							class="search-input-no-native-clear min-w-[15rem] bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
 							placeholder="Ort oder Pseudonym" />

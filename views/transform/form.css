@@ -165,7 +165,12 @@
 
 	/* In admin layout, action bar should stay in content frame only */
 	.admin-layout .form-action-bar {
-		left: 19rem;
+		left: 17rem;
+		right: 0;
+	}
+
+	.admin-layout-sidebar-collapsed .form-action-bar {
+		left: 4.75rem;
 		right: 0;
 	}
 
