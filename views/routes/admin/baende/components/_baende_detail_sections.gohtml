@@ -63,7 +63,7 @@
 				<div class="baende-detail-row">
 					<div class="baende-detail-label">Sprache</div>
 					<div class="baende-detail-value">
-						{{- range $i, $lang := $entry.Language -}}{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}{{- end -}}
+						<span class="font-sans">{{- range $i, $lang := $entry.Language -}}{{- if $i }}, {{ end -}}{{ LanguageNameGerman $lang }}{{- end -}}</span>
 					</div>
 				</div>
 			{{- end -}}

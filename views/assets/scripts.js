@@ -8851,7 +8851,7 @@ class ac extends HTMLElement {
       const F = mt.match(/^\/redaktion\/([^\/]+)$/), D = F ? F[1] : "";
       D && wt.has(D) ? ($ = !0, _ = D) : (mt === "/" || mt === "/index") && ($ = !0, _ = "index");
     }
-    (o === "/reihen" || o === "/reihen/") && (g = !0), (o === "/personen" || o === "/personen/") && (h = !0);
+    (o === "/reihen" || o === "/reihen/" || o === "/admin/reihen" || o === "/admin/reihen/") && (g = !0), (o === "/personen" || o === "/personen/" || o === "/admin/personen" || o === "/admin/personen/") && (h = !0);
     const Vt = document.querySelector('input[name="csrf_token"]');
     Vt && Vt.value, this.hasContext = l || u || b || I || $ || g || h;
     let tt = "";
@@ -8974,11 +8974,11 @@ class ac extends HTMLElement {
 				Listen
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/reihen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/reihen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-stack-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Reihen</span>
 				</a>
-				<a href="/reihen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/reihen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -9001,11 +9001,11 @@ class ac extends HTMLElement {
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/personen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/personen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Personen</span>
 				</a>
-				<a href="/personen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/personen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>

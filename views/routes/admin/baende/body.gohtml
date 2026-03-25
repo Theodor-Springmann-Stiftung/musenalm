@@ -156,6 +156,18 @@
 			if (d !== current) d.open = false;
 		});
 	},
+	closeExpandedRows(currentId = '') {
+		const groups = this.$root.querySelectorAll('[data-role=\'baende-row-group\']');
+		groups.forEach((group) => {
+			const entryId = group.getAttribute('data-entry-id') || '';
+			if (!entryId || entryId === currentId) return;
+			if (!group.querySelector('[data-role=\'baende-details\']')) return;
+			htmx.ajax('GET', `/admin/baende/row/${entryId}`, {
+				target: group,
+				swap: 'outerHTML',
+			});
+		});
+	},
 	changeSort(field, event = null) {
 		if (this.sortField === field) {
 			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';

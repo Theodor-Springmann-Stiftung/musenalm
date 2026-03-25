@@ -49,7 +49,7 @@
 					</thead>
 					<tbody id="abk-tbody">
 						{{- range $index, $entry := $model.result.Entries -}}
-							<tr class="hover:bg-gray-50 odd:bg-stone-100" data-rel-row data-row="{{ $index }}">
+							<tr class="hover:bg-gray-50 odd:bg-stone-50/40" data-rel-row data-row="{{ $index }}">
 								<td class="px-4 py-2.5" style="width: 12rem;">
 									<input type="text"
 										name="abkuerzungen[{{ $index }}][key]"
@@ -207,7 +207,7 @@
 
 				const addRow = function() {
 					const tr = document.createElement('tr');
-					tr.className = 'hover:bg-gray-50 odd:bg-stone-100';
+					tr.className = 'hover:bg-gray-50 odd:bg-stone-50/40';
 					tr.dataset.row = rowIndex;
 					tr.setAttribute('data-rel-row', '');
 					tr.innerHTML = `
@@ -266,7 +266,7 @@
 					</thead>
 					<tbody>
 						{{- range $entry := $model.result.Entries -}}
-							<tr class="hover:bg-gray-50 odd:bg-stone-100">
+							<tr class="hover:bg-gray-50 odd:bg-stone-50/40">
 								<td class="px-4 py-2.5 font-bold font-mono text-base">{{ $entry.Key }}</td>
 								<td class="px-4 py-2.5 text-base">{{ $entry.Value }}</td>
 							</tr>

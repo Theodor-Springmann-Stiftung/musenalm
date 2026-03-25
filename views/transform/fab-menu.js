@@ -107,10 +107,10 @@ export class FabMenu extends HTMLElement {
 				pageKey = "index";
 			}
 		}
-		if (path === "/reihen" || path === "/reihen/") {
+		if (path === "/reihen" || path === "/reihen/" || path === "/admin/reihen" || path === "/admin/reihen/") {
 			hasReihenList = true;
 		}
-		if (path === "/personen" || path === "/personen/") {
+		if (path === "/personen" || path === "/personen/" || path === "/admin/personen" || path === "/admin/personen/") {
 			hasPersonenList = true;
 		}
 
@@ -266,11 +266,11 @@ export class FabMenu extends HTMLElement {
 				Listen
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/reihen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/reihen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-stack-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Reihen</span>
 				</a>
-				<a href="/reihen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/reihen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>
@@ -293,11 +293,11 @@ export class FabMenu extends HTMLElement {
 				</a>
 			</div>
 			<div class="grid grid-cols-[1fr_auto] group">
-				<a href="/personen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
+				<a href="/admin/personen/" class="flex items-center px-3 py-1.5 group-hover:bg-gray-100 transition-colors no-underline text-sm">
 					<i class="ri-group-line text-base text-gray-700 mr-2.5"></i>
 					<span class="text-gray-900">Personen</span>
 				</a>
-				<a href="/personen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
+				<a href="/admin/personen/" target="_blank" class="flex items-center justify-center px-2.5 py-1.5 group-hover:bg-gray-100 text-gray-700 hover:text-slate-900 transition-colors no-underline text-sm" title="In neuem Tab öffnen">
 					<i class="ri-external-link-line text-base"></i>
 				</a>
 			</div>

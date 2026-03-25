@@ -1,0 +1,18 @@
+{{ $agent := .agent }}
+
+<div>
+	<div class="text-sm text-gray-700">
+		{{ if $agent.CorporateBody }}Die Körperschaft{{ else }}Die Person{{ end }} wird dauerhaft gelöscht. Verknüpfungen zu Bänden und Beiträgen werden entfernt.
+	</div>
+
+	<div class="mt-3 space-y-2 text-sm text-gray-700">
+		<div class="flex items-center justify-between gap-3">
+			<span>Bände</span>
+			<span class="font-semibold text-slate-900">{{ .band_count }}</span>
+		</div>
+		<div class="flex items-center justify-between gap-3">
+			<span>Beiträge</span>
+			<span class="font-semibold text-slate-900">{{ .content_count }}</span>
+		</div>
+	</div>
+</div>

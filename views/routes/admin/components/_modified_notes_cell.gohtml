@@ -1,0 +1,18 @@
+{{ $updated := .updated }}
+{{ $editorUser := .editor_user }}
+{{ $comment := .comment }}
+
+<div class="flex flex-col gap-1 text-[0.95rem] text-gray-700">
+	{{- if $updated -}}
+		<div class="tabular-nums font-medium text-slate-800">{{ GermanShortDateTime $updated }}</div>
+	{{- end -}}
+	{{- if $editorUser -}}
+		<div class="text-base text-slate-900">{{ $editorUser.Name }}</div>
+	{{- end -}}
+	{{- if $comment -}}
+		<div class="pt-1">
+			<div class="text-xs font-sans font-semibold tracking-wide text-gray-500">Bearbeitungsvermerke</div>
+			<div class="annotation-content mt-0.5 font-sans text-sm leading-snug text-gray-700">{{- Safe (ReplaceSlashParen $comment) -}}</div>
+		</div>
+	{{- end -}}
+</div>

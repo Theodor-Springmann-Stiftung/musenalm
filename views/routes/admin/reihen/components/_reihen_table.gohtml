@@ -1,0 +1,147 @@
+{{ $model := . }}
+
+<div class="mt-2 overflow-x-auto overflow-y-visible">
+	<table id="reihen-table" class="min-w-full table-fixed text-sm font-sans">
+		<colgroup>
+			<col style="width: 6.5rem;" />
+			<col style="width: 28rem;" />
+			<col style="width: 6rem;" />
+			<col style="width: 11.5rem;" />
+			<col style="width: 8.5rem;" />
+		</colgroup>
+		<thead class="border-b text-left text-gray-600">
+			<tr>
+				<th class="py-2 pr-4 pl-4 whitespace-nowrap w-[6.5rem] align-bottom"
+					:aria-sort="sortField === 'nr' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<button type="button"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							@click="changeSort('nr', $event)">
+							<span class="font-semibold tracking-wide">Nr</span>
+							<i class="text-xs opacity-70 transition-colors"
+							   :class="{
+									'ri-arrow-up-line text-blue-600': sortField === 'nr' && sortOrder === 'asc',
+									'ri-arrow-down-line text-blue-600': sortField === 'nr' && sortOrder === 'desc',
+									'ri-arrow-up-down-line text-gray-400': sortField !== 'nr'
+							   }"
+							   aria-hidden="true"></i>
+						</button>
+						<span class="font-semibold tracking-wide">Nachweis</span>
+					</div>
+				</th>
+				<th class="py-2 pr-4 whitespace-nowrap w-[28rem] align-bottom col-title"
+					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<button type="button"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							@click="changeSort('title', $event)">
+							<span class="font-semibold tracking-wide">Titel</span>
+							<i class="text-xs opacity-70 transition-colors"
+							   :class="{
+									'ri-arrow-up-line text-blue-600': sortField === 'title' && sortOrder === 'asc',
+									'ri-arrow-down-line text-blue-600': sortField === 'title' && sortOrder === 'desc',
+									'ri-arrow-up-down-line text-gray-400': sortField !== 'title'
+							   }"
+							   aria-hidden="true"></i>
+						</button>
+						<span class="font-semibold tracking-wide">Anmerkungen</span>
+					</div>
+				</th>
+				<th class="py-2 pr-4 whitespace-nowrap align-bottom col-band-count w-[6rem]">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<span class="font-semibold tracking-wide">Bände</span>
+					</div>
+				</th>
+				<th class="py-2 pr-8 whitespace-nowrap col-modified align-bottom w-[11.5rem]"
+					:aria-sort="sortField === 'updated' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<button type="button"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							@click="changeSort('updated', $event)">
+							<span class="font-semibold tracking-wide">Bearbeitet am</span>
+							<i class="text-xs opacity-70 transition-colors"
+							   :class="{
+									'ri-arrow-up-line text-blue-600': sortField === 'updated' && sortOrder === 'asc',
+									'ri-arrow-down-line text-blue-600': sortField === 'updated' && sortOrder === 'desc',
+									'ri-arrow-up-down-line text-gray-400': sortField !== 'updated'
+							   }"
+							   aria-hidden="true"></i>
+						</button>
+						<span class="font-semibold tracking-wide">Von</span>
+						<span class="font-semibold tracking-wide">Bearbeitungsvermerke</span>
+					</div>
+				</th>
+				<th class="py-2 pr-8 whitespace-nowrap text-right align-bottom w-[8.5rem]">
+					<div class="flex flex-col items-end gap-0.5 leading-tight">
+						<span class="font-semibold tracking-wide">Aktionen</span>
+					</div>
+				</th>
+			</tr>
+		</thead>
+		{{- if not (len $model.result.Series) -}}
+			<tbody>
+				<tr>
+					<td colspan="5" class="py-6 text-center text-sm text-gray-500">
+						Keine Reihen gefunden.
+					</td>
+				</tr>
+			</tbody>
+		{{- end -}}
+		{{- range $_, $series := $model.result.Series -}}
+			{{- template "_reihen_row_group" (Dict
+				"series" $series
+				"editor_user" (index $model.result.Users $series.Editor)
+				"band_links" (index $model.result.BandLinks $series.Id)
+				"can_edit" (IsAdminOrEditor $model.request.user)
+			) -}}
+		{{- end -}}
+	</table>
+</div>
+
+<script>
+	(() => {
+		const toggleRoot = document.querySelector('[data-role="reihen-column-toggle"]');
+		if (!toggleRoot) return;
+		const storageKey = "reihen-columns-v1";
+		let saved = null;
+		try {
+			saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+		} catch {
+			saved = null;
+		}
+		const checkboxes = toggleRoot.querySelectorAll('input[type="checkbox"][data-col]');
+		const applyColumnVisibility = () => {
+			checkboxes.forEach((checkbox) => {
+				const col = checkbox.getAttribute("data-col");
+				const visible = checkbox.checked;
+				document.querySelectorAll(`.col-${col}`).forEach((el) => {
+					el.classList.toggle("hidden", !visible);
+				});
+			});
+		};
+		window.applyReihenColumnVisibility = applyColumnVisibility;
+
+		checkboxes.forEach((checkbox) => {
+			const col = checkbox.getAttribute("data-col");
+			if (saved && typeof saved[col] === "boolean") {
+				checkbox.checked = saved[col];
+			}
+			checkbox.addEventListener("change", () => {
+				const nextState = {};
+				checkboxes.forEach((cb) => {
+					const key = cb.getAttribute("data-col");
+					nextState[key] = cb.checked;
+				});
+				localStorage.setItem(storageKey, JSON.stringify(nextState));
+				applyColumnVisibility();
+			});
+		});
+		applyColumnVisibility();
+		if (!document.body.dataset.reihenColumnsBound) {
+			document.body.dataset.reihenColumnsBound = "true";
+			document.body.addEventListener("htmx:afterSwap", () => {
+				window.applyReihenColumnVisibility?.();
+			});
+		}
+	})();
+</script>

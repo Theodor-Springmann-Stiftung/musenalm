@@ -1,0 +1,56 @@
+{{ $model := . }}
+
+<div id="reihenresults"
+	x-data="{
+		hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+		offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+		loading: false,
+		search: '{{ $model.search }}',
+		letter: '{{ $model.letter }}',
+		person: '{{ $model.person }}',
+		place: '{{ $model.place }}',
+		year: '{{ $model.year }}',
+		sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
+		sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
+	}">
+
+	<span id="reihen-count"
+		  hx-swap-oob="outerHTML"
+		  class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Series }}{{ end }} Reihen
+	</span>
+
+	{{ template "_reihen_table" $model }}
+
+	<div class="mt-6 flex justify-center" x-show="hasMore">
+		<button
+			type="button"
+			class="content-action-button"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (person) params.set('person', person); if (place) params.set('place', place); if (year) params.set('year', year); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/reihen/more/?${params.toString()}`; })()"
+			hx-target="#reihen-table"
+			hx-swap="beforeend"
+			hx-indicator="this"
+			@htmx:before-request="loading = true"
+			@htmx:after-request="
+				loading = false;
+				hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+				offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+			"
+			:disabled="loading">
+			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
+		</button>
+	</div>
+
+	{{ if $model.search }}
+		<script type="module">
+			let elements = document.querySelectorAll('.reihen-admin-text');
+			let mark_instance = new Mark(elements);
+			setTimeout(() => {
+				mark_instance.mark('{{ $model.search }}', {
+					"seperateWordSearch": true,
+				});
+			}, 200);
+		</script>
+	{{ end }}
+</div>

@@ -1,20 +1,23 @@
 {{ $entry := .entry }}
 <tbody data-role="baende-row-group" data-entry-id="{{ $entry.MusenalmID }}">
 	<tr
-		class="align-top transition-colors{{ if not .expanded }} hover:bg-stone-100 cursor-pointer{{ end }}{{ if .expanded }} border-b-0{{ else }} border-b{{ end }}"
+		class="align-top cursor-pointer transition-colors{{ if eq $entry.EditState "Unknown" }} {{ if .expanded }}bg-stone-200/70 hover:bg-stone-200/70{{ else }}bg-stone-100/70 hover:bg-stone-200/70{{ end }}{{ else if eq $entry.EditState "ToDo" }} {{ if .expanded }}bg-red-100 hover:bg-red-100{{ else }}bg-red-50 hover:bg-red-100{{ end }}{{ else if eq $entry.EditState "Review" }} {{ if .expanded }}bg-amber-100 hover:bg-amber-100{{ else }}bg-amber-50 hover:bg-amber-100{{ end }}{{ else if eq $entry.EditState "Edited" }} {{ if .expanded }}bg-emerald-50/70 hover:bg-emerald-50/70{{ else }}bg-emerald-50/40 hover:bg-emerald-50/70{{ end }}{{ else }} {{ if .expanded }}bg-slate-100 hover:bg-slate-100{{ else }}bg-slate-50 hover:bg-slate-100{{ end }}{{ end }}{{ if .expanded }} border-b-0{{ else }} border-b{{ end }}"
 		data-role="baende-row"
 		data-entry-id="{{ $entry.MusenalmID }}"
-		{{- if not .expanded -}}
+		{{- if .expanded -}}
+		hx-get="/admin/baende/row/{{ $entry.MusenalmID }}"
+		{{- else -}}
+		@click="closeExpandedRows('{{ $entry.MusenalmID }}')"
 		hx-get="/admin/baende/details/{{ $entry.MusenalmID }}"
+		{{- end -}}
 		hx-target="closest tbody"
-		hx-swap="outerHTML"
-		{{- end -}}>
+		hx-swap="outerHTML">
 		{{ template "_baende_row_cells" . }}
 	</tr>
 	{{- if and .expanded .details -}}
-		<tr class="border-b" data-role="baende-details" data-entry-id="{{ $entry.MusenalmID }}">
-			<td class="w-[12.5rem] py-0 pr-4 pl-4"></td>
-			<td colspan="7" class="py-0 pr-8 pb-4">
+		<tr class="border-b{{ if eq $entry.EditState "Unknown" }} bg-stone-200/70{{ else if eq $entry.EditState "ToDo" }} bg-red-100{{ else if eq $entry.EditState "Review" }} bg-amber-100{{ else if eq $entry.EditState "Edited" }} bg-emerald-50/70{{ else }} bg-slate-100{{ end }}" data-role="baende-details" data-entry-id="{{ $entry.MusenalmID }}">
+			<td class="w-[12.5rem] py-0 pr-4 pl-4{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}"></td>
+			<td colspan="7" class="py-0 pr-8 pb-2">
 				{{ template "_baende_detail_sections" (Dict "entry" $entry "details" .details) }}
 			</td>
 		</tr>

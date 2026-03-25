@@ -1,0 +1,721 @@
+{{ $model := . }}
+
+<div x-data="{
+	search: '{{ $model.search }}',
+	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+	loading: false,
+	alphabetOpen: false,
+	searchOpen: false,
+	selectedLetter: '{{ $model.letter }}',
+	person: '{{ $model.person }}',
+	place: '{{ $model.place }}',
+	year: '{{ $model.year }}',
+	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
+	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
+	personLabels: {
+		{{- range $k, $v := $model.filter_agent_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	placeLabels: {
+		{{- range $k, $v := $model.filter_place_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	yearLabels: {
+		{{- range $k, $v := $model.filter_year_labels -}}
+		{{ printf "%q" $k }}: {{ printf "%q" $v }},
+		{{- end -}}
+	},
+	appendFilters(params) {
+		if (this.person) params.set('person', this.person);
+		if (this.place) params.set('place', this.place);
+		if (this.year) params.set('year', this.year);
+	},
+	buildResultsUrl(overrides = {}) {
+		const params = new URLSearchParams();
+		const next = {
+			search: this.search,
+			letter: this.selectedLetter,
+			person: this.person,
+			place: this.place,
+			year: this.year,
+			sort: this.sortField,
+			order: this.sortOrder,
+			offset: 0,
+			...overrides,
+		};
+		Object.entries(next).forEach(([key, value]) => {
+			if (value !== '' && value !== null && value !== undefined) {
+				params.set(key, value);
+			}
+		});
+		return `/admin/reihen/results/?${params.toString()}`;
+	},
+	buildPageUrl(overrides = {}) {
+		const params = new URLSearchParams();
+		const next = {
+			search: this.search,
+			letter: this.selectedLetter,
+			person: this.person,
+			place: this.place,
+			year: this.year,
+			sort: this.sortField,
+			order: this.sortOrder,
+			offset: this.offset,
+			...overrides,
+		};
+		Object.entries(next).forEach(([key, value]) => {
+			if (value !== '' && value !== null && value !== undefined) {
+				params.set(key, value);
+			}
+		});
+		const query = params.toString();
+		return query ? `/admin/reihen/?${params.toString()}` : '/admin/reihen/';
+	},
+	applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
+		Object.entries(overrides).forEach(([key, value]) => {
+			this[key] = value;
+		});
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl(), {
+			target: '#reihenresults',
+			swap: 'outerHTML',
+			indicator,
+			source: sourceEl || (indicator && document.querySelector(indicator)) || undefined,
+		});
+	},
+	clearFilters() {
+		this.person = '';
+		this.place = '';
+		this.year = '';
+	},
+	clearAllFilters(sourceEl = null) {
+		this.clearFilters();
+		this.search = '';
+		this.selectedLetter = '';
+		this.searchOpen = false;
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl({
+			search: '',
+			letter: '',
+			person: '',
+			place: '',
+			year: '',
+			offset: 0,
+		}), {
+			target: '#reihenresults',
+			swap: 'outerHTML',
+			source: sourceEl || undefined,
+		});
+	},
+	openSearch() {
+		this.searchOpen = true;
+		this.$nextTick(() => this.$refs.reihenSearchInput?.focus());
+	},
+	closeOtherDropdowns(current) {
+		const scope = current?.closest('.admin-page-shell') || document;
+		scope.querySelectorAll('details').forEach((d) => {
+			if (d !== current) d.open = false;
+		});
+	},
+	closeExpandedRows(currentId = '') {
+		const groups = this.$root.querySelectorAll('[data-role=\'reihen-row-group\']');
+		groups.forEach((group) => {
+			const seriesId = group.getAttribute('data-series-id') || '';
+			if (!seriesId || seriesId === currentId) return;
+			if (!group.querySelector('[data-role=\'reihen-details\']')) return;
+			htmx.ajax('GET', `/admin/reihen/row/${seriesId}`, {
+				target: group,
+				swap: 'outerHTML',
+			});
+		});
+	},
+	changeSort(field, event = null) {
+		if (this.sortField === field) {
+			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+		} else {
+			this.sortField = field;
+			this.sortOrder = 'asc';
+		}
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl(), {
+			target: '#reihenresults',
+			swap: 'outerHTML',
+			source: event?.currentTarget || undefined,
+		});
+	},
+	updateUrl() {
+		const params = new URLSearchParams();
+		params.set('offset', this.offset);
+		params.set('sort', this.sortField);
+		params.set('order', this.sortOrder);
+		this.appendFilters(params);
+		if (this.search) params.set('search', this.search);
+		if (this.selectedLetter) params.set('letter', this.selectedLetter);
+		const query = params.toString();
+		const newUrl = query ? `/admin/reihen/?${query}` : '/admin/reihen/';
+		window.history.replaceState(null, '', newUrl);
+	},
+	loadMoreUrl() {
+		const params = new URLSearchParams();
+		params.set('offset', this.offset);
+		params.set('sort', this.sortField);
+		params.set('order', this.sortOrder);
+		this.appendFilters(params);
+		if (this.search) params.set('search', this.search);
+		if (this.selectedLetter) params.set('letter', this.selectedLetter);
+		return `/admin/reihen/more/?${params.toString()}`;
+	}
+}"
+@htmx:after-swap.window="
+	if ($event.detail.target && $event.detail.target.id === 'reihenresults') {
+		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
+		const params = new URL(responseUrl).searchParams;
+		sortField = params.get('sort') || sortField;
+		sortOrder = params.get('order') || sortOrder;
+		person = params.get('person') || '';
+		place = params.get('place') || '';
+		year = params.get('year') || '';
+		search = params.get('search') || '';
+		selectedLetter = params.get('letter') || '';
+		updateUrl();
+	}
+"
+class="admin-page-shell font-sans pt-0 pb-8">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div class="flex w-full flex-wrap items-start justify-between gap-x-4 gap-y-3">
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<h1 class="admin-page-title">Reihen A–Z</h1>
+					<button
+						type="button"
+						x-cloak
+						x-show="search || selectedLetter || person || place || year"
+						@click="clearAllFilters($el)"
+						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
+						<i class="ri-filter-off-line text-sm"></i>
+						<span>Alle anzeigen</span>
+					</button>
+				</div>
+				{{- if (IsAdminOrEditor $model.request.user) -}}
+					<a href="/admin/reihen/new/" class="inline-flex items-center gap-1.5 rounded-xs bg-slate-800 px-3 py-1.5 font-sans text-[0.98rem] font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">
+						<i class="ri-add-line"></i>
+						<span>Neu</span>
+					</a>
+				{{- end -}}
+			</div>
+		</div>
+		<div class="mt-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+			<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-3" hx-boost="false">
+				<div class="relative">
+					<details class="font-sans text-base list-none" data-role="alphabet-toggle" @toggle="alphabetOpen = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+							:class="selectedLetter ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+							<span x-text="selectedLetter ? `Alphabet: ${selectedLetter}` : 'Alphabet'"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': alphabetOpen }"></i>
+							<span id="reihen-alphabet-spinner" class="htmx-indicator text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</summary>
+						<div class="absolute left-0 mt-2 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="w-[26rem] p-2">
+								<a :href="buildPageUrl({ letter: '', offset: 0 })"
+								   hx-indicator="#reihen-alphabet-spinner"
+								   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, '#reihen-alphabet-spinner', $el)"
+								   x-show="selectedLetter"
+								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+									<i class="ri-filter-off-line text-base"></i>
+									<span>Alle</span>
+								</a>
+								<div class="grid grid-cols-13 gap-1 text-sm text-gray-700" x-effect="
+									const active = selectedLetter || '';
+									$el.querySelectorAll('[data-letter]').forEach((el) => {
+										const isActive = el.dataset.letter === active;
+										el.classList.toggle('bg-stone-200', isActive);
+										el.classList.toggle('font-bold', isActive);
+									});
+								">
+									{{- range $_, $ch := $model.letters -}}
+										<a :href="buildPageUrl({ letter: '{{ $ch }}', offset: 0 })"
+										   hx-indicator="#reihen-alphabet-spinner"
+										   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, '#reihen-alphabet-spinner', $el)"
+										   data-letter="{{ $ch }}"
+										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
+											{{ $ch }}
+										</a>
+									{{- end -}}
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+							:class="person ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+							<span x-text="person ? `Person: ${personLabels[person] || person}` : 'Person'"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute left-0 mt-2 w-80 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="p-3">
+								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ person: '', offset: 0 })"
+								   hx-indicator="#reihen-person-spinner"
+								   @click.prevent="
+									open = false;
+									const root = $el.closest('details');
+									const input = root?.querySelector('[data-role=filter-search]');
+									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+									root.open = false;
+									applyFilter({ person: '' }, '#reihen-person-spinner', $el);
+								   "
+								   x-show="person"
+								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+									<i class="ri-filter-off-line text-base"></i>
+									<span>Alle</span>
+								</a>
+								<div class="relative">
+									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Personen filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
+									<span id="reihen-person-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+									</span>
+								</div>
+								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
+									{{- range $_, $a := $model.filter_agents -}}
+										<a data-role="filter-item" data-label="{{ $a.Name }}" :href="buildPageUrl({ person: '{{ $a.Id }}', offset: 0 })"
+										   hx-indicator="#reihen-person-spinner"
+										   @click.prevent="
+											open = false;
+											const root = $el.closest('details');
+											const input = root?.querySelector('[data-role=filter-search]');
+											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+											root.open = false;
+											applyFilter({ person: '{{ $a.Id }}' }, '#reihen-person-spinner', $el);
+										   "
+										   :class="person === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
+										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
+											<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
+										</a>
+									{{- end -}}
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+							:class="place ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+							<span x-text="place ? `Ort: ${placeLabels[place] || place}` : 'Ort'"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute left-0 mt-2 w-80 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="p-3">
+								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ place: '', offset: 0 })"
+								   hx-indicator="#reihen-place-spinner"
+								   @click.prevent="
+									open = false;
+									const root = $el.closest('details');
+									const input = root?.querySelector('[data-role=filter-search]');
+									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+									root.open = false;
+									applyFilter({ place: '' }, '#reihen-place-spinner', $el);
+								   "
+								   x-show="place"
+								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+									<i class="ri-filter-off-line text-base"></i>
+									<span>Alle</span>
+								</a>
+								<div class="relative">
+									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Orte filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
+									<span id="reihen-place-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+									</span>
+								</div>
+								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
+									{{- range $_, $p := $model.filter_places -}}
+										<a data-role="filter-item" data-label="{{ $p.Name }}" :href="buildPageUrl({ place: '{{ $p.Id }}', offset: 0 })"
+										   hx-indicator="#reihen-place-spinner"
+										   @click.prevent="
+											open = false;
+											const root = $el.closest('details');
+											const input = root?.querySelector('[data-role=filter-search]');
+											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+											root.open = false;
+											applyFilter({ place: '{{ $p.Id }}' }, '#reihen-place-spinner', $el);
+										   "
+										   :class="place === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
+										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
+											{{ $p.Name }}
+										</a>
+									{{- end -}}
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+							:class="year ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+							<span x-text="year ? `Jahr: ${yearLabels[year] || year}` : 'Jahr'"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute left-0 mt-2 w-72 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="p-3">
+								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ year: '', offset: 0 })"
+								   hx-indicator="#reihen-year-spinner"
+								   @click.prevent="
+									open = false;
+									const root = $el.closest('details');
+									const input = root?.querySelector('[data-role=filter-search]');
+									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+									root.open = false;
+									applyFilter({ year: '' }, '#reihen-year-spinner', $el);
+								   "
+								   x-show="year"
+								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+									<i class="ri-filter-off-line text-base"></i>
+									<span>Alle</span>
+								</a>
+								<div class="relative">
+									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Jahre filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
+									<span id="reihen-year-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
+										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+									</span>
+								</div>
+								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
+									{{- range $_, $y := $model.filter_years -}}
+										{{- $label := $y -}}
+										{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
+										<a data-role="filter-item" data-label="{{ $label }}" :href="buildPageUrl({ year: '{{ $y }}', offset: 0 })"
+										   hx-indicator="#reihen-year-spinner"
+										   @click.prevent="
+											open = false;
+											const root = $el.closest('details');
+											const input = root?.querySelector('[data-role=filter-search]');
+											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+											root.open = false;
+											applyFilter({ year: '{{ $y }}' }, '#reihen-year-spinner', $el);
+										   "
+										   :class="year === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
+										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
+											{{ $label }}
+										</a>
+									{{- end -}}
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" @click.outside="searchOpen = false">
+					<button
+						type="button"
+						x-show="!searchOpen"
+						@click="openSearch()"
+						class="cursor-pointer select-none text-gray-700 hover:text-slate-900 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+						:class="search ? 'font-semibold text-slate-900 ring-1 ring-slate-300' : ''">
+						<span class="max-w-[18rem] truncate" x-text="search ? `Suche: ${search}` : 'Suche'"></span>
+						<i class="ri-search-line"></i>
+					</button>
+
+					<form
+						x-cloak
+						x-show="searchOpen"
+						method="GET"
+						action="/admin/reihen/"
+						hx-get="/admin/reihen/results/"
+						hx-indicator="#reihen-search-spinner"
+						hx-push-url="false"
+						hx-swap="outerHTML"
+						hx-target="#reihenresults"
+						role="search"
+						@submit="searchOpen = false; offset = 0; hasMore = true"
+						@keydown.escape.prevent.stop="searchOpen = false"
+						aria-label="Reihensuche"
+						class="flex min-w-[18rem] max-w-[24rem] items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5">
+						<input type="hidden" name="sort" :value="sortField" />
+						<input type="hidden" name="order" :value="sortOrder" />
+						<input type="hidden" name="person" :value="person" />
+						<input type="hidden" name="place" :value="place" />
+						<input type="hidden" name="year" :value="year" />
+						<input type="hidden" name="letter" :value="selectedLetter" />
+						<div class="relative min-w-0 flex-1">
+							<input
+								x-ref="reihenSearchInput"
+								class="search-input-no-native-clear w-full bg-transparent pr-7 font-sans text-base text-slate-900 placeholder:italic focus:outline-none"
+								type="search"
+								name="search"
+								value="{{ $model.search }}"
+								placeholder="Reihentitel oder Suchbegriff"
+								x-model="search"
+								autocomplete="off" />
+							<span id="reihen-search-spinner" class="htmx-indicator absolute right-0 top-1/2 -translate-y-1/2 text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</div>
+						<button
+							type="button"
+							@click="
+								search = '';
+								searchOpen = false;
+								offset = 0;
+								hasMore = true;
+								htmx.ajax('GET', buildResultsUrl({ search: '' }), {
+									target: '#reihenresults',
+									swap: 'outerHTML',
+									indicator: '#reihen-search-spinner',
+									source: $el,
+								});
+							"
+							class="text-gray-500 hover:text-slate-900"
+							aria-label="Suche leeren">
+							<i class="ri-close-line"></i>
+						</button>
+						<button x-show="false">Suchen</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="flex shrink-0 items-center justify-end gap-3 self-start">
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" data-role="reihen-column-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="cursor-pointer select-none text-gray-600 hover:text-slate-900 px-2 py-1 rounded-xs flex items-center gap-2 text-lg font-semibold font-sans">
+							<i class="ri-eye-line"></i>
+							<span>Spalten</span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute right-0 mt-2 w-56 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="flex flex-col gap-2 p-4 text-sm text-gray-700">
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="title" checked /> Titel</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="band-count" checked /> Bände</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" checked /> Bearbeitet / Von</label>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div id="reihen-count" class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
+					{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Series }}{{ end }} Reihen
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<div class="admin-page-body admin-page-body-wide admin-page-body-flush pt-0">
+		<div id="reihenresults" data-next-offset="{{ $model.next_offset }}">
+			{{ template "_reihen_table" $model }}
+
+			<div class="mt-6 flex justify-center" x-show="hasMore">
+				<button
+					type="button"
+					class="content-action-button"
+					:hx-get="loadMoreUrl()"
+					hx-target="#reihen-table"
+					hx-swap="beforeend"
+					hx-indicator="this"
+					@htmx:before-request="loading = true"
+					@htmx:after-request="
+						loading = false;
+						hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+						const nextOffsetHeader = Number($event.detail.xhr.getResponseHeader('X-Next-Offset'));
+						if (!Number.isNaN(nextOffsetHeader)) {
+							offset = nextOffsetHeader;
+						}
+						updateUrl();
+					"
+					:disabled="loading">
+					<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+					<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<dialog data-role="reihen-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+	<div class="p-5 w-[26rem]">
+		<div class="text-base font-bold text-gray-900">Reihe löschen?</div>
+		<div data-role="reihen-delete-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+		<div data-role="reihen-delete-impacts" class="mt-2 text-sm text-gray-700">
+			Lade Informationen …
+		</div>
+		<div data-role="reihen-delete-error" class="mt-2 text-sm text-red-700 hidden"></div>
+		<div class="mt-4 flex items-center justify-end gap-3">
+			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="reihen-delete-cancel">Abbrechen</button>
+			<button
+				type="button"
+				class="submitbutton w-auto bg-red-700 px-3 py-1 text-sm hover:bg-red-800"
+				data-role="reihen-delete-confirm">
+				Löschen
+			</button>
+		</div>
+		<input type="hidden" data-role="reihen-delete-csrf" value="{{ $model.csrf_token }}" />
+	</div>
+</dialog>
+
+<script>
+	(() => {
+		const filterRoots = document.querySelectorAll('[data-role="reihen-filter"]');
+		filterRoots.forEach((root) => {
+			const input = root.querySelector('[data-role="filter-search"]');
+			const list = root.querySelector('[data-role="filter-list"]');
+			if (!list || !input) return;
+			input.addEventListener('input', () => {
+				const query = input.value.trim().toLowerCase();
+				list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
+					const label = (item.getAttribute('data-label') || '').toLowerCase();
+					if (item.getAttribute('data-label') === 'Alle') {
+						return;
+					}
+					item.classList.toggle('hidden', query !== '' && !label.includes(query));
+				});
+			});
+		});
+	})();
+
+	(() => {
+		const dialog = document.querySelector("[data-role='reihen-delete-dialog']");
+		if (!dialog) return;
+		const titleEl = dialog.querySelector("[data-role='reihen-delete-title']");
+		const impactsEl = dialog.querySelector("[data-role='reihen-delete-impacts']");
+		const errorEl = dialog.querySelector("[data-role='reihen-delete-error']");
+		const cancelBtn = dialog.querySelector("[data-role='reihen-delete-cancel']");
+		const confirmBtn = dialog.querySelector("[data-role='reihen-delete-confirm']");
+		const csrfInput = dialog.querySelector("[data-role='reihen-delete-csrf']");
+
+		let currentSeriesId = "";
+		let currentDeleteEndpoint = "";
+		let currentLastEdited = "";
+
+		const closeDialog = (event) => {
+			if (event) event.preventDefault();
+			if (dialog.open) dialog.close();
+		};
+
+		const openDialog = () => {
+			if (typeof dialog.showModal === "function") dialog.showModal();
+		};
+
+		const setError = (message) => {
+			if (!errorEl) return;
+			if (message) {
+				errorEl.textContent = message;
+				errorEl.classList.remove("hidden");
+			} else {
+				errorEl.textContent = "";
+				errorEl.classList.add("hidden");
+			}
+		};
+
+		const handleDeleteClick = async (event) => {
+			let button = null;
+			const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+			for (const node of path) {
+				if (node && node.getAttribute && node.getAttribute("data-role") === "reihen-delete") {
+					button = node;
+					break;
+				}
+			}
+			if (!button && event.target && event.target.closest) {
+				button = event.target.closest("[data-role='reihen-delete']");
+			}
+			if (!button) return;
+			event.preventDefault();
+			event.stopPropagation();
+
+			currentSeriesId = button.getAttribute("data-series-id") || "";
+			currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
+			currentLastEdited = button.getAttribute("data-last-edited") || "";
+			const seriesTitle = button.getAttribute("data-series-title") || "";
+
+			if (titleEl) {
+				titleEl.textContent = seriesTitle ? seriesTitle : "Unbekannte Reihe";
+			}
+			if (impactsEl) {
+				impactsEl.textContent = "Lade Informationen …";
+			}
+			setError("");
+			openDialog();
+
+			if (!currentSeriesId || !impactsEl) return;
+			try {
+				const response = await fetch(`/admin/reihen/delete-info/${encodeURIComponent(currentSeriesId)}`);
+				if (!response.ok) {
+					throw new Error("Infos konnten nicht geladen werden.");
+				}
+				const html = await response.text();
+				impactsEl.innerHTML = html;
+			} catch {
+				impactsEl.textContent = "Infos konnten nicht geladen werden.";
+			}
+		};
+
+		document.addEventListener("click", handleDeleteClick, true);
+
+		if (cancelBtn) cancelBtn.addEventListener("click", closeDialog);
+		dialog.addEventListener("cancel", closeDialog);
+
+		if (confirmBtn) {
+			confirmBtn.addEventListener("click", async (event) => {
+				event.preventDefault();
+				if (!currentDeleteEndpoint || !csrfInput) return;
+				setError("");
+				try {
+					const response = await fetch(currentDeleteEndpoint, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Accept: "application/json",
+						},
+						body: JSON.stringify({
+							csrf_token: csrfInput.value || "",
+							last_edited: currentLastEdited,
+						}),
+					});
+					let data = null;
+					try {
+						data = await response.clone().json();
+					} catch {
+						data = null;
+					}
+					if (!response.ok) {
+						throw new Error(data?.error || "Löschen fehlgeschlagen.");
+					}
+					closeDialog();
+					if (currentSeriesId) {
+						const rows = document.querySelectorAll(`[data-series-id='${CSS.escape(currentSeriesId)}']`);
+						rows.forEach((row) => row.remove());
+						const countEl = document.getElementById("reihen-count");
+						if (countEl) {
+							const raw = countEl.textContent || "";
+							const hasSlash = raw.includes("/");
+							const nums = raw.match(/\d+/g) || [];
+							if (nums.length > 0) {
+								let current = parseInt(nums[0], 10);
+								let total = nums.length > 1 ? parseInt(nums[1], 10) : null;
+								if (!Number.isNaN(current) && current > 0) current -= 1;
+								if (total !== null && !Number.isNaN(total) && total > 0) total -= 1;
+								if (hasSlash && total !== null) {
+									countEl.textContent = `${current} / ${total} Reihen`;
+								} else {
+									countEl.textContent = `${current} Reihen`;
+								}
+							}
+						}
+					}
+				} catch (error) {
+					setError(error instanceof Error ? error.message : "Löschen fehlgeschlagen.");
+				}
+			});
+		}
+	})();
+</script>

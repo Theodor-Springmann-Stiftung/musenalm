@@ -63,12 +63,18 @@ const (
 )
 
 const (
-	URL_REIHEN         = "/reihen/"
-	URL_REIHEN_RESULTS = "/reihen/results/"
-	URL_REIHE          = "/reihe/{id}/"
-	TEMPLATE_REIHE     = "/reihe/"
-	URL_REIHEN_NEW     = "/admin/reihen/new/"
-	URL_REIHE_REDIRECT = "/reihe/%d/"
+	URL_REIHEN                        = "/reihen/"
+	URL_REIHEN_RESULTS                = "/reihen/results/"
+	URL_REIHE                         = "/reihe/{id}/"
+	TEMPLATE_REIHE                    = "/reihe/"
+	URL_REIHEN_ADMIN                  = "/admin/reihen/"
+	URL_REIHEN_ADMIN_RESULTS          = "/admin/reihen/results/"
+	URL_REIHEN_ADMIN_MORE             = "/admin/reihen/more/"
+	URL_REIHEN_ADMIN_DELETE_INFO      = "/admin/reihen/delete-info/{id}"
+	TEMPLATE_REIHEN_ADMIN             = "/admin/reihen/"
+	TEMPLATE_REIHEN_ADMIN_DELETE_INFO = "/admin/reihen/delete_info/"
+	URL_REIHEN_NEW                    = "/admin/reihen/new/"
+	URL_REIHE_REDIRECT                = "/reihe/%d/"
 
 	URL_REIHE_ADMIN_BASE  = "/admin/reihe/{id}/"
 	URL_REIHE_EDIT        = "edit"
@@ -80,9 +86,17 @@ const (
 )
 
 const (
-	URL_PERSON      = "/person/{id}"
-	TEMPLATE_PERSON = "/person/"
-	URL_PERSONEN    = "/personen/"
+	URL_PERSON                          = "/person/{id}"
+	TEMPLATE_PERSON                     = "/person/"
+	URL_PERSONEN                        = "/personen/"
+	URL_PERSONEN_ADMIN                  = "/admin/personen/"
+	URL_PERSONEN_ADMIN_RESULTS          = "/admin/personen/results/"
+	URL_PERSONEN_ADMIN_MORE             = "/admin/personen/more/"
+	URL_PERSONEN_ADMIN_DELETE_INFO      = "/admin/personen/delete-info/{id}"
+	TEMPLATE_PERSONEN_ADMIN             = "/admin/personen/"
+	TEMPLATE_PERSONEN_ADMIN_RESULTS     = "/admin/personen/results/"
+	TEMPLATE_PERSONEN_ADMIN_MORE        = "/admin/personen/more/"
+	TEMPLATE_PERSONEN_ADMIN_DELETE_INFO = "/admin/personen/delete_info/"
 
 	URL_PERSONEN_NEW    = "/admin/personen/new/"
 	URL_PERSON_REDIRECT = "/person/%s"

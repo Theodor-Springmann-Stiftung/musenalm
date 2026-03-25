@@ -13,11 +13,11 @@
 {{- $isNewBandActive := HasPrefix $path "/admin/almanach-new/" -}}
 {{- $isBandsActive := or (HasPrefix $path "/admin/baende/") (HasPrefix $path "/admin/almanach/") -}}
 {{- $isNewSeriesActive := HasPrefix $path "/admin/reihen/new/" -}}
-{{- $isSeriesActive := or (eq $path "/reihen") (HasPrefix $path "/reihen/") (HasPrefix $path "/reihe/") (HasPrefix $path "/admin/reihe/") -}}
+{{- $isSeriesActive := or (HasPrefix $path "/admin/reihen/") (eq $path "/reihen") (HasPrefix $path "/reihen/") (HasPrefix $path "/reihe/") (HasPrefix $path "/admin/reihe/") -}}
 {{- $isNewPlaceActive := HasPrefix $path "/admin/orte/new/" -}}
 {{- $isPlacesActive := or (HasPrefix $path "/admin/orte/") (HasPrefix $path "/admin/ort/") -}}
 {{- $isNewPersonActive := HasPrefix $path "/admin/personen/new/" -}}
-{{- $isPersonsActive := or (eq $path "/personen") (HasPrefix $path "/personen/") (HasPrefix $path "/person/") (HasPrefix $path "/admin/person/") -}}
+{{- $isPersonsActive := or (HasPrefix $path "/admin/personen/") (HasPrefix $path "/admin/person/") (eq $path "/personen") (HasPrefix $path "/personen/") (HasPrefix $path "/person/") -}}
 {{- $isAbbreviationsActive := HasPrefix $path "/admin/abkuerzungen/" -}}
 {{- $isPagesActive := HasPrefix $path "/admin/seiten/" -}}
 {{- $isSettingsActive := HasPrefix $path "/admin/settings/" -}}
@@ -83,9 +83,9 @@
 			</summary>
 			<div class="admin-sidebar-sub">
 				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span></a>
-				<a href="/reihen/" title="Reihen" class="admin-sidebar-link" {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span></a>
+				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span></a>
 				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span></a>
-				<a href="/personen/" title="Personen" class="admin-sidebar-link" {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span></a>
+				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span></a>
 				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
 				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>

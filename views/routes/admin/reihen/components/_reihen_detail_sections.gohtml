@@ -1,0 +1,83 @@
+{{ $series := .series }}
+{{ $bandLinks := .band_links }}
+{{ $canEdit := .can_edit }}
+
+<div class="baende-detail-stack">
+	{{- if $bandLinks -}}
+		<div class="w-full pt-0">
+			<div class="flex flex-col gap-1">
+				{{- range $_, $link := $bandLinks -}}
+					<div class="flex w-full flex-row justify-between px-2 py-0.5{{ if eq $link.Entry.EditState "Unknown" }} bg-stone-100/70{{ else if eq $link.Entry.EditState "ToDo" }} border-l-4 border-red-500 bg-red-50{{ else if eq $link.Entry.EditState "Review" }} border-l-4 border-amber-500 bg-amber-50{{ else if eq $link.Entry.EditState "Edited" }} bg-slate-100{{ else }} bg-slate-50{{ end }}">
+						<div class="min-w-0">
+							<a href="/almanach/{{ $link.Entry.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="no-underline">
+								<div class="{{- if eq $link.Entry.EditState "Edited" -}}font-bold{{- end -}}">
+									{{- if $link.Entry.PreferredTitle -}}
+										{{ $link.Entry.PreferredTitle }}
+									{{- else if ne $link.Entry.Year 0 -}}
+										{{ $link.Entry.Year }}
+									{{- else -}}
+										[o.J.]
+									{{- end -}}
+									<tool-tip position="right" class="inline">
+										<i class="status-icon ml-1 align-middle {{- if eq $link.Entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $link.Entry.EditState "Seen" }} ri-information-line{{- else if eq $link.Entry.EditState "Review" }} ri-search-line{{- else if eq $link.Entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $link.Entry.EditState }}"></i>
+										<div class="data-tip">
+											{{- if eq $link.Entry.EditState "Unknown" -}}
+												Gesucht
+											{{- else if eq $link.Entry.EditState "ToDo" -}}
+												Zu erledigen
+											{{- else if eq $link.Entry.EditState "Review" -}}
+												Überprüfen
+											{{- else if eq $link.Entry.EditState "Seen" -}}
+												Autopsiert
+											{{- else if eq $link.Entry.EditState "Edited" -}}
+												Vollständig Erfasst
+											{{- else -}}
+												{{ $link.Entry.EditState }}
+											{{- end -}}
+										</div>
+									</tool-tip>
+								</div>
+							</a>
+							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
+								<div class="mt-0.5 text-xs whitespace-nowrap text-gray-600">
+									{{- if eq $link.Relation.Type "Früherer Reihentitel" -}}
+										Titelauflage aus einer anderen Reihe
+									{{- else if eq $link.Relation.Type "Späterer Reihentitel" -}}
+										Titelauflage
+									{{- else if eq $link.Relation.Type "In anderer Sprache" -}}
+										{{- if Contains $link.Entry.Language "ger" -}}
+											In deutscher Sprache
+										{{- else -}}
+											In französischer Sprache
+										{{- end -}}
+									{{- else -}}
+										{{ $link.Relation.Type }}
+									{{- end -}}
+								</div>
+							{{- end -}}
+						</div>
+						<div class="ml-4 flex shrink-0 items-start gap-1 whitespace-nowrap">
+							<span class="inline-flex items-center px-2.5 py-0 text-sm font-semibold text-black">Alm {{ $link.Entry.MusenalmID }}</span>
+							<tool-tip position="top" class="inline">
+								<a href="/almanach/{{ $link.Entry.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+									<i class="ri-external-link-line"></i>
+								</a>
+								<div class="data-tip">In neuem Tab öffnen</div>
+							</tool-tip>
+							{{- if $canEdit -}}
+								<tool-tip position="top" class="inline">
+									<a href="/admin/almanach/{{ $link.Entry.MusenalmID }}/edit/" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+										<i class="ri-edit-line"></i>
+									</a>
+									<div class="data-tip">Bearbeiten</div>
+								</tool-tip>
+							{{- end -}}
+						</div>
+					</div>
+				{{- end -}}
+			</div>
+		</div>
+	{{- else -}}
+		<div class="w-full pt-0 text-sm text-gray-500">Keine Bände zugeordnet.</div>
+	{{- end -}}
+</div>
