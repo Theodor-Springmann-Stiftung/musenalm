@@ -338,7 +338,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 
 	// Get filters from query params
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
-	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	letter := normalizeAdminLetter(e.Request.URL.Query().Get("letter"))
 	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
 	person := strings.TrimSpace(e.Request.URL.Query().Get("person"))
 	user := strings.TrimSpace(e.Request.URL.Query().Get("user"))
@@ -348,9 +348,6 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 
 	// Validate letter
 	if letter != "" {
-		if len(letter) > 1 {
-			letter = letter[:1]
-		}
 		if letter < "A" || letter > "Z" {
 			letter = ""
 		}
@@ -661,10 +658,11 @@ func matchesShortSearch(entry *dbmodels.Entry, itemsMap map[string][]*dbmodels.I
 
 // filterEntriesByLetter performs in-memory filtering of entries by first letter
 func filterEntriesByLetter(entries []*dbmodels.Entry, letter string) []*dbmodels.Entry {
+	letter = normalizeAdminLetter(letter)
 	var results []*dbmodels.Entry
 	for _, entry := range entries {
 		preferredTitle := entry.PreferredTitle()
-		if len(preferredTitle) > 0 && strings.HasPrefix(strings.ToUpper(preferredTitle), letter) {
+		if normalizedAdminInitial(preferredTitle) == letter {
 			results = append(results, entry)
 		}
 	}

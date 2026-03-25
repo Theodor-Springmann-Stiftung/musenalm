@@ -7,7 +7,7 @@
 		<div class="w-full pt-0">
 			<div class="flex flex-col gap-1">
 				{{- range $_, $link := $bandLinks -}}
-					<div class="flex w-full flex-row justify-between px-2 py-0.5{{ if eq $link.Entry.EditState "Unknown" }} bg-stone-100/70{{ else if eq $link.Entry.EditState "ToDo" }} border-l-4 border-red-500 bg-red-50{{ else if eq $link.Entry.EditState "Review" }} border-l-4 border-amber-500 bg-amber-50{{ else if eq $link.Entry.EditState "Edited" }} bg-slate-100{{ else }} bg-slate-50{{ end }}">
+					<div class="flex w-full flex-row justify-between py-0.5">
 						<div class="min-w-0">
 							<a href="/almanach/{{ $link.Entry.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="no-underline">
 								<div class="{{- if eq $link.Entry.EditState "Edited" -}}font-bold{{- end -}}">

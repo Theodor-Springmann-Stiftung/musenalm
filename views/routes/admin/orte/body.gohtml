@@ -7,7 +7,7 @@
 		searchOpen: false,
 		alphabetOpen: false,
 		selectedLetter: '',
-		letters: ['A','Ä','B','C','D','E','F','G','H','I','J','K','L','M','N','O','Ö','P','Q','R','S','T','U','Ü','V','W','X','Y','Z'],
+		letters: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'],
 		fictionalFilter: '',
 		fictionalOpen: false,
 		totalCount: {{ if $model.result.Places }}{{ len $model.result.Places }}{{ else }}0{{ end }},
@@ -223,7 +223,7 @@
 								data-role="orte-row"
 								data-place-id="{{ $place.Id }}"
 								data-search="{{ $place.Name }} {{ $place.Pseudonyms }}"
-								data-letter="{{ Upper (First $place.Name) }}"
+								data-letter="{{- if eq (Upper (First $place.Name)) "Ä" -}}A{{- else if eq (Upper (First $place.Name)) "Ö" -}}O{{- else if eq (Upper (First $place.Name)) "Ü" -}}U{{- else -}}{{ Upper (First $place.Name) }}{{- end -}}"
 								data-fictional="{{ if $place.Fictional }}true{{ else }}false{{ end }}"
 								class="border-b align-top transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100">
 								<td class="py-2 pr-4 pl-4">

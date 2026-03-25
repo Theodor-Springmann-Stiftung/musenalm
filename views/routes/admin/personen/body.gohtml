@@ -363,6 +363,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					type="button"
 					class="content-action-button"
 					:hx-get="loadMoreUrl()"
+					hx-select="#personen-admin-more-rows > *"
 					hx-target="#personen-admin-table-body"
 					hx-swap="beforeend"
 					hx-indicator="this"

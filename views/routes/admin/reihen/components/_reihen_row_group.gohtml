@@ -17,16 +17,15 @@
 	{{- if .expanded -}}
 		<tr class="border-b bg-slate-100" data-role="reihen-details" data-series-id="{{ $series.MusenalmID }}">
 			<td class="w-[6.5rem] py-0 pr-4 pl-4"></td>
-			<td class="py-0 pr-4 pb-2 align-top">
+			<td colspan="2" class="p-0 align-top">
 				{{ template "_reihen_detail_sections" (Dict
 					"series" $series
 					"band_links" .band_links
 					"can_edit" .can_edit
 				) }}
 			</td>
-			<td class="py-0 pr-4 pb-2"></td>
-			<td class="py-0 pr-8 pb-2"></td>
-			<td class="py-0 pr-8 pb-2"></td>
+			<td class="p-0"></td>
+			<td class="p-0"></td>
 		</tr>
 	{{- end -}}
 </tbody>

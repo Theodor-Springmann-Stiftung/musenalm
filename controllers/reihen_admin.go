@@ -22,6 +22,11 @@ const (
 	REIHEN_ADMIN_PAGE_SIZE = 80
 )
 
+var adminAlphabet = []string{
+	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+	"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+}
+
 func init() {
 	rp := &ReihenAdminPage{
 		StaticPage: pagemodels.StaticPage{
@@ -343,12 +348,13 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		}
 	}
 
-	letters := buildSeriesLetters(allSeries)
+	letters := adminAlphabet
 	validLetters := make(map[string]struct{}, len(letters))
 	for _, ch := range letters {
 		validLetters[ch] = struct{}{}
 	}
 	if letter != "" {
+		letter = normalizeAdminLetter(letter)
 		if _, ok := validLetters[letter]; !ok {
 			letter = ""
 		}
@@ -511,12 +517,13 @@ func filterSeriesByLetter(series []*dbmodels.Series, letter string) []*dbmodels.
 	if letter == "" {
 		return series
 	}
+	letter = normalizeAdminLetter(letter)
 	result := make([]*dbmodels.Series, 0, len(series))
 	for _, item := range series {
 		if item == nil {
 			continue
 		}
-		if strings.ToUpper(firstTitleLetter(item.Title())) == letter {
+		if normalizedAdminInitial(item.Title()) == letter {
 			result = append(result, item)
 		}
 	}
@@ -692,6 +699,23 @@ func firstTitleLetter(title string) string {
 		return ""
 	}
 	return string(runes[0])
+}
+
+func normalizeAdminLetter(letter string) string {
+	switch strings.ToUpper(strings.TrimSpace(letter)) {
+	case "Ä":
+		return "A"
+	case "Ö":
+		return "O"
+	case "Ü":
+		return "U"
+	default:
+		return strings.ToUpper(strings.TrimSpace(letter))
+	}
+}
+
+func normalizedAdminInitial(value string) string {
+	return normalizeAdminLetter(firstTitleLetter(value))
 }
 
 func buildAdminReihenAgentFilters(agentMap map[string]*dbmodels.Agent) []*dbmodels.Agent {

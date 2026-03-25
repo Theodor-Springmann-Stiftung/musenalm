@@ -195,12 +195,13 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 	filterBase := filterAgentsByCorporateBody(allAgents, corp)
 	filterBase = filterAgentsByProfession(filterBase, profession)
 
-	letters := buildAdminAgentLetters(filterBase)
+	letters := adminAlphabet
 	validLetters := make(map[string]struct{}, len(letters))
 	for _, ch := range letters {
 		validLetters[ch] = struct{}{}
 	}
 	if letter != "" {
+		letter = normalizeAdminLetter(letter)
 		if _, ok := validLetters[letter]; !ok {
 			letter = ""
 		}
@@ -389,12 +390,13 @@ func filterAgentsByLetter(agents []*dbmodels.Agent, letter string) []*dbmodels.A
 	if letter == "" {
 		return agents
 	}
+	letter = normalizeAdminLetter(letter)
 	result := make([]*dbmodels.Agent, 0, len(agents))
 	for _, agent := range agents {
 		if agent == nil {
 			continue
 		}
-		if strings.ToUpper(firstTitleLetter(agent.Name())) == letter {
+		if normalizedAdminInitial(agent.Name()) == letter {
 			result = append(result, agent)
 		}
 	}
