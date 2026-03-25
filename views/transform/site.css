@@ -796,11 +796,11 @@
 	}
 
 	.filter-list-row:nth-child(odd) {
-		@apply bg-stone-50;
+		@apply cursor-pointer bg-stone-50;
 	}
 
 	.filter-list-row:nth-child(even) {
-		@apply bg-white;
+		@apply cursor-pointer bg-white;
 	}
 
 	.legacy-toggle-icon {

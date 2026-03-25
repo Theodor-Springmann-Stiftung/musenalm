@@ -3,6 +3,7 @@ package controllers
 import (
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/pocketbase/dbx"
@@ -172,4 +173,43 @@ func adminInitialFilterExp(field, letter string) dbx.Expression {
 		conditions = append(conditions, dbx.Like(field, variant).Match(false, true))
 	}
 	return dbx.Or(conditions...)
+}
+
+type adminRequestTimer struct {
+	app     core.App
+	started time.Time
+	last    time.Time
+	fields  []any
+}
+
+func newAdminRequestTimer(app core.App, e *core.RequestEvent, listName string, showAggregated bool) *adminRequestTimer {
+	now := time.Now()
+	return &adminRequestTimer{
+		app:     app,
+		started: now,
+		last:    now,
+		fields: []any{
+			"list", listName,
+			"path", e.Request.URL.Path,
+			"query", e.Request.URL.RawQuery,
+			"aggregated", showAggregated,
+		},
+	}
+}
+
+func (t *adminRequestTimer) Mark(stage string) {
+	now := time.Now()
+	t.fields = append(t.fields, stage+"_ms", now.Sub(t.last).Milliseconds())
+	t.last = now
+}
+
+func (t *adminRequestTimer) Finish(err error, extra ...any) {
+	t.fields = append(t.fields, "total_ms", time.Since(t.started).Milliseconds())
+	if err != nil {
+		t.fields = append(t.fields, "status", "error", "error", err.Error())
+	} else {
+		t.fields = append(t.fields, "status", "ok")
+	}
+	t.fields = append(t.fields, extra...)
+	t.app.Logger().Info("admin list timing", t.fields...)
 }

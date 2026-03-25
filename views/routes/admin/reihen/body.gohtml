@@ -13,20 +13,13 @@
 	year: '{{ $model.year }}',
 	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
 	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
-	personLabels: {
-		{{- range $k, $v := $model.filter_agent_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
+	selectedLabels: {
+		person: {{ printf "%q" (index $model.selected_filter_labels "person") }},
+		place: {{ printf "%q" (index $model.selected_filter_labels "place") }},
+		year: {{ printf "%q" (index $model.selected_filter_labels "year") }},
 	},
-	placeLabels: {
-		{{- range $k, $v := $model.filter_place_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
-	},
-	yearLabels: {
-		{{- range $k, $v := $model.filter_year_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
+	filterSummary(prefix, key, fallback) {
+		return this[key] ? `${prefix}: ${this.selectedLabels[key] || this[key]}` : fallback;
 	},
 	appendFilters(params) {
 		if (this.person) params.set('person', this.person);
@@ -74,9 +67,14 @@
 		const query = params.toString();
 		return query ? `/admin/reihen/?${params.toString()}` : '/admin/reihen/';
 	},
-	applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
+	applyFilter(overrides = {}, labelOverrides = {}, indicator = 'body', sourceEl = null) {
 		Object.entries(overrides).forEach(([key, value]) => {
 			this[key] = value;
+		});
+		Object.entries(labelOverrides).forEach(([key, value]) => {
+			if (Object.prototype.hasOwnProperty.call(this.selectedLabels, key)) {
+				this.selectedLabels[key] = value;
+			}
 		});
 		this.offset = 0;
 		this.hasMore = true;
@@ -87,10 +85,19 @@
 			source: sourceEl || (indicator && document.querySelector(indicator)) || undefined,
 		});
 	},
+	selectNamedFilter(key, value, label, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: value }, { [key]: label }, indicator, sourceEl);
+	},
+	clearNamedFilter(key, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: '' }, { [key]: '' }, indicator, sourceEl);
+	},
 	clearFilters() {
 		this.person = '';
 		this.place = '';
 		this.year = '';
+		this.selectedLabels.person = '';
+		this.selectedLabels.place = '';
+		this.selectedLabels.year = '';
 	},
 	clearAllFilters(sourceEl = null) {
 		this.clearFilters();
@@ -226,7 +233,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 							<div class="w-[26rem] p-2">
 								<a :href="buildPageUrl({ letter: '', offset: 0 })"
 								   hx-indicator="#reihen-alphabet-spinner"
-								   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, '#reihen-alphabet-spinner', $el)"
+								   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, {}, '#reihen-alphabet-spinner', $el)"
 								   x-show="selectedLetter"
 								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 									<i class="ri-filter-off-line text-base"></i>
@@ -243,7 +250,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									{{- range $_, $ch := $model.letters -}}
 										<a :href="buildPageUrl({ letter: '{{ $ch }}', offset: 0 })"
 										   hx-indicator="#reihen-alphabet-spinner"
-										   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, '#reihen-alphabet-spinner', $el)"
+										   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, {}, '#reihen-alphabet-spinner', $el)"
 										   data-letter="{{ $ch }}"
 										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
 											{{ $ch }}
@@ -255,166 +262,29 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
-				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="person ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="person ? `Person: ${personLabels[person] || person}` : 'Person'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ person: '', offset: 0 })"
-								   hx-indicator="#reihen-person-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ person: '' }, '#reihen-person-spinner', $el);
-								   "
-								   x-show="person"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Personen filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
-									<span id="reihen-person-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
-									{{- range $_, $a := $model.filter_agents -}}
-										<a data-role="filter-item" data-label="{{ $a.Name }}" :href="buildPageUrl({ person: '{{ $a.Id }}', offset: 0 })"
-										   hx-indicator="#reihen-person-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ person: '{{ $a.Id }}' }, '#reihen-person-spinner', $el);
-										   "
-										   :class="person === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_reihen_lazy_filter" (Dict
+					"kind" "person"
+					"title" "Person"
+					"endpoint" "/admin/reihen/filters/person/"
+					"spinner_id" "reihen-person-spinner"
+					"width_class" "w-80"
+				) }}
 
-				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="place ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="place ? `Ort: ${placeLabels[place] || place}` : 'Ort'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ place: '', offset: 0 })"
-								   hx-indicator="#reihen-place-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ place: '' }, '#reihen-place-spinner', $el);
-								   "
-								   x-show="place"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Orte filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
-									<span id="reihen-place-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
-									{{- range $_, $p := $model.filter_places -}}
-										<a data-role="filter-item" data-label="{{ $p.Name }}" :href="buildPageUrl({ place: '{{ $p.Id }}', offset: 0 })"
-										   hx-indicator="#reihen-place-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ place: '{{ $p.Id }}' }, '#reihen-place-spinner', $el);
-										   "
-										   :class="place === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $p.Name }}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_reihen_lazy_filter" (Dict
+					"kind" "place"
+					"title" "Ort"
+					"endpoint" "/admin/reihen/filters/place/"
+					"spinner_id" "reihen-place-spinner"
+					"width_class" "w-80"
+				) }}
 
-				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="year ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="year ? `Jahr: ${yearLabels[year] || year}` : 'Jahr'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-72 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ year: '', offset: 0 })"
-								   hx-indicator="#reihen-year-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ year: '' }, '#reihen-year-spinner', $el);
-								   "
-								   x-show="year"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Jahre filtern..." class="w-full rounded border border-stone-200 px-2 py-1 pr-7 text-sm" />
-									<span id="reihen-year-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
-									{{- range $_, $y := $model.filter_years -}}
-										{{- $label := $y -}}
-										{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
-										<a data-role="filter-item" data-label="{{ $label }}" :href="buildPageUrl({ year: '{{ $y }}', offset: 0 })"
-										   hx-indicator="#reihen-year-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ year: '{{ $y }}' }, '#reihen-year-spinner', $el);
-										   "
-										   :class="year === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $label }}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_reihen_lazy_filter" (Dict
+					"kind" "year"
+					"title" "Jahr"
+					"endpoint" "/admin/reihen/filters/year/"
+					"spinner_id" "reihen-year-spinner"
+					"width_class" "w-72"
+				) }}
 
 				<div class="relative" @click.outside="searchOpen = false">
 					<button
@@ -530,11 +400,17 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						if (!Number.isNaN(nextOffsetHeader)) {
 							offset = nextOffsetHeader;
 						}
+						const currentCount = Number($event.detail.xhr.getResponseHeader('X-Current-Count'));
+						const totalCount = Number($event.detail.xhr.getResponseHeader('X-Total-Count'));
+						const countEl = document.getElementById('reihen-count');
+						if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+							countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Reihen`;
+						}
 						updateUrl();
 					"
 					:disabled="loading">
 					<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
-					<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
+					<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'">Weitere 80 laden</span>
 				</button>
 			</div>
 		</div>
@@ -564,21 +440,33 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 <script>
 	(() => {
-		const filterRoots = document.querySelectorAll('[data-role="reihen-filter"]');
-		filterRoots.forEach((root) => {
-			const input = root.querySelector('[data-role="filter-search"]');
-			const list = root.querySelector('[data-role="filter-list"]');
-			if (!list || !input) return;
-			input.addEventListener('input', () => {
-				const query = input.value.trim().toLowerCase();
-				list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
-					const label = (item.getAttribute('data-label') || '').toLowerCase();
-					if (item.getAttribute('data-label') === 'Alle') {
-						return;
-					}
-					item.classList.toggle('hidden', query !== '' && !label.includes(query));
+		const bindFilterSearch = (scope = document) => {
+			const roots = scope.matches?.('[data-role="reihen-filter"]')
+				? [scope]
+				: scope.querySelectorAll?.('[data-role="reihen-filter"]') || [];
+			roots.forEach((root) => {
+				if (root.dataset.filterSearchBound === 'true') return;
+				const input = root.querySelector('[data-role="filter-search"]');
+				const list = root.querySelector('[data-role="filter-list"]');
+				if (!list || !input) return;
+				root.dataset.filterSearchBound = 'true';
+				input.addEventListener('input', () => {
+					const query = input.value.trim().toLowerCase();
+					list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
+						const label = (item.getAttribute('data-label') || '').toLowerCase();
+						if (item.getAttribute('data-label') === 'Alle') {
+							return;
+						}
+						item.classList.toggle('hidden', query !== '' && !label.includes(query));
+					});
 				});
 			});
+		};
+
+		bindFilterSearch(document);
+		document.body.addEventListener('htmx:afterSwap', (event) => {
+			const target = event.target?.closest?.('[data-role="reihen-filter"]') || event.target;
+			bindFilterSearch(target);
 		});
 	})();
 

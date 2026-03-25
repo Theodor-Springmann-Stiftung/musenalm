@@ -35,10 +35,16 @@
 				loading = false;
 				hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
 				offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+				const currentCount = parseInt($event.detail.xhr.getResponseHeader('X-Current-Count') || '0');
+				const totalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
+				const countEl = document.getElementById('reihen-count');
+				if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+					countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Reihen`;
+				}
 			"
 			:disabled="loading">
 			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
-			<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'">Weitere 80 laden</span>
 		</button>
 	</div>
 

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/url"
 	"slices"
 	"strconv"
@@ -65,6 +66,19 @@ type ReihenBandLink struct {
 	Relation *dbmodels.REntriesSeries
 }
 
+type adminReihenLazyFilterOption struct {
+	Value string
+	Label string
+}
+
+type adminReihenLazyFilterData struct {
+	Kind        string
+	Title       string
+	Placeholder string
+	SpinnerID   string
+	Options     []adminReihenLazyFilterOption
+}
+
 func (p *ReihenAdminPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_REIHEN_ADMIN)
@@ -72,6 +86,7 @@ func (p *ReihenAdminPage) Setup(router *router.Router[*core.RequestEvent], ia pa
 	rg.GET("", p.handlePage(engine, app))
 	rg.GET("results/", p.handleResults(engine, app))
 	rg.GET("more/", p.handleMore(engine, app))
+	rg.GET("filters/{kind}/", p.handleFilterOptions(engine, app))
 	rg.GET("row/{id}", p.handleRow(engine, app))
 	rg.GET("details/{id}", p.handleDetails(engine, app))
 	rg.GET("delete-info/{id}", p.handleDeleteInfo(engine, app))
@@ -133,8 +148,40 @@ func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App) Ha
 		} else {
 			e.Response.Header().Set("X-Next-Offset", "0")
 		}
+		if currentCountVal, ok := data["current_count"].(int); ok {
+			e.Response.Header().Set("X-Current-Count", strconv.Itoa(currentCountVal))
+		} else {
+			e.Response.Header().Set("X-Current-Count", "0")
+		}
+		if totalCountVal, ok := data["total_count"].(int); ok {
+			e.Response.Header().Set("X-Total-Count", strconv.Itoa(totalCountVal))
+		} else {
+			e.Response.Header().Set("X-Total-Count", "0")
+		}
 
 		return engine.Response200(e, URL_REIHEN_ADMIN_MORE, data, pagemodels.LAYOUT_FRAGMENT)
+	}
+}
+
+func (p *ReihenAdminPage) handleFilterOptions(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, URL_LOGIN)
+		}
+
+		data, err := buildAdminReihenLazyFilterData(app, e.Request.PathValue("kind"))
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		return engine.Response200(e, TEMPLATE_REIHEN_ADMIN_FILTERS, map[string]any{
+			"Kind":        data.Kind,
+			"Title":       data.Title,
+			"Placeholder": data.Placeholder,
+			"SpinnerID":   data.SpinnerID,
+			"Options":     data.Options,
+		}, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -203,8 +250,12 @@ func (p *ReihenAdminPage) handleDetails(engine *templating.Engine, app core.App)
 	}
 }
 
-func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, req *templating.Request, showAggregated bool) (map[string]any, error) {
-	data := map[string]any{}
+func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, req *templating.Request, showAggregated bool) (data map[string]any, err error) {
+	data = map[string]any{}
+	timer := newAdminRequestTimer(app, e, "reihen", showAggregated)
+	defer func() {
+		timer.Finish(err)
+	}()
 
 	offset := 0
 	if offsetStr := strings.TrimSpace(e.Request.URL.Query().Get("offset")); offsetStr != "" {
@@ -244,6 +295,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 			letter = ""
 		}
 	}
+	timer.Mark("params")
 
 	allowedIDs := []map[string]struct{}{}
 	if search != "" {
@@ -279,6 +331,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 			allowedIDs = append(allowedIDs, yearIDs)
 		}
 	}
+	timer.Mark("allowed_ids")
 
 	filteredIDs := applyAllowedIDs(allowedIDs...)
 	if filteredIDs != nil && len(filteredIDs) == 0 {
@@ -313,6 +366,8 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		data["filter_place_labels"] = filterData.PlaceLabels
 		data["filter_years"] = filterData.Years
 		data["filter_year_labels"] = filterData.YearLabels
+		data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, person, place, yearStr)
+		timer.Mark("filter_data")
 		return data, nil
 	}
 
@@ -323,6 +378,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		return data, err
 	}
 	totalCount := int(totalCount64)
+	timer.Mark("count_query")
 
 	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, REIHEN_ADMIN_PAGE_SIZE, showAggregated)
 	pageSeries := []*dbmodels.Series{}
@@ -335,15 +391,18 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 			return data, err
 		}
 	}
+	timer.Mark("page_query")
 
 	result, err := loadAdminReihenPageResult(app, pageSeries)
 	if err != nil {
 		return data, err
 	}
+	timer.Mark("page_result")
 	filterData, err := buildAdminReihenFilterData(app)
 	if err != nil {
 		return data, err
 	}
+	timer.Mark("filter_data")
 
 	data["result"] = result
 	data["offset"] = offset
@@ -366,6 +425,8 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	data["filter_place_labels"] = filterData.PlaceLabels
 	data["filter_years"] = filterData.Years
 	data["filter_year_labels"] = filterData.YearLabels
+	data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, person, place, yearStr)
+	timer.Mark("result")
 
 	return data, nil
 }
@@ -377,6 +438,41 @@ type adminReihenFilterData struct {
 	PlaceLabels map[string]string
 	Years       []int
 	YearLabels  map[string]string
+}
+
+func buildAdminReihenSelectedFilterLabels(filterData *adminReihenFilterData, person, place, year string) map[string]string {
+	labels := map[string]string{
+		"person": "",
+		"place":  "",
+		"year":   "",
+	}
+	if filterData == nil {
+		return labels
+	}
+
+	if person != "" {
+		if label, ok := filterData.AgentLabels[person]; ok && label != "" {
+			labels["person"] = label
+		} else {
+			labels["person"] = person
+		}
+	}
+	if place != "" {
+		if label, ok := filterData.PlaceLabels[place]; ok && label != "" {
+			labels["place"] = label
+		} else {
+			labels["place"] = place
+		}
+	}
+	if year != "" {
+		if label, ok := filterData.YearLabels[year]; ok && label != "" {
+			labels["year"] = label
+		} else {
+			labels["year"] = year
+		}
+	}
+
+	return labels
 }
 
 func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
@@ -437,6 +533,73 @@ func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
 	adminReihenFilterCache.mu.Unlock()
 
 	return data, nil
+}
+
+func buildAdminReihenLazyFilterData(app core.App, kind string) (*adminReihenLazyFilterData, error) {
+	filterData, err := buildAdminReihenFilterData(app)
+	if err != nil {
+		return nil, err
+	}
+
+	switch kind {
+	case "person":
+		options := make([]adminReihenLazyFilterOption, 0, len(filterData.Agents))
+		for _, agent := range filterData.Agents {
+			if agent == nil {
+				continue
+			}
+			options = append(options, adminReihenLazyFilterOption{
+				Value: agent.Id,
+				Label: agent.Name(),
+			})
+		}
+		return &adminReihenLazyFilterData{
+			Kind:        kind,
+			Title:       "Person",
+			Placeholder: "Personen filtern...",
+			SpinnerID:   "reihen-person-spinner",
+			Options:     options,
+		}, nil
+	case "place":
+		options := make([]adminReihenLazyFilterOption, 0, len(filterData.Places))
+		for _, place := range filterData.Places {
+			if place == nil {
+				continue
+			}
+			options = append(options, adminReihenLazyFilterOption{
+				Value: place.Id,
+				Label: place.Name(),
+			})
+		}
+		return &adminReihenLazyFilterData{
+			Kind:        kind,
+			Title:       "Ort",
+			Placeholder: "Orte filtern...",
+			SpinnerID:   "reihen-place-spinner",
+			Options:     options,
+		}, nil
+	case "year":
+		options := make([]adminReihenLazyFilterOption, 0, len(filterData.Years))
+		for _, year := range filterData.Years {
+			label := strconv.Itoa(year)
+			if year == 0 {
+				label = "ohne Jahr"
+			}
+			options = append(options, adminReihenLazyFilterOption{
+				Value: strconv.Itoa(year),
+				Label: label,
+			})
+		}
+		return &adminReihenLazyFilterData{
+			Kind:        kind,
+			Title:       "Jahr",
+			Placeholder: "Jahre filtern...",
+			SpinnerID:   "reihen-year-spinner",
+			Options:     options,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported reihen filter kind %q", kind)
+	}
 }
 
 func buildAdminReihenSeriesQuery(app core.App, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {

@@ -77,6 +77,21 @@ type baendeFilterData struct {
 	SeriesLabels map[string]string
 }
 
+type baendeLazyFilterOption struct {
+	Value       string
+	Label       string
+	Meta        string
+	MetaIsBadge bool
+}
+
+type baendeLazyFilterData struct {
+	Kind        string
+	Title       string
+	Placeholder string
+	SpinnerID   string
+	Options     []baendeLazyFilterOption
+}
+
 var baendeRequestCache struct {
 	mu       sync.RWMutex
 	cachedAt time.Time
@@ -106,6 +121,7 @@ func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemod
 	rg.GET("", p.handlePage(engine, app, ia))
 	rg.GET("results/", p.handleResults(engine, app, ia))
 	rg.GET("more/", p.handleMore(engine, app, ia))
+	rg.GET("filters/{kind}/", p.handleFilterOptions(engine, app, ia))
 	rg.GET("details/{id}", p.handleDetails(engine, app))
 	rg.GET("row/{id}", p.handleRow(engine, app))
 	rg.GET("delete-info/{id}", p.handleDeleteInfo(engine, app))
@@ -141,6 +157,28 @@ func (p *BaendePage) handleResults(engine *templating.Engine, app core.App, ma p
 			return engine.Response404(e, err, data)
 		}
 		return engine.Response200(e, URL_BAENDE_RESULTS, data, pagemodels.LAYOUT_FRAGMENT)
+	}
+}
+
+func (p *BaendePage) handleFilterOptions(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			return e.Redirect(303, URL_BAENDE_LOGIN)
+		}
+
+		data, err := buildBaendeLazyFilterData(ma, e.Request.PathValue("kind"))
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		return engine.Response200(e, TEMPLATE_BAENDE_FILTERS, map[string]any{
+			"Kind":        data.Kind,
+			"Title":       data.Title,
+			"Placeholder": data.Placeholder,
+			"SpinnerID":   data.SpinnerID,
+			"Options":     data.Options,
+		}, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 
@@ -348,8 +386,12 @@ func (p *BaendePage) handleDeleteInfo(engine *templating.Engine, app core.App) H
 	}
 }
 
-func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, req *templating.Request, showAggregated bool) (map[string]any, error) {
-	data := map[string]any{}
+func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, req *templating.Request, showAggregated bool) (data map[string]any, err error) {
+	data = map[string]any{}
+	timer := newAdminRequestTimer(app, e, "baende", showAggregated)
+	defer func() {
+		timer.Finish(err)
+	}()
 
 	// Get offset from query params (default 0)
 	offset := 0
@@ -398,12 +440,14 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if order != "asc" && order != "desc" {
 		order = "asc" // default
 	}
+	timer.Mark("params")
 
 	// Load from cache
 	cacheInterface, err := ma.GetBaendeCache()
 	if err != nil {
 		return data, err
 	}
+	timer.Mark("cache_load")
 
 	// Extract data from cache using interface methods
 	allEntries, ok := cacheInterface.GetEntries().([]*dbmodels.Entry)
@@ -455,6 +499,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if !ok {
 		return data, fmt.Errorf("failed to get contents count from cache")
 	}
+	timer.Mark("cache_extract")
 
 	// Apply search/letter/filters
 	filteredEntries := selectBaendeSortedEntries(sortedEntries, sort)
@@ -501,6 +546,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if series != "" {
 		filteredEntries = filterEntriesBySeries(filteredEntries, entrySeriesMap, series)
 	}
+	timer.Mark("filters")
 
 	// The unsearched path now starts from a cached sorted slice, so it doesn't need resorting.
 	if search != "" {
@@ -511,6 +557,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if order == "desc" {
 		filteredEntries = reverseBaendeEntries(filteredEntries)
 	}
+	timer.Mark("sort")
 
 	// Calculate pagination
 	totalCount := len(filteredEntries)
@@ -538,6 +585,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		currentCount = start + len(pageEntries)
 		hasMore = endIndex < totalCount
 	}
+	timer.Mark("pagination")
 
 	// Build result with cached associated data
 	data["result"] = &BaendeResult{
@@ -567,6 +615,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["sort_field"] = sort
 	data["sort_order"] = order
 	data["csrf_token"] = req.Session().Token
+	timer.Mark("result")
 
 	// Keep letters array for navigation
 	letters := []string{
@@ -588,8 +637,69 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	data["filter_year_labels"] = filterData.YearLabels
 	data["filter_series"] = filterData.Series
 	data["filter_series_labels"] = filterData.SeriesLabels
+	data["selected_filter_labels"] = buildBaendeSelectedFilterLabels(filterData, status, person, user, yearStr, place, series)
+	timer.Mark("filter_data")
 
 	return data, nil
+}
+
+func buildBaendeSelectedFilterLabels(filterData *baendeFilterData, status, person, user, year, place, series string) map[string]string {
+	labels := map[string]string{
+		"status": "",
+		"person": "",
+		"user":   "",
+		"year":   "",
+		"place":  "",
+		"series": "",
+	}
+	if filterData == nil {
+		return labels
+	}
+
+	if status != "" {
+		if label, ok := filterData.StatusLabels[status]; ok && label != "" {
+			labels["status"] = label
+		} else {
+			labels["status"] = status
+		}
+	}
+	if person != "" {
+		if label, ok := filterData.AgentLabels[person]; ok && label != "" {
+			labels["person"] = label
+		} else {
+			labels["person"] = person
+		}
+	}
+	if user != "" {
+		if label, ok := filterData.UserLabels[user]; ok && label != "" {
+			labels["user"] = label
+		} else {
+			labels["user"] = user
+		}
+	}
+	if year != "" {
+		if label, ok := filterData.YearLabels[year]; ok && label != "" {
+			labels["year"] = label
+		} else {
+			labels["year"] = year
+		}
+	}
+	if place != "" {
+		if label, ok := filterData.PlaceLabels[place]; ok && label != "" {
+			labels["place"] = label
+		} else {
+			labels["place"] = place
+		}
+	}
+	if series != "" {
+		if label, ok := filterData.SeriesLabels[series]; ok && label != "" {
+			labels["series"] = label
+		} else {
+			labels["series"] = series
+		}
+	}
+
+	return labels
 }
 
 func selectBaendeSortedEntries(sortedEntries map[string][]*dbmodels.Entry, sort string) []*dbmodels.Entry {
@@ -659,6 +769,150 @@ func buildBaendeFilterData(cache pagemodels.BaendeCacheInterface, entries []*dbm
 	baendeRequestCache.mu.Unlock()
 
 	return data
+}
+
+func buildBaendeLazyFilterData(ma pagemodels.IApp, kind string) (*baendeLazyFilterData, error) {
+	filterData, err := loadBaendeFilterData(ma)
+	if err != nil {
+		return nil, err
+	}
+
+	switch kind {
+	case "person":
+		options := make([]baendeLazyFilterOption, 0, len(filterData.Agents))
+		for _, agent := range filterData.Agents {
+			if agent == nil {
+				continue
+			}
+			option := baendeLazyFilterOption{
+				Value: agent.Id,
+				Label: agent.Name(),
+			}
+			if agent.CorporateBody() {
+				option.Meta = "ORG"
+				option.MetaIsBadge = true
+			} else if agent.BiographicalData() != "" {
+				option.Meta = agent.BiographicalData()
+			}
+			options = append(options, option)
+		}
+		return &baendeLazyFilterData{
+			Kind:        kind,
+			Title:       "Person",
+			Placeholder: "Personen filtern...",
+			SpinnerID:   "baende-person-spinner",
+			Options:     options,
+		}, nil
+	case "user":
+		options := make([]baendeLazyFilterOption, 0, len(filterData.Users))
+		for _, user := range filterData.Users {
+			if user == nil {
+				continue
+			}
+			options = append(options, baendeLazyFilterOption{
+				Value: user.Id,
+				Label: user.Name(),
+			})
+		}
+		return &baendeLazyFilterData{
+			Kind:        kind,
+			Title:       "Benutzer",
+			Placeholder: "Benutzer filtern...",
+			SpinnerID:   "baende-user-spinner",
+			Options:     options,
+		}, nil
+	case "year":
+		options := make([]baendeLazyFilterOption, 0, len(filterData.Years))
+		for _, year := range filterData.Years {
+			label := strconv.Itoa(year)
+			if year == 0 {
+				label = "ohne Jahr"
+			}
+			options = append(options, baendeLazyFilterOption{
+				Value: strconv.Itoa(year),
+				Label: label,
+			})
+		}
+		return &baendeLazyFilterData{
+			Kind:        kind,
+			Title:       "Jahr",
+			Placeholder: "Jahre filtern...",
+			SpinnerID:   "baende-year-spinner",
+			Options:     options,
+		}, nil
+	case "place":
+		options := make([]baendeLazyFilterOption, 0, len(filterData.Places))
+		for _, place := range filterData.Places {
+			if place == nil {
+				continue
+			}
+			options = append(options, baendeLazyFilterOption{
+				Value: place.Id,
+				Label: place.Name(),
+			})
+		}
+		return &baendeLazyFilterData{
+			Kind:        kind,
+			Title:       "Ort",
+			Placeholder: "Orte filtern...",
+			SpinnerID:   "baende-place-spinner",
+			Options:     options,
+		}, nil
+	case "series":
+		options := make([]baendeLazyFilterOption, 0, len(filterData.Series))
+		for _, series := range filterData.Series {
+			if series == nil {
+				continue
+			}
+			options = append(options, baendeLazyFilterOption{
+				Value: series.Id,
+				Label: series.Title(),
+			})
+		}
+		return &baendeLazyFilterData{
+			Kind:        kind,
+			Title:       "Reihentitel",
+			Placeholder: "Reihentitel filtern...",
+			SpinnerID:   "baende-series-spinner",
+			Options:     options,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported baende filter kind %q", kind)
+	}
+}
+
+func loadBaendeFilterData(ma pagemodels.IApp) (*baendeFilterData, error) {
+	cacheInterface, err := ma.GetBaendeCache()
+	if err != nil {
+		return nil, err
+	}
+
+	allEntries, ok := cacheInterface.GetEntries().([]*dbmodels.Entry)
+	if !ok {
+		return nil, fmt.Errorf("failed to get entries from cache")
+	}
+	agentsMap, ok := cacheInterface.GetAgents().(map[string]*dbmodels.Agent)
+	if !ok {
+		return nil, fmt.Errorf("failed to get agents from cache")
+	}
+	usersMap, ok := cacheInterface.GetUsers().(map[string]*dbmodels.User)
+	if !ok {
+		return nil, fmt.Errorf("failed to get users from cache")
+	}
+	placesMap, ok := cacheInterface.GetPlaces().(map[string]*dbmodels.Place)
+	if !ok {
+		return nil, fmt.Errorf("failed to get places from cache")
+	}
+	seriesMap, ok := cacheInterface.GetSeries().(map[string]*dbmodels.Series)
+	if !ok {
+		return nil, fmt.Errorf("failed to get series from cache")
+	}
+	entrySeriesMap, ok := cacheInterface.GetEntriesSeries().(map[string][]*dbmodels.REntriesSeries)
+	if !ok {
+		return nil, fmt.Errorf("failed to get entries series from cache")
+	}
+
+	return buildBaendeFilterData(cacheInterface, allEntries, agentsMap, usersMap, placesMap, seriesMap, entrySeriesMap), nil
 }
 
 func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {

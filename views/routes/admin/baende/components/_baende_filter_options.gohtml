@@ -1,0 +1,49 @@
+{{ $model := . }}
+
+<div class="p-3">
+	<a data-role="filter-item"
+		data-label="Alle"
+		:href="buildPageUrl({ ['{{ $model.Kind }}']: '', offset: 0 })"
+		hx-indicator="#{{ $model.SpinnerID }}"
+		@click.prevent="
+			const root = $el.closest('details');
+			const input = root?.querySelector('[data-role=filter-search]');
+			if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+			root.open = false;
+			clearNamedFilter('{{ $model.Kind }}', '#{{ $model.SpinnerID }}', $el);
+		"
+		x-show="{{ $model.Kind }}"
+		class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 transition-colors hover:bg-orange-200 no-underline">
+		<i class="ri-filter-off-line text-base"></i>
+		<span>Alle</span>
+	</a>
+	<div class="relative">
+		<input data-role="filter-search" type="search" autocomplete="off" placeholder="{{ $model.Placeholder }}" class="w-full rounded border border-stone-200 px-2 py-1 text-sm" />
+	</div>
+	<div class="mt-2 flex max-h-80 flex-col gap-0.5 overflow-auto rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
+		{{- range $_, $option := $model.Options -}}
+			<a data-role="filter-item"
+				data-label="{{ $option.Label }}"
+				:href="buildPageUrl({ ['{{ $model.Kind }}']: {{ printf "%q" $option.Value }}, offset: 0 })"
+				hx-indicator="#{{ $model.SpinnerID }}"
+				@click.prevent="
+					const root = $el.closest('details');
+					const input = root?.querySelector('[data-role=filter-search]');
+					if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
+					root.open = false;
+					selectNamedFilter('{{ $model.Kind }}', {{ printf "%q" $option.Value }}, {{ printf "%q" $option.Label }}, '#{{ $model.SpinnerID }}', $el);
+				"
+				:class="{{ $model.Kind }} === {{ printf "%q" $option.Value }} ? 'bg-stone-100 font-semibold' : ''"
+				class="filter-list-row rounded-sm px-2 py-1 no-underline transition-colors hover:bg-stone-100">
+				<span class="filter-list-searchable mr-1">{{ $option.Label }}</span>
+				{{- if $option.Meta -}}
+					{{- if $option.MetaIsBadge -}}
+						<span class="inline-flex items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.7rem] font-semibold text-slate-600">{{ $option.Meta }}</span>
+					{{- else -}}
+						<span class="whitespace-nowrap text-[0.7rem] text-stone-500">{{ $option.Meta }}</span>
+					{{- end -}}
+				{{- end -}}
+			</a>
+		{{- end -}}
+	</div>
+</div>

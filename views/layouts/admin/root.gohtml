@@ -25,23 +25,31 @@
 				syncSidebarActive(pathname = window.location.pathname) {
 					const sidebar = document.getElementById('admin-sidebar');
 					if (!sidebar) return;
+					const normalizePath = (value) => {
+						if (!value) return '/';
+						return value.length > 1 ? value.replace(/\/+$/, '') : value;
+					};
+					const currentPath = normalizePath(pathname);
 
 					sidebar.querySelectorAll('.admin-sidebar-link').forEach((link) => {
 						const datasetPrefixes = (link.dataset.adminActivePrefixes || '')
 							.split('|')
 							.map((value) => value.trim())
 							.filter(Boolean);
-						let prefixes = datasetPrefixes;
-						if (!prefixes.length) {
+						let isActive = false;
+						if (datasetPrefixes.length) {
+							isActive = datasetPrefixes.some((prefix) => {
+								const normalizedPrefix = normalizePath(prefix);
+								return currentPath === normalizedPrefix || currentPath.startsWith(normalizedPrefix + '/');
+							});
+						} else {
+							let hrefPath = '';
 							try {
-								const hrefPath = new URL(link.href, window.location.origin).pathname;
-								if (hrefPath && hrefPath !== '/logout/' && hrefPath !== '/logout') {
-									prefixes = [hrefPath];
-								}
+								hrefPath = new URL(link.href, window.location.origin).pathname;
 							} catch {}
+							const normalizedHrefPath = normalizePath(hrefPath);
+							isActive = !!normalizedHrefPath && normalizedHrefPath !== '/logout' && currentPath === normalizedHrefPath;
 						}
-
-						const isActive = prefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 						if (isActive) {
 							link.setAttribute('aria-current', 'page');
 						} else {

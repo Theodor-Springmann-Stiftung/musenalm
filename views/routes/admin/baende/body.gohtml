@@ -16,35 +16,16 @@
 	series: '{{ $model.series }}',
 	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
 	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
-	statusLabels: {
-		{{- range $k, $v := $model.filter_status_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
+	selectedLabels: {
+		status: {{ printf "%q" (index $model.selected_filter_labels "status") }},
+		person: {{ printf "%q" (index $model.selected_filter_labels "person") }},
+		user: {{ printf "%q" (index $model.selected_filter_labels "user") }},
+		year: {{ printf "%q" (index $model.selected_filter_labels "year") }},
+		place: {{ printf "%q" (index $model.selected_filter_labels "place") }},
+		series: {{ printf "%q" (index $model.selected_filter_labels "series") }},
 	},
-	personLabels: {
-		{{- range $k, $v := $model.filter_agent_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
-	},
-	userLabels: {
-		{{- range $k, $v := $model.filter_user_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
-	},
-	placeLabels: {
-		{{- range $k, $v := $model.filter_place_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
-	},
-	seriesLabels: {
-		{{- range $k, $v := $model.filter_series_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
-	},
-	yearLabels: {
-		{{- range $k, $v := $model.filter_year_labels -}}
-		{{ printf "%q" $k }}: {{ printf "%q" $v }},
-		{{- end -}}
+	filterSummary(prefix, key, fallback) {
+		return this[key] ? `${prefix}: ${this.selectedLabels[key] || this[key]}` : fallback;
 	},
 	appendFilters(params) {
 		if (this.status) params.set('status', this.status);
@@ -101,9 +82,14 @@
 		const query = params.toString();
 		return query ? `/admin/baende/?${query}` : '/admin/baende/';
 	},
-	applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
+	applyFilter(overrides = {}, labelOverrides = {}, indicator = 'body', sourceEl = null) {
 		Object.entries(overrides).forEach(([key, value]) => {
 			this[key] = value;
+		});
+		Object.entries(labelOverrides).forEach(([key, value]) => {
+			if (Object.prototype.hasOwnProperty.call(this.selectedLabels, key)) {
+				this.selectedLabels[key] = value;
+			}
 		});
 		this.offset = 0;
 		this.hasMore = true;
@@ -115,6 +101,12 @@
 			source: sourceEl || (indicator && document.querySelector(indicator)) || undefined,
 		});
 	},
+	selectNamedFilter(key, value, label, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: value }, { [key]: label }, indicator, sourceEl);
+	},
+	clearNamedFilter(key, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: '' }, { [key]: '' }, indicator, sourceEl);
+	},
 	clearFilters() {
 		this.status = '';
 		this.person = '';
@@ -122,6 +114,12 @@
 		this.year = '';
 		this.place = '';
 		this.series = '';
+		this.selectedLabels.status = '';
+		this.selectedLabels.person = '';
+		this.selectedLabels.user = '';
+		this.selectedLabels.year = '';
+		this.selectedLabels.place = '';
+		this.selectedLabels.series = '';
 	},
 	clearAllFilters(sourceEl = null) {
 		this.clearFilters();
@@ -286,7 +284,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 							<div class="p-2 w-[26rem]">
 								<a :href="buildPageUrl({ letter: '', offset: 0 })"
 								   hx-indicator="#baende-alphabet-spinner"
-								   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, '#baende-alphabet-spinner', $el)"
+								   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '' }, {}, '#baende-alphabet-spinner', $el)"
 								   x-show="selectedLetter"
 								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 									<i class="ri-filter-off-line text-base"></i>
@@ -303,7 +301,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									{{- range $_, $ch := $model.letters -}}
 										<a :href="buildPageUrl({ letter: '{{ $ch }}', offset: 0 })"
 										   hx-indicator="#baende-alphabet-spinner"
-										   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, '#baende-alphabet-spinner', $el)"
+										   @click.prevent="alphabetOpen = false; $el.closest('details').open = false; applyFilter({ selectedLetter: '{{ $ch }}' }, {}, '#baende-alphabet-spinner', $el)"
 										   data-letter="{{ $ch }}"
 										   class="text-center py-1 px-2 rounded hover:bg-gray-100 no-underline transition-colors">
 											{{ $ch }}
@@ -320,7 +318,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
 						<summary class="admin-list-filter-trigger flex items-center gap-2"
 							:class="status ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="status ? `Status: ${statusLabels[status] || status}` : 'Status'"></span>
+							<span x-text="filterSummary('Status', 'status', 'Status')"></span>
 							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 							<span id="baende-status-spinner" class="htmx-indicator text-slate-900">
 								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
@@ -331,7 +329,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 								<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
 									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ status: '', offset: 0 })"
 									   hx-indicator="#baende-status-spinner"
-									   @click.prevent="open = false; $el.closest('details').open = false; applyFilter({ status: '' }, '#baende-status-spinner', $el)"
+									   @click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('status', '#baende-status-spinner', $el)"
 									   x-show="status"
 									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
 										<i class="ri-filter-off-line text-base"></i>
@@ -340,7 +338,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									{{- range $_, $s := $model.filter_statuses -}}
 										<a data-role="filter-item" data-label="{{ $s.label }}" :href="buildPageUrl({ status: '{{ $s.value }}', offset: 0 })"
 										   hx-indicator="#baende-status-spinner"
-										   @click.prevent="open = false; $el.closest('details').open = false; applyFilter({ status: '{{ $s.value }}' }, '#baende-status-spinner', $el)"
+										   @click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('status', {{ printf "%q" $s.value }}, {{ printf "%q" $s.label }}, '#baende-status-spinner', $el)"
 										   :class="status === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
 										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
 											{{ $s.label }}
@@ -352,282 +350,45 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
-				<!-- Person filter -->
-				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="person ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="person ? `Person: ${personLabels[person] || person}` : 'Person'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ person: '', offset: 0 })"
-								   hx-indicator="#baende-person-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ person: '' }, '#baende-person-spinner', $el);
-								   "
-								   x-show="person"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Personen filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
-									<span id="baende-person-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
-									{{- range $_, $a := $model.filter_agents -}}
-										<a data-role="filter-item" data-label="{{ $a.Name }}" :href="buildPageUrl({ person: '{{ $a.Id }}', offset: 0 })"
-										   hx-indicator="#baende-person-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ person: '{{ $a.Id }}' }, '#baende-person-spinner', $el);
-										   "
-										   :class="person === '{{ $a.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											<span class="filter-list-searchable mr-1">{{ $a.Name }}</span>
-											{{- if $a.CorporateBody -}}
-												<span class="inline-flex items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.7rem] font-semibold text-slate-600">ORG</span>
-											{{- else if $a.BiographicalData -}}
-												<span class="text-[0.7rem] text-stone-500 whitespace-nowrap">{{ $a.BiographicalData }}</span>
-											{{- end -}}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "person"
+					"title" "Person"
+					"endpoint" "/admin/baende/filters/person/"
+					"spinner_id" "baende-person-spinner"
+					"width_class" "w-80"
+				) }}
 
-				<!-- Benutzer filter -->
-				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="user ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="user ? `Benutzer: ${userLabels[user] || user}` : 'Benutzer'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ user: '', offset: 0 })"
-								   hx-indicator="#baende-user-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ user: '' }, '#baende-user-spinner', $el);
-								   "
-								   x-show="user"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Benutzer filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
-									<span id="baende-user-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
-									{{- range $_, $u := $model.filter_users -}}
-										<a data-role="filter-item" data-label="{{ $u.Name }}" :href="buildPageUrl({ user: '{{ $u.Id }}', offset: 0 })"
-										   hx-indicator="#baende-user-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ user: '{{ $u.Id }}' }, '#baende-user-spinner', $el);
-										   "
-										   :class="user === '{{ $u.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											<span class="filter-list-searchable mr-1">{{ $u.Name }}</span>
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "user"
+					"title" "Benutzer"
+					"endpoint" "/admin/baende/filters/user/"
+					"spinner_id" "baende-user-spinner"
+					"width_class" "w-80"
+				) }}
 
-				<!-- Jahr filter -->
-				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="year ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="year ? `Jahr: ${yearLabels[year] || year}` : 'Jahr'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ year: '', offset: 0 })"
-								   hx-indicator="#baende-year-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ year: '' }, '#baende-year-spinner', $el);
-								   "
-								   x-show="year"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Jahre filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
-									<span id="baende-year-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
-									{{- range $_, $y := $model.filter_years -}}
-										{{- $label := $y -}}
-										{{- if eq $y 0 -}}{{- $label = "ohne Jahr" -}}{{- end -}}
-										<a data-role="filter-item" data-label="{{ $label }}" :href="buildPageUrl({ year: '{{ $y }}', offset: 0 })"
-										   hx-indicator="#baende-year-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ year: '{{ $y }}' }, '#baende-year-spinner', $el);
-										   "
-										   :class="year === '{{ $y }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $label }}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "year"
+					"title" "Jahr"
+					"endpoint" "/admin/baende/filters/year/"
+					"spinner_id" "baende-year-spinner"
+					"width_class" "w-72"
+				) }}
 
-				<!-- Ort filter -->
-				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="place ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="place ? `Ort: ${placeLabels[place] || place}` : 'Ort'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ place: '', offset: 0 })"
-								   hx-indicator="#baende-place-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ place: '' }, '#baende-place-spinner', $el);
-								   "
-								   x-show="place"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Orte filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
-									<span id="baende-place-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
-									{{- range $_, $p := $model.filter_places -}}
-										<a data-role="filter-item" data-label="{{ $p.Name }}" :href="buildPageUrl({ place: '{{ $p.Id }}', offset: 0 })"
-										   hx-indicator="#baende-place-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ place: '{{ $p.Id }}' }, '#baende-place-spinner', $el);
-										   "
-										   :class="place === '{{ $p.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $p.Name }}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "place"
+					"title" "Ort"
+					"endpoint" "/admin/baende/filters/place/"
+					"spinner_id" "baende-place-spinner"
+					"width_class" "w-80"
+				) }}
 
-				<!-- Reihentitel filter -->
-				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="series ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="series ? `Reihentitel: ${seriesLabels[series] || series}` : 'Reihentitel'"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-						</summary>
-						<div class="absolute left-0 mt-2 w-80 z-10 bg-white rounded-md shadow-lg border border-gray-200">
-							<div class="p-3">
-								<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ series: '', offset: 0 })"
-								   hx-indicator="#baende-series-spinner"
-								   @click.prevent="
-									open = false;
-									const root = $el.closest('details');
-									const input = root?.querySelector('[data-role=filter-search]');
-									if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-									root.open = false;
-									applyFilter({ series: '' }, '#baende-series-spinner', $el);
-								   "
-								   x-show="series"
-								   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
-									<i class="ri-filter-off-line text-base"></i>
-									<span>Alle</span>
-								</a>
-								<div class="relative">
-									<input data-role="filter-search" type="search" autocomplete="off" placeholder="Reihentitel filtern..." class="w-full px-2 py-1 pr-7 border border-stone-200 rounded text-sm" />
-									<span id="baende-series-spinner" class="htmx-indicator absolute right-2 top-1/2 -translate-y-1/2 text-slate-900">
-										<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-									</span>
-								</div>
-								<div class="mt-2 max-h-80 overflow-auto flex flex-col gap-0.5 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
-									{{- range $_, $s := $model.filter_series -}}
-										<a data-role="filter-item" data-label="{{ $s.Title }}" :href="buildPageUrl({ series: '{{ $s.Id }}', offset: 0 })"
-										   hx-indicator="#baende-series-spinner"
-										   @click.prevent="
-											open = false;
-											const root = $el.closest('details');
-											const input = root?.querySelector('[data-role=filter-search]');
-											if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); }
-											root.open = false;
-											applyFilter({ series: '{{ $s.Id }}' }, '#baende-series-spinner', $el);
-										   "
-										   :class="series === '{{ $s.Id }}' ? 'bg-stone-100 font-semibold' : ''"
-										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $s.Title }}
-										</a>
-									{{- end -}}
-								</div>
-							</div>
-						</div>
-					</details>
-				</div>
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "series"
+					"title" "Reihentitel"
+					"endpoint" "/admin/baende/filters/series/"
+					"spinner_id" "baende-series-spinner"
+					"width_class" "w-80"
+				) }}
 
 				<!-- Search -->
 				<div class="relative" @click.outside="searchOpen = false">
@@ -792,21 +553,33 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 <script>
 	(() => {
-		const filterRoots = document.querySelectorAll('[data-role="baende-filter"]');
-		filterRoots.forEach((root) => {
-			const input = root.querySelector('[data-role="filter-search"]');
-			const list = root.querySelector('[data-role="filter-list"]');
-			if (!list || !input) return;
-			input.addEventListener('input', () => {
-				const query = input.value.trim().toLowerCase();
-				list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
-					const label = (item.getAttribute('data-label') || '').toLowerCase();
-					if (item.getAttribute('data-label') === 'Alle') {
-						return;
-					}
-					item.classList.toggle('hidden', query !== '' && !label.includes(query));
+		const bindFilterSearch = (scope = document) => {
+			const roots = scope.matches?.('[data-role="baende-filter"]')
+				? [scope]
+				: scope.querySelectorAll?.('[data-role="baende-filter"]') || [];
+			roots.forEach((root) => {
+				if (root.dataset.filterSearchBound === 'true') return;
+				const input = root.querySelector('[data-role="filter-search"]');
+				const list = root.querySelector('[data-role="filter-list"]');
+				if (!list || !input) return;
+				root.dataset.filterSearchBound = 'true';
+				input.addEventListener('input', () => {
+					const query = input.value.trim().toLowerCase();
+					list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
+						const label = (item.getAttribute('data-label') || '').toLowerCase();
+						if (item.getAttribute('data-label') === 'Alle') {
+							return;
+						}
+						item.classList.toggle('hidden', query !== '' && !label.includes(query));
+					});
 				});
 			});
+		};
+
+		bindFilterSearch(document);
+		document.body.addEventListener('htmx:afterSwap', (event) => {
+			const target = event.target?.closest?.('[data-role="baende-filter"]') || event.target;
+			bindFilterSearch(target);
 		});
 	})();
 
