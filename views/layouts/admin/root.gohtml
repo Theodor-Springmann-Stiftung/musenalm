@@ -23,16 +23,38 @@
 			x-data="{
 				sidebarCollapsed: false,
 				syncSidebarActive(pathname = window.location.pathname) {
-					document.querySelectorAll('[data-admin-main-link]').forEach((link) => {
-						const prefixes = (link.dataset.adminActivePrefixes || '')
+					const sidebar = document.getElementById('admin-sidebar');
+					if (!sidebar) return;
+
+					sidebar.querySelectorAll('.admin-sidebar-link').forEach((link) => {
+						const datasetPrefixes = (link.dataset.adminActivePrefixes || '')
 							.split('|')
 							.map((value) => value.trim())
 							.filter(Boolean);
+						let prefixes = datasetPrefixes;
+						if (!prefixes.length) {
+							try {
+								const hrefPath = new URL(link.href, window.location.origin).pathname;
+								if (hrefPath && hrefPath !== '/logout/' && hrefPath !== '/logout') {
+									prefixes = [hrefPath];
+								}
+							} catch {}
+						}
+
 						const isActive = prefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 						if (isActive) {
 							link.setAttribute('aria-current', 'page');
 						} else {
 							link.removeAttribute('aria-current');
+						}
+					});
+
+					sidebar.querySelectorAll('.admin-sidebar-section').forEach((section) => {
+						const hasActiveLink = !!section.querySelector('.admin-sidebar-link[aria-current=&quot;page&quot;]');
+						if (hasActiveLink) {
+							section.setAttribute('data-section-current', 'true');
+						} else {
+							section.removeAttribute('data-section-current');
 						}
 					});
 				},

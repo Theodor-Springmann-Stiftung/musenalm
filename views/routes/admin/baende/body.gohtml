@@ -745,16 +745,22 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				hx-swap="beforeend"
 				hx-indicator="this"
 				@htmx:before-request="loading = true"
-				@htmx:after-request="
-					loading = false;
-					hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
-					const nextOffsetHeader = Number($event.detail.xhr.getResponseHeader('X-Next-Offset'));
-					if (!Number.isNaN(nextOffsetHeader)) {
-						offset = nextOffsetHeader;
-					}
-					updateUrl();
-				"
-				:disabled="loading">
+					@htmx:after-request="
+						loading = false;
+						hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+						const nextOffsetHeader = Number($event.detail.xhr.getResponseHeader('X-Next-Offset'));
+						if (!Number.isNaN(nextOffsetHeader)) {
+							offset = nextOffsetHeader;
+						}
+						const currentCount = Number($event.detail.xhr.getResponseHeader('X-Current-Count'));
+						const totalCount = Number($event.detail.xhr.getResponseHeader('X-Total-Count'));
+						const countEl = document.getElementById('baende-count');
+						if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+							countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Bände`;
+						}
+						updateUrl();
+					"
+					:disabled="loading">
 				<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
 				<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
 			</button>

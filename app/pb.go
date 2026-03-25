@@ -51,6 +51,7 @@ type App struct {
 
 type BaendeCache struct {
 	Entries       []*dbmodels.Entry
+	SortedEntries map[string][]*dbmodels.Entry
 	Series        map[string]*dbmodels.Series
 	EntriesSeries map[string][]*dbmodels.REntriesSeries
 	Places        map[string]*dbmodels.Place
@@ -65,6 +66,10 @@ type BaendeCache struct {
 // Implement BaendeCacheInterface methods
 func (bc *BaendeCache) GetEntries() interface{} {
 	return bc.Entries
+}
+
+func (bc *BaendeCache) GetSortedEntries() interface{} {
+	return bc.SortedEntries
 }
 
 func (bc *BaendeCache) GetSeries() interface{} {
@@ -97,6 +102,10 @@ func (bc *BaendeCache) GetUsers() interface{} {
 
 func (bc *BaendeCache) GetContentsCount() interface{} {
 	return bc.ContentsCount
+}
+
+func (bc *BaendeCache) GetCachedAt() time.Time {
+	return bc.CachedAt
 }
 
 const (
@@ -701,8 +710,11 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		}
 	}
 
+	sortedEntries := buildBaendeSortedEntries(entries, itemsMap)
+
 	app.baendeCache = &BaendeCache{
 		Entries:       entries,
+		SortedEntries: sortedEntries,
 		Series:        seriesMap,
 		EntriesSeries: entrySeriesMap,
 		Places:        placesMap,
@@ -715,6 +727,34 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 	}
 
 	return app.baendeCache, nil
+}
+
+func buildBaendeSortedEntries(entries []*dbmodels.Entry, itemsMap map[string][]*dbmodels.Item) map[string][]*dbmodels.Entry {
+	sorted := map[string][]*dbmodels.Entry{
+		"title":          cloneBaendeEntries(entries),
+		"alm":            cloneBaendeEntries(entries),
+		"year":           cloneBaendeEntries(entries),
+		"signatur":       cloneBaendeEntries(entries),
+		"responsibility": cloneBaendeEntries(entries),
+		"place":          cloneBaendeEntries(entries),
+		"updated":        cloneBaendeEntries(entries),
+	}
+
+	dbmodels.Sort_Entries_Title_Year(sorted["title"])
+	dbmodels.Sort_Entries_MusenalmID(sorted["alm"])
+	dbmodels.Sort_Entries_Year_Title(sorted["year"])
+	dbmodels.Sort_Entries_Signatur(sorted["signatur"], itemsMap)
+	dbmodels.Sort_Entries_Responsibility_Title(sorted["responsibility"])
+	dbmodels.Sort_Entries_Place_Title(sorted["place"])
+	dbmodels.Sort_Entries_Updated(sorted["updated"])
+
+	return sorted
+}
+
+func cloneBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
+	cloned := make([]*dbmodels.Entry, len(entries))
+	copy(cloned, entries)
+	return cloned
 }
 
 func (app *App) GetBaendeCache() (pagemodels.BaendeCacheInterface, error) {

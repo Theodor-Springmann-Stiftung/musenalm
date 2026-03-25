@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -58,6 +60,27 @@ type BaendeResult struct {
 type BaendeSeriesLink struct {
 	Series   *dbmodels.Series
 	Relation *dbmodels.REntriesSeries
+}
+
+type baendeFilterData struct {
+	Statuses     []map[string]string
+	StatusLabels map[string]string
+	Agents       []*dbmodels.Agent
+	AgentLabels  map[string]string
+	Users        []*dbmodels.User
+	UserLabels   map[string]string
+	Places       []*dbmodels.Place
+	PlaceLabels  map[string]string
+	Years        []int
+	YearLabels   map[string]string
+	Series       []*dbmodels.Series
+	SeriesLabels map[string]string
+}
+
+var baendeRequestCache struct {
+	mu       sync.RWMutex
+	cachedAt time.Time
+	filters  *baendeFilterData
 }
 
 type BaendeDetailsResult struct {
@@ -388,6 +411,11 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, fmt.Errorf("failed to get entries from cache")
 	}
 
+	sortedEntries, ok := cacheInterface.GetSortedEntries().(map[string][]*dbmodels.Entry)
+	if !ok {
+		return data, fmt.Errorf("failed to get sorted entries from cache")
+	}
+
 	itemsMap, ok := cacheInterface.GetItems().(map[string][]*dbmodels.Item)
 	if !ok {
 		return data, fmt.Errorf("failed to get items from cache")
@@ -429,7 +457,10 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	}
 
 	// Apply search/letter/filters
-	filteredEntries := allEntries
+	filteredEntries := selectBaendeSortedEntries(sortedEntries, sort)
+	if filteredEntries == nil {
+		filteredEntries = allEntries
+	}
 	if search != "" {
 		trimmedSearch := strings.TrimSpace(search)
 		if utf8.RuneCountInString(trimmedSearch) >= 3 {
@@ -471,27 +502,14 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		filteredEntries = filterEntriesBySeries(filteredEntries, entrySeriesMap, series)
 	}
 
-	// Apply sorting based on sort parameter
-	switch sort {
-	case "alm":
-		dbmodels.Sort_Entries_MusenalmID(filteredEntries)
-	case "year":
-		dbmodels.Sort_Entries_Year_Title(filteredEntries)
-	case "signatur":
-		dbmodels.Sort_Entries_Signatur(filteredEntries, itemsMap)
-	case "responsibility":
-		dbmodels.Sort_Entries_Responsibility_Title(filteredEntries)
-	case "place":
-		dbmodels.Sort_Entries_Place_Title(filteredEntries)
-	case "updated":
-		dbmodels.Sort_Entries_Updated(filteredEntries)
-	default: // "title"
-		dbmodels.Sort_Entries_Title_Year(filteredEntries)
+	// The unsearched path now starts from a cached sorted slice, so it doesn't need resorting.
+	if search != "" {
+		sortBaendeEntries(filteredEntries, sort, itemsMap)
 	}
 
 	// Reverse for descending order
 	if order == "desc" {
-		slices.Reverse(filteredEntries)
+		filteredEntries = reverseBaendeEntries(filteredEntries)
 	}
 
 	// Calculate pagination
@@ -557,21 +575,90 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	}
 	data["letters"] = letters
 
-	// Build filter lists
-	data["filter_statuses"] = buildStatusFilters()
-	data["filter_status_labels"] = buildStatusLabelMap()
-	data["filter_agents"] = buildAgentFilters(agentsMap)
-	data["filter_agent_labels"] = buildAgentLabelMap(agentsMap)
-	data["filter_users"] = buildUserFilters(usersMap)
-	data["filter_user_labels"] = buildUserLabelMap(usersMap)
-	data["filter_places"] = buildPlaceFilters(placesMap)
-	data["filter_place_labels"] = buildPlaceLabelMap(placesMap)
-	data["filter_years"] = buildYearFilters(allEntries)
-	data["filter_year_labels"] = buildYearLabelMap(allEntries)
-	data["filter_series"] = buildSeriesFilters(seriesMap, entrySeriesMap)
-	data["filter_series_labels"] = buildSeriesLabelMap(seriesMap, entrySeriesMap)
+	filterData := buildBaendeFilterData(cacheInterface, allEntries, agentsMap, usersMap, placesMap, seriesMap, entrySeriesMap)
+	data["filter_statuses"] = filterData.Statuses
+	data["filter_status_labels"] = filterData.StatusLabels
+	data["filter_agents"] = filterData.Agents
+	data["filter_agent_labels"] = filterData.AgentLabels
+	data["filter_users"] = filterData.Users
+	data["filter_user_labels"] = filterData.UserLabels
+	data["filter_places"] = filterData.Places
+	data["filter_place_labels"] = filterData.PlaceLabels
+	data["filter_years"] = filterData.Years
+	data["filter_year_labels"] = filterData.YearLabels
+	data["filter_series"] = filterData.Series
+	data["filter_series_labels"] = filterData.SeriesLabels
 
 	return data, nil
+}
+
+func selectBaendeSortedEntries(sortedEntries map[string][]*dbmodels.Entry, sort string) []*dbmodels.Entry {
+	if sortedEntries == nil {
+		return nil
+	}
+	if entries, ok := sortedEntries[sort]; ok && entries != nil {
+		return entries
+	}
+	return sortedEntries["title"]
+}
+
+func sortBaendeEntries(entries []*dbmodels.Entry, sort string, itemsMap map[string][]*dbmodels.Item) {
+	switch sort {
+	case "alm":
+		dbmodels.Sort_Entries_MusenalmID(entries)
+	case "year":
+		dbmodels.Sort_Entries_Year_Title(entries)
+	case "signatur":
+		dbmodels.Sort_Entries_Signatur(entries, itemsMap)
+	case "responsibility":
+		dbmodels.Sort_Entries_Responsibility_Title(entries)
+	case "place":
+		dbmodels.Sort_Entries_Place_Title(entries)
+	case "updated":
+		dbmodels.Sort_Entries_Updated(entries)
+	default:
+		dbmodels.Sort_Entries_Title_Year(entries)
+	}
+}
+
+func reverseBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
+	reversed := make([]*dbmodels.Entry, len(entries))
+	copy(reversed, entries)
+	slices.Reverse(reversed)
+	return reversed
+}
+
+func buildBaendeFilterData(cache pagemodels.BaendeCacheInterface, entries []*dbmodels.Entry, agentsMap map[string]*dbmodels.Agent, usersMap map[string]*dbmodels.User, placesMap map[string]*dbmodels.Place, seriesMap map[string]*dbmodels.Series, entrySeriesMap map[string][]*dbmodels.REntriesSeries) *baendeFilterData {
+	cachedAt := cache.GetCachedAt()
+
+	baendeRequestCache.mu.RLock()
+	if baendeRequestCache.filters != nil && baendeRequestCache.cachedAt.Equal(cachedAt) {
+		defer baendeRequestCache.mu.RUnlock()
+		return baendeRequestCache.filters
+	}
+	baendeRequestCache.mu.RUnlock()
+
+	data := &baendeFilterData{
+		Statuses:     buildStatusFilters(),
+		StatusLabels: buildStatusLabelMap(),
+		Agents:       buildAgentFilters(agentsMap),
+		AgentLabels:  buildAgentLabelMap(agentsMap),
+		Users:        buildUserFilters(usersMap),
+		UserLabels:   buildUserLabelMap(usersMap),
+		Places:       buildPlaceFilters(placesMap),
+		PlaceLabels:  buildPlaceLabelMap(placesMap),
+		Years:        buildYearFilters(entries),
+		YearLabels:   buildYearLabelMap(entries),
+		Series:       buildSeriesFilters(seriesMap, entrySeriesMap),
+		SeriesLabels: buildSeriesLabelMap(seriesMap, entrySeriesMap),
+	}
+
+	baendeRequestCache.mu.Lock()
+	baendeRequestCache.cachedAt = cachedAt
+	baendeRequestCache.filters = data
+	baendeRequestCache.mu.Unlock()
+
+	return data
 }
 
 func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
@@ -596,6 +683,16 @@ func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma page
 			e.Response.Header().Set("X-Next-Offset", strconv.Itoa(nextOffsetVal))
 		} else {
 			e.Response.Header().Set("X-Next-Offset", "0")
+		}
+		if currentCountVal, ok := data["current_count"].(int); ok {
+			e.Response.Header().Set("X-Current-Count", strconv.Itoa(currentCountVal))
+		} else {
+			e.Response.Header().Set("X-Current-Count", "0")
+		}
+		if totalCountVal, ok := data["total_count"].(int); ok {
+			e.Response.Header().Set("X-Total-Count", strconv.Itoa(totalCountVal))
+		} else {
+			e.Response.Header().Set("X-Total-Count", "0")
 		}
 
 		return engine.Response200(e, URL_BAENDE_MORE, data, pagemodels.LAYOUT_FRAGMENT)

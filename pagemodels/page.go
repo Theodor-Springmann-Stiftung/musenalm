@@ -5,6 +5,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 	"log/slog"
+	"time"
 )
 
 // BaendeCacheInterface defines the interface for Bände cache operations
@@ -19,6 +20,8 @@ type BaendeCacheInterface interface {
 	GetItems() interface{}         // Returns map[string][]*dbmodels.Item
 	GetUsers() interface{}         // Returns map[string]*dbmodels.User
 	GetContentsCount() interface{} // Returns map[string]int
+	GetSortedEntries() interface{} // Returns map[string][]*dbmodels.Entry
+	GetCachedAt() time.Time
 }
 
 type IApp interface {

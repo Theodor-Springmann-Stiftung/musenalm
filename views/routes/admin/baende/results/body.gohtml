@@ -39,6 +39,12 @@
                 loading = false;
                 hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
                 offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+                const currentCount = parseInt($event.detail.xhr.getResponseHeader('X-Current-Count') || '0');
+                const totalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
+                const countEl = document.getElementById('baende-count');
+                if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+                    countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Bände`;
+                }
             "
 			:disabled="loading">
 			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
