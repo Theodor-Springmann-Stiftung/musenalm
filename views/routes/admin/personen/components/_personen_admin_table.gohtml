@@ -1,7 +1,7 @@
 {{ $model := . }}
 
 <div class="mt-2 overflow-x-auto overflow-y-visible">
-	<table id="personen-admin-table" class="min-w-full table-fixed text-sm font-sans">
+	<table id="personen-admin-table" class="min-w-full table-fixed text-base font-sans">
 		<colgroup>
 			<col style="width: 9rem;" />
 			<col style="width: 30rem;" />
@@ -49,7 +49,7 @@
 			{{ template "_personen_admin_rows" $model }}
 			{{- if not (len $model.result.Agents) -}}
 				<tr>
-					<td colspan="6" class="py-6 text-center text-sm text-gray-500">
+					<td colspan="6" class="py-6 text-center text-base text-gray-500">
 						Keine Personen gefunden.
 					</td>
 				</tr>

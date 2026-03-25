@@ -1,14 +1,14 @@
 {{ $model := . }}
 
 <div class="mt-2 overflow-x-auto overflow-y-visible">
-	<table id="baende-table" class="min-w-full text-sm font-sans baende-text">
+	<table id="baende-table" class="min-w-full text-base font-sans baende-text">
 		<thead class="text-left text-gray-600 border-b">
 			<tr>
 				<th class="py-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem] align-bottom"
 					:aria-sort="sortField === 'alm' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('alm', $event)">
 							<span class="font-semibold tracking-wide">Alm-Nr</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -25,7 +25,7 @@
 				<th class="py-2 pr-4 whitespace-nowrap w-[38rem] align-bottom col-title"
 					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
-						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 						@click="changeSort('title', $event)">
 						<span class="font-semibold tracking-wide">Titel</span>
 						<i class="text-xs opacity-70 transition-colors"
@@ -40,7 +40,7 @@
 				<th class="py-2 pr-4 whitespace-nowrap col-year hidden align-bottom w-[5.5rem]"
 					:aria-sort="sortField === 'year' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
-						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 						@click="changeSort('year', $event)">
 						<span class="font-semibold tracking-wide">Jahr</span>
 						<i class="text-xs opacity-70 transition-colors"
@@ -55,7 +55,7 @@
 				<th class="py-2 pr-4 whitespace-nowrap col-appearance w-[18rem] align-bottom">
 					<div class="flex flex-col items-start gap-0.5 h-full justify-end">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm leading-tight"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base leading-tight"
 							@click="changeSort('responsibility', $event)">
 							<span class="font-semibold tracking-wide">Herausgeber</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -67,7 +67,7 @@
 							   aria-hidden="true"></i>
 						</button>
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm leading-tight"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base leading-tight"
 							@click="changeSort('place', $event)">
 							<span class="font-semibold tracking-wide">Ortsangabe</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -89,7 +89,7 @@
 				<th class="py-2 pr-4 whitespace-nowrap col-signatures align-bottom w-[7.5rem]"
 					:aria-sort="sortField === 'signatur' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
-						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 						@click="changeSort('signatur', $event)">
 						<span class="font-semibold tracking-wide">Signaturen</span>
 						<i class="text-xs opacity-70 transition-colors"
@@ -108,7 +108,7 @@
 					:aria-sort="sortField === 'updated' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('updated', $event)">
 							<span class="font-semibold tracking-wide">Bearbeitet am</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -128,7 +128,7 @@
 		{{- if not (len $model.result.Entries) -}}
 			<tbody>
 				<tr>
-					<td colspan="8" class="py-6 text-center text-sm text-gray-500">
+					<td colspan="8" class="py-6 text-center text-base text-gray-500">
 						Keine Bände gefunden.
 					</td>
 				</tr>

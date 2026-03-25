@@ -9,9 +9,7 @@
 		<td class="w-[9rem] whitespace-nowrap py-2 pr-4 pl-4{{ if eq $agent.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $agent.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
 			<div class="flex flex-col gap-1">
 				{{- if $agent.References -}}
-					<span class="agent-admin-search-text inline-flex w-full items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-sm leading-snug text-slate-700 whitespace-normal break-words" title="{{ $agent.References }}">{{ $agent.References }}</span>
-				{{- else -}}
-					<span class="inline-flex w-full items-center px-2.5 py-0 text-sm text-stone-400">-</span>
+					<span class="agent-admin-search-text admin-list-reference" title="{{ $agent.References }}">{{ $agent.References }}</span>
 				{{- end -}}
 			</div>
 		</td>
@@ -19,29 +17,25 @@
 			<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
 				<div class="agent-admin-search-text text-lg font-semibold leading-snug text-slate-900">{{ $agent.Name }}</div>
 				{{- if $agent.CorporateBody -}}
-					<span class="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-[0.85rem] font-semibold text-slate-700">Körperschaft</span>
+					<span class="admin-list-badge">Körperschaft</span>
 				{{- end -}}
 			</div>
 			{{- if $agent.Annotation -}}
 				<div class="agent-admin-search-text annotation-content mt-1 font-sans text-base leading-snug text-gray-700">{{- Safe (ReplaceSlashParen $agent.Annotation) -}}</div>
 			{{- end -}}
 		</td>
-		<td class="col-profession py-2 pr-4 text-sm text-gray-700">
+		<td class="col-profession py-2 pr-4 text-base text-gray-700">
 			{{- if $agent.Profession -}}
-				<span class="agent-admin-search-text">{{ $agent.Profession }}</span>
-			{{- else -}}
-				<span class="text-stone-400">-</span>
+				<span class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</span>
 			{{- end -}}
 		</td>
-		<td class="col-life py-2 pr-4 text-sm leading-snug text-gray-700">
+		<td class="col-life py-2 pr-4 text-base leading-snug text-gray-700">
 			{{- if $agent.BiographicalData -}}
-				<div class="agent-admin-search-text">{{ $agent.BiographicalData }}</div>
-			{{- else -}}
-				<span class="text-stone-400">-</span>
+				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.BiographicalData }}</div>
 			{{- end -}}
 		</td>
 		<td class="col-counts py-2 pr-4">
-			<div class="flex items-center gap-3 text-sm text-stone-700">
+			<div class="admin-list-count flex items-center gap-3">
 				<div class="inline-flex items-center gap-1">
 					<i class="ri-book-line"></i>
 					<span>{{ $bandCount }}</span>
@@ -56,14 +50,14 @@
 			<div class="flex items-start justify-end">
 				<div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
 					<tool-tip position="top" class="inline">
-						<a href="/person/{{ $agent.Id }}" target="_blank" rel="noopener" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+						<a href="/person/{{ $agent.Id }}" target="_blank" rel="noopener" class="admin-list-chip">
 							<i class="ri-external-link-line"></i>
 						</a>
 						<div class="data-tip">In neuem Tab öffnen</div>
 					</tool-tip>
 					{{- if (IsAdminOrEditor $model.request.user) -}}
 						<tool-tip position="top" class="inline">
-							<a href="/admin/person/{{ $agent.Id }}/edit/" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+							<a href="/admin/person/{{ $agent.Id }}/edit/" class="admin-list-chip">
 								<i class="ri-edit-line"></i>
 							</a>
 							<div class="data-tip">Bearbeiten</div>
@@ -76,7 +70,7 @@
 								data-agent-title="{{ $agent.Name }}"
 								data-last-edited="{{ $agent.Updated }}"
 								data-delete-endpoint="/admin/person/{{ $agent.Id }}/edit/delete"
-								class="inline-flex items-center gap-1 rounded-xs border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+								class="admin-list-chip-danger">
 								<i class="ri-delete-bin-line"></i>
 							</button>
 							<div class="data-tip">Löschen</div>

@@ -1,7 +1,7 @@
 {{ $model := . }}
 
 <div class="mt-2 overflow-x-auto overflow-y-visible">
-	<table id="reihen-table" class="min-w-full table-fixed text-sm font-sans">
+	<table id="reihen-table" class="min-w-full table-fixed text-base font-sans">
 		<colgroup>
 			<col style="width: 6.5rem;" />
 			<col style="width: 28rem;" />
@@ -15,7 +15,7 @@
 					:aria-sort="sortField === 'nr' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('nr', $event)">
 							<span class="font-semibold tracking-wide">Nr</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -33,7 +33,7 @@
 					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('title', $event)">
 							<span class="font-semibold tracking-wide">Titel</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -56,7 +56,7 @@
 					:aria-sort="sortField === 'updated' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
-							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-sm"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('updated', $event)">
 							<span class="font-semibold tracking-wide">Bearbeitet am</span>
 							<i class="text-xs opacity-70 transition-colors"
@@ -81,7 +81,7 @@
 		{{- if not (len $model.result.Series) -}}
 			<tbody>
 				<tr>
-					<td colspan="5" class="py-6 text-center text-sm text-gray-500">
+					<td colspan="5" class="py-6 text-center text-base text-gray-500">
 						Keine Reihen gefunden.
 					</td>
 				</tr>

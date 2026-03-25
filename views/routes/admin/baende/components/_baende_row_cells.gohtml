@@ -1,26 +1,26 @@
 {{ $entry := .entry }}
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 whitespace-nowrap w-[12.5rem]{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
 	<div class="flex flex-col gap-1">
-		<span class="inline-flex w-full items-center px-2.5 py-0 text-sm font-semibold text-black">Alm {{ $entry.MusenalmID }}</span>
+		<span class="inline-flex w-full items-center px-2.5 py-0 text-base font-semibold text-black">Alm {{ $entry.MusenalmID }}</span>
 		{{- if $entry.References -}}
-			<span class="inline-flex w-full items-center rounded-xs bg-stone-100 px-2.5 py-0.5 text-sm leading-snug text-slate-700 whitespace-normal break-words" title="{{ $entry.References }}">{{ $entry.References }}</span>
+			<span class="admin-list-reference" title="{{ $entry.References }}">{{ $entry.References }}</span>
 		{{- end -}}
-		<div class="flex flex-nowrap items-center gap-1.5 pt-1">
+		<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
 			<tool-tip position="top" class="inline">
-				<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+				<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 					<i class="ri-external-link-line"></i>
 				</a>
 				<div class="data-tip">In neuem Tab öffnen</div>
 			</tool-tip>
 			{{- if .can_edit -}}
 				<tool-tip position="top" class="inline">
-					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 						<i class="ri-edit-line"></i>
 					</a>
 					<div class="data-tip">Bearbeiten</div>
 				</tool-tip>
 				<tool-tip position="top" class="inline">
-					<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" onclick="event.stopPropagation();" hx-target="body" class="no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-stone-200 hover:text-slate-900">
+					<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 						<i class="ri-file-list-3-line"></i>
 						<span>{{ if .contents_count }}{{ .contents_count }}{{ else }}0{{ end }}</span>
 					</a>
@@ -34,7 +34,7 @@
 						data-entry-id="{{ $entry.MusenalmID }}"
 						data-entry-title="{{- if $entry.PreferredTitle -}}{{ $entry.PreferredTitle }}{{- else if ne $entry.Year 0 -}}{{ $entry.Year }}{{- else -}}[o.J.]{{- end -}}"
 						data-delete-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/edit/delete"
-						class="inline-flex items-center gap-1 rounded-xs border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900">
+						class="admin-list-chip-danger">
 						<i class="ri-delete-bin-line"></i>
 					</button>
 					<div class="data-tip">Löschen</div>
@@ -77,7 +77,7 @@
 		</div>
 	{{- end -}}
 	{{- if or $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
-		<div class="flex flex-col gap-1 text-sm text-gray-700 mt-1">
+		<div class="flex flex-col gap-1 text-base text-gray-700 mt-1">
 			{{- if $entry.SubtitleStmt -}}
 				<div><span class="font-semibold text-gray-500">Untertitel:</span> {{ $entry.SubtitleStmt }}</div>
 			{{- end -}}
@@ -100,22 +100,22 @@
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-appearance">
 	{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
-		<div class="flex flex-col gap-2 text-[0.95rem] text-gray-700">
+		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
 				<div>
-					<div class="text-xs font-semibold text-gray-500">Herausgaberangabe</div>
+					<div class="text-base font-semibold text-gray-500">Herausgaberangabe</div>
 					<div class="mt-0.5 leading-snug text-slate-800">{{ $entry.ResponsibilityStmt }}</div>
 				</div>
 			{{- end -}}
 			{{- if $entry.PublicationStmt -}}
 				<div>
-					<div class="text-xs font-semibold text-gray-500">Publikationsangabe</div>
+					<div class="text-base font-semibold text-gray-500">Publikationsangabe</div>
 					<div class="mt-0.5 leading-snug text-slate-800">{{ $entry.PublicationStmt }}</div>
 				</div>
 			{{- end -}}
 			{{- if $entry.PlaceStmt -}}
 				<div>
-					<div class="text-xs font-semibold text-gray-500">Ortsangabe</div>
+					<div class="text-base font-semibold text-gray-500">Ortsangabe</div>
 					<div class="mt-0.5 leading-snug text-slate-800">{{ $entry.PlaceStmt }}</div>
 				</div>
 			{{- end -}}
@@ -124,7 +124,7 @@
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-extent">
 	{{- if or $entry.Extent $entry.Dimensions $entry.Language -}}
-		<div class="flex flex-col gap-1 text-[0.95rem] text-gray-700">
+		<div class="flex flex-col gap-1 text-base text-gray-700">
 			{{- if $entry.Extent -}}
 				<div class="leading-snug text-slate-800">{{ $entry.Extent }}</div>
 			{{- end -}}
@@ -135,7 +135,7 @@
 				<div class="h-1"></div>
 			{{- end -}}
 			{{- if $entry.Language -}}
-				<div class="flex flex-wrap gap-x-2 gap-y-1 pt-0.5 font-sans text-[0.95rem] italic text-gray-700">
+				<div class="flex flex-wrap gap-x-2 gap-y-1 pt-0.5 font-sans text-base italic text-gray-700">
 					{{- range $i, $lang := $entry.Language -}}
 						<span>{{ LanguageNameGerman $lang }}</span>
 					{{- end -}}
@@ -146,14 +146,14 @@
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-signatures w-[7.5rem]">
 	{{- if .items -}}
-		<div class="flex flex-col gap-2 text-sm text-gray-700">
+		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- range $_, $item := .items -}}
-				<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-sm">
+				<div class="inline-flex flex-col items-center justify-center rounded-xs border border-slate-200 bg-white text-base">
 					{{- if $item.Identifier -}}
 						<div class="px-2 py-1 font-semibold text-slate-900 text-center">{{ $item.Identifier }}</div>
 					{{- end -}}
 					{{- if $item.Media -}}
-						<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug text-sm">
+						<div class="w-full border-t border-slate-200 px-2 py-1 text-gray-600 text-center leading-snug text-base">
 							{{- range $i, $media := $item.Media -}}{{- if $i }}, {{ end -}}{{ $media }}{{- end -}}
 						</div>
 					{{- end -}}
@@ -164,7 +164,7 @@
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-series hidden w-[18rem]">
 	{{- if .series_links -}}
-		<div class="flex flex-col gap-1.5 text-sm text-gray-700">
+		<div class="flex flex-col gap-1.5 text-base text-gray-700">
 			{{- range $_, $link := .series_links -}}
 				<div>
 					<a href="/reihe/{{ $link.Series.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body">{{ $link.Series.Title }}</a>
