@@ -16,7 +16,7 @@
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-band-count whitespace-nowrap">
 	<div class="admin-list-count">
 		<tool-tip position="top" class="inline">
-			<span class="inline-flex items-center gap-1">
+			<span class="admin-list-inline-stat">
 				<i class="ri-book-line"></i>
 				<span>{{ len .band_links }}</span>
 			</span>
@@ -32,8 +32,8 @@
 	) }}
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-8">
-	<div class="flex items-start justify-end">
-		<div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+	<div class="admin-list-actions">
+		<div class="admin-list-action-stack">
 			<tool-tip position="top" class="inline">
 				<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 					<i class="ri-external-link-line"></i>

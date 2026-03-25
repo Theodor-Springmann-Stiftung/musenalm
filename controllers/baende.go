@@ -101,7 +101,7 @@ func (p *BaendePage) handlePage(engine *templating.Engine, app core.App, ma page
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		return engine.Response200(e, p.Template, data, p.Layout)
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
@@ -502,7 +502,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	currentCount := 0
 
 	if showAggregated {
-		displayLimit := offset + BAENDE_PAGE_SIZE
+		displayLimit := aggregatedDisplayLimit(offset, BAENDE_PAGE_SIZE)
 		if displayLimit > totalCount {
 			displayLimit = totalCount
 		}
@@ -514,17 +514,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		currentCount = len(pageEntries)
 		hasMore = displayLimit < totalCount
 	} else {
-		start := offset
-		if start < 0 {
-			start = 0
-		}
-		if start > totalCount {
-			start = totalCount
-		}
-		endIndex := start + BAENDE_PAGE_SIZE
-		if endIndex > totalCount {
-			endIndex = totalCount
-		}
+		start, endIndex := paginatedSliceBounds(offset, totalCount, BAENDE_PAGE_SIZE)
 		pageEntries = filteredEntries[start:endIndex]
 		nextOffset = endIndex
 		currentCount = start + len(pageEntries)

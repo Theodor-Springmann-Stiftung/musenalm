@@ -163,8 +163,11 @@ const (
 )
 
 const (
-	URL_ORTE      = "/admin/orte/"
-	TEMPLATE_ORTE = "/admin/orte/"
+	URL_ORTE           = "/admin/orte/"
+	URL_ORTE_RESULTS   = "/admin/orte/results/"
+	URL_ORTE_MORE      = "/admin/orte/more/"
+	TEMPLATE_ORTE      = "/admin/orte/"
+	TEMPLATE_ORTE_MORE = "/admin/orte/more/"
 
 	URL_ORT                 = "/admin/ort/{id}/"
 	URL_ORT_EDIT            = "edit"

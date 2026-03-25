@@ -1,6 +1,16 @@
 <!doctype html>
 <html class="w-full h-full" {{ if .lang }}lang="{{ .lang }}"{{ end }}>
 	<head>
+		<script>
+			(() => {
+				try {
+					if (window.localStorage.getItem('admin-sidebar-collapsed') === 'true') {
+						document.documentElement.classList.add('admin-layout-sidebar-collapsed');
+					}
+				} catch {}
+			})();
+		</script>
+
 		{{ block "head" . }}
 			<!-- Default Head elements -->
 		{{ end }}
@@ -12,8 +22,27 @@
 		<div
 			x-data="{
 				sidebarCollapsed: false,
+				syncSidebarActive(pathname = window.location.pathname) {
+					document.querySelectorAll('[data-admin-main-link]').forEach((link) => {
+						const prefixes = (link.dataset.adminActivePrefixes || '')
+							.split('|')
+							.map((value) => value.trim())
+							.filter(Boolean);
+						const isActive = prefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
+						if (isActive) {
+							link.setAttribute('aria-current', 'page');
+						} else {
+							link.removeAttribute('aria-current');
+						}
+					});
+				},
+				syncSidebarState() {
+					document.documentElement.classList.toggle('admin-layout-sidebar-collapsed', this.sidebarCollapsed);
+				},
 				init() {
-					this.sidebarCollapsed = window.localStorage.getItem('admin-sidebar-collapsed') === 'true';
+					this.sidebarCollapsed = document.documentElement.classList.contains('admin-layout-sidebar-collapsed');
+					this.syncSidebarState();
+					this.syncSidebarActive();
 					if (this.sidebarCollapsed) {
 						this.$nextTick(() => {
 							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
@@ -25,6 +54,7 @@
 				toggleSidebar() {
 					this.sidebarCollapsed = !this.sidebarCollapsed;
 					window.localStorage.setItem('admin-sidebar-collapsed', String(this.sidebarCollapsed));
+					this.syncSidebarState();
 					if (this.sidebarCollapsed) {
 						this.$nextTick(() => {
 							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
@@ -34,6 +64,13 @@
 					}
 				}
 			}"
+			@htmx:after-swap.window="
+				if ($event.detail.target && $event.detail.target.id === 'admin-main-content') {
+					const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
+					syncSidebarActive(new URL(responseUrl).pathname);
+				}
+			"
+			@htmx:history-restore.window="syncSidebarActive(window.location.pathname)"
 			:class="{ 'admin-layout-sidebar-collapsed': sidebarCollapsed }"
 			class="admin-layout">
 			<aside class="admin-sidebar-frame" id="header">
@@ -42,9 +79,16 @@
 			<div class="admin-layout-main">
 				{{ template "_global_notice" . }}
 				<main class="admin-main">
-					{{ block "body" . }}
-						<!-- Default app body... -->
-					{{ end }}
+					<div class="admin-main-shell">
+						<div id="admin-main-loading" class="admin-main-loading htmx-indicator" aria-hidden="true">
+							<div class="admin-main-loading-bar"></div>
+						</div>
+						<div id="admin-main-content">
+							{{ block "body" . }}
+								<!-- Default app body... -->
+							{{ end }}
+						</div>
+					</div>
 				</main>
 			</div>
 

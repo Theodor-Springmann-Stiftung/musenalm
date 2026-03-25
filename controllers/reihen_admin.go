@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -19,8 +21,15 @@ import (
 )
 
 const (
-	REIHEN_ADMIN_PAGE_SIZE = 80
+	REIHEN_ADMIN_PAGE_SIZE    = 80
+	adminReihenFilterCacheTTL = 30 * time.Second
 )
+
+var adminReihenFilterCache struct {
+	mu       sync.RWMutex
+	data     *adminReihenFilterData
+	cachedAt time.Time
+}
 
 var adminAlphabet = []string{
 	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
@@ -81,7 +90,7 @@ func (p *ReihenAdminPage) handlePage(engine *templating.Engine, app core.App) Ha
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		return engine.Response200(e, p.Template, data, p.Layout)
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
@@ -224,130 +233,6 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		sortOrder = "asc"
 	}
 
-	allSeries := []*dbmodels.Series{}
-	if err := app.RecordQuery(dbmodels.SERIES_TABLE).All(&allSeries); err != nil {
-		return data, err
-	}
-
-	seriesIDs := dbmodels.Ids(allSeries)
-	relations, err := dbmodels.REntriesSeries_Seriess(app, seriesIDs)
-	if err != nil {
-		return data, err
-	}
-
-	entryIDsSet := map[string]struct{}{}
-	seriesEntriesMap := make(map[string][]*dbmodels.REntriesSeries)
-	for _, rel := range relations {
-		if rel == nil {
-			continue
-		}
-		seriesEntriesMap[rel.Series()] = append(seriesEntriesMap[rel.Series()], rel)
-		if rel.Entry() != "" {
-			entryIDsSet[rel.Entry()] = struct{}{}
-		}
-	}
-
-	entryIDs := make([]any, 0, len(entryIDsSet))
-	for id := range entryIDsSet {
-		entryIDs = append(entryIDs, id)
-	}
-
-	entriesMap := map[string]*dbmodels.Entry{}
-	if len(entryIDs) > 0 {
-		entries, err := dbmodels.Entries_IDs(app, entryIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, entry := range entries {
-			if entry == nil {
-				continue
-			}
-			entriesMap[entry.Id] = entry
-		}
-	}
-
-	for seriesID, rels := range seriesEntriesMap {
-		seriesEntriesMap[seriesID] = sortSeriesRelationsForAdmin(rels, entriesMap)
-	}
-
-	agentMap := map[string]*dbmodels.Agent{}
-	entryAgentsMap := map[string][]*dbmodels.REntriesAgents{}
-	if len(entryIDs) > 0 {
-		agents, agentRelations, err := Agents_Entries_IDs(app, entryIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, agent := range agents {
-			if agent == nil {
-				continue
-			}
-			agentMap[agent.Id] = agent
-		}
-		for _, rel := range agentRelations {
-			if rel == nil {
-				continue
-			}
-			entryAgentsMap[rel.Entry()] = append(entryAgentsMap[rel.Entry()], rel)
-		}
-	}
-
-	placeIDsSet := map[string]struct{}{}
-	yearSet := map[int]struct{}{}
-	for _, entry := range entriesMap {
-		if entry == nil {
-			continue
-		}
-		yearSet[entry.Year()] = struct{}{}
-		for _, placeID := range entry.Places() {
-			if placeID != "" {
-				placeIDsSet[placeID] = struct{}{}
-			}
-		}
-	}
-
-	placeMap := map[string]*dbmodels.Place{}
-	if len(placeIDsSet) > 0 {
-		placeIDs := make([]any, 0, len(placeIDsSet))
-		for id := range placeIDsSet {
-			placeIDs = append(placeIDs, id)
-		}
-		places, err := dbmodels.Places_IDs(app, placeIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, place := range places {
-			if place == nil {
-				continue
-			}
-			placeMap[place.Id] = place
-		}
-	}
-
-	userMap := map[string]*dbmodels.User{}
-	userIDsSet := map[string]struct{}{}
-	for _, series := range allSeries {
-		if series == nil || series.Editor() == "" {
-			continue
-		}
-		userIDsSet[series.Editor()] = struct{}{}
-	}
-	if len(userIDsSet) > 0 {
-		userIDs := make([]any, 0, len(userIDsSet))
-		for id := range userIDsSet {
-			userIDs = append(userIDs, id)
-		}
-		users, err := dbmodels.TableByIDs[*dbmodels.User](app, dbmodels.USERS_TABLE, userIDs)
-		if err != nil {
-			return data, err
-		}
-		for _, user := range users {
-			if user == nil {
-				continue
-			}
-			userMap[user.Id] = user
-		}
-	}
-
 	letters := adminAlphabet
 	validLetters := make(map[string]struct{}, len(letters))
 	for _, ch := range letters {
@@ -360,77 +245,107 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		}
 	}
 
-	filteredSeries := allSeries
+	allowedIDs := []map[string]struct{}{}
 	if search != "" {
 		searchIDs, err := searchAdminSeriesIDs(app, search)
 		if err != nil {
 			return data, err
 		}
-		filteredSeries = filterSeriesBySearchIDs(filteredSeries, searchIDs)
-	}
-	if letter != "" {
-		filteredSeries = filterSeriesByLetter(filteredSeries, letter)
+		allowedIDs = append(allowedIDs, searchIDs)
 	}
 	if person != "" {
-		filteredSeries = filterSeriesByAgent(filteredSeries, seriesEntriesMap, entryAgentsMap, person)
+		personIDs, err := seriesIDsForAgent(app, person)
+		if err != nil {
+			return data, err
+		}
+		allowedIDs = append(allowedIDs, personIDs)
 	}
 	if place != "" {
-		filteredSeries = filterSeriesByPlace(filteredSeries, seriesEntriesMap, entriesMap, place)
+		placeIDs, err := seriesIDsForPlace(app, place)
+		if err != nil {
+			return data, err
+		}
+		allowedIDs = append(allowedIDs, placeIDs)
 	}
 	if yearStr != "" {
 		yearVal, err := strconv.Atoi(yearStr)
 		if err != nil {
-			filteredSeries = []*dbmodels.Series{}
+			allowedIDs = append(allowedIDs, map[string]struct{}{})
 		} else {
-			filteredSeries = filterSeriesByYear(filteredSeries, seriesEntriesMap, entriesMap, yearVal)
+			yearIDs, err := seriesIDsForYear(app, yearVal)
+			if err != nil {
+				return data, err
+			}
+			allowedIDs = append(allowedIDs, yearIDs)
 		}
 	}
 
-	sortAdminSeries(filteredSeries, sortField, sortOrder, userMap)
-
-	totalCount := len(filteredSeries)
-	var pageSeries []*dbmodels.Series
-	nextOffset := offset
-	hasMore := false
-	currentCount := 0
-
-	if showAggregated {
-		displayLimit := offset + REIHEN_ADMIN_PAGE_SIZE
-		if displayLimit > totalCount {
-			displayLimit = totalCount
+	filteredIDs := applyAllowedIDs(allowedIDs...)
+	if filteredIDs != nil && len(filteredIDs) == 0 {
+		filterData, err := buildAdminReihenFilterData(app)
+		if err != nil {
+			return data, err
 		}
-		if displayLimit < 0 {
-			displayLimit = 0
+		data["result"] = &ReihenAdminResult{
+			Series:        []*dbmodels.Series{},
+			Entries:       map[string]*dbmodels.Entry{},
+			SeriesEntries: map[string][]*dbmodels.REntriesSeries{},
+			BandLinks:     map[string][]*ReihenBandLink{},
+			Users:         map[string]*dbmodels.User{},
 		}
-		pageSeries = filteredSeries[:displayLimit]
-		nextOffset = displayLimit
-		currentCount = len(pageSeries)
-		hasMore = displayLimit < totalCount
-	} else {
-		start := offset
-		if start < 0 {
-			start = 0
-		}
-		if start > totalCount {
-			start = totalCount
-		}
-		endIndex := start + REIHEN_ADMIN_PAGE_SIZE
-		if endIndex > totalCount {
-			endIndex = totalCount
-		}
-		pageSeries = filteredSeries[start:endIndex]
-		nextOffset = endIndex
-		currentCount = start + len(pageSeries)
-		hasMore = endIndex < totalCount
+		data["offset"] = offset
+		data["total_count"] = 0
+		data["current_count"] = 0
+		data["has_more"] = false
+		data["next_offset"] = 0
+		data["search"] = search
+		data["letter"] = letter
+		data["person"] = person
+		data["place"] = place
+		data["year"] = yearStr
+		data["sort_field"] = sortField
+		data["sort_order"] = sortOrder
+		data["letters"] = letters
+		data["csrf_token"] = req.Session().Token
+		data["filter_agents"] = filterData.Agents
+		data["filter_agent_labels"] = filterData.AgentLabels
+		data["filter_places"] = filterData.Places
+		data["filter_place_labels"] = filterData.PlaceLabels
+		data["filter_years"] = filterData.Years
+		data["filter_year_labels"] = filterData.YearLabels
+		return data, nil
 	}
 
-	data["result"] = &ReihenAdminResult{
-		Series:        pageSeries,
-		Entries:       entriesMap,
-		SeriesEntries: seriesEntriesMap,
-		BandLinks:     buildReihenBandLinksMap(pageSeries, entriesMap, seriesEntriesMap),
-		Users:         userMap,
+	var totalCount64 int64
+	if err := buildAdminReihenSeriesQuery(app, letter, filteredIDs).
+		Select("COUNT(*)").
+		Row(&totalCount64); err != nil {
+		return data, err
 	}
+	totalCount := int(totalCount64)
+
+	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, REIHEN_ADMIN_PAGE_SIZE, showAggregated)
+	pageSeries := []*dbmodels.Series{}
+	if limit > 0 {
+		if err := buildAdminReihenSeriesQuery(app, letter, filteredIDs).
+			OrderBy(adminReihenOrderBy(sortField, sortOrder)...).
+			Limit(int64(limit)).
+			Offset(int64(queryOffset)).
+			All(&pageSeries); err != nil {
+			return data, err
+		}
+	}
+
+	result, err := loadAdminReihenPageResult(app, pageSeries)
+	if err != nil {
+		return data, err
+	}
+	filterData, err := buildAdminReihenFilterData(app)
+	if err != nil {
+		return data, err
+	}
+
+	data["result"] = result
 	data["offset"] = offset
 	data["total_count"] = totalCount
 	data["current_count"] = currentCount
@@ -445,14 +360,266 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	data["sort_order"] = sortOrder
 	data["letters"] = letters
 	data["csrf_token"] = req.Session().Token
-	data["filter_agents"] = buildAdminReihenAgentFilters(agentMap)
-	data["filter_agent_labels"] = buildAdminReihenAgentLabelMap(agentMap)
-	data["filter_places"] = buildAdminReihenPlaceFilters(placeMap)
-	data["filter_place_labels"] = buildAdminReihenPlaceLabelMap(placeMap)
-	data["filter_years"] = buildAdminReihenYearFilters(yearSet)
-	data["filter_year_labels"] = buildAdminReihenYearLabelMap(yearSet)
+	data["filter_agents"] = filterData.Agents
+	data["filter_agent_labels"] = filterData.AgentLabels
+	data["filter_places"] = filterData.Places
+	data["filter_place_labels"] = filterData.PlaceLabels
+	data["filter_years"] = filterData.Years
+	data["filter_year_labels"] = filterData.YearLabels
 
 	return data, nil
+}
+
+type adminReihenFilterData struct {
+	Agents      []*dbmodels.Agent
+	AgentLabels map[string]string
+	Places      []*dbmodels.Place
+	PlaceLabels map[string]string
+	Years       []int
+	YearLabels  map[string]string
+}
+
+func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
+	adminReihenFilterCache.mu.RLock()
+	if adminReihenFilterCache.data != nil && time.Since(adminReihenFilterCache.cachedAt) < adminReihenFilterCacheTTL {
+		defer adminReihenFilterCache.mu.RUnlock()
+		return adminReihenFilterCache.data, nil
+	}
+	adminReihenFilterCache.mu.RUnlock()
+
+	agents := []*dbmodels.Agent{}
+	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&agents); err != nil {
+		return nil, err
+	}
+	agentMap := make(map[string]*dbmodels.Agent, len(agents))
+	for _, agent := range agents {
+		if agent != nil {
+			agentMap[agent.Id] = agent
+		}
+	}
+
+	places := []*dbmodels.Place{}
+	if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
+		return nil, err
+	}
+	placeMap := make(map[string]*dbmodels.Place, len(places))
+	for _, place := range places {
+		if place != nil {
+			placeMap[place.Id] = place
+		}
+	}
+
+	yearRows := []struct {
+		Year int `db:"year"`
+	}{}
+	if err := app.DB().
+		NewQuery("SELECT DISTINCT " + dbmodels.YEAR_FIELD + " AS year FROM " + dbmodels.ENTRIES_TABLE + " ORDER BY " + dbmodels.YEAR_FIELD).
+		All(&yearRows); err != nil {
+		return nil, err
+	}
+	years := make(map[int]struct{}, len(yearRows))
+	for _, row := range yearRows {
+		years[row.Year] = struct{}{}
+	}
+
+	data := &adminReihenFilterData{
+		Agents:      buildAdminReihenAgentFilters(agentMap),
+		AgentLabels: buildAdminReihenAgentLabelMap(agentMap),
+		Places:      buildAdminReihenPlaceFilters(placeMap),
+		PlaceLabels: buildAdminReihenPlaceLabelMap(placeMap),
+		Years:       buildAdminReihenYearFilters(years),
+		YearLabels:  buildAdminReihenYearLabelMap(years),
+	}
+
+	adminReihenFilterCache.mu.Lock()
+	adminReihenFilterCache.data = data
+	adminReihenFilterCache.cachedAt = time.Now()
+	adminReihenFilterCache.mu.Unlock()
+
+	return data, nil
+}
+
+func buildAdminReihenSeriesQuery(app core.App, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
+	query := app.RecordQuery(dbmodels.SERIES_TABLE)
+	if letter != "" {
+		query = query.AndWhere(adminInitialFilterExp(dbmodels.SERIES_TITLE_FIELD, letter))
+	}
+	if filteredIDs != nil {
+		query = query.AndWhere(dbx.HashExp{dbmodels.ID_FIELD: anySliceFromStringSet(filteredIDs)})
+	}
+	return query
+}
+
+func adminReihenOrderBy(sortField, sortOrder string) []string {
+	desc := sortOrder == "desc"
+	order := "ASC"
+	if desc {
+		order = "DESC"
+	}
+
+	switch sortField {
+	case "nr":
+		return []string{
+			dbmodels.MUSENALMID_FIELD + " " + order,
+			dbmodels.SERIES_TITLE_FIELD + " " + order,
+			dbmodels.ID_FIELD + " " + order,
+		}
+	case "updated":
+		return []string{
+			dbmodels.UPDATED_FIELD + " " + order,
+			dbmodels.SERIES_TITLE_FIELD + " " + order,
+			dbmodels.ID_FIELD + " " + order,
+		}
+	default:
+		return []string{
+			dbmodels.SERIES_TITLE_FIELD + " " + order,
+			dbmodels.ID_FIELD + " " + order,
+		}
+	}
+}
+
+func loadAdminReihenPageResult(app core.App, pageSeries []*dbmodels.Series) (*ReihenAdminResult, error) {
+	result := &ReihenAdminResult{
+		Series:        pageSeries,
+		Entries:       map[string]*dbmodels.Entry{},
+		SeriesEntries: map[string][]*dbmodels.REntriesSeries{},
+		BandLinks:     map[string][]*ReihenBandLink{},
+		Users:         map[string]*dbmodels.User{},
+	}
+
+	if len(pageSeries) == 0 {
+		return result, nil
+	}
+
+	relations, err := dbmodels.REntriesSeries_Seriess(app, dbmodels.Ids(pageSeries))
+	if err != nil {
+		return nil, err
+	}
+
+	entryIDs := map[string]struct{}{}
+	for _, rel := range relations {
+		if rel == nil {
+			continue
+		}
+		result.SeriesEntries[rel.Series()] = append(result.SeriesEntries[rel.Series()], rel)
+		if entryID := rel.Entry(); entryID != "" {
+			entryIDs[entryID] = struct{}{}
+		}
+	}
+
+	if len(entryIDs) > 0 {
+		entries, err := dbmodels.Entries_IDs(app, anySliceFromStringSet(entryIDs))
+		if err != nil {
+			return nil, err
+		}
+		for _, entry := range entries {
+			if entry != nil {
+				result.Entries[entry.Id] = entry
+			}
+		}
+	}
+
+	for seriesID, rels := range result.SeriesEntries {
+		result.SeriesEntries[seriesID] = sortSeriesRelationsForAdmin(rels, result.Entries)
+	}
+
+	userIDs := map[string]struct{}{}
+	for _, series := range pageSeries {
+		if series != nil && series.Editor() != "" {
+			userIDs[series.Editor()] = struct{}{}
+		}
+	}
+	if len(userIDs) > 0 {
+		users, err := dbmodels.TableByIDs[*dbmodels.User](app, dbmodels.USERS_TABLE, anySliceFromStringSet(userIDs))
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users {
+			if user != nil {
+				result.Users[user.Id] = user
+			}
+		}
+	}
+
+	result.BandLinks = buildReihenBandLinksMap(pageSeries, result.Entries, result.SeriesEntries)
+	return result, nil
+}
+
+func seriesIDsForAgent(app core.App, agentID string) (map[string]struct{}, error) {
+	rels, err := dbmodels.REntriesAgents_Agent(app, agentID)
+	if err != nil {
+		return nil, err
+	}
+
+	entryIDs := map[string]struct{}{}
+	for _, rel := range rels {
+		if rel != nil && rel.Entry() != "" {
+			entryIDs[rel.Entry()] = struct{}{}
+		}
+	}
+	return seriesIDsForEntrySet(app, entryIDs)
+}
+
+func seriesIDsForPlace(app core.App, placeID string) (map[string]struct{}, error) {
+	entryRows := []struct {
+		ID string `db:"id"`
+	}{}
+	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+		Select(dbmodels.ID_FIELD).
+		Where(dbx.NewExp(
+			"json_valid("+dbmodels.PLACES_TABLE+") = 1 AND EXISTS (SELECT 1 FROM json_each("+dbmodels.PLACES_TABLE+") WHERE value = {:id})",
+			dbx.Params{"id": placeID},
+		)).
+		All(&entryRows); err != nil {
+		return nil, err
+	}
+
+	entryIDs := make(map[string]struct{}, len(entryRows))
+	for _, row := range entryRows {
+		if row.ID != "" {
+			entryIDs[row.ID] = struct{}{}
+		}
+	}
+	return seriesIDsForEntrySet(app, entryIDs)
+}
+
+func seriesIDsForYear(app core.App, year int) (map[string]struct{}, error) {
+	entryRows := []struct {
+		ID string `db:"id"`
+	}{}
+	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+		Select(dbmodels.ID_FIELD).
+		Where(dbx.HashExp{dbmodels.YEAR_FIELD: year}).
+		All(&entryRows); err != nil {
+		return nil, err
+	}
+
+	entryIDs := make(map[string]struct{}, len(entryRows))
+	for _, row := range entryRows {
+		if row.ID != "" {
+			entryIDs[row.ID] = struct{}{}
+		}
+	}
+	return seriesIDsForEntrySet(app, entryIDs)
+}
+
+func seriesIDsForEntrySet(app core.App, entryIDs map[string]struct{}) (map[string]struct{}, error) {
+	if len(entryIDs) == 0 {
+		return map[string]struct{}{}, nil
+	}
+
+	rels, err := dbmodels.REntriesSeries_Entries(app, anySliceFromStringSet(entryIDs))
+	if err != nil {
+		return nil, err
+	}
+
+	seriesIDs := map[string]struct{}{}
+	for _, rel := range rels {
+		if rel != nil && rel.Series() != "" {
+			seriesIDs[rel.Series()] = struct{}{}
+		}
+	}
+	return seriesIDs, nil
 }
 
 func searchAdminSeriesIDs(app core.App, search string) (map[string]struct{}, error) {
@@ -474,22 +641,29 @@ func searchAdminSeriesIDs(app core.App, search string) (map[string]struct{}, err
 	}
 
 	if _, err := strconv.Atoi(strings.TrimSpace(search)); err == nil {
-		entries := []*dbmodels.Entry{}
+		entryRows := []struct {
+			ID string `db:"id"`
+		}{}
 		err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+			Select(dbmodels.ID_FIELD).
 			Where(dbx.HashExp{dbmodels.MUSENALMID_FIELD: search}).
-			All(&entries)
+			All(&entryRows)
 		if err != nil {
 			return nil, err
 		}
-		if len(entries) > 0 {
-			idSeries, _, err := Series_Entries(app, entries)
+		if len(entryRows) > 0 {
+			entryIDs := make(map[string]struct{}, len(entryRows))
+			for _, row := range entryRows {
+				if row.ID != "" {
+					entryIDs[row.ID] = struct{}{}
+				}
+			}
+			idSeries, err := seriesIDsForEntrySet(app, entryIDs)
 			if err != nil {
 				return nil, err
 			}
-			for _, series := range idSeries {
-				if series != nil {
-					result[series.Id] = struct{}{}
-				}
+			for id := range idSeries {
+				result[id] = struct{}{}
 			}
 		}
 	}

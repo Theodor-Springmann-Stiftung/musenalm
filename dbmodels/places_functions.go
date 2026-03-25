@@ -1,6 +1,7 @@
 package dbmodels
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pocketbase/dbx"
@@ -71,33 +72,24 @@ func CountPlacesBaende(app core.App, ids []any) (map[string]int, error) {
 		return map[string]int{}, nil
 	}
 
+	params := dbx.Params{}
+	placeholders := make([]string, 0, len(ids))
+	for i, id := range ids {
+		key := fmt.Sprintf("id%d", i)
+		params[key] = id
+		placeholders = append(placeholders, "{:"+key+"}")
+	}
+
 	counts := []PlaceCount{}
-
-	// For each place ID, count how many entries have this place in their places field
-	for _, id := range ids {
-		var count int64
-
-		// Query counts entries where the places field contains this place ID
-		// PocketBase stores relation fields as JSON arrays, even for single values
-		err := app.DB().
-			Select("COUNT(*)").
-			From(ENTRIES_TABLE).
-			Where(dbx.NewExp(
-				"json_valid("+PLACES_TABLE+") = 1 AND EXISTS (SELECT 1 FROM json_each("+PLACES_TABLE+") WHERE value = {:id})",
-				dbx.Params{"id": id},
-			)).
-			Row(&count)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if count > 0 {
-			counts = append(counts, PlaceCount{
-				ID:    id.(string),
-				Count: int(count),
-			})
-		}
+	query := `
+		SELECT json_each.value AS id, COUNT(DISTINCT entries.id) AS count
+		FROM entries, json_each(entries.places)
+		WHERE json_valid(entries.places) = 1
+		  AND json_each.value IN (` + strings.Join(placeholders, ", ") + `)
+		GROUP BY json_each.value
+	`
+	if err := app.DB().NewQuery(query).Bind(params).All(&counts); err != nil {
+		return nil, err
 	}
 
 	ret := make(map[string]int, len(counts))

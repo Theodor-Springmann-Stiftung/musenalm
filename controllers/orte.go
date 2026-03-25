@@ -1,14 +1,21 @@
 package controllers
 
 import (
+	"net/url"
+	"strconv"
+	"strings"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
+
+const ORTE_PAGE_SIZE = 80
 
 func init() {
 	op := &OrtePage{
@@ -34,40 +41,188 @@ func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodel
 	app := ia.Core()
 	rg := router.Group(URL_ORTE)
 	rg.BindFunc(middleware.IsAdmin())
-	rg.GET("", func(e *core.RequestEvent) error {
-		req := templating.NewRequest(e)
-		places := []*dbmodels.Place{}
-		if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
-			return engine.Response500(e, err, nil)
-		}
-		if len(places) > 0 {
-			dbmodels.Sort_Places_Name(places)
-		}
-
-		// Get place IDs for counting
-		ids := []any{}
-		for _, p := range places {
-			ids = append(ids, p.Id)
-		}
-
-		// Count linked Bände for each place
-		bcount := map[string]int{}
-		if len(ids) > 0 {
-			count, err := dbmodels.CountPlacesBaende(app, ids)
-			if err != nil {
-				app.Logger().Error("Error counting places", "error", err)
-			} else {
-				bcount = count
-				app.Logger().Info("Place counts", "bcount", bcount, "total_places", len(ids))
-			}
-		}
-
-		data := map[string]any{
-			"result":     &OrteResult{Places: places},
-			"bcount":     bcount,
-			"csrf_token": req.Session().Token,
-		}
-		return engine.Response200(e, p.Template, data, p.Layout)
-	})
+	rg.GET("", p.handlePage(engine, app))
+	rg.GET("results/", p.handleResults(engine, app))
+	rg.GET("more/", p.handleMore(engine, app))
 	return nil
+}
+
+func (p *OrtePage) handlePage(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			redirectTo := url.QueryEscape(req.FullURL())
+			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
+		}
+
+		data, err := p.buildResultData(app, e, req, true)
+		if err != nil {
+			return engine.Response500(e, err, data)
+		}
+
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
+	}
+}
+
+func (p *OrtePage) handleResults(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			redirectTo := url.QueryEscape(req.FullURL())
+			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
+		}
+
+		data, err := p.buildResultData(app, e, req, true)
+		if err != nil {
+			return engine.Response500(e, err, data)
+		}
+		e.Response.Header().Set("X-Has-More", boolHeaderValue(data["has_more"]))
+		e.Response.Header().Set("X-Next-Offset", intHeaderValue(data["next_offset"]))
+		e.Response.Header().Set("X-Current-Count", intHeaderValue(data["current_count"]))
+		e.Response.Header().Set("X-Total-Count", intHeaderValue(data["total_count"]))
+
+		return engine.Response200(e, URL_ORTE_RESULTS, data, pagemodels.LAYOUT_FRAGMENT)
+	}
+}
+
+func (p *OrtePage) handleMore(engine *templating.Engine, app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if req.User() == nil {
+			redirectTo := url.QueryEscape(req.FullURL())
+			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
+		}
+
+		data, err := p.buildResultData(app, e, req, false)
+		if err != nil {
+			return engine.Response500(e, err, data)
+		}
+
+		hasMore := "false"
+		if hasMoreVal, ok := data["has_more"].(bool); ok && hasMoreVal {
+			hasMore = "true"
+		}
+		e.Response.Header().Set("X-Has-More", hasMore)
+		if nextOffsetVal, ok := data["next_offset"].(int); ok {
+			e.Response.Header().Set("X-Next-Offset", strconv.Itoa(nextOffsetVal))
+		} else {
+			e.Response.Header().Set("X-Next-Offset", "0")
+		}
+		e.Response.Header().Set("X-Current-Count", intHeaderValue(data["current_count"]))
+		e.Response.Header().Set("X-Total-Count", intHeaderValue(data["total_count"]))
+
+		return engine.Response200(e, TEMPLATE_ORTE_MORE, data, pagemodels.LAYOUT_FRAGMENT)
+	}
+}
+
+func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *templating.Request, showAggregated bool) (map[string]any, error) {
+	data := map[string]any{}
+
+	offset := 0
+	if offsetStr := strings.TrimSpace(e.Request.URL.Query().Get("offset")); offsetStr != "" {
+		if val, err := strconv.Atoi(offsetStr); err == nil && val >= 0 {
+			offset = val
+		}
+	}
+
+	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
+	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	fictional := strings.TrimSpace(e.Request.URL.Query().Get("fictional"))
+	if fictional != "" && fictional != "fictional" && fictional != "nonfictional" {
+		fictional = ""
+	}
+
+	validLetters := make(map[string]struct{}, len(adminAlphabet))
+	for _, ch := range adminAlphabet {
+		validLetters[ch] = struct{}{}
+	}
+	if letter != "" {
+		letter = normalizeAdminLetter(letter)
+		if _, ok := validLetters[letter]; !ok {
+			letter = ""
+		}
+	}
+
+	var totalCount64 int64
+	if err := buildAdminOrteQuery(app, search, letter, fictional).
+		Select("COUNT(*)").
+		Row(&totalCount64); err != nil {
+		return data, err
+	}
+	totalCount := int(totalCount64)
+
+	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, ORTE_PAGE_SIZE, showAggregated)
+	pagePlaces := []*dbmodels.Place{}
+	if limit > 0 {
+		if err := buildAdminOrteQuery(app, search, letter, fictional).
+			OrderBy(dbmodels.PLACES_NAME_FIELD, dbmodels.ID_FIELD).
+			Limit(int64(limit)).
+			Offset(int64(queryOffset)).
+			All(&pagePlaces); err != nil {
+			return data, err
+		}
+	}
+
+	countIDs := make([]any, 0, len(pagePlaces))
+	for _, place := range pagePlaces {
+		if place != nil {
+			countIDs = append(countIDs, place.Id)
+		}
+	}
+
+	bcount := map[string]int{}
+	if len(countIDs) > 0 {
+		counts, err := dbmodels.CountPlacesBaende(app, countIDs)
+		if err != nil {
+			return data, err
+		}
+		bcount = counts
+	}
+
+	data["result"] = &OrteResult{Places: pagePlaces}
+	data["bcount"] = bcount
+	data["offset"] = offset
+	data["total_count"] = totalCount
+	data["current_count"] = currentCount
+	data["has_more"] = hasMore
+	data["next_offset"] = nextOffset
+	data["search"] = search
+	data["letter"] = letter
+	data["fictional"] = fictional
+	data["letters"] = adminAlphabet
+	data["csrf_token"] = req.Session().Token
+	return data, nil
+}
+
+func buildAdminOrteQuery(app core.App, search, letter, fictional string) *dbx.SelectQuery {
+	query := app.RecordQuery(dbmodels.PLACES_TABLE)
+	if search != "" {
+		query = query.AndWhere(dbx.Or(
+			dbx.Like(dbmodels.PLACES_NAME_FIELD, search).Match(true, true),
+			dbx.Like(dbmodels.PLACES_PSEUDONYMS_FIELD, search).Match(true, true),
+		))
+	}
+	if letter != "" {
+		query = query.AndWhere(adminInitialFilterExp(dbmodels.PLACES_NAME_FIELD, letter))
+	}
+	if fictional != "" {
+		query = query.AndWhere(dbx.HashExp{
+			dbmodels.PLACES_FICTIONAL_FIELD: fictional == "fictional",
+		})
+	}
+	return query
+}
+
+func boolHeaderValue(value any) string {
+	if typed, ok := value.(bool); ok && typed {
+		return "true"
+	}
+	return "false"
+}
+
+func intHeaderValue(value any) string {
+	if typed, ok := value.(int); ok {
+		return strconv.Itoa(typed)
+	}
+	return "0"
 }

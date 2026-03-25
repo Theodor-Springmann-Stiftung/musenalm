@@ -11,6 +11,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 	"golang.org/x/text/collate"
@@ -71,7 +72,7 @@ func (p *PersonenAdminPage) handlePage(engine *templating.Engine, app core.App) 
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		return engine.Response200(e, p.Template, data, p.Layout)
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
@@ -187,14 +188,6 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 		}
 	}
 
-	allAgents := []*dbmodels.Agent{}
-	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&allAgents); err != nil {
-		return data, err
-	}
-
-	filterBase := filterAgentsByCorporateBody(allAgents, corp)
-	filterBase = filterAgentsByProfession(filterBase, profession)
-
 	letters := adminAlphabet
 	validLetters := make(map[string]struct{}, len(letters))
 	for _, ch := range letters {
@@ -207,55 +200,57 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 		}
 	}
 
-	filteredAgents := filterBase
+	allowedIDs := []map[string]struct{}{}
 	if search != "" {
 		searchIDs, fts, err := searchAdminAgentIDs(app, search)
 		if err != nil {
 			return data, err
 		}
-		filteredAgents = filterAgentsByIDs(filteredAgents, searchIDs)
+		allowedIDs = append(allowedIDs, searchIDs)
 		data["fts"] = fts
 	}
-	if letter != "" {
-		filteredAgents = filterAgentsByLetter(filteredAgents, letter)
+
+	filteredIDs := applyAllowedIDs(allowedIDs...)
+	if filteredIDs != nil && len(filteredIDs) == 0 {
+		data["result"] = &PersonenAdminResult{
+			Agents:        []*dbmodels.Agent{},
+			BandCounts:    map[string]int{},
+			ContentCounts: map[string]int{},
+		}
+		data["offset"] = offset
+		data["total_count"] = 0
+		data["current_count"] = 0
+		data["has_more"] = false
+		data["next_offset"] = 0
+		data["search"] = search
+		data["letter"] = letter
+		data["corp"] = corp
+		data["profession"] = profession
+		data["letters"] = letters
+		data["csrf_token"] = req.Session().Token
+		data["filter_professions"] = buildAdminAgentProfessionFilters()
+		data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
+		return data, nil
 	}
 
-	dbmodels.Sort_Agents_Name(filteredAgents)
+	var totalCount64 int64
+	if err := buildAdminPersonenQuery(app, corp, profession, letter, filteredIDs).
+		Select("COUNT(*)").
+		Row(&totalCount64); err != nil {
+		return data, err
+	}
+	totalCount := int(totalCount64)
 
-	totalCount := len(filteredAgents)
-	var pageAgents []*dbmodels.Agent
-	nextOffset := offset
-	hasMore := false
-	currentCount := 0
-
-	if showAggregated {
-		displayLimit := offset + PERSONEN_ADMIN_PAGE_SIZE
-		if displayLimit > totalCount {
-			displayLimit = totalCount
+	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, PERSONEN_ADMIN_PAGE_SIZE, showAggregated)
+	pageAgents := []*dbmodels.Agent{}
+	if limit > 0 {
+		if err := buildAdminPersonenQuery(app, corp, profession, letter, filteredIDs).
+			OrderBy(dbmodels.AGENTS_NAME_FIELD, dbmodels.ID_FIELD).
+			Limit(int64(limit)).
+			Offset(int64(queryOffset)).
+			All(&pageAgents); err != nil {
+			return data, err
 		}
-		if displayLimit < 0 {
-			displayLimit = 0
-		}
-		pageAgents = filteredAgents[:displayLimit]
-		nextOffset = displayLimit
-		currentCount = len(pageAgents)
-		hasMore = displayLimit < totalCount
-	} else {
-		start := offset
-		if start < 0 {
-			start = 0
-		}
-		if start > totalCount {
-			start = totalCount
-		}
-		endIndex := start + PERSONEN_ADMIN_PAGE_SIZE
-		if endIndex > totalCount {
-			endIndex = totalCount
-		}
-		pageAgents = filteredAgents[start:endIndex]
-		nextOffset = endIndex
-		currentCount = start + len(pageAgents)
-		hasMore = endIndex < totalCount
 	}
 
 	ids := make([]any, 0, len(pageAgents))
@@ -300,6 +295,28 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 	data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
 
 	return data, nil
+}
+
+func buildAdminPersonenQuery(app core.App, corp, profession, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
+	query := app.RecordQuery(dbmodels.AGENTS_TABLE)
+	if corp != "" {
+		query = query.AndWhere(dbx.HashExp{
+			dbmodels.AGENTS_CORP_FIELD: corp == "org",
+		})
+	}
+	if profession != "" {
+		label := professionLabelForValue(profession)
+		if label != "" {
+			query = query.AndWhere(dbx.Like(dbmodels.AGENTS_PROFESSION_FIELD, label).Match(true, true))
+		}
+	}
+	if letter != "" {
+		query = query.AndWhere(adminInitialFilterExp(dbmodels.AGENTS_NAME_FIELD, letter))
+	}
+	if filteredIDs != nil {
+		query = query.AndWhere(dbx.HashExp{dbmodels.ID_FIELD: anySliceFromStringSet(filteredIDs)})
+	}
+	return query
 }
 
 func searchAdminAgentIDs(app core.App, search string) (map[string]struct{}, bool, error) {

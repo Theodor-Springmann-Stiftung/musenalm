@@ -1,0 +1,51 @@
+{{ $model := . }}
+
+<div id="orte-results"
+	x-data="{
+		hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+		offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+		loading: false,
+		search: '{{ $model.search }}',
+		letter: '{{ $model.letter }}',
+		fictional: '{{ $model.fictional }}'
+	}"
+	data-current-count="{{ $model.current_count }}"
+	data-total-count="{{ $model.total_count }}">
+	{{ if $model.result.Places }}
+		{{ template "_orte_table" $model }}
+	{{ else }}
+		<p class="px-8 pt-4">Keine Orte gefunden.</p>
+	{{ end }}
+
+	<div class="mt-6 flex justify-center" x-show="hasMore">
+		<button
+			type="button"
+			class="content-action-button"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (fictional) params.set('fictional', fictional); return `/admin/orte/more/?${params.toString()}`; })()"
+			hx-select="#orte-more-rows > *"
+			hx-target="#orte-table-body"
+			hx-swap="beforeend"
+			hx-indicator="this"
+			@htmx:before-request="loading = true"
+			@htmx:after-request="
+				loading = false;
+				hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+				offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+			"
+			:disabled="loading">
+			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'"></span>
+		</button>
+	</div>
+	{{ if $model.search }}
+		<script type="module">
+			let elements = document.querySelectorAll('.orte-search-text');
+			let mark_instance = new Mark(elements);
+			setTimeout(() => {
+				mark_instance.mark('{{ $model.search }}', {
+					"seperateWordSearch": true,
+				});
+			}, 200);
+		</script>
+	{{ end }}
+</div>

@@ -1,8 +1,8 @@
 {{ $model := . }}
 
-<div class="mt-2 overflow-x-auto overflow-y-visible">
-	<table id="baende-table" class="min-w-full text-base font-sans baende-text">
-		<thead class="text-left text-gray-600 border-b">
+<div class="admin-list-table-shell">
+	<table id="baende-table" class="admin-list-table baende-text">
+		<thead class="admin-list-head">
 			<tr>
 				<th class="py-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem] align-bottom"
 					:aria-sort="sortField === 'alm' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">

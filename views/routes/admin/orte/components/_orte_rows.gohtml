@@ -1,0 +1,59 @@
+{{ $model := . }}
+
+{{- range $place := $model.result.Places -}}
+	<tr
+		data-role="orte-row"
+		data-place-id="{{ $place.Id }}"
+		class="admin-list-row">
+		<td class="py-2 pr-4 pl-4">
+			<div class="flex flex-col">
+				<span class="orte-search-text text-lg font-semibold leading-snug text-slate-900">{{ $place.Name }}</span>
+				{{- if $place.Pseudonyms -}}
+					<span class="orte-search-text mt-1 text-base leading-snug text-gray-700 italic">{{ $place.Pseudonyms }}</span>
+				{{- end -}}
+			</div>
+		</td>
+		<td class="py-2 pr-4 text-base text-gray-700">
+			{{- if $place.Fictional -}}
+				<span class="admin-list-badge italic">fiktional</span>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-4">
+			{{- if (index $model.bcount $place.Id) -}}
+				<div class="admin-list-count">
+					<tool-tip position="top">
+						<span class="admin-list-inline-stat"><i class="ri-book-line"></i> {{ index $model.bcount $place.Id }}</span>
+						<div class="data-tip">Bände</div>
+					</tool-tip>
+				</div>
+			{{- end -}}
+		</td>
+		<td class="py-2 pr-8">
+			<div class="admin-list-actions">
+				<div class="admin-list-action-stack">
+					{{- if (IsAdminOrEditor $model.request.user) -}}
+						<tool-tip position="top" class="inline">
+							<a href="/admin/ort/{{ $place.Id }}/edit" class="admin-list-chip">
+								<i class="ri-edit-line"></i>
+							</a>
+							<div class="data-tip">Bearbeiten</div>
+						</tool-tip>
+						<tool-tip position="top" class="inline">
+							<button
+								type="button"
+								data-role="orte-delete"
+								data-place-id="{{ $place.Id }}"
+								data-place-name="{{ $place.Name }}"
+								data-place-updated="{{ $place.Updated }}"
+								data-delete-endpoint="/admin/ort/{{ $place.Id }}/edit/delete"
+								class="admin-list-chip-danger">
+								<i class="ri-delete-bin-line"></i>
+							</button>
+							<div class="data-tip">Löschen</div>
+						</tool-tip>
+					{{- end -}}
+				</div>
+			</div>
+		</td>
+	</tr>
+{{- end -}}

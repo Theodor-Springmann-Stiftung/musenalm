@@ -1,7 +1,7 @@
 {{ $model := . }}
 
-<div class="mt-2 overflow-x-auto overflow-y-visible">
-	<table id="reihen-table" class="min-w-full table-fixed text-base font-sans">
+<div class="admin-list-table-shell">
+	<table id="reihen-table" class="admin-list-table table-fixed">
 		<colgroup>
 			<col style="width: 6.5rem;" />
 			<col style="width: 28rem;" />
@@ -9,7 +9,7 @@
 			<col style="width: 11.5rem;" />
 			<col style="width: 8.5rem;" />
 		</colgroup>
-		<thead class="border-b text-left text-gray-600">
+		<thead class="admin-list-head">
 			<tr>
 				<th class="py-2 pr-4 pl-4 whitespace-nowrap w-[6.5rem] align-bottom"
 					:aria-sort="sortField === 'nr' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
