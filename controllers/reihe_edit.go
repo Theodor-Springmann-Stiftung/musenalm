@@ -37,8 +37,8 @@ func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], ia page
 	rg := router.Group(URL_REIHE_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_REIHE_EDIT, p.GET(engine, app))
-	rg.POST(URL_REIHE_EDIT, p.POST(engine, app, store))
-	rg.POST(URL_REIHE_DELETE, p.POSTDelete(engine, app, store))
+	rg.POST(URL_REIHE_EDIT, p.POST(engine, app, ia, store))
+	rg.POST(URL_REIHE_DELETE, p.POSTDelete(engine, app, ia, store))
 	return nil
 }
 
@@ -161,7 +161,7 @@ type reiheDeletePayload struct {
 	LastEdited string `json:"last_edited"`
 }
 
-func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -193,34 +193,14 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, stor
 			})
 		}
 
-		preferredEntries, err := preferredSeriesEntries(app, series.Id)
-		if err != nil {
-			return e.JSON(http.StatusInternalServerError, map[string]any{
-				"error": "Löschen fehlgeschlagen.",
-			})
-		}
-
-		if err := app.RunInTransaction(func(tx core.App) error {
-			return store.DeleteSeries(tx, series, preferredSeriesRelationType, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.DeleteSeries(tx, series, preferredSeriesRelationType, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete series", "series_id", series.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
 				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
-
-		// Delete series and entries from FTS5 asynchronously
-		go func(appInstance core.App, seriesID string, deletedEntries []*dbmodels.Entry) {
-			if err := dbmodels.DeleteFTS5Series(appInstance, seriesID); err != nil {
-				appInstance.Logger().Error("Failed to delete series from FTS5", "series_id", seriesID, "error", err)
-			}
-
-			for _, entry := range deletedEntries {
-				if err := dbmodels.DeleteFTS5Entry(appInstance, entry.Id); err != nil {
-					appInstance.Logger().Error("Failed to delete FTS5 entry", "entry_id", entry.Id, "error", err)
-				}
-			}
-		}(app, series.Id, preferredEntries)
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
@@ -327,7 +307,7 @@ func applySeriesForm(series *dbmodels.Series, formdata reiheEditForm, title stri
 	}
 }
 
-func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -351,11 +331,8 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, store *can
 			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
-		// Capture old title (entries depend on series title)
-		oldTitle := series.Title()
-
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
@@ -370,33 +347,11 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, store *can
 				Comment:           formdata.Comment,
 				EditorID:          editorID,
 				ExpectedUpdatedAt: expectedUpdatedAt,
-			})
+			}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)
 			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
 		}
-
-		// Check if title changed (entries store series title)
-		titleChanged := series.Title() != oldTitle
-
-		// Update FTS5 index for series and conditionally update related entries asynchronously
-		go func(appInstance core.App, seriesID string, updateEntries bool) {
-			freshSeries, err := dbmodels.Series_ID(appInstance, seriesID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load series for FTS5 update", "series_id", seriesID, "error", err)
-				return
-			}
-			// If title changed, update series + entries. Otherwise just update series.
-			if updateEntries {
-				if err := dbmodels.UpdateFTS5SeriesAndRelatedEntries(appInstance, freshSeries); err != nil {
-					appInstance.Logger().Error("Failed to update FTS5 index for series and entries", "series_id", seriesID, "error", err)
-				}
-			} else {
-				if err := dbmodels.UpdateFTS5Series(appInstance, freshSeries); err != nil {
-					appInstance.Logger().Error("Failed to update FTS5 index for series", "series_id", seriesID, "error", err)
-				}
-			}
-		}(app, series.Id, titleChanged)
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
 			redirect := fmt.Sprintf(URL_REIHE_VIEW_FORMAT, id)

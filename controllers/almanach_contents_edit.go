@@ -44,9 +44,9 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, store))
-	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, store))
-	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, store))
+	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE_SCAN, p.POSTDeleteScan(engine, app, store))
 	return nil
@@ -295,7 +295,7 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 }
 
-func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -378,7 +378,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		tempToCreated := map[string]string{}
 		var createdContents []*dbmodels.Content
 		var updatedContents []*dbmodels.Content
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			created := make([]*dbmodels.Content, 0, len(newContentIDs))
 			for _, tempID := range newContentIDs {
 				input, ok := contentInputs[tempID]
@@ -392,14 +392,14 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if strings.TrimSpace(input.EditState) == "" {
 					input.EditState = "Edited"
 				}
-				content, err := store.CreateContent(tx, entry, canonicalContentInput(input, editorID))
+				content, err := store.CreateContent(tx, entry, canonicalContentInput(input, editorID), effects)
 				if err != nil {
 					return err
 				}
 				tempToCreated[tempID] = content.Id
 				if relations, ok := relationsByContent[tempID]; ok {
 					existingRelations, newRelations := canonicalContentRelationsInput(relations)
-					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs); err != nil {
+					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs, effects); err != nil {
 						return err
 					}
 				}
@@ -414,12 +414,12 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if input.Numbering <= 0 {
 					input.Numbering = content.Numbering()
 				}
-				if err := store.UpdateContent(tx, content, entry, canonicalContentInput(input, editorID)); err != nil {
+				if err := store.UpdateContent(tx, content, entry, canonicalContentInput(input, editorID), effects); err != nil {
 					return err
 				}
 				if relations, ok := relationsByContent[content.Id]; ok {
 					existingRelations, newRelations := canonicalContentRelationsInput(relations)
-					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs); err != nil {
+					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs, effects); err != nil {
 						return err
 					}
 				}
@@ -459,31 +459,6 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		if len(updatedContents) == 0 {
 			updatedContents = contents
 		}
-		shouldUpdateFTS := len(contentInputs) > 0 || len(newContentIDs) > 0
-		if shouldUpdateFTS {
-			touched := updatedContents
-			if len(contentInputs) > 0 {
-				touchedIDs := map[string]struct{}{}
-				for id := range contentInputs {
-					if createdID, ok := tempToCreated[id]; ok {
-						touchedIDs[createdID] = struct{}{}
-						continue
-					}
-					touchedIDs[id] = struct{}{}
-				}
-				filtered := make([]*dbmodels.Content, 0, len(touchedIDs))
-				for _, content := range updatedContents {
-					if _, ok := touchedIDs[content.Id]; ok {
-						filtered = append(filtered, content)
-					}
-				}
-				if len(filtered) > 0 {
-					touched = filtered
-				}
-			}
-			go updateContentsFTS5(app, entry, touched)
-		}
-
 		saveAction := strings.TrimSpace(e.Request.FormValue("save_action"))
 		savedMessage := "Änderungen gespeichert."
 		if contentID != "" {
@@ -509,7 +484,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -531,18 +506,12 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 		if user := req.User(); user != nil {
 			editorID = user.Id
 		}
-		if err := store.UpdateEntryExtent(app, entry, e.Request.FormValue("extent"), editorID); err != nil {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.UpdateEntryExtent(tx, entry, e.Request.FormValue("extent"), editorID, effects)
+		}); err != nil {
 			app.Logger().Error("Failed to update entry extent", "entry_id", entry.Id, "error", err)
 			return p.renderError(engine, app, e, "Struktur/Umfang konnte nicht gespeichert werden.")
 		}
-
-		InvalidateSortedEntriesCache()
-
-		go func(appInstance core.App, entryRecord *dbmodels.Entry) {
-			if err := updateEntryFTS5WithContents(appInstance, entryRecord, false); err != nil {
-				appInstance.Logger().Error("Failed to update entry FTS5", "entry_id", entryRecord.Id, "error", err)
-			}
-		}(app, entry)
 
 		setFlashSuccess(e, "Struktur/Umfang gespeichert.")
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
@@ -550,7 +519,7 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -574,7 +543,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			return engine.Response404(e, err, nil)
 		}
 
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, contentID)
 			if err != nil {
 				return err
@@ -584,7 +553,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 				return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
 			}
 
-			if err := store.DeleteContent(tx, content); err != nil {
+			if err := store.DeleteContent(tx, content, effects); err != nil {
 				return err
 			}
 			_, err = store.RenumberEntryContents(tx, entry.Id)
@@ -593,12 +562,6 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			app.Logger().Error("Failed to delete content", "entry_id", entry.Id, "content_id", contentID, "error", err)
 			return p.renderError(engine, app, e, "Beitrag konnte nicht gelöscht werden.")
 		}
-
-		go func(contentID string) {
-			_ = dbmodels.DeleteFTS5Content(app, contentID)
-		}(contentID)
-
-		// Only delete the FTS5 record for the removed content.
 
 		if isHTMX {
 			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag geloescht.</div></div>`
@@ -1029,28 +992,6 @@ func buildContentOrderMap(order []string) map[string]float64 {
 		orderMap[id] = float64(index + 1)
 	}
 	return orderMap
-}
-
-func updateContentsFTS5(app core.App, entry *dbmodels.Entry, contents []*dbmodels.Content) {
-	if len(contents) == 0 {
-		return
-	}
-	agents, relations, err := dbmodels.AgentsForContents(app, contents)
-	if err != nil {
-		app.Logger().Error("Failed to load content agents for FTS5 update", "entry_id", entry.Id, "error", err)
-		return
-	}
-	for _, content := range contents {
-		contentAgents := []*dbmodels.Agent{}
-		for _, rel := range relations[content.Id] {
-			if agent := agents[rel.Agent()]; agent != nil {
-				contentAgents = append(contentAgents, agent)
-			}
-		}
-		if err := dbmodels.UpdateFTS5Content(app, content, entry, contentAgents); err != nil {
-			app.Logger().Error("Failed to update FTS5 content", "content_id", content.Id, "error", err)
-		}
-	}
 }
 
 func paginationValuesSorted() []string {

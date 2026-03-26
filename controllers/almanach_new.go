@@ -36,7 +36,7 @@ func (p *AlmanachNewPage) Setup(router *router.Router[*core.RequestEvent], ia pa
 	rg := router.Group(URL_ALMANACH_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST(URL_ALMANACH_NEW_SAVE, p.POSTSave(engine, app, store))
+	rg.POST(URL_ALMANACH_NEW_SAVE, p.POSTSave(engine, app, ia, store))
 	return nil
 }
 
@@ -85,7 +85,7 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 	}
 }
 
-func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -104,22 +104,22 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, stor
 
 		var entry *dbmodels.Entry
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
 			}
-			newEntry, err := store.CreateEntry(tx, canonicalEntryInput(&payload, editorID))
+			newEntry, err := store.CreateEntry(tx, canonicalEntryInput(&payload, editorID), effects)
 			if err != nil {
 				return err
 			}
 			if err := store.SaveEntryItems(tx, newEntry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			if err := store.SaveEntrySeriesRelations(tx, newEntry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, newEntry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
 				return err
 			}
-			if err := store.SaveEntryAgentRelations(tx, newEntry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs); err != nil {
+			if err := store.SaveEntryAgentRelations(tx, newEntry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs, effects); err != nil {
 				return err
 			}
 
@@ -131,21 +131,6 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, stor
 				"error": canonicalErrorMessage(err, "Speichern fehlgeschlagen."),
 			})
 		}
-
-		// Invalidate sorted entries cache since new entry was created
-		InvalidateSortedEntriesCache()
-
-		// Update FTS5 index asynchronously
-		go func(appInstance core.App, entryID string) {
-			freshEntry, err := dbmodels.Entries_ID(appInstance, entryID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load entry for FTS5 update", "entry_id", entryID, "error", err)
-				return
-			}
-			if err := updateEntryFTS5(appInstance, freshEntry); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for new entry", "entry_id", entryID, "error", err)
-			}
-		}(app, entry.Id)
 
 		redirect := URL_HOME
 		if entry != nil {

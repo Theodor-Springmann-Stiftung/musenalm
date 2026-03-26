@@ -36,7 +36,7 @@ func (p *PersonNewPage) Setup(router *router.Router[*core.RequestEvent], ia page
 	rg := router.Group(URL_PERSONEN_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST("", p.POST(engine, app, store))
+	rg.POST("", p.POST(engine, app, ia, store))
 	return nil
 }
 
@@ -80,7 +80,7 @@ func (p *PersonNewPage) renderPage(engine *templating.Engine, app core.App, e *c
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -95,7 +95,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, store *can
 
 		var createdAgent *dbmodels.Agent
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
@@ -113,7 +113,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, store *can
 				Status:           formdata.Status,
 				Comment:          formdata.Comment,
 				EditorID:         editorID,
-			})
+			}, effects)
 			if err != nil {
 				return err
 			}
@@ -127,18 +127,6 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, store *can
 		if createdAgent == nil {
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
-
-		// Update FTS5 index for agent (no related records for new agent) asynchronously
-		go func(appInstance core.App, agentID string) {
-			freshAgent, err := dbmodels.Agents_ID(appInstance, agentID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load agent for FTS5 update", "agent_id", agentID, "error", err)
-				return
-			}
-			if err := dbmodels.UpdateFTS5Agent(appInstance, freshAgent); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for new agent", "agent_id", agentID, "error", err)
-			}
-		}(app, createdAgent.Id)
 
 		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, createdAgent.Id)
 		return e.Redirect(http.StatusSeeOther, redirect)

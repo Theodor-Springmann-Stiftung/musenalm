@@ -36,7 +36,7 @@ func (p *OrtNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagemod
 	rg := router.Group(URL_ORTE_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST("", p.POST(engine, app, store))
+	rg.POST("", p.POST(engine, app, ia, store))
 	return nil
 }
 
@@ -76,7 +76,7 @@ func (p *OrtNewPage) renderPage(engine *templating.Engine, app core.App, e *core
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -91,7 +91,7 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, store *canoni
 
 		var createdPlace *dbmodels.Place
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
@@ -105,7 +105,7 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, store *canoni
 				Status:     formdata.Status,
 				Comment:    formdata.Comment,
 				EditorID:   editorID,
-			})
+			}, effects)
 			if err != nil {
 				return err
 			}
@@ -119,18 +119,6 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, store *canoni
 		if createdPlace == nil {
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
-
-		// Update FTS5 index for new place (no related entries yet) asynchronously
-		go func(appInstance core.App, placeID string) {
-			freshPlace, err := dbmodels.Places_ID(appInstance, placeID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load place for FTS5 update", "place_id", placeID, "error", err)
-				return
-			}
-			if err := dbmodels.UpdateFTS5Place(appInstance, freshPlace); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for new place", "place_id", placeID, "error", err)
-			}
-		}(app, createdPlace.Id)
 
 		setFlashSuccess(e, "Änderungen gespeichert.")
 		redirect := fmt.Sprintf(URL_ORT_EDIT_REDIRECT, createdPlace.Id)

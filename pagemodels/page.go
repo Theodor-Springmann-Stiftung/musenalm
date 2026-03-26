@@ -33,6 +33,7 @@ type IApp interface {
 	ResetBaendeCache()
 	GetBaendeCache() (BaendeCacheInterface, error)
 	GetCanonicalStore() *canonical.Store
+	HandleCanonicalEffects(core.App, canonical.MutationEffects)
 	Logger() *slog.Logger
 }
 

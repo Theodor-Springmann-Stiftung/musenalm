@@ -161,7 +161,7 @@ func NewStore() *Store {
 	return &Store{}
 }
 
-func (s *Store) CreateAgent(tx core.App, input AgentInput) (*dbmodels.Agent, error) {
+func (s *Store) CreateAgent(tx core.App, input AgentInput, effects *MutationEffects) (*dbmodels.Agent, error) {
 	if err := validateAgentInput(input); err != nil {
 		return nil, err
 	}
@@ -181,23 +181,32 @@ func (s *Store) CreateAgent(tx core.App, input AgentInput) (*dbmodels.Agent, err
 	if err := tx.Save(agent); err != nil {
 		return nil, err
 	}
+	if effects != nil {
+		effects.MarkAgentUpdated(agent.Id, false)
+	}
 
 	return agent, nil
 }
 
-func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput) error {
+func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput, effects *MutationEffects) error {
 	if err := validateAgentInput(input); err != nil {
 		return err
 	}
 	if err := checkExpectedUpdatedAt(agent.Updated().Time(), input.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
-
+	nameChanged := agent.Name() != strings.TrimSpace(input.Name)
 	s.applyAgentInput(agent, input)
-	return tx.Save(agent)
+	if err := tx.Save(agent); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkAgentUpdated(agent.Id, nameChanged)
+	}
+	return nil
 }
 
-func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptions) error {
+func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(agent.Updated().Time(), opts.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
@@ -209,10 +218,16 @@ func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptio
 	if err != nil {
 		return err
 	}
-	return tx.Delete(record)
+	if err := tx.Delete(record); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkAgentDeleted(agent.Id)
+	}
+	return nil
 }
 
-func (s *Store) CreatePlace(tx core.App, input PlaceInput) (*dbmodels.Place, error) {
+func (s *Store) CreatePlace(tx core.App, input PlaceInput, effects *MutationEffects) (*dbmodels.Place, error) {
 	if err := validatePlaceInput(input); err != nil {
 		return nil, err
 	}
@@ -232,23 +247,32 @@ func (s *Store) CreatePlace(tx core.App, input PlaceInput) (*dbmodels.Place, err
 	if err := tx.Save(place); err != nil {
 		return nil, err
 	}
+	if effects != nil {
+		effects.MarkPlaceUpdated(place.Id, false)
+	}
 
 	return place, nil
 }
 
-func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput) error {
+func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput, effects *MutationEffects) error {
 	if err := validatePlaceInput(input); err != nil {
 		return err
 	}
 	if err := checkExpectedUpdatedAt(place.Updated().Time(), input.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
-
+	nameChanged := place.Name() != strings.TrimSpace(input.Name)
 	s.applyPlaceInput(place, input)
-	return tx.Save(place)
+	if err := tx.Save(place); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkPlaceUpdated(place.Id, nameChanged)
+	}
+	return nil
 }
 
-func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptions) error {
+func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(place.Updated().Time(), opts.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
@@ -274,10 +298,19 @@ func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptio
 	if err != nil {
 		return err
 	}
-	return tx.Delete(record)
+	if err := tx.Delete(record); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkPlaceDeleted(place.Id)
+		for _, entry := range entries {
+			effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
+		}
+	}
+	return nil
 }
 
-func (s *Store) CreateSeries(tx core.App, input SeriesInput) (*dbmodels.Series, error) {
+func (s *Store) CreateSeries(tx core.App, input SeriesInput, effects *MutationEffects) (*dbmodels.Series, error) {
 	if err := validateSeriesInput(input); err != nil {
 		return nil, err
 	}
@@ -297,23 +330,32 @@ func (s *Store) CreateSeries(tx core.App, input SeriesInput) (*dbmodels.Series, 
 	if err := tx.Save(series); err != nil {
 		return nil, err
 	}
+	if effects != nil {
+		effects.MarkSeriesUpdated(series.Id, false)
+	}
 
 	return series, nil
 }
 
-func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesInput) error {
+func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesInput, effects *MutationEffects) error {
 	if err := validateSeriesInput(input); err != nil {
 		return err
 	}
 	if err := checkExpectedUpdatedAt(series.Updated().Time(), input.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
-
+	titleChanged := series.Title() != strings.TrimSpace(input.Title)
 	s.applySeriesInput(series, input)
-	return tx.Save(series)
+	if err := tx.Save(series); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkSeriesUpdated(series.Id, titleChanged)
+	}
+	return nil
 }
 
-func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRelationType string, opts DeleteOptions) error {
+func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRelationType string, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(series.Updated().Time(), opts.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
@@ -323,7 +365,7 @@ func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRela
 	}
 
 	for _, entry := range preferredEntries {
-		if err := s.DeleteEntry(tx, entry, DeleteOptions{}); err != nil {
+		if err := s.DeleteEntry(tx, entry, DeleteOptions{}, effects); err != nil {
 			return err
 		}
 	}
@@ -348,10 +390,16 @@ func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRela
 	if err != nil {
 		return err
 	}
-	return tx.Delete(record)
+	if err := tx.Delete(record); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkSeriesDeleted(series.Id)
+	}
+	return nil
 }
 
-func (s *Store) CreateEntry(tx core.App, input EntryInput) (*dbmodels.Entry, error) {
+func (s *Store) CreateEntry(tx core.App, input EntryInput, effects *MutationEffects) (*dbmodels.Entry, error) {
 	if err := validateEntryInput(input); err != nil {
 		return nil, err
 	}
@@ -371,28 +419,50 @@ func (s *Store) CreateEntry(tx core.App, input EntryInput) (*dbmodels.Entry, err
 	if err := tx.Save(entry); err != nil {
 		return nil, err
 	}
+	if effects != nil {
+		effects.InvalidateSortedEntries = true
+		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
+	}
 
 	return entry, nil
 }
 
-func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput) error {
+func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput, effects *MutationEffects) error {
 	if err := validateEntryInput(input); err != nil {
 		return err
 	}
 	if err := checkExpectedUpdatedAt(entry.Updated().Time(), input.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
-
+	updateMode := EntryFTSEntryOnly
+	if entry.PreferredTitle() != strings.TrimSpace(input.PreferredTitle) || entry.Year() != *input.Year {
+		updateMode = EntryFTSEntryAndContents
+	}
 	s.applyEntryInput(entry, input)
-	return tx.Save(entry)
+	if err := tx.Save(entry); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.InvalidateSortedEntries = true
+		effects.ResetBaende = true
+		effects.MarkEntryUpdated(entry.Id, updateMode)
+	}
+	return nil
 }
 
-func (s *Store) UpdateEntryExtent(tx core.App, entry *dbmodels.Entry, extent string, editorID string) error {
+func (s *Store) UpdateEntryExtent(tx core.App, entry *dbmodels.Entry, extent string, editorID string, effects *MutationEffects) error {
 	entry.SetExtent(strings.TrimSpace(extent))
 	if editorID != "" {
 		entry.SetEditor(editorID)
 	}
-	return tx.Save(entry)
+	if err := tx.Save(entry); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.InvalidateSortedEntries = true
+		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryOnly)
+	}
+	return nil
 }
 
 func (s *Store) SaveEntryItems(tx core.App, entry *dbmodels.Entry, items []ItemInput, deletedIDs []string) error {
@@ -456,7 +526,7 @@ func (s *Store) SaveEntryItems(tx core.App, entry *dbmodels.Entry, items []ItemI
 	return nil
 }
 
-func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
 	if err := validateEntrySeriesRelations(relations, newRelations); err != nil {
 		return err
 	}
@@ -531,7 +601,7 @@ func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, rel
 	return nil
 }
 
-func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
 	if err := validateRelations(relations, dbmodels.AGENT_RELATIONS); err != nil {
 		return err
 	}
@@ -606,10 +676,14 @@ func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, rela
 		}
 	}
 
+	if effects != nil && (len(newRelations) > 0 || len(deletedIDs) > 0) {
+		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
+	}
+
 	return nil
 }
 
-func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptions) error {
+func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(entry.Updated().Time(), opts.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
@@ -627,10 +701,18 @@ func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptio
 	if err != nil {
 		return err
 	}
-	return tx.Delete(record)
+	if err := tx.Delete(record); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.InvalidateSortedEntries = true
+		effects.ResetBaende = true
+		effects.MarkEntryDeleted(entry.Id)
+	}
+	return nil
 }
 
-func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentInput) (*dbmodels.Content, error) {
+func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentInput, effects *MutationEffects) (*dbmodels.Content, error) {
 	collection, err := tx.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
 	if err != nil {
 		return nil, err
@@ -648,18 +730,27 @@ func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentI
 	if err := tx.Save(content); err != nil {
 		return nil, err
 	}
+	if effects != nil {
+		effects.MarkContentUpdated(content.Id, entry.Id)
+	}
 
 	return content, nil
 }
 
-func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbmodels.Entry, input ContentInput) error {
+func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbmodels.Entry, input ContentInput, effects *MutationEffects) error {
 	if err := s.applyContentInput(content, entry, input); err != nil {
 		return err
 	}
-	return tx.Save(content)
+	if err := tx.Save(content); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkContentUpdated(content.Id, entry.Id)
+	}
+	return nil
 }
 
-func (s *Store) SaveContentAgentRelations(tx core.App, content *dbmodels.Content, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+func (s *Store) SaveContentAgentRelations(tx core.App, content *dbmodels.Content, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
 	if err := validateRelations(relations, dbmodels.AGENT_RELATIONS); err != nil {
 		return err
 	}
@@ -815,7 +906,7 @@ func (s *Store) UpdateContentScans(tx core.App, content *dbmodels.Content, input
 	return tx.Save(content)
 }
 
-func (s *Store) DeleteContent(tx core.App, content *dbmodels.Content) error {
+func (s *Store) DeleteContent(tx core.App, content *dbmodels.Content, effects *MutationEffects) error {
 	tableName := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
 	relations, err := dbmodels.RContentsAgents_Content(tx, content.Id)
 	if err != nil {
@@ -835,7 +926,13 @@ func (s *Store) DeleteContent(tx core.App, content *dbmodels.Content) error {
 	if err != nil {
 		return err
 	}
-	return tx.Delete(record)
+	if err := tx.Delete(record); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkContentDeleted(content.Id)
+	}
+	return nil
 }
 
 func (s *Store) RenumberEntryContents(tx core.App, entryID string) ([]*dbmodels.Content, error) {
@@ -1232,7 +1329,7 @@ func (s *Store) deleteEntryContents(tx core.App, entryID string) error {
 		return err
 	}
 	for _, content := range contents {
-		if err := s.DeleteContent(tx, content); err != nil {
+		if err := s.DeleteContent(tx, content, nil); err != nil {
 			return err
 		}
 	}

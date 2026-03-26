@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
@@ -16,50 +15,14 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-// Simple in-memory cache for sorted entries
-var (
-	sortedEntriesCache struct {
-		sync.RWMutex
-		entries []*dbmodels.Entry
-	}
-)
-
 // InvalidateSortedEntriesCache clears the cached sorted entries list
 func InvalidateSortedEntriesCache() {
-	sortedEntriesCache.Lock()
-	defer sortedEntriesCache.Unlock()
-	sortedEntriesCache.entries = nil
+	app.InvalidateSortedEntriesCache()
 }
 
 // getSortedEntries returns cached sorted entries or loads and caches them
-func getSortedEntries(app core.App) ([]*dbmodels.Entry, error) {
-	// Try to read from cache first
-	sortedEntriesCache.RLock()
-	if sortedEntriesCache.entries != nil {
-		cached := sortedEntriesCache.entries
-		sortedEntriesCache.RUnlock()
-		return cached, nil
-	}
-	sortedEntriesCache.RUnlock()
-
-	// Cache miss - load and sort
-	sortedEntriesCache.Lock()
-	defer sortedEntriesCache.Unlock()
-
-	// Double-check after acquiring write lock
-	if sortedEntriesCache.entries != nil {
-		return sortedEntriesCache.entries, nil
-	}
-
-	entries := []*dbmodels.Entry{}
-	if err := app.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
-		return nil, err
-	}
-
-	dbmodels.Sort_Entries_Title_Year(entries)
-	sortedEntriesCache.entries = entries
-
-	return entries, nil
+func getSortedEntries(pbApp core.App) ([]*dbmodels.Entry, error) {
+	return app.GetSortedEntries(pbApp)
 }
 
 func init() {
@@ -498,52 +461,4 @@ func HasScans(contents []*dbmodels.Content) bool {
 		}
 	}
 	return false
-}
-
-func updateEntryFTS5(app core.App, entry *dbmodels.Entry) error {
-	// Always update contents for backward compatibility
-	return updateEntryFTS5WithContents(app, entry, true)
-}
-
-func updateEntryFTS5WithContents(app core.App, entry *dbmodels.Entry, updateContents bool) error {
-	if entry == nil {
-		return nil
-	}
-
-	// Load related data for FTS5
-	places := []*dbmodels.Place{}
-	for _, placeID := range entry.Places() {
-		place, err := dbmodels.Places_ID(app, placeID)
-		if err == nil && place != nil {
-			places = append(places, place)
-		}
-	}
-
-	agents := []*dbmodels.Agent{}
-	agentRelations, err := dbmodels.REntriesAgents_Entry(app, entry.Id)
-	if err == nil {
-		for _, relation := range agentRelations {
-			agent, err := dbmodels.Agents_ID(app, relation.Agent())
-			if err == nil && agent != nil {
-				agents = append(agents, agent)
-			}
-		}
-	}
-
-	series := []*dbmodels.Series{}
-	seriesRelations, err := dbmodels.REntriesSeries_Entry(app, entry.Id)
-	if err == nil {
-		for _, relation := range seriesRelations {
-			s, err := dbmodels.Series_ID(app, relation.Series())
-			if err == nil && s != nil {
-				series = append(series, s)
-			}
-		}
-	}
-
-	// Update entry and conditionally update related contents
-	if updateContents {
-		return dbmodels.UpdateFTS5EntryAndRelatedContents(app, entry, places, agents, series)
-	}
-	return dbmodels.UpdateFTS5Entry(app, entry, places, agents, series)
 }

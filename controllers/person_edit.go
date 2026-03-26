@@ -38,9 +38,9 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
 	rg.GET(URL_PERSON_EDIT_SLASH, p.GET(engine, app))
-	rg.POST(URL_PERSON_EDIT, p.POST(engine, app, store))
-	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app, store))
-	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, store))
+	rg.POST(URL_PERSON_EDIT, p.POST(engine, app, ia, store))
+	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app, ia, store))
+	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, ia, store))
 	return nil
 }
 
@@ -275,7 +275,7 @@ func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string
 	}
 }
 
-func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -299,11 +299,8 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, store *ca
 			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
-		// Capture old name (entries and contents depend on agent name)
-		oldName := agent.Name()
-
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
@@ -322,33 +319,11 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, store *ca
 				Comment:           formdata.Comment,
 				EditorID:          editorID,
 				ExpectedUpdatedAt: expectedUpdatedAt,
-			})
+			}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to save agent", "agent_id", agent.Id, "error", err)
 			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
 		}
-
-		// Check if name changed (entries and contents store agent name)
-		nameChanged := agent.Name() != oldName
-
-		// Update FTS5 index for agent and conditionally update related entries/contents asynchronously
-		go func(appInstance core.App, agentID string, updateRelated bool) {
-			freshAgent, err := dbmodels.Agents_ID(appInstance, agentID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load agent for FTS5 update", "agent_id", agentID, "error", err)
-				return
-			}
-			// If name changed, update agent + entries + contents. Otherwise just update agent.
-			if updateRelated {
-				if err := dbmodels.UpdateFTS5AgentAndRelated(appInstance, freshAgent); err != nil {
-					appInstance.Logger().Error("Failed to update FTS5 index for agent and related records", "agent_id", agentID, "error", err)
-				}
-			} else {
-				if err := dbmodels.UpdateFTS5Agent(appInstance, freshAgent); err != nil {
-					appInstance.Logger().Error("Failed to update FTS5 index for agent", "agent_id", agentID, "error", err)
-				}
-			}
-		}(app, agent.Id, nameChanged)
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
 			redirect := fmt.Sprintf(URL_PERSON_VIEW_FORMAT, id)
@@ -360,7 +335,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, store *ca
 	}
 }
 
-func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -392,21 +367,14 @@ func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App, sto
 			})
 		}
 
-		if err := app.RunInTransaction(func(tx core.App) error {
-			return store.DeleteAgent(tx, agent, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.DeleteAgent(tx, agent, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete agent", "agent_id", agent.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
 				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
-
-		// Delete from FTS5 index asynchronously
-		go func(appInstance core.App, agentID string) {
-			if err := dbmodels.DeleteFTS5Agent(appInstance, agentID); err != nil {
-				appInstance.Logger().Error("Failed to delete FTS5 agent", "agent_id", agentID, "error", err)
-			}
-		}(app, agent.Id)
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,

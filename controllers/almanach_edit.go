@@ -148,31 +148,24 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			})
 		}
 
-		// Capture old values that affect content FTS5 records
-		oldPreferredTitle := entry.PreferredTitle()
-		oldYear := entry.Year()
-
-		// Check if agent relations will change (affects contents)
-		agentRelationsChanged := len(payload.NewAgentRelations) > 0 || len(payload.DeletedAgentRelationIDs) > 0
-
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
 			}
 			entryInput := canonicalEntryInput(&payload, editorID)
 			entryInput.ExpectedUpdatedAt = expectedUpdatedAt
-			if err := store.UpdateEntry(tx, entry, entryInput); err != nil {
+			if err := store.UpdateEntry(tx, entry, entryInput, effects); err != nil {
 				return err
 			}
 			if err := store.SaveEntryItems(tx, entry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			if err := store.SaveEntrySeriesRelations(tx, entry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, entry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
 				return err
 			}
-			if err := store.SaveEntryAgentRelations(tx, entry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs); err != nil {
+			if err := store.SaveEntryAgentRelations(tx, entry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs, effects); err != nil {
 				return err
 			}
 			return nil
@@ -182,29 +175,6 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 				"error": canonicalErrorMessage(err, "Speichern fehlgeschlagen."),
 			})
 		}
-
-		// Invalidate sorted entries cache since entry was modified
-		InvalidateSortedEntriesCache()
-
-		// Invalidate Bände cache since entry was modified
-		ma.ResetBaendeCache()
-
-		// Check if fields that affect contents changed
-		contentsNeedUpdate := entry.PreferredTitle() != oldPreferredTitle ||
-			entry.Year() != oldYear ||
-			agentRelationsChanged
-
-		// Update FTS5 index asynchronously
-		go func(appInstance core.App, entryID string, updateContents bool) {
-			freshEntry, err := dbmodels.Entries_ID(appInstance, entryID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load entry for FTS5 update", "entry_id", entryID, "error", err)
-				return
-			}
-			if err := updateEntryFTS5WithContents(appInstance, freshEntry, updateContents); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for entry", "entry_id", entryID, "error", err)
-			}
-		}(app, entry.Id, contentsNeedUpdate)
 
 		freshEntry, err := dbmodels.Entries_MusenalmID(app, id)
 		if err == nil {
@@ -262,27 +232,14 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, m
 			})
 		}
 
-		if err := app.RunInTransaction(func(tx core.App) error {
-			return store.DeleteEntry(tx, entry, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
+		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.DeleteEntry(tx, entry, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete almanach entry", "entry_id", entry.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
 				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
-
-		// Invalidate sorted entries cache since entry was deleted
-		InvalidateSortedEntriesCache()
-
-		// Invalidate Bände cache since entry was deleted
-		ma.ResetBaendeCache()
-
-		// Delete from FTS5 index asynchronously
-		go func(appInstance core.App, entryID string) {
-			if err := dbmodels.DeleteFTS5Entry(appInstance, entryID); err != nil {
-				appInstance.Logger().Error("Failed to delete FTS5 entry", "entry_id", entryID, "error", err)
-			}
-		}(app, entry.Id)
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,

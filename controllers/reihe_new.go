@@ -36,7 +36,7 @@ func (p *ReiheNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagem
 	rg := router.Group(URL_REIHEN_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST("", p.POST(engine, app, store))
+	rg.POST("", p.POST(engine, app, ia, store))
 	return nil
 }
 
@@ -80,7 +80,7 @@ func (p *ReiheNewPage) renderPage(engine *templating.Engine, app core.App, e *co
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
+func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -95,7 +95,7 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, store *cano
 
 		var createdSeries *dbmodels.Series
 		user := req.User()
-		if err := app.RunInTransaction(func(tx core.App) error {
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := ""
 			if user != nil {
 				editorID = user.Id
@@ -109,7 +109,7 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, store *cano
 				Status:     formdata.Status,
 				Comment:    formdata.Comment,
 				EditorID:   editorID,
-			})
+			}, effects)
 			if err != nil {
 				return err
 			}
@@ -123,18 +123,6 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, store *cano
 		if createdSeries == nil {
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
-
-		// Update FTS5 index for new series (no related entries yet) asynchronously
-		go func(appInstance core.App, seriesID string) {
-			freshSeries, err := dbmodels.Series_ID(appInstance, seriesID)
-			if err != nil {
-				appInstance.Logger().Error("Failed to load series for FTS5 update", "series_id", seriesID, "error", err)
-				return
-			}
-			if err := dbmodels.UpdateFTS5Series(appInstance, freshSeries); err != nil {
-				appInstance.Logger().Error("Failed to update FTS5 index for new series", "series_id", seriesID, "error", err)
-			}
-		}(app, createdSeries.Id)
 
 		redirect := fmt.Sprintf(URL_REIHE_REDIRECT, createdSeries.MusenalmID())
 		return e.Redirect(http.StatusSeeOther, redirect)
