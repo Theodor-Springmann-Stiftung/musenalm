@@ -123,7 +123,12 @@
 				{{- if $model.result.Entry.ResponsibilityStmt -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Herausgeberangabe</div>
-						<div class="fieldvalue">{{ $model.result.Entry.ResponsibilityStmt }}</div>
+						<div class="fieldvalue">
+							<span>{{ $model.result.Entry.ResponsibilityStmt }}</span>
+							{{- if $model.result.Entry.Pseudonym -}}
+								{{- template "_pseudonym_pill" . -}}
+							{{- end -}}
+						</div>
 					</div>
 				{{- end -}}
 				{{- if $model.result.Entry.PublicationStmt -}}

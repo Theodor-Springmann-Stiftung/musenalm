@@ -53,11 +53,22 @@
 			<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
 		</div>
 
-		<div class="inputwrapper">
-			<div class="inputlabelrow">
-				<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
+		<div class="flex flex-row gap-2 w-full items-start">
+			<div class="inputwrapper flex-1 min-w-0">
+				<div class="inputlabelrow">
+					<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
+				</div>
+				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
 			</div>
-			<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+			<div class="inputwrapper shrink-0">
+				<input type="hidden" name="{{ $prefix }}pseudonym" value="false" />
+				<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+					<input type="checkbox" name="{{ $prefix }}pseudonym" id="{{ $baseID }}-pseudonym" value="true" {{ if $content.Pseudonym }}checked{{ end }} data-boolean-checkbox />
+					<label class="flex items-center gap-1 text-gray-700" for="{{ $baseID }}-pseudonym">
+						<span>Pseudonym</span>
+					</label>
+				</div>
+			</div>
 		</div>
 
 		<div id="{{ $baseID }}-edit-fields" class="mt-2 flex flex-col gap-2"></div>

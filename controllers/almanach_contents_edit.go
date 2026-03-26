@@ -44,6 +44,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app))
@@ -1108,6 +1109,9 @@ func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields m
 	if value, ok := optionalFieldValue(fields, "responsibility_statement"); ok {
 		content.SetResponsibilityStmt(value)
 	}
+	if value, ok := optionalBoolFieldValue(fields, "pseudonym"); ok {
+		content.SetPseudonym(value)
+	}
 	if value, ok := optionalFieldValue(fields, "place_statement"); ok {
 		content.SetPlaceStmt(value)
 	}
@@ -1275,6 +1279,23 @@ func optionalFieldValue(fields map[string][]string, key string) (string, bool) {
 		return "", false
 	}
 	return strings.TrimSpace(firstValue(values)), true
+}
+
+func optionalBoolFieldValue(fields map[string][]string, key string) (bool, bool) {
+	values, ok := fields[key]
+	if !ok {
+		return false, false
+	}
+	if len(values) == 0 {
+		return false, true
+	}
+	value := strings.TrimSpace(values[len(values)-1])
+	switch strings.ToLower(value) {
+	case "1", "true", "on", "yes":
+		return true, true
+	default:
+		return false, true
+	}
 }
 
 func fieldOrCurrent(fields map[string][]string, key, current string) string {

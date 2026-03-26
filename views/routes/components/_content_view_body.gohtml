@@ -51,7 +51,12 @@
 		{{- end -}}
 		{{- if $content.ResponsibilityStmt -}}
 			<div class="text-sm font-bold text-gray-700">Autorangabe</div>
-			<div class="text-base italic">{{- $content.ResponsibilityStmt -}}</div>
+			<div class="text-base italic">
+				<span>{{- $content.ResponsibilityStmt -}}</span>
+				{{- if $content.Pseudonym -}}
+					{{- template "_pseudonym_pill" . -}}
+				{{- end -}}
+			</div>
 		{{- end -}}
 		{{- if $content.Comment -}}
 			<div class="text-sm font-bold text-gray-700">Kommentar</div>

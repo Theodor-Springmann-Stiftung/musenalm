@@ -143,6 +143,14 @@ func (e *Entry) SetEdition(edition string) {
 	e.Set(EDITION_FIELD, edition)
 }
 
+func (e *Entry) Pseudonym() bool {
+	return e.GetBool(PSEUDONYM_FIELD)
+}
+
+func (e *Entry) SetPseudonym(pseudonym bool) {
+	e.Set(PSEUDONYM_FIELD, pseudonym)
+}
+
 func (e *Entry) MediaType() []string {
 	return e.GetStringSlice(MEDIA_TYPE_FIELD)
 }

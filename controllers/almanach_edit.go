@@ -347,6 +347,7 @@ type almanachEntryPayload struct {
 	VariantTitle            string `json:"variant_title"`
 	Incipit                 string `json:"incipit"`
 	ResponsibilityStatement string `json:"responsibility_statement"`
+	Pseudonym               bool   `json:"pseudonym"`
 	PublicationStatement    string `json:"publication_statement"`
 	PlaceStatement          string `json:"place_statement"`
 	Edition                 string `json:"edition"`
@@ -486,6 +487,7 @@ func applyEntryChanges(tx core.App, entry *dbmodels.Entry, payload *almanachEdit
 	entry.SetVariantTitle(strings.TrimSpace(payload.Entry.VariantTitle))
 	entry.SetIncipitStmt(strings.TrimSpace(payload.Entry.Incipit))
 	entry.SetResponsibilityStmt(strings.TrimSpace(payload.Entry.ResponsibilityStatement))
+	entry.SetPseudonym(payload.Entry.Pseudonym)
 	entry.SetPublicationStmt(strings.TrimSpace(payload.Entry.PublicationStatement))
 	entry.SetPlaceStmt(strings.TrimSpace(payload.Entry.PlaceStatement))
 	entry.SetEdition(strings.TrimSpace(payload.Entry.Edition))

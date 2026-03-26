@@ -83,6 +83,39 @@ func TestEnrichEntryFromLegacyFillMissingOnly(t *testing.T) {
 	}
 }
 
+func TestEnrichEntryFromLegacyExtractsPseudonymMarkers(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	enrichEntryFromLegacy(entry, xmlmodels.LegacyAlmNeuRow{
+		Herausgeber: "Editor #",
+		Anmerkungen: "# Pseud. /) Hinweis",
+	})
+
+	if !entry.Pseudonym() {
+		t.Fatal("expected legacy pseudonym marker to set pseudonym")
+	}
+	if entry.ResponsibilityStmt() != "Editor" {
+		t.Fatalf("expected stripped legacy responsibility, got %q", entry.ResponsibilityStmt())
+	}
+	if entry.Annotation() != "Hinweis" {
+		t.Fatalf("expected stripped legacy annotation, got %q", entry.Annotation())
+	}
+}
+
+func TestExtractEntryPseudonymImportDataRemovesTaggedMarkerPrefix(t *testing.T) {
+	data := extractEntryPseudonymImportData("H. Clauren #", "<div># Pseud. /) 19 Jgg 1818-1837</div>")
+
+	if !data.pseudonym {
+		t.Fatal("expected tagged entry marker to set pseudonym")
+	}
+	if data.responsibility != "H. Clauren" {
+		t.Fatalf("expected stripped responsibility, got %q", data.responsibility)
+	}
+	if data.annotation != "19 Jgg 1818-1837" {
+		t.Fatalf("expected stripped tagged annotation, got %q", data.annotation)
+	}
+}
+
 func TestHandlePreferredTitleEntryPrefersLegacyReihentitel(t *testing.T) {
 	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
 	band := xmlmodels.Band{

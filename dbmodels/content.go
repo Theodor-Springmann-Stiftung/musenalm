@@ -102,6 +102,14 @@ func (c *Content) SetYear(year int) {
 	c.Set(YEAR_FIELD, year)
 }
 
+func (c *Content) Pseudonym() bool {
+	return c.GetBool(PSEUDONYM_FIELD)
+}
+
+func (c *Content) SetPseudonym(pseudonym bool) {
+	c.Set(PSEUDONYM_FIELD, pseudonym)
+}
+
 func (c *Content) Language() []string {
 	return c.GetStringSlice(LANGUAGE_FIELD)
 }

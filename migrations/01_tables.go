@@ -286,6 +286,7 @@ func entriesFields(app core.App) core.FieldsList {
 		// Other discerning Information
 		&core.NumberField{Name: dbmodels.YEAR_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.EDITION_FIELD, Required: false},
+		&core.BoolField{Name: dbmodels.PSEUDONYM_FIELD, Required: false},
 
 		// Media Information
 		&core.SelectField{
@@ -386,6 +387,7 @@ func contentsFields(app core.App) core.FieldsList {
 
 		// Other discerning Information
 		&core.NumberField{Name: dbmodels.YEAR_FIELD, Required: false},
+		&core.BoolField{Name: dbmodels.PSEUDONYM_FIELD, Required: false},
 
 		// Media Information
 		&core.SelectField{

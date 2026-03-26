@@ -56,6 +56,7 @@ func RecordsFromInhalte(
 	for i := 0; i < len(inhalte.Inhalte); i++ {
 		record := dbmodels.NewContent(core.NewRecord(collection))
 		inhalt := inhalte.Inhalte[i]
+		pseudonymData := extractContentPseudonymImportData(inhalt.Urheberangabe, inhalt.Anmerkungen)
 		if shouldSkipDummyContent(inhalt, images) {
 			continue
 		}
@@ -65,9 +66,10 @@ func RecordsFromInhalte(
 			continue
 		}
 		record.SetEntry(band.Id)
-		record.SetAnnotation(NormalizeString(inhalt.Anmerkungen))
+		record.SetAnnotation(NormalizeString(pseudonymData.annotation))
 		record.SetMusenalmID(inhalt.ID)
-		record.SetResponsibilityStmt(NormalizeString(inhalt.Urheberangabe))
+		record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
+		record.SetPseudonym(pseudonymData.pseudonym)
 		record.SetMusenalmType(inhalt.Typ.Value)
 		record.SetExtent(NormalizeString(inhalt.Seite))
 		record.SetTitleStmt(NormalizeString(inhalt.Titelangabe))
@@ -101,7 +103,7 @@ func RecordsFromInhalte(
 			record.SetScans(files)
 		}
 
-		handlePreferredTitle(inhalt, record)
+		handlePreferredTitle(record)
 		n := record.PreferredTitle()
 		if n == "" || n == NO_TITLE {
 			record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
@@ -158,10 +160,12 @@ func RecordsFromLegacyINHTab(
 
 		for _, row := range match.Rows {
 			record := dbmodels.NewContent(core.NewRecord(collection))
+			pseudonymData := extractContentPseudonymImportData(row.Autor, row.AnmerkungInhalt)
 			record.SetEntry(entry.Id)
-			record.SetAnnotation(NormalizeString(row.AnmerkungInhalt))
+			record.SetAnnotation(NormalizeString(pseudonymData.annotation))
 			record.SetMusenalmID(row.INHNR)
-			record.SetResponsibilityStmt(NormalizeString(row.Autor))
+			record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
+			record.SetPseudonym(pseudonymData.pseudonym)
 			record.SetMusenalmType(legacyMusenalmTypes(row.Objekt))
 			if row.Seite != 0 {
 				record.SetExtent(strconv.FormatFloat(row.Seite, 'f', -1, 64))
@@ -191,7 +195,7 @@ func RecordsFromLegacyINHTab(
 				record.SetScans(files)
 			}
 
-			handleLegacyPreferredTitle(row, record)
+			handlePreferredTitle(record)
 			n := record.PreferredTitle()
 			if n == "" || n == NO_TITLE {
 				record.SetEditState(dbmodels.EDITORSTATE_VALUES[1])
@@ -240,14 +244,14 @@ func legacyMusenalmTypes(raw string) []string {
 	return ret
 }
 
-func handleLegacyPreferredTitle(row xmlmodels.LegacyINHTabRow, record *dbmodels.Content) {
-	if row.Titel != "" {
-		record.SetPreferredTitle(NormalizeString(row.Titel))
+func handlePreferredTitle(record *dbmodels.Content) {
+	if record.TitleStmt() != "" {
+		record.SetPreferredTitle(record.TitleStmt())
 		return
 	}
 
-	if row.Incipit != "" {
-		record.SetPreferredTitle(NormalizeString(row.Incipit) + "…")
+	if record.IncipitStmt() != "" {
+		record.SetPreferredTitle(record.IncipitStmt() + "…")
 		return
 	}
 
@@ -255,7 +259,7 @@ func handleLegacyPreferredTitle(row xmlmodels.LegacyINHTabRow, record *dbmodels.
 	if len(types) > 0 {
 		str := strings.Join(types, ", ")
 		if str != "" {
-			creator := normalizeLegacyCreatorForTitle(row.Autor)
+			creator := normalizeLegacyCreatorForTitle(record.ResponsibilityStmt())
 			if creator != "" {
 				str += " (" + creator + ")"
 			}
@@ -282,37 +286,6 @@ func normalizeLegacyCreatorForTitle(raw string) string {
 	creator := NormalizeString(raw)
 	creator = strings.ReplaceAll(creator, "#", "")
 	return NormalizeString(creator)
-}
-
-func handlePreferredTitle(inhalt xmlmodels.Inhalt, record *dbmodels.Content) {
-	if inhalt.Titelangabe != "" {
-		record.SetPreferredTitle(NormalizeString(inhalt.Titelangabe))
-		return
-	}
-
-	if inhalt.Incipit != "" {
-		record.SetPreferredTitle(NormalizeString(inhalt.Incipit) + "…")
-		return
-	}
-
-	if len(inhalt.Typ.Value) > 0 {
-		str := commatizeArray(inhalt.Typ.Value)
-		if str != "" {
-			if inhalt.Urheberangabe != "" &&
-				!strings.Contains(inhalt.Urheberangabe, "unbezeichnet") &&
-				!strings.Contains(inhalt.Urheberangabe, "unbekannt") &&
-				!strings.Contains(inhalt.Urheberangabe, "unleserlich") {
-				urhh := NormalizeString(inhalt.Urheberangabe)
-				urhh = strings.ReplaceAll(urhh, "#", "")
-				urhh = NormalizeString(urhh)
-				str += " (" + urhh + ")"
-			}
-			record.SetPreferredTitle("[" + str + "]")
-			return
-		}
-	}
-
-	record.SetPreferredTitle(NO_TITLE)
 }
 
 func commatizeArray(array []string) string {
