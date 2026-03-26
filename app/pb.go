@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/exports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
@@ -47,6 +48,7 @@ type App struct {
 	imagesMutex      sync.RWMutex
 	baendeCache      *BaendeCache
 	baendeCacheMutex sync.RWMutex
+	canonicalStore   *canonical.Store
 }
 
 type BaendeCache struct {
@@ -139,6 +141,7 @@ func New(config Config) *App {
 	app := App{
 		MAConfig: config,
 	}
+	app.canonicalStore = canonical.NewStore()
 
 	app.createPBInstance()
 	app.Bootstrap()
@@ -759,6 +762,10 @@ func cloneBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
 
 func (app *App) GetBaendeCache() (pagemodels.BaendeCacheInterface, error) {
 	return app.EnsureBaendeCache()
+}
+
+func (app *App) GetCanonicalStore() *canonical.Store {
+	return app.canonicalStore
 }
 
 func (app *App) setWatchers(engine *templating.Engine) {

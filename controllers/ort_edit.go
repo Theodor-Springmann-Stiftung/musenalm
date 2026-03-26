@@ -3,10 +3,10 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -14,7 +14,6 @@ import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func init() {
@@ -35,11 +34,12 @@ type OrtEditPage struct {
 
 func (p *OrtEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ORT)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ORT_EDIT, p.GET(engine, app))
-	rg.POST(URL_ORT_EDIT, p.POST(engine, app))
-	rg.POST(URL_ORT_DELETE, p.POSTDelete(engine, app))
+	rg.POST(URL_ORT_EDIT, p.POST(engine, app, store))
+	rg.POST(URL_ORT_DELETE, p.POSTDelete(engine, app, store))
 	return nil
 }
 
@@ -159,7 +159,7 @@ func applyPlaceForm(place *dbmodels.Place, formdata ortEditForm, name string, st
 	}
 }
 
-func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -178,24 +178,9 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return engine.Response404(e, err, nil)
 		}
 
-		if formdata.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(formdata.LastEdited)
-			if err != nil {
-				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-			}
-			if !place.Updated().Time().Equal(lastEdited.Time()) {
-				return p.renderError(engine, app, e, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden.", &formdata)
-			}
-		}
-
-		name := strings.TrimSpace(formdata.Name)
-		if name == "" {
-			return p.renderError(engine, app, e, "Name ist erforderlich.", &formdata)
-		}
-
-		status := strings.TrimSpace(formdata.Status)
-		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderError(engine, app, e, "Ungültiger Status.", &formdata)
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
+		if err != nil {
+			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
 		// Capture old name (entries depend on place name)
@@ -203,11 +188,24 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			applyPlaceForm(place, formdata, name, status, user)
-			return tx.Save(place)
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
+			}
+			return store.UpdatePlace(tx, place, canonical.PlaceInput{
+				Name:              formdata.Name,
+				Pseudonyms:        formdata.Pseudonyms,
+				Annotation:        formdata.Annotation,
+				URI:               formdata.URI,
+				Fictional:         formdata.Fictional,
+				Status:            formdata.Status,
+				Comment:           formdata.Comment,
+				EditorID:          editorID,
+				ExpectedUpdatedAt: expectedUpdatedAt,
+			})
 		}); err != nil {
 			app.Logger().Error("Failed to save place", "place_id", place.Id, "error", err)
-			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.", &formdata)
+			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
 		}
 
 		// Check if name changed (entries store place name)
@@ -251,7 +249,7 @@ type ortDeletePayload struct {
 	LastEdited string `json:"last_edited"`
 }
 
-func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -276,21 +274,14 @@ func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App) Handle
 			})
 		}
 
-		if payload.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(payload.LastEdited)
-			if err != nil {
-				return e.JSON(http.StatusBadRequest, map[string]any{
-					"error": "Ungültiger Bearbeitungszeitstempel.",
-				})
-			}
-			if !place.Updated().Time().Equal(lastEdited.Time()) {
-				return e.JSON(http.StatusConflict, map[string]any{
-					"error": "Der Ort wurde inzwischen geändert. Bitte Seite neu laden.",
-				})
-			}
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
 		}
 
-		entries, err := placeEntries(app, place.Id)
+		entries, err := store.PlaceEntries(app, place.Id)
 		if err != nil {
 			return e.JSON(http.StatusInternalServerError, map[string]any{
 				"error": "Löschen fehlgeschlagen.",
@@ -298,28 +289,11 @@ func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App) Handle
 		}
 
 		if err := app.RunInTransaction(func(tx core.App) error {
-			for _, entry := range entries {
-				updatedPlaces := []string{}
-				for _, placeID := range entry.Places() {
-					if placeID != place.Id {
-						updatedPlaces = append(updatedPlaces, placeID)
-					}
-				}
-				entry.SetPlaces(updatedPlaces)
-				if err := tx.Save(entry); err != nil {
-					return err
-				}
-			}
-
-			record, err := tx.FindRecordById(dbmodels.PLACES_TABLE, place.Id)
-			if err != nil {
-				return err
-			}
-			return tx.Delete(record)
+			return store.DeletePlace(tx, place, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
 		}); err != nil {
 			app.Logger().Error("Failed to delete place", "place_id", place.Id, "error", err)
-			return e.JSON(http.StatusInternalServerError, map[string]any{
-				"error": "Löschen fehlgeschlagen.",
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
 

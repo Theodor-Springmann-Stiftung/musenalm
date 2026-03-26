@@ -1,6 +1,7 @@
 package pagemodels
 
 import (
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -31,6 +32,7 @@ type IApp interface {
 	ResetPagesCache()
 	ResetBaendeCache()
 	GetBaendeCache() (BaendeCacheInterface, error)
+	GetCanonicalStore() *canonical.Store
 	Logger() *slog.Logger
 }
 

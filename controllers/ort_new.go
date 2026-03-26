@@ -3,10 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
-	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -33,10 +32,11 @@ type OrtNewPage struct {
 
 func (p *OrtNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ORTE_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST("", p.POST(engine, app))
+	rg.POST("", p.POST(engine, app, store))
 	return nil
 }
 
@@ -76,7 +76,7 @@ func (p *OrtNewPage) renderPage(engine *templating.Engine, app core.App, e *core
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *OrtNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -89,38 +89,31 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return p.renderPage(engine, app, e, req, err.Error())
 		}
 
-		name := strings.TrimSpace(formdata.Name)
-		if name == "" {
-			return p.renderPage(engine, app, e, req, "Name ist erforderlich.")
-		}
-
-		status := strings.TrimSpace(formdata.Status)
-		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderPage(engine, app, e, req, "Ungültiger Status.")
-		}
-
 		var createdPlace *dbmodels.Place
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			collection, err := tx.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
-			if err != nil {
-				return err
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
 			}
-			place := dbmodels.NewPlace(core.NewRecord(collection))
-			nextID, err := nextPlaceMusenalmID(tx)
+			place, err := store.CreatePlace(tx, canonical.PlaceInput{
+				Name:       formdata.Name,
+				Pseudonyms: formdata.Pseudonyms,
+				Annotation: formdata.Annotation,
+				URI:        formdata.URI,
+				Fictional:  formdata.Fictional,
+				Status:     formdata.Status,
+				Comment:    formdata.Comment,
+				EditorID:   editorID,
+			})
 			if err != nil {
-				return err
-			}
-			place.SetMusenalmID(nextID)
-			applyPlaceForm(place, formdata, name, status, user)
-			if err := tx.Save(place); err != nil {
 				return err
 			}
 			createdPlace = place
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to create place", "error", err)
-			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
+			return p.renderPage(engine, app, e, req, canonicalErrorMessage(err, "Speichern fehlgeschlagen."))
 		}
 
 		if createdPlace == nil {

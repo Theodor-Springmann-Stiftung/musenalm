@@ -7,17 +7,16 @@ import (
 	"net/url"
 	"slices"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
@@ -39,16 +38,17 @@ type AlmanachContentsEditPage struct {
 
 func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ALMANACH_CONTENTS_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app))
-	rg.POST(URL_ALMANACH_CONTENTS_DELETE_SCAN, p.POSTDeleteScan(engine, app))
+	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, store))
+	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, store))
+	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, store))
+	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app, store))
+	rg.POST(URL_ALMANACH_CONTENTS_DELETE_SCAN, p.POSTDeleteScan(engine, app, store))
 	return nil
 }
 
@@ -295,7 +295,7 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 }
 
-func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -337,13 +337,13 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		orderMap := buildContentOrderMap(contentOrder)
 		relationsByContent := map[string]contentAgentRelationsPayload{}
 		for contentID := range contentInputs {
-			payload := parseContentAgentRelations(e.Request.PostForm, contentID)
-			if err := validateContentAgentRelations(payload); err != nil {
-				return p.renderError(engine, app, e, err.Error())
-			}
-			relationsByContent[contentID] = payload
+			relationsByContent[contentID] = parseContentAgentRelations(e.Request.PostForm, contentID)
 		}
 		user := req.User()
+		editorID := ""
+		if user != nil {
+			editorID = user.Id
+		}
 		existingByID := make(map[string]*dbmodels.Content, len(contents))
 		for _, content := range contents {
 			existingByID[content.Id] = content
@@ -379,76 +379,47 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		var createdContents []*dbmodels.Content
 		var updatedContents []*dbmodels.Content
 		if err := app.RunInTransaction(func(tx core.App) error {
-			if len(orderMap) > 0 {
-				for _, content := range contents {
-					numbering, ok := orderMap[content.Id]
-					if !ok {
-						continue
-					}
-					if content.Numbering() == numbering {
-						continue
-					}
-					content.SetNumbering(numbering)
-					if err := tx.Save(content); err != nil {
-						return err
-					}
-				}
-			}
-			nextMusenalmID := 0
-			if len(newContentIDs) > 0 {
-				nextID, err := nextContentMusenalmID(tx)
-				if err != nil {
-					return err
-				}
-				nextMusenalmID = nextID
-			}
 			created := make([]*dbmodels.Content, 0, len(newContentIDs))
 			for _, tempID := range newContentIDs {
-				fields, ok := contentInputs[tempID]
+				input, ok := contentInputs[tempID]
 				if !ok {
 					continue
 				}
-				contentCollection, err := tx.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
+				input.Numbering = orderMap[tempID]
+				if input.Numbering <= 0 {
+					input.Numbering = float64(len(contents) + len(created) + 1)
+				}
+				if strings.TrimSpace(input.EditState) == "" {
+					input.EditState = "Edited"
+				}
+				content, err := store.CreateContent(tx, entry, canonicalContentInput(input, editorID))
 				if err != nil {
-					return err
-				}
-				record := core.NewRecord(contentCollection)
-				content := dbmodels.NewContent(record)
-				content.SetMusenalmID(nextMusenalmID)
-				nextMusenalmID++
-				content.SetEditState("Edited")
-				numbering := orderMap[tempID]
-				if numbering <= 0 {
-					numbering = float64(len(contents) + len(created) + 1)
-				}
-				if err := applyContentForm(content, entry, fields, user, numbering); err != nil {
-					return err
-				}
-				if err := tx.Save(content); err != nil {
 					return err
 				}
 				tempToCreated[tempID] = content.Id
 				if relations, ok := relationsByContent[tempID]; ok {
-					if err := applyContentAgentRelations(tx, content, relations); err != nil {
+					existingRelations, newRelations := canonicalContentRelationsInput(relations)
+					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs); err != nil {
 						return err
 					}
 				}
 				created = append(created, content)
 			}
 			for _, content := range contents {
-				fields, ok := contentInputs[content.Id]
+				input, ok := contentInputs[content.Id]
 				if !ok {
 					continue
 				}
-				numbering := orderMap[content.Id]
-				if err := applyContentForm(content, entry, fields, user, numbering); err != nil {
-					return err
+				input.Numbering = orderMap[content.Id]
+				if input.Numbering <= 0 {
+					input.Numbering = content.Numbering()
 				}
-				if err := tx.Save(content); err != nil {
+				if err := store.UpdateContent(tx, content, entry, canonicalContentInput(input, editorID)); err != nil {
 					return err
 				}
 				if relations, ok := relationsByContent[content.Id]; ok {
-					if err := applyContentAgentRelations(tx, content, relations); err != nil {
+					existingRelations, newRelations := canonicalContentRelationsInput(relations)
+					if err := store.SaveContentAgentRelations(tx, content, existingRelations, newRelations, relations.DeletedIDs); err != nil {
 						return err
 					}
 				}
@@ -466,80 +437,13 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				if content.Entry() != entry.Id {
 					return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
 				}
-				deleteSet := map[string]struct{}{}
-				for _, scan := range deleteScans {
-					scan = strings.TrimSpace(scan)
-					if scan == "" {
-						continue
-					}
-					deleteSet[scan] = struct{}{}
-				}
-				if len(scansOrder) > 0 || len(pendingScanIDs) > 0 {
-					pendingMap := map[string]*filesystem.File{}
-					for idx, id := range pendingScanIDs {
-						if idx >= len(uploadedScans) {
-							break
-						}
-						id = strings.TrimSpace(id)
-						if id == "" {
-							continue
-						}
-						pendingMap[id] = uploadedScans[idx]
-					}
-					ordered := make([]any, 0, len(scansOrder)+len(uploadedScans))
-					seenExisting := map[string]struct{}{}
-					for _, token := range scansOrder {
-						token = strings.TrimSpace(token)
-						if token == "" {
-							continue
-						}
-						if strings.HasPrefix(token, "pending:") {
-							id := strings.TrimPrefix(token, "pending:")
-							if file, ok := pendingMap[id]; ok {
-								ordered = append(ordered, file)
-							}
-							continue
-						}
-						if strings.HasPrefix(token, "existing:") {
-							name := strings.TrimPrefix(token, "existing:")
-							if name == "" {
-								continue
-							}
-							if _, deleted := deleteSet[name]; deleted {
-								continue
-							}
-							ordered = append(ordered, name)
-							seenExisting[name] = struct{}{}
-						}
-					}
-					for _, name := range content.Scans() {
-						if _, deleted := deleteSet[name]; deleted {
-							continue
-						}
-						if _, seen := seenExisting[name]; seen {
-							continue
-						}
-						ordered = append(ordered, name)
-					}
-					content.Set(dbmodels.SCAN_FIELD, ordered)
-				} else {
-					if len(uploadedScans) > 0 {
-						content.Set(dbmodels.SCAN_FIELD+"+", uploadedScans)
-					}
-					if len(deleteScans) > 0 {
-						for _, scan := range deleteScans {
-							scan = strings.TrimSpace(scan)
-							if scan == "" {
-								continue
-							}
-							content.Set(dbmodels.SCAN_FIELD+"-", scan)
-						}
-					}
-				}
-				if user != nil {
-					content.SetEditor(user.Id)
-				}
-				if err := tx.Save(content); err != nil {
+				if err := store.UpdateContentScans(tx, content, canonical.ContentScansInput{
+					UploadedFiles:  uploadedScans,
+					DeleteScans:    deleteScans,
+					ScansOrder:     scansOrder,
+					PendingScanIDs: pendingScanIDs,
+					EditorID:       editorID,
+				}); err != nil {
 					return err
 				}
 			}
@@ -549,7 +453,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to save contents", "entry_id", entry.Id, "error", err)
-			return renderError(err.Error())
+			return renderError(canonicalErrorMessage(err, "Speichern fehlgeschlagen."))
 		}
 
 		if len(updatedContents) == 0 {
@@ -605,7 +509,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -623,11 +527,11 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 			return engine.Response404(e, err, nil)
 		}
 
-		entry.SetExtent(strings.TrimSpace(e.Request.FormValue("extent")))
+		editorID := ""
 		if user := req.User(); user != nil {
-			entry.SetEditor(user.Id)
+			editorID = user.Id
 		}
-		if err := app.Save(entry); err != nil {
+		if err := store.UpdateEntryExtent(app, entry, e.Request.FormValue("extent"), editorID); err != nil {
 			app.Logger().Error("Failed to update entry extent", "entry_id", entry.Id, "error", err)
 			return p.renderError(engine, app, e, "Struktur/Umfang konnte nicht gespeichert werden.")
 		}
@@ -646,7 +550,7 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -670,7 +574,6 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			return engine.Response404(e, err, nil)
 		}
 
-		var remaining []*dbmodels.Content
 		if err := app.RunInTransaction(func(tx core.App) error {
 			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, contentID)
 			if err != nil {
@@ -681,37 +584,11 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 				return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
 			}
 
-			relationsTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
-			relations, err := dbmodels.RContentsAgents_Content(tx, contentID)
-			if err != nil {
+			if err := store.DeleteContent(tx, content); err != nil {
 				return err
 			}
-			for _, rel := range relations {
-				relRecord, err := tx.FindRecordById(relationsTable, rel.Id)
-				if err != nil {
-					continue
-				}
-				if err := tx.Delete(relRecord); err != nil {
-					return err
-				}
-			}
-
-			if err := tx.Delete(record); err != nil {
-				return err
-			}
-
-			remaining, err = dbmodels.Contents_Entry(tx, entry.Id)
-			if err != nil {
-				return err
-			}
-			dbmodels.Sort_Contents_Numbering(remaining)
-			for idx, content := range remaining {
-				content.SetNumbering(float64(idx + 1))
-				if err := tx.Save(content); err != nil {
-					return err
-				}
-			}
-			return nil
+			_, err = store.RenumberEntryContents(tx, entry.Id)
+			return err
 		}); err != nil {
 			app.Logger().Error("Failed to delete content", "entry_id", entry.Id, "content_id", contentID, "error", err)
 			return p.renderError(engine, app, e, "Beitrag konnte nicht gelöscht werden.")
@@ -733,7 +610,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -773,11 +650,21 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 			return renderContentsImagesHTMXError(e, "Bitte eine Datei auswaehlen.", isHTMX)
 		}
 
-		content.Set(dbmodels.SCAN_FIELD+"+", files)
+		editorID := ""
 		if user := req.User(); user != nil {
-			content.SetEditor(user.Id)
+			editorID = user.Id
 		}
-		if err := app.Save(content); err != nil {
+		if err := app.RunInTransaction(func(tx core.App) error {
+			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
+			if err != nil {
+				return err
+			}
+			current := dbmodels.NewContent(record)
+			return store.UpdateContentScans(tx, current, canonical.ContentScansInput{
+				UploadedFiles: files,
+				EditorID:      editorID,
+			})
+		}); err != nil {
 			app.Logger().Error("Failed to upload scans", "entry_id", entry.Id, "content_id", content.Id, "error", err)
 			return renderContentsImagesHTMXError(e, "Upload fehlgeschlagen.", isHTMX)
 		}
@@ -809,7 +696,7 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 	}
 }
 
-func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -846,11 +733,21 @@ func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app
 			return renderContentsImagesHTMXError(e, "Datei nicht gefunden.", isHTMX)
 		}
 
-		content.Set(dbmodels.SCAN_FIELD+"-", scan)
+		editorID := ""
 		if user := req.User(); user != nil {
-			content.SetEditor(user.Id)
+			editorID = user.Id
 		}
-		if err := app.Save(content); err != nil {
+		if err := app.RunInTransaction(func(tx core.App) error {
+			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
+			if err != nil {
+				return err
+			}
+			current := dbmodels.NewContent(record)
+			return store.UpdateContentScans(tx, current, canonical.ContentScansInput{
+				DeleteScans: []string{scan},
+				EditorID:    editorID,
+			})
+		}); err != nil {
 			app.Logger().Error("Failed to delete scan", "entry_id", entry.Id, "content_id", content.Id, "scan", scan, "error", err)
 			return renderContentsImagesHTMXError(e, "Loeschen fehlgeschlagen.", isHTMX)
 		}
@@ -911,8 +808,28 @@ func renderContentsImagesHTMXError(e *core.RequestEvent, message string, isHTMX 
 	return e.HTML(http.StatusBadRequest, payload)
 }
 
-func parseContentsForm(form url.Values) map[string]map[string][]string {
-	contentInputs := map[string]map[string][]string{}
+type contentFormInput struct {
+	PreferredTitle          string
+	VariantTitle            string
+	ParallelTitle           string
+	TitleStatement          string
+	SubtitleStatement       string
+	IncipitStatement        string
+	ResponsibilityStatement string
+	PlaceStatement          string
+	Extent                  string
+	Annotation              string
+	EditComment             string
+	Language                []string
+	ContentType             []string
+	MusenalmType            []string
+	MusenalmPagination      string
+	EditState               string
+	Numbering               float64
+}
+
+func parseContentsForm(form url.Values) map[string]contentFormInput {
+	rawInputs := map[string]map[string][]string{}
 	for key, values := range form {
 		if key == "csrf_token" || key == "last_edited" {
 			continue
@@ -931,11 +848,33 @@ func parseContentsForm(form url.Values) map[string]map[string][]string {
 		if field == "" || contentID == "" {
 			continue
 		}
-		if _, ok := contentInputs[contentID]; !ok {
-			contentInputs[contentID] = map[string][]string{}
+		if _, ok := rawInputs[contentID]; !ok {
+			rawInputs[contentID] = map[string][]string{}
 		}
-		contentInputs[contentID][field] = values
+		rawInputs[contentID][field] = values
 	}
+
+	contentInputs := make(map[string]contentFormInput, len(rawInputs))
+	for contentID, fields := range rawInputs {
+		contentInputs[contentID] = contentFormInput{
+			VariantTitle:            strings.TrimSpace(firstValue(fields["variant_title"])),
+			ParallelTitle:           strings.TrimSpace(firstValue(fields["parallel_title"])),
+			TitleStatement:          strings.TrimSpace(firstValue(fields["title_statement"])),
+			SubtitleStatement:       strings.TrimSpace(firstValue(fields["subtitle_statement"])),
+			IncipitStatement:        strings.TrimSpace(firstValue(fields["incipit_statement"])),
+			ResponsibilityStatement: strings.TrimSpace(firstValue(fields["responsibility_statement"])),
+			PlaceStatement:          strings.TrimSpace(firstValue(fields["place_statement"])),
+			Extent:                  strings.TrimSpace(firstValue(fields["extent"])),
+			Annotation:              strings.TrimSpace(firstValue(fields["annotation"])),
+			EditComment:             strings.TrimSpace(firstValue(fields["edit_comment"])),
+			Language:                sanitizeContentStrings(fields["language"]),
+			ContentType:             sanitizeContentStrings(fields["content_type"]),
+			MusenalmType:            sanitizeContentStrings(fields["musenalm_type"]),
+			MusenalmPagination:      strings.TrimSpace(firstValue(fields["musenalm_pagination"])),
+			EditState:               strings.TrimSpace(firstValue(fields["edit_state"])),
+		}
+	}
+
 	return contentInputs
 }
 
@@ -1044,233 +983,6 @@ func parseContentAgentRelations(form url.Values, contentID string) contentAgentR
 	return payload
 }
 
-func validateContentAgentRelations(payload contentAgentRelationsPayload) error {
-	for _, relation := range payload.Relations {
-		if err := validateRelationTypeValue(relation.Type, dbmodels.AGENT_RELATIONS); err != nil {
-			return err
-		}
-	}
-	for _, relation := range payload.NewRelations {
-		if err := validateRelationTypeValue(relation.Type, dbmodels.AGENT_RELATIONS); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func validateRelationTypeValue(value string, allowed []string) error {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
-	}
-	if !slices.Contains(allowed, value) {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
-	}
-	return nil
-}
-
-func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields map[string][]string, user *dbmodels.FixedUser, numbering float64) error {
-	preferredTitle := buildContentPreferredTitle(content, fields)
-	if preferredTitle == "" {
-		label := content.Id
-		if content.Numbering() > 0 {
-			label = strconv.FormatFloat(content.Numbering(), 'f', -1, 64)
-		}
-		return fmt.Errorf("Kurztitel ist erforderlich (Beitrag %s).", label)
-	}
-
-	status := strings.TrimSpace(firstValue(fields["edit_state"]))
-	if status == "" {
-		status = content.EditState()
-	}
-	if !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-		return fmt.Errorf("Ungültiger Status (Beitrag %s).", content.Id)
-	}
-
-	musenalmTypes := sanitizeContentStrings(fields["musenalm_type"])
-	if len(musenalmTypes) == 0 {
-		return fmt.Errorf("Musenalm-Typ ist erforderlich (Beitrag %s).", content.Id)
-	}
-
-	if numbering <= 0 {
-		numbering = content.Numbering()
-	}
-
-	content.SetPreferredTitle(preferredTitle)
-	if value, ok := optionalFieldValue(fields, "variant_title"); ok {
-		content.SetVariantTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "parallel_title"); ok {
-		content.SetParallelTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "title_statement"); ok {
-		content.SetTitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "subtitle_statement"); ok {
-		content.SetSubtitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "incipit_statement"); ok {
-		content.SetIncipitStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "responsibility_statement"); ok {
-		content.SetResponsibilityStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "place_statement"); ok {
-		content.SetPlaceStmt(value)
-	}
-	content.SetYear(entry.Year())
-	content.SetExtent(strings.TrimSpace(firstValue(fields["extent"])))
-	content.SetLanguage(sanitizeContentStrings(fields["language"]))
-	if values, ok := fields["content_type"]; ok {
-		content.SetContentType(sanitizeContentStrings(values))
-	}
-	content.SetMusenalmType(musenalmTypes)
-	content.SetMusenalmPagination(strings.TrimSpace(firstValue(fields["musenalm_pagination"])))
-	content.SetNumbering(numbering)
-	content.SetEntry(entry.Id)
-	content.SetEditState(status)
-	if value, ok := optionalFieldValue(fields, "edit_comment"); ok {
-		content.SetComment(value)
-	}
-	if value, ok := optionalFieldValue(fields, "annotation"); ok {
-		content.SetAnnotation(value)
-	}
-	if user != nil {
-		content.SetEditor(user.Id)
-	}
-	return nil
-}
-
-func applyContentAgentRelations(tx core.App, content *dbmodels.Content, payload contentAgentRelationsPayload) error {
-	if content == nil {
-		return nil
-	}
-	tableName := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
-	var collection *core.Collection
-	getCollection := func() (*core.Collection, error) {
-		if collection != nil {
-			return collection, nil
-		}
-		col, err := tx.FindCollectionByNameOrId(tableName)
-		if err != nil {
-			return nil, err
-		}
-		collection = col
-		return collection, nil
-	}
-
-	for _, relation := range payload.Relations {
-		relationID := strings.TrimSpace(relation.ID)
-		if relationID == "" {
-			continue
-		}
-		record, err := tx.FindRecordById(tableName, relationID)
-		if err != nil {
-			return err
-		}
-		proxy := dbmodels.NewRContentsAgents(record)
-		if proxy.Content() != content.Id {
-			return fmt.Errorf("Relation %s gehört zu einem anderen Beitrag.", relationID)
-		}
-		proxy.SetContent(content.Id)
-		proxy.SetAgent(strings.TrimSpace(relation.TargetID))
-		proxy.SetType(strings.TrimSpace(relation.Type))
-		proxy.SetUncertain(relation.Uncertain)
-		if err := tx.Save(proxy); err != nil {
-			return err
-		}
-	}
-
-	for _, relationID := range payload.DeletedIDs {
-		relationID = strings.TrimSpace(relationID)
-		if relationID == "" {
-			continue
-		}
-		record, err := tx.FindRecordById(tableName, relationID)
-		if err != nil {
-			continue
-		}
-		proxy := dbmodels.NewRContentsAgents(record)
-		if proxy.Content() != content.Id {
-			continue
-		}
-		if err := tx.Delete(record); err != nil {
-			return err
-		}
-	}
-
-	for _, relation := range payload.NewRelations {
-		targetID := strings.TrimSpace(relation.TargetID)
-		if targetID == "" {
-			continue
-		}
-		col, err := getCollection()
-		if err != nil {
-			return err
-		}
-		proxy := dbmodels.NewRContentsAgents(core.NewRecord(col))
-		proxy.SetContent(content.Id)
-		proxy.SetAgent(targetID)
-		proxy.SetType(strings.TrimSpace(relation.Type))
-		proxy.SetUncertain(relation.Uncertain)
-		if err := tx.Save(proxy); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func applyContentFormDraft(content *dbmodels.Content, entry *dbmodels.Entry, fields map[string][]string, numbering float64) {
-	if value, ok := optionalFieldValue(fields, "variant_title"); ok {
-		content.SetVariantTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "parallel_title"); ok {
-		content.SetParallelTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "title_statement"); ok {
-		content.SetTitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "subtitle_statement"); ok {
-		content.SetSubtitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "incipit_statement"); ok {
-		content.SetIncipitStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "responsibility_statement"); ok {
-		content.SetResponsibilityStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "place_statement"); ok {
-		content.SetPlaceStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "edit_comment"); ok {
-		content.SetComment(value)
-	}
-	if value, ok := optionalFieldValue(fields, "annotation"); ok {
-		content.SetAnnotation(value)
-	}
-
-	content.SetExtent(strings.TrimSpace(firstValue(fields["extent"])))
-	content.SetLanguage(sanitizeContentStrings(fields["language"]))
-	if values, ok := fields["content_type"]; ok {
-		content.SetContentType(sanitizeContentStrings(values))
-	}
-	content.SetMusenalmType(sanitizeContentStrings(fields["musenalm_type"]))
-	content.SetMusenalmPagination(strings.TrimSpace(firstValue(fields["musenalm_pagination"])))
-	content.SetEntry(entry.Id)
-	content.SetYear(entry.Year())
-
-	if status := strings.TrimSpace(firstValue(fields["edit_state"])); status != "" {
-		content.SetEditState(status)
-	}
-	if numbering > 0 {
-		content.SetNumbering(numbering)
-	}
-	if preferredTitle := buildContentPreferredTitle(content, fields); preferredTitle != "" {
-		content.SetPreferredTitle(preferredTitle)
-	}
-}
-
 func sanitizeContentStrings(values []string) []string {
 	cleaned := make([]string, 0, len(values))
 	seen := map[string]struct{}{}
@@ -1286,59 +998,6 @@ func sanitizeContentStrings(values []string) []string {
 		cleaned = append(cleaned, value)
 	}
 	return cleaned
-}
-
-func buildContentPreferredTitle(content *dbmodels.Content, fields map[string][]string) string {
-	title := fieldOrCurrent(fields, "title_statement", content.TitleStmt())
-	if title != "" {
-		return title
-	}
-	subtitle := fieldOrCurrent(fields, "subtitle_statement", content.SubtitleStmt())
-	if subtitle != "" {
-		return subtitle
-	}
-	incipit := fieldOrCurrent(fields, "incipit_statement", content.IncipitStmt())
-	if incipit != "" {
-		return incipit
-	}
-
-	types := fields["musenalm_type"]
-	if _, ok := fields["musenalm_type"]; !ok {
-		types = content.MusenalmType()
-	}
-	types = sanitizeContentStrings(types)
-	typeLabel := strings.Join(types, ", ")
-	responsibility := fieldOrCurrent(fields, "responsibility_statement", content.ResponsibilityStmt())
-	if responsibility != "" && !strings.EqualFold(responsibility, "unbezeichnet") {
-		if typeLabel != "" {
-			return fmt.Sprintf("[%s] Unterzeichnet: %s", typeLabel, responsibility)
-		}
-		return fmt.Sprintf("Unterzeichnet: %s", responsibility)
-	}
-
-	extent := fieldOrCurrent(fields, "extent", content.Extent())
-	if typeLabel == "" {
-		typeLabel = "Beitrag"
-	}
-	if extent != "" {
-		return fmt.Sprintf("[%s %s]", typeLabel, extent)
-	}
-	return fmt.Sprintf("[%s]", typeLabel)
-}
-
-func optionalFieldValue(fields map[string][]string, key string) (string, bool) {
-	values, ok := fields[key]
-	if !ok {
-		return "", false
-	}
-	return strings.TrimSpace(firstValue(values)), true
-}
-
-func fieldOrCurrent(fields map[string][]string, key, current string) string {
-	if value, ok := optionalFieldValue(fields, key); ok {
-		return value
-	}
-	return strings.TrimSpace(current)
 }
 
 func firstValue(values []string) string {

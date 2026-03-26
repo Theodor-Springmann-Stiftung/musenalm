@@ -3,10 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
-	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -33,10 +32,11 @@ type ReiheNewPage struct {
 
 func (p *ReiheNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_REIHEN_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST("", p.POST(engine, app))
+	rg.POST("", p.POST(engine, app, store))
 	return nil
 }
 
@@ -80,7 +80,7 @@ func (p *ReiheNewPage) renderPage(engine *templating.Engine, app core.App, e *co
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -93,38 +93,31 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App) HandleFunc 
 			return p.renderPage(engine, app, e, req, err.Error())
 		}
 
-		title := strings.TrimSpace(formdata.Title)
-		if title == "" {
-			return p.renderPage(engine, app, e, req, "Reihentitel ist erforderlich.")
-		}
-
-		status := strings.TrimSpace(formdata.Status)
-		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderPage(engine, app, e, req, "Ungültiger Status.")
-		}
-
 		var createdSeries *dbmodels.Series
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			collection, err := tx.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
-			if err != nil {
-				return err
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
 			}
-			series := dbmodels.NewSeries(core.NewRecord(collection))
-			nextID, err := nextSeriesMusenalmID(tx)
+			series, err := store.CreateSeries(tx, canonical.SeriesInput{
+				Title:      formdata.Title,
+				Pseudonyms: formdata.Pseudonyms,
+				Annotation: formdata.Annotation,
+				References: formdata.References,
+				Frequency:  formdata.Frequency,
+				Status:     formdata.Status,
+				Comment:    formdata.Comment,
+				EditorID:   editorID,
+			})
 			if err != nil {
-				return err
-			}
-			series.SetMusenalmID(nextID)
-			applySeriesForm(series, formdata, title, status, user)
-			if err := tx.Save(series); err != nil {
 				return err
 			}
 			createdSeries = series
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to create series", "error", err)
-			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
+			return p.renderPage(engine, app, e, req, canonicalErrorMessage(err, "Speichern fehlgeschlagen."))
 		}
 
 		if createdSeries == nil {

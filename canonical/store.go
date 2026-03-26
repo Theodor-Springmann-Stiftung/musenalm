@@ -1,0 +1,1356 @@
+package canonical
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
+)
+
+type Store struct{}
+
+type ValidationError struct {
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
+}
+
+type ConflictError struct {
+	Message string
+}
+
+func (e *ConflictError) Error() string {
+	return e.Message
+}
+
+func IsValidationError(err error) bool {
+	var target *ValidationError
+	return errors.As(err, &target)
+}
+
+func IsConflictError(err error) bool {
+	var target *ConflictError
+	return errors.As(err, &target)
+}
+
+type DeleteOptions struct {
+	ExpectedUpdatedAt *time.Time
+}
+
+type AgentInput struct {
+	Name              string
+	Pseudonyms        string
+	BiographicalData  string
+	Profession        string
+	References        string
+	Annotation        string
+	URI               string
+	CorporateBody     bool
+	Fictional         bool
+	Status            string
+	Comment           string
+	EditorID          string
+	ExpectedUpdatedAt *time.Time
+}
+
+type PlaceInput struct {
+	Name              string
+	Pseudonyms        string
+	Annotation        string
+	URI               string
+	Fictional         bool
+	Status            string
+	Comment           string
+	EditorID          string
+	ExpectedUpdatedAt *time.Time
+}
+
+type SeriesInput struct {
+	Title             string
+	Pseudonyms        string
+	Annotation        string
+	References        string
+	Frequency         string
+	Status            string
+	Comment           string
+	EditorID          string
+	ExpectedUpdatedAt *time.Time
+}
+
+type EntryInput struct {
+	PreferredTitle    string
+	Title             string
+	ParallelTitle     string
+	Subtitle          string
+	VariantTitle      string
+	Incipit           string
+	Responsibility    string
+	Publication       string
+	PlaceStatement    string
+	Edition           string
+	Annotation        string
+	Comment           string
+	Extent            string
+	Dimensions        string
+	References        string
+	Status            string
+	Year              *int
+	Languages         []string
+	Places            []string
+	EditorID          string
+	ExpectedUpdatedAt *time.Time
+}
+
+type ItemInput struct {
+	ID         string
+	Owner      string
+	Identifier string
+	Location   string
+	Media      []string
+	Annotation string
+	URI        string
+}
+
+type RelationInput struct {
+	ID        string
+	TargetID  string
+	Type      string
+	Uncertain bool
+}
+
+type ContentInput struct {
+	PreferredTitle    string
+	VariantTitle      string
+	ParallelTitle     string
+	Title             string
+	Subtitle          string
+	Incipit           string
+	Responsibility    string
+	PlaceStatement    string
+	Extent            string
+	Annotation        string
+	Comment           string
+	Language          []string
+	ContentTypes      []string
+	MusenalmTypes     []string
+	Pagination        string
+	Status            string
+	Numbering         float64
+	EditorID          string
+	ExpectedUpdatedAt *time.Time
+}
+
+type ContentScansInput struct {
+	UploadedFiles  []*filesystem.File
+	DeleteScans    []string
+	ScansOrder     []string
+	PendingScanIDs []string
+	EditorID       string
+}
+
+func NewStore() *Store {
+	return &Store{}
+}
+
+func (s *Store) CreateAgent(tx core.App, input AgentInput) (*dbmodels.Agent, error) {
+	if err := validateAgentInput(input); err != nil {
+		return nil, err
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.AGENTS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	agent := dbmodels.NewAgent(core.NewRecord(collection))
+	nextID, err := nextMusenalmID(tx, dbmodels.AGENTS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+	agent.SetMusenalmID(nextID)
+	s.applyAgentInput(agent, input)
+	if err := tx.Save(agent); err != nil {
+		return nil, err
+	}
+
+	return agent, nil
+}
+
+func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput) error {
+	if err := validateAgentInput(input); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(agent.Updated().Time(), input.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+
+	s.applyAgentInput(agent, input)
+	return tx.Save(agent)
+}
+
+func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptions) error {
+	if err := checkExpectedUpdatedAt(agent.Updated().Time(), opts.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	if err := s.deleteAgentRelations(tx, agent.Id); err != nil {
+		return err
+	}
+
+	record, err := tx.FindRecordById(dbmodels.AGENTS_TABLE, agent.Id)
+	if err != nil {
+		return err
+	}
+	return tx.Delete(record)
+}
+
+func (s *Store) CreatePlace(tx core.App, input PlaceInput) (*dbmodels.Place, error) {
+	if err := validatePlaceInput(input); err != nil {
+		return nil, err
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	place := dbmodels.NewPlace(core.NewRecord(collection))
+	nextID, err := nextMusenalmID(tx, dbmodels.PLACES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+	place.SetMusenalmID(nextID)
+	s.applyPlaceInput(place, input)
+	if err := tx.Save(place); err != nil {
+		return nil, err
+	}
+
+	return place, nil
+}
+
+func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput) error {
+	if err := validatePlaceInput(input); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(place.Updated().Time(), input.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+
+	s.applyPlaceInput(place, input)
+	return tx.Save(place)
+}
+
+func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptions) error {
+	if err := checkExpectedUpdatedAt(place.Updated().Time(), opts.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	entries, err := s.PlaceEntries(tx, place.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		updatedPlaces := make([]string, 0, len(entry.Places()))
+		for _, placeID := range entry.Places() {
+			if placeID != place.Id {
+				updatedPlaces = append(updatedPlaces, placeID)
+			}
+		}
+		entry.SetPlaces(updatedPlaces)
+		if err := tx.Save(entry); err != nil {
+			return err
+		}
+	}
+
+	record, err := tx.FindRecordById(dbmodels.PLACES_TABLE, place.Id)
+	if err != nil {
+		return err
+	}
+	return tx.Delete(record)
+}
+
+func (s *Store) CreateSeries(tx core.App, input SeriesInput) (*dbmodels.Series, error) {
+	if err := validateSeriesInput(input); err != nil {
+		return nil, err
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	series := dbmodels.NewSeries(core.NewRecord(collection))
+	nextID, err := nextMusenalmID(tx, dbmodels.SERIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+	series.SetMusenalmID(nextID)
+	s.applySeriesInput(series, input)
+	if err := tx.Save(series); err != nil {
+		return nil, err
+	}
+
+	return series, nil
+}
+
+func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesInput) error {
+	if err := validateSeriesInput(input); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(series.Updated().Time(), input.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+
+	s.applySeriesInput(series, input)
+	return tx.Save(series)
+}
+
+func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRelationType string, opts DeleteOptions) error {
+	if err := checkExpectedUpdatedAt(series.Updated().Time(), opts.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	preferredEntries, err := s.preferredSeriesEntries(tx, series.Id, preferredRelationType)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range preferredEntries {
+		if err := s.DeleteEntry(tx, entry, DeleteOptions{}); err != nil {
+			return err
+		}
+	}
+
+	relations, err := dbmodels.REntriesSeries_Seriess(tx, []any{series.Id})
+	if err != nil {
+		return err
+	}
+
+	relationsTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)
+	for _, relation := range relations {
+		record, err := tx.FindRecordById(relationsTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	record, err := tx.FindRecordById(dbmodels.SERIES_TABLE, series.Id)
+	if err != nil {
+		return err
+	}
+	return tx.Delete(record)
+}
+
+func (s *Store) CreateEntry(tx core.App, input EntryInput) (*dbmodels.Entry, error) {
+	if err := validateEntryInput(input); err != nil {
+		return nil, err
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	entry := dbmodels.NewEntry(core.NewRecord(collection))
+	nextID, err := nextMusenalmID(tx, dbmodels.ENTRIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+	entry.SetMusenalmID(nextID)
+	s.applyEntryInput(entry, input)
+	if err := tx.Save(entry); err != nil {
+		return nil, err
+	}
+
+	return entry, nil
+}
+
+func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput) error {
+	if err := validateEntryInput(input); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(entry.Updated().Time(), input.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+
+	s.applyEntryInput(entry, input)
+	return tx.Save(entry)
+}
+
+func (s *Store) UpdateEntryExtent(tx core.App, entry *dbmodels.Entry, extent string, editorID string) error {
+	entry.SetExtent(strings.TrimSpace(extent))
+	if editorID != "" {
+		entry.SetEditor(editorID)
+	}
+	return tx.Save(entry)
+}
+
+func (s *Store) SaveEntryItems(tx core.App, entry *dbmodels.Entry, items []ItemInput, deletedIDs []string) error {
+	var collection *core.Collection
+	getCollection := func() (*core.Collection, error) {
+		if collection != nil {
+			return collection, nil
+		}
+		found, err := tx.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
+		if err != nil {
+			return nil, err
+		}
+		collection = found
+		return collection, nil
+	}
+
+	for _, input := range items {
+		itemID := strings.TrimSpace(input.ID)
+		var item *dbmodels.Item
+		if itemID != "" {
+			record, err := tx.FindRecordById(dbmodels.ITEMS_TABLE, itemID)
+			if err != nil {
+				return err
+			}
+			item = dbmodels.NewItem(record)
+			if item.Entry() != entry.Id {
+				return validationErrorf("Exemplar %s gehört zu einem anderen Eintrag.", itemID)
+			}
+		} else {
+			found, err := getCollection()
+			if err != nil {
+				return err
+			}
+			item = dbmodels.NewItem(core.NewRecord(found))
+		}
+
+		s.applyItemInput(item, entry.Id, input)
+		if err := tx.Save(item); err != nil {
+			return err
+		}
+	}
+
+	for _, itemID := range deletedIDs {
+		itemID = strings.TrimSpace(itemID)
+		if itemID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(dbmodels.ITEMS_TABLE, itemID)
+		if err != nil {
+			continue
+		}
+		item := dbmodels.NewItem(record)
+		if item.Entry() != entry.Id {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+	if err := validateEntrySeriesRelations(relations, newRelations); err != nil {
+		return err
+	}
+
+	tableName := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)
+	var collection *core.Collection
+	getCollection := func() (*core.Collection, error) {
+		if collection != nil {
+			return collection, nil
+		}
+		found, err := tx.FindCollectionByNameOrId(tableName)
+		if err != nil {
+			return nil, err
+		}
+		collection = found
+		return collection, nil
+	}
+
+	for _, relation := range relations {
+		relationID := strings.TrimSpace(relation.ID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewREntriesSeries(record)
+		if proxy.Entry() != entry.Id {
+			return validationErrorf("Relation %s gehört zu einem anderen Eintrag.", relationID)
+		}
+		s.applyEntrySeriesRelation(proxy, entry.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	for _, relationID := range deletedIDs {
+		relationID = strings.TrimSpace(relationID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			continue
+		}
+		proxy := dbmodels.NewREntriesSeries(record)
+		if proxy.Entry() != entry.Id {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	for _, relation := range newRelations {
+		targetID := strings.TrimSpace(relation.TargetID)
+		if targetID == "" {
+			continue
+		}
+		found, err := getCollection()
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewREntriesSeries(core.NewRecord(found))
+		s.applyEntrySeriesRelation(proxy, entry.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+	if err := validateRelations(relations, dbmodels.AGENT_RELATIONS); err != nil {
+		return err
+	}
+	if err := validateRelations(newRelations, dbmodels.AGENT_RELATIONS); err != nil {
+		return err
+	}
+
+	tableName := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
+	var collection *core.Collection
+	getCollection := func() (*core.Collection, error) {
+		if collection != nil {
+			return collection, nil
+		}
+		found, err := tx.FindCollectionByNameOrId(tableName)
+		if err != nil {
+			return nil, err
+		}
+		collection = found
+		return collection, nil
+	}
+
+	for _, relation := range relations {
+		relationID := strings.TrimSpace(relation.ID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewREntriesAgents(record)
+		if proxy.Entry() != entry.Id {
+			return validationErrorf("Relation %s gehört zu einem anderen Eintrag.", relationID)
+		}
+		s.applyEntryAgentRelation(proxy, entry.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	for _, relationID := range deletedIDs {
+		relationID = strings.TrimSpace(relationID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			continue
+		}
+		proxy := dbmodels.NewREntriesAgents(record)
+		if proxy.Entry() != entry.Id {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	for _, relation := range newRelations {
+		targetID := strings.TrimSpace(relation.TargetID)
+		if targetID == "" {
+			continue
+		}
+		found, err := getCollection()
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewREntriesAgents(core.NewRecord(found))
+		s.applyEntryAgentRelation(proxy, entry.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptions) error {
+	if err := checkExpectedUpdatedAt(entry.Updated().Time(), opts.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	if err := s.deleteEntryRelations(tx, entry.Id); err != nil {
+		return err
+	}
+	if err := s.deleteEntryItems(tx, entry.Id); err != nil {
+		return err
+	}
+	if err := s.deleteEntryContents(tx, entry.Id); err != nil {
+		return err
+	}
+
+	record, err := tx.FindRecordById(dbmodels.ENTRIES_TABLE, entry.Id)
+	if err != nil {
+		return err
+	}
+	return tx.Delete(record)
+}
+
+func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentInput) (*dbmodels.Content, error) {
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	content := dbmodels.NewContent(core.NewRecord(collection))
+	nextID, err := nextMusenalmID(tx, dbmodels.CONTENTS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+	content.SetMusenalmID(nextID)
+	if err := s.applyContentInput(content, entry, input); err != nil {
+		return nil, err
+	}
+	if err := tx.Save(content); err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
+func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbmodels.Entry, input ContentInput) error {
+	if err := s.applyContentInput(content, entry, input); err != nil {
+		return err
+	}
+	return tx.Save(content)
+}
+
+func (s *Store) SaveContentAgentRelations(tx core.App, content *dbmodels.Content, relations []RelationInput, newRelations []RelationInput, deletedIDs []string) error {
+	if err := validateRelations(relations, dbmodels.AGENT_RELATIONS); err != nil {
+		return err
+	}
+	if err := validateRelations(newRelations, dbmodels.AGENT_RELATIONS); err != nil {
+		return err
+	}
+
+	tableName := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	var collection *core.Collection
+	getCollection := func() (*core.Collection, error) {
+		if collection != nil {
+			return collection, nil
+		}
+		found, err := tx.FindCollectionByNameOrId(tableName)
+		if err != nil {
+			return nil, err
+		}
+		collection = found
+		return collection, nil
+	}
+
+	for _, relation := range relations {
+		relationID := strings.TrimSpace(relation.ID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewRContentsAgents(record)
+		if proxy.Content() != content.Id {
+			return validationErrorf("Relation %s gehört zu einem anderen Beitrag.", relationID)
+		}
+		s.applyContentAgentRelation(proxy, content.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	for _, relationID := range deletedIDs {
+		relationID = strings.TrimSpace(relationID)
+		if relationID == "" {
+			continue
+		}
+		record, err := tx.FindRecordById(tableName, relationID)
+		if err != nil {
+			continue
+		}
+		proxy := dbmodels.NewRContentsAgents(record)
+		if proxy.Content() != content.Id {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	for _, relation := range newRelations {
+		targetID := strings.TrimSpace(relation.TargetID)
+		if targetID == "" {
+			continue
+		}
+		found, err := getCollection()
+		if err != nil {
+			return err
+		}
+		proxy := dbmodels.NewRContentsAgents(core.NewRecord(found))
+		s.applyContentAgentRelation(proxy, content.Id, relation)
+		if err := tx.Save(proxy); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateContentScans(tx core.App, content *dbmodels.Content, input ContentScansInput) error {
+	deleteSet := map[string]struct{}{}
+	for _, scan := range input.DeleteScans {
+		scan = strings.TrimSpace(scan)
+		if scan == "" {
+			continue
+		}
+		deleteSet[scan] = struct{}{}
+	}
+
+	if len(input.ScansOrder) > 0 || len(input.PendingScanIDs) > 0 {
+		pendingMap := map[string]*filesystem.File{}
+		for idx, id := range input.PendingScanIDs {
+			if idx >= len(input.UploadedFiles) {
+				break
+			}
+			id = strings.TrimSpace(id)
+			if id == "" {
+				continue
+			}
+			pendingMap[id] = input.UploadedFiles[idx]
+		}
+
+		ordered := make([]any, 0, len(input.ScansOrder)+len(input.UploadedFiles))
+		seenExisting := map[string]struct{}{}
+		for _, token := range input.ScansOrder {
+			token = strings.TrimSpace(token)
+			if token == "" {
+				continue
+			}
+			if strings.HasPrefix(token, "pending:") {
+				id := strings.TrimPrefix(token, "pending:")
+				if file, ok := pendingMap[id]; ok {
+					ordered = append(ordered, file)
+				}
+				continue
+			}
+			if strings.HasPrefix(token, "existing:") {
+				name := strings.TrimPrefix(token, "existing:")
+				if name == "" {
+					continue
+				}
+				if _, deleted := deleteSet[name]; deleted {
+					continue
+				}
+				ordered = append(ordered, name)
+				seenExisting[name] = struct{}{}
+			}
+		}
+		for _, name := range content.Scans() {
+			if _, deleted := deleteSet[name]; deleted {
+				continue
+			}
+			if _, seen := seenExisting[name]; seen {
+				continue
+			}
+			ordered = append(ordered, name)
+		}
+		content.Set(dbmodels.SCAN_FIELD, ordered)
+	} else {
+		if len(input.UploadedFiles) > 0 {
+			content.Set(dbmodels.SCAN_FIELD+"+", input.UploadedFiles)
+		}
+		for _, scan := range input.DeleteScans {
+			scan = strings.TrimSpace(scan)
+			if scan == "" {
+				continue
+			}
+			content.Set(dbmodels.SCAN_FIELD+"-", scan)
+		}
+	}
+
+	if input.EditorID != "" {
+		content.SetEditor(input.EditorID)
+	}
+	return tx.Save(content)
+}
+
+func (s *Store) DeleteContent(tx core.App, content *dbmodels.Content) error {
+	tableName := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	relations, err := dbmodels.RContentsAgents_Content(tx, content.Id)
+	if err != nil {
+		return err
+	}
+	for _, relation := range relations {
+		record, err := tx.FindRecordById(tableName, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
+	if err != nil {
+		return err
+	}
+	return tx.Delete(record)
+}
+
+func (s *Store) RenumberEntryContents(tx core.App, entryID string) ([]*dbmodels.Content, error) {
+	contents, err := dbmodels.Contents_Entry(tx, entryID)
+	if err != nil {
+		return nil, err
+	}
+
+	dbmodels.Sort_Contents_Numbering(contents)
+	for idx, content := range contents {
+		content.SetNumbering(float64(idx + 1))
+		if err := tx.Save(content); err != nil {
+			return nil, err
+		}
+	}
+
+	return contents, nil
+}
+
+func (s *Store) PlaceEntries(app core.App, placeID string) ([]*dbmodels.Entry, error) {
+	entries := []*dbmodels.Entry{}
+	err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+		Where(dbx.NewExp(
+			dbmodels.PLACES_TABLE+" = {:id} OR (json_valid("+dbmodels.PLACES_TABLE+") = 1 AND EXISTS (SELECT 1 FROM json_each("+dbmodels.PLACES_TABLE+") WHERE value = {:id}))",
+			dbx.Params{"id": placeID},
+		)).
+		All(&entries)
+	return entries, err
+}
+
+func (s *Store) applyAgentInput(agent *dbmodels.Agent, input AgentInput) {
+	agent.SetName(strings.TrimSpace(input.Name))
+	agent.SetPseudonyms(strings.TrimSpace(input.Pseudonyms))
+	agent.SetBiographicalData(strings.TrimSpace(input.BiographicalData))
+	agent.SetProfession(strings.TrimSpace(input.Profession))
+	agent.SetReferences(strings.TrimSpace(input.References))
+	agent.SetAnnotation(strings.TrimSpace(input.Annotation))
+	agent.SetURI(strings.TrimSpace(input.URI))
+	agent.SetCorporateBody(input.CorporateBody)
+	agent.SetFictional(input.Fictional)
+	agent.SetEditState(strings.TrimSpace(input.Status))
+	agent.SetComment(strings.TrimSpace(input.Comment))
+	if input.EditorID != "" {
+		agent.SetEditor(input.EditorID)
+	}
+}
+
+func (s *Store) applyPlaceInput(place *dbmodels.Place, input PlaceInput) {
+	place.SetName(strings.TrimSpace(input.Name))
+	place.SetPseudonyms(strings.TrimSpace(input.Pseudonyms))
+	place.SetAnnotation(strings.TrimSpace(input.Annotation))
+	place.SetURI(strings.TrimSpace(input.URI))
+	place.SetFictional(input.Fictional)
+	place.SetEditState(strings.TrimSpace(input.Status))
+	place.SetComment(strings.TrimSpace(input.Comment))
+	if input.EditorID != "" {
+		place.SetEditor(input.EditorID)
+	}
+}
+
+func (s *Store) applySeriesInput(series *dbmodels.Series, input SeriesInput) {
+	series.SetTitle(strings.TrimSpace(input.Title))
+	series.SetPseudonyms(strings.TrimSpace(input.Pseudonyms))
+	series.SetAnnotation(strings.TrimSpace(input.Annotation))
+	series.SetReferences(strings.TrimSpace(input.References))
+	series.SetFrequency(strings.TrimSpace(input.Frequency))
+	series.SetEditState(strings.TrimSpace(input.Status))
+	series.SetComment(strings.TrimSpace(input.Comment))
+	if input.EditorID != "" {
+		series.SetEditor(input.EditorID)
+	}
+}
+
+func (s *Store) applyEntryInput(entry *dbmodels.Entry, input EntryInput) {
+	entry.SetPreferredTitle(strings.TrimSpace(input.PreferredTitle))
+	entry.SetTitleStmt(strings.TrimSpace(input.Title))
+	entry.SetParallelTitle(strings.TrimSpace(input.ParallelTitle))
+	entry.SetSubtitleStmt(strings.TrimSpace(input.Subtitle))
+	entry.SetVariantTitle(strings.TrimSpace(input.VariantTitle))
+	entry.SetIncipitStmt(strings.TrimSpace(input.Incipit))
+	entry.SetResponsibilityStmt(strings.TrimSpace(input.Responsibility))
+	entry.SetPublicationStmt(strings.TrimSpace(input.Publication))
+	entry.SetPlaceStmt(strings.TrimSpace(input.PlaceStatement))
+	entry.SetEdition(strings.TrimSpace(input.Edition))
+	entry.SetAnnotation(strings.TrimSpace(input.Annotation))
+	entry.SetComment(strings.TrimSpace(input.Comment))
+	entry.SetExtent(strings.TrimSpace(input.Extent))
+	entry.SetDimensions(strings.TrimSpace(input.Dimensions))
+	entry.SetReferences(strings.TrimSpace(input.References))
+	if input.Year != nil {
+		entry.SetYear(*input.Year)
+	}
+	entry.SetEditState(strings.TrimSpace(input.Status))
+	entry.SetLanguage(sanitizeStrings(input.Languages))
+	entry.SetPlaces(sanitizeStrings(input.Places))
+	if input.EditorID != "" {
+		entry.SetEditor(input.EditorID)
+	}
+}
+
+func (s *Store) applyItemInput(item *dbmodels.Item, entryID string, input ItemInput) {
+	item.SetEntry(entryID)
+	item.SetOwner(strings.TrimSpace(input.Owner))
+	item.SetIdentifier(strings.TrimSpace(input.Identifier))
+	item.SetLocation(strings.TrimSpace(input.Location))
+	item.SetAnnotation(strings.TrimSpace(input.Annotation))
+	item.SetUri(strings.TrimSpace(input.URI))
+	item.SetMedia(sanitizeStrings(input.Media))
+}
+
+func (s *Store) applyEntrySeriesRelation(proxy *dbmodels.REntriesSeries, entryID string, input RelationInput) {
+	proxy.SetEntry(entryID)
+	proxy.SetSeries(strings.TrimSpace(input.TargetID))
+	proxy.SetType(strings.TrimSpace(input.Type))
+	proxy.SetUncertain(input.Uncertain)
+}
+
+func (s *Store) applyEntryAgentRelation(proxy *dbmodels.REntriesAgents, entryID string, input RelationInput) {
+	proxy.SetEntry(entryID)
+	proxy.SetAgent(strings.TrimSpace(input.TargetID))
+	proxy.SetType(strings.TrimSpace(input.Type))
+	proxy.SetUncertain(input.Uncertain)
+}
+
+func (s *Store) applyContentAgentRelation(proxy *dbmodels.RContentsAgents, contentID string, input RelationInput) {
+	proxy.SetContent(contentID)
+	proxy.SetAgent(strings.TrimSpace(input.TargetID))
+	proxy.SetType(strings.TrimSpace(input.Type))
+	proxy.SetUncertain(input.Uncertain)
+}
+
+func (s *Store) applyContentInput(content *dbmodels.Content, entry *dbmodels.Entry, input ContentInput) error {
+	if err := validateContentInput(content, input); err != nil {
+		return err
+	}
+
+	preferredTitle := strings.TrimSpace(input.PreferredTitle)
+	if preferredTitle == "" {
+		preferredTitle = buildContentPreferredTitle(content, input)
+	}
+	if preferredTitle == "" {
+		return validationErrorf("Kurztitel ist erforderlich (Beitrag %s).", contentLabel(content))
+	}
+
+	content.SetPreferredTitle(preferredTitle)
+	content.SetVariantTitle(strings.TrimSpace(input.VariantTitle))
+	content.SetParallelTitle(strings.TrimSpace(input.ParallelTitle))
+	content.SetTitleStmt(strings.TrimSpace(input.Title))
+	content.SetSubtitleStmt(strings.TrimSpace(input.Subtitle))
+	content.SetIncipitStmt(strings.TrimSpace(input.Incipit))
+	content.SetResponsibilityStmt(strings.TrimSpace(input.Responsibility))
+	content.SetPlaceStmt(strings.TrimSpace(input.PlaceStatement))
+	content.SetYear(entry.Year())
+	content.SetExtent(strings.TrimSpace(input.Extent))
+	content.SetLanguage(sanitizeStrings(input.Language))
+	content.SetContentType(sanitizeStrings(input.ContentTypes))
+	content.SetMusenalmType(sanitizeStrings(input.MusenalmTypes))
+	content.SetMusenalmPagination(strings.TrimSpace(input.Pagination))
+	if input.Numbering > 0 {
+		content.SetNumbering(input.Numbering)
+	}
+	content.SetEntry(entry.Id)
+	content.SetEditState(strings.TrimSpace(input.Status))
+	content.SetComment(strings.TrimSpace(input.Comment))
+	content.SetAnnotation(strings.TrimSpace(input.Annotation))
+	if input.EditorID != "" {
+		content.SetEditor(input.EditorID)
+	}
+
+	return nil
+}
+
+func validationErrorf(format string, args ...any) error {
+	return &ValidationError{Message: fmt.Sprintf(format, args...)}
+}
+
+func conflictErrorf(format string, args ...any) error {
+	return &ConflictError{Message: fmt.Sprintf(format, args...)}
+}
+
+func checkExpectedUpdatedAt(current time.Time, expected *time.Time, message string) error {
+	if expected == nil {
+		return nil
+	}
+	if !current.Equal(*expected) {
+		return conflictErrorf("%s", message)
+	}
+	return nil
+}
+
+func validateStatus(status string) error {
+	status = strings.TrimSpace(status)
+	if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
+		return validationErrorf("Ungültiger Status.")
+	}
+	return nil
+}
+
+func validateRelationType(value string, allowed []string) error {
+	value = strings.TrimSpace(value)
+	if value == "" || !slices.Contains(allowed, value) {
+		return validationErrorf("Ungültiger Beziehungstyp.")
+	}
+	return nil
+}
+
+func validateRelations(relations []RelationInput, allowed []string) error {
+	for _, relation := range relations {
+		if err := validateRelationType(relation.Type, allowed); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateAgentInput(input AgentInput) error {
+	if strings.TrimSpace(input.Name) == "" {
+		return validationErrorf("Name ist erforderlich.")
+	}
+	return validateStatus(input.Status)
+}
+
+func validatePlaceInput(input PlaceInput) error {
+	if strings.TrimSpace(input.Name) == "" {
+		return validationErrorf("Name ist erforderlich.")
+	}
+	return validateStatus(input.Status)
+}
+
+func validateSeriesInput(input SeriesInput) error {
+	if strings.TrimSpace(input.Title) == "" {
+		return validationErrorf("Reihentitel ist erforderlich.")
+	}
+	return validateStatus(input.Status)
+}
+
+func validateEntryInput(input EntryInput) error {
+	if strings.TrimSpace(input.PreferredTitle) == "" {
+		return validationErrorf("Kurztitel ist erforderlich.")
+	}
+	if input.Year == nil {
+		return validationErrorf("Jahr muss angegeben werden.")
+	}
+	return validateStatus(input.Status)
+}
+
+func validateEntrySeriesRelations(relations []RelationInput, newRelations []RelationInput) error {
+	if err := validateRelations(relations, dbmodels.SERIES_RELATIONS); err != nil {
+		return err
+	}
+	if err := validateRelations(newRelations, dbmodels.SERIES_RELATIONS); err != nil {
+		return err
+	}
+
+	preferredCount := 0
+	seriesTargetIDs := make(map[string]struct{}, len(relations)+len(newRelations))
+	for _, relation := range append(append([]RelationInput{}, relations...), newRelations...) {
+		targetID := strings.TrimSpace(relation.TargetID)
+		if targetID == "" {
+			continue
+		}
+		if _, exists := seriesTargetIDs[targetID]; exists {
+			return validationErrorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
+		}
+		seriesTargetIDs[targetID] = struct{}{}
+		if strings.TrimSpace(relation.Type) == "Bevorzugter Reihentitel" {
+			preferredCount++
+		}
+	}
+	if preferredCount == 0 {
+		return validationErrorf("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.")
+	}
+	if preferredCount > 1 {
+		return validationErrorf("Es darf nur ein bevorzugter Reihentitel gesetzt sein.")
+	}
+
+	return nil
+}
+
+func validateContentInput(content *dbmodels.Content, input ContentInput) error {
+	if err := validateStatus(input.Status); err != nil {
+		if v, ok := err.(*ValidationError); ok {
+			return validationErrorf("%s (Beitrag %s).", strings.TrimSuffix(v.Message, "."), contentLabel(content))
+		}
+		return err
+	}
+	if len(sanitizeStrings(input.MusenalmTypes)) == 0 {
+		return validationErrorf("Musenalm-Typ ist erforderlich (Beitrag %s).", contentLabel(content))
+	}
+	return nil
+}
+
+func contentLabel(content *dbmodels.Content) string {
+	if content == nil {
+		return ""
+	}
+	if content.Numbering() > 0 {
+		return fmt.Sprintf("%v", content.Numbering())
+	}
+	if strings.TrimSpace(content.Id) != "" {
+		return content.Id
+	}
+	return "neu"
+}
+
+func (s *Store) deleteAgentRelations(tx core.App, agentID string) error {
+	entryRelations, err := dbmodels.REntriesAgents_Agent(tx, agentID)
+	if err != nil {
+		return err
+	}
+	entryTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range entryRelations {
+		record, err := tx.FindRecordById(entryTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	contentRelations, err := dbmodels.RContentsAgents_Agent(tx, agentID)
+	if err != nil {
+		return err
+	}
+	contentTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range contentRelations {
+		record, err := tx.FindRecordById(contentTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) deleteEntryRelations(tx core.App, entryID string) error {
+	seriesRelations, err := dbmodels.REntriesSeries_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	seriesTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)
+	for _, relation := range seriesRelations {
+		record, err := tx.FindRecordById(seriesTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	agentRelations, err := dbmodels.REntriesAgents_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	agentTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
+	for _, relation := range agentRelations {
+		record, err := tx.FindRecordById(agentTable, relation.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) deleteEntryItems(tx core.App, entryID string) error {
+	items, err := dbmodels.Items_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		record, err := tx.FindRecordById(dbmodels.ITEMS_TABLE, item.Id)
+		if err != nil {
+			continue
+		}
+		if err := tx.Delete(record); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Store) deleteEntryContents(tx core.App, entryID string) error {
+	contents, err := dbmodels.Contents_Entry(tx, entryID)
+	if err != nil {
+		return err
+	}
+	for _, content := range contents {
+		if err := s.DeleteContent(tx, content); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Store) preferredSeriesEntries(app core.App, seriesID string, preferredRelationType string) ([]*dbmodels.Entry, error) {
+	relations, err := dbmodels.REntriesSeries_Seriess(app, []any{seriesID})
+	if err != nil {
+		return nil, err
+	}
+	if len(relations) == 0 {
+		return []*dbmodels.Entry{}, nil
+	}
+
+	entryIDs := []any{}
+	for _, relation := range relations {
+		if strings.TrimSpace(relation.Type()) != preferredRelationType {
+			continue
+		}
+		entryIDs = append(entryIDs, relation.Entry())
+	}
+	if len(entryIDs) == 0 {
+		return []*dbmodels.Entry{}, nil
+	}
+
+	return dbmodels.Entries_IDs(app, entryIDs)
+}
+
+func nextMusenalmID(app core.App, table string) (int, error) {
+	var record struct {
+		MusenalmID int `db:"musenalm_id"`
+	}
+
+	err := app.RecordQuery(table).
+		Select(dbmodels.MUSENALMID_FIELD).
+		OrderBy(dbmodels.MUSENALMID_FIELD + " DESC").
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 1, nil
+		}
+		return 0, err
+	}
+
+	return record.MusenalmID + 1, nil
+}
+
+func sanitizeStrings(values []string) []string {
+	seen := map[string]struct{}{}
+	cleaned := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		cleaned = append(cleaned, value)
+	}
+	return cleaned
+}
+
+func buildContentPreferredTitle(content *dbmodels.Content, input ContentInput) string {
+	title := strings.TrimSpace(input.Title)
+	if title == "" {
+		title = strings.TrimSpace(content.TitleStmt())
+	}
+	if title != "" {
+		return title
+	}
+
+	subtitle := strings.TrimSpace(input.Subtitle)
+	if subtitle == "" {
+		subtitle = strings.TrimSpace(content.SubtitleStmt())
+	}
+	if subtitle != "" {
+		return subtitle
+	}
+
+	incipit := strings.TrimSpace(input.Incipit)
+	if incipit == "" {
+		incipit = strings.TrimSpace(content.IncipitStmt())
+	}
+	if incipit != "" {
+		return incipit
+	}
+
+	types := sanitizeStrings(input.MusenalmTypes)
+	if len(types) == 0 {
+		types = sanitizeStrings(content.MusenalmType())
+	}
+	typeLabel := strings.Join(types, ", ")
+
+	responsibility := strings.TrimSpace(input.Responsibility)
+	if responsibility == "" {
+		responsibility = strings.TrimSpace(content.ResponsibilityStmt())
+	}
+	if responsibility != "" && !strings.EqualFold(responsibility, "unbezeichnet") {
+		if typeLabel != "" {
+			return fmt.Sprintf("[%s] Unterzeichnet: %s", typeLabel, responsibility)
+		}
+		return fmt.Sprintf("Unterzeichnet: %s", responsibility)
+	}
+
+	extent := strings.TrimSpace(input.Extent)
+	if extent == "" {
+		extent = strings.TrimSpace(content.Extent())
+	}
+	if typeLabel == "" {
+		typeLabel = "Beitrag"
+	}
+	if extent != "" {
+		return fmt.Sprintf("[%s %s]", typeLabel, extent)
+	}
+
+	return fmt.Sprintf("[%s]", typeLabel)
+}

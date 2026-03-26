@@ -3,17 +3,16 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func init() {
@@ -34,11 +33,12 @@ type ReiheEditPage struct {
 
 func (p *ReiheEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_REIHE_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_REIHE_EDIT, p.GET(engine, app))
-	rg.POST(URL_REIHE_EDIT, p.POST(engine, app))
-	rg.POST(URL_REIHE_DELETE, p.POSTDelete(engine, app))
+	rg.POST(URL_REIHE_EDIT, p.POST(engine, app, store))
+	rg.POST(URL_REIHE_DELETE, p.POSTDelete(engine, app, store))
 	return nil
 }
 
@@ -161,7 +161,7 @@ type reiheDeletePayload struct {
 	LastEdited string `json:"last_edited"`
 }
 
-func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -186,18 +186,11 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App) Hand
 			})
 		}
 
-		if payload.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(payload.LastEdited)
-			if err != nil {
-				return e.JSON(http.StatusBadRequest, map[string]any{
-					"error": "Ungültiger Bearbeitungszeitstempel.",
-				})
-			}
-			if !series.Updated().Time().Equal(lastEdited.Time()) {
-				return e.JSON(http.StatusConflict, map[string]any{
-					"error": "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden.",
-				})
-			}
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
 		}
 
 		preferredEntries, err := preferredSeriesEntries(app, series.Id)
@@ -208,49 +201,11 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App) Hand
 		}
 
 		if err := app.RunInTransaction(func(tx core.App) error {
-			for _, entry := range preferredEntries {
-				if err := deleteEntryRelations(tx, entry.Id); err != nil {
-					return err
-				}
-				if err := deleteEntryItems(tx, entry.Id); err != nil {
-					return err
-				}
-				if err := deleteEntryContents(tx, entry.Id); err != nil {
-					return err
-				}
-				record, err := tx.FindRecordById(dbmodels.ENTRIES_TABLE, entry.Id)
-				if err != nil {
-					continue
-				}
-				if err := tx.Delete(record); err != nil {
-					return err
-				}
-			}
-
-			relations, err := dbmodels.REntriesSeries_Seriess(tx, []any{series.Id})
-			if err != nil {
-				return err
-			}
-			relationsTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE)
-			for _, relation := range relations {
-				record, err := tx.FindRecordById(relationsTable, relation.Id)
-				if err != nil {
-					continue
-				}
-				if err := tx.Delete(record); err != nil {
-					return err
-				}
-			}
-
-			record, err := tx.FindRecordById(dbmodels.SERIES_TABLE, series.Id)
-			if err != nil {
-				return err
-			}
-			return tx.Delete(record)
+			return store.DeleteSeries(tx, series, preferredSeriesRelationType, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
 		}); err != nil {
 			app.Logger().Error("Failed to delete series", "series_id", series.Id, "error", err)
-			return e.JSON(http.StatusInternalServerError, map[string]any{
-				"error": "Löschen fehlgeschlagen.",
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
 
@@ -372,7 +327,7 @@ func applySeriesForm(series *dbmodels.Series, formdata reiheEditForm, title stri
 	}
 }
 
-func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -391,24 +346,9 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 			return engine.Response404(e, err, nil)
 		}
 
-		if formdata.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(formdata.LastEdited)
-			if err != nil {
-				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-			}
-			if !series.Updated().Time().Equal(lastEdited.Time()) {
-				return p.renderError(engine, app, e, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden.", &formdata)
-			}
-		}
-
-		title := strings.TrimSpace(formdata.Title)
-		if title == "" {
-			return p.renderError(engine, app, e, "Reihentitel ist erforderlich.", &formdata)
-		}
-
-		status := strings.TrimSpace(formdata.Status)
-		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderError(engine, app, e, "Ungültiger Status.", &formdata)
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
+		if err != nil {
+			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
 		// Capture old title (entries depend on series title)
@@ -416,11 +356,24 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App) HandleFunc
 
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			applySeriesForm(series, formdata, title, status, user)
-			return tx.Save(series)
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
+			}
+			return store.UpdateSeries(tx, series, canonical.SeriesInput{
+				Title:             formdata.Title,
+				Pseudonyms:        formdata.Pseudonyms,
+				Annotation:        formdata.Annotation,
+				References:        formdata.References,
+				Frequency:         formdata.Frequency,
+				Status:            formdata.Status,
+				Comment:           formdata.Comment,
+				EditorID:          editorID,
+				ExpectedUpdatedAt: expectedUpdatedAt,
+			})
 		}); err != nil {
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)
-			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.", &formdata)
+			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
 		}
 
 		// Check if title changed (entries store series title)

@@ -3,17 +3,16 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func init() {
@@ -34,13 +33,14 @@ type PersonEditPage struct {
 
 func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_PERSON_EDIT_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
 	rg.GET(URL_PERSON_EDIT_SLASH, p.GET(engine, app))
-	rg.POST(URL_PERSON_EDIT, p.POST(engine, app))
-	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app))
-	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app))
+	rg.POST(URL_PERSON_EDIT, p.POST(engine, app, store))
+	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app, store))
+	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, store))
 	return nil
 }
 
@@ -275,7 +275,7 @@ func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string
 	}
 }
 
-func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFunc {
+func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -294,24 +294,9 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 			return engine.Response404(e, err, nil)
 		}
 
-		if formdata.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(formdata.LastEdited)
-			if err != nil {
-				return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-			}
-			if !agent.Updated().Time().Equal(lastEdited.Time()) {
-				return p.renderError(engine, app, e, "Die Person wurde inzwischen geändert. Bitte Seite neu laden.", &formdata)
-			}
-		}
-
-		name := strings.TrimSpace(formdata.Name)
-		if name == "" {
-			return p.renderError(engine, app, e, "Name ist erforderlich.", &formdata)
-		}
-
-		status := strings.TrimSpace(formdata.Status)
-		if status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-			return p.renderError(engine, app, e, "Ungültiger Status.", &formdata)
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
+		if err != nil {
+			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
 		// Capture old name (entries and contents depend on agent name)
@@ -319,11 +304,28 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			applyPersonForm(agent, formdata, name, status, user)
-			return tx.Save(agent)
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
+			}
+			return store.UpdateAgent(tx, agent, canonical.AgentInput{
+				Name:              formdata.Name,
+				Pseudonyms:        formdata.Pseudonyms,
+				BiographicalData:  formdata.BiographicalData,
+				Profession:        formdata.Profession,
+				References:        formdata.References,
+				Annotation:        formdata.Annotation,
+				URI:               formdata.URI,
+				CorporateBody:     formdata.CorporateBody,
+				Fictional:         formdata.Fictional,
+				Status:            formdata.Status,
+				Comment:           formdata.Comment,
+				EditorID:          editorID,
+				ExpectedUpdatedAt: expectedUpdatedAt,
+			})
 		}); err != nil {
 			app.Logger().Error("Failed to save agent", "agent_id", agent.Id, "error", err)
-			return p.renderError(engine, app, e, "Speichern fehlgeschlagen.", &formdata)
+			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
 		}
 
 		// Check if name changed (entries and contents store agent name)
@@ -358,7 +360,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App) HandleFun
 	}
 }
 
-func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App) HandleFunc {
+func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
@@ -383,33 +385,19 @@ func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App) Han
 			})
 		}
 
-		if payload.LastEdited != "" {
-			lastEdited, err := types.ParseDateTime(payload.LastEdited)
-			if err != nil {
-				return e.JSON(http.StatusBadRequest, map[string]any{
-					"error": "Ungültiger Bearbeitungszeitstempel.",
-				})
-			}
-			if !agent.Updated().Time().Equal(lastEdited.Time()) {
-				return e.JSON(http.StatusConflict, map[string]any{
-					"error": "Die Person wurde inzwischen geändert. Bitte Seite neu laden.",
-				})
-			}
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
 		}
 
 		if err := app.RunInTransaction(func(tx core.App) error {
-			if err := deleteAgentRelations(tx, agent.Id); err != nil {
-				return err
-			}
-			record, err := tx.FindRecordById(dbmodels.AGENTS_TABLE, agent.Id)
-			if err != nil {
-				return err
-			}
-			return tx.Delete(record)
+			return store.DeleteAgent(tx, agent, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt})
 		}); err != nil {
 			app.Logger().Error("Failed to delete agent", "agent_id", agent.Id, "error", err)
-			return e.JSON(http.StatusInternalServerError, map[string]any{
-				"error": "Löschen fehlgeschlagen.",
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Löschen fehlgeschlagen."),
 			})
 		}
 
@@ -425,40 +413,4 @@ func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App) Han
 			"redirect": URL_PERSONEN_REDIRECT,
 		})
 	}
-}
-
-func deleteAgentRelations(tx core.App, agentID string) error {
-	// Delete all REntriesAgents relations
-	entryRelations, err := dbmodels.REntriesAgents_Agent(tx, agentID)
-	if err != nil {
-		return err
-	}
-	entryTable := dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)
-	for _, relation := range entryRelations {
-		record, err := tx.FindRecordById(entryTable, relation.Id)
-		if err != nil {
-			continue
-		}
-		if err := tx.Delete(record); err != nil {
-			return err
-		}
-	}
-
-	// Delete all RContentsAgents relations
-	contentRelations, err := dbmodels.RContentsAgents_Agent(tx, agentID)
-	if err != nil {
-		return err
-	}
-	contentTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
-	for _, relation := range contentRelations {
-		record, err := tx.FindRecordById(contentTable, relation.Id)
-		if err != nil {
-			continue
-		}
-		if err := tx.Delete(record); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

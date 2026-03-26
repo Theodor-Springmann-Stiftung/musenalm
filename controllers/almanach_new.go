@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -31,10 +32,11 @@ type AlmanachNewPage struct {
 
 func (p *AlmanachNewPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ALMANACH_NEW)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
-	rg.POST(URL_ALMANACH_NEW_SAVE, p.POSTSave(engine, app))
+	rg.POST(URL_ALMANACH_NEW_SAVE, p.POSTSave(engine, app, store))
 	return nil
 }
 
@@ -83,7 +85,7 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 	}
 }
 
-func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 
@@ -100,36 +102,24 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 			})
 		}
 
-		if err := payload.Validate(); err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": err.Error(),
-			})
-		}
-
 		var entry *dbmodels.Entry
 		user := req.User()
 		if err := app.RunInTransaction(func(tx core.App) error {
-			collection, err := tx.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
+			editorID := ""
+			if user != nil {
+				editorID = user.Id
+			}
+			newEntry, err := store.CreateEntry(tx, canonicalEntryInput(&payload, editorID))
 			if err != nil {
 				return err
 			}
-			newEntry := dbmodels.NewEntry(core.NewRecord(collection))
-			nextID, err := nextEntryMusenalmID(tx)
-			if err != nil {
+			if err := store.SaveEntryItems(tx, newEntry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			newEntry.SetMusenalmID(nextID)
-
-			if err := applyEntryChanges(tx, newEntry, &payload, user); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, newEntry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs); err != nil {
 				return err
 			}
-			if err := applyItemsChanges(tx, newEntry, &payload); err != nil {
-				return err
-			}
-			if err := applySeriesRelations(tx, newEntry, &payload); err != nil {
-				return err
-			}
-			if err := applyAgentRelations(tx, newEntry, &payload); err != nil {
+			if err := store.SaveEntryAgentRelations(tx, newEntry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs); err != nil {
 				return err
 			}
 
@@ -137,8 +127,8 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App) Hand
 			return nil
 		}); err != nil {
 			app.Logger().Error("Failed to create almanach entry", "error", err)
-			return e.JSON(http.StatusInternalServerError, map[string]any{
-				"error": "Speichern fehlgeschlagen.",
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Speichern fehlgeschlagen."),
 			})
 		}
 
