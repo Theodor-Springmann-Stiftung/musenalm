@@ -80,6 +80,9 @@ type AlmanachEditResult struct {
 	NextByTitle *dbmodels.Entry
 	PrevByTitle *dbmodels.Entry
 	User        *dbmodels.User
+	Series      []*dbmodels.Series
+	Places      []*dbmodels.Place
+	Agents      map[string]*dbmodels.Agent
 	AlmanachResult
 }
 
@@ -106,8 +109,60 @@ func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParam
 		app.Logger().Error("Failed to load entry neighbors", "entry", result.Entry.Id, "error", err)
 	}
 
+	series := []*dbmodels.Series{}
+	if len(result.SeriesRelations) > 0 {
+		sids := make([]any, 0, len(result.SeriesRelations))
+		for _, rel := range result.SeriesRelations {
+			if rel != nil && rel.Series() != "" {
+				sids = append(sids, rel.Series())
+			}
+		}
+		if len(sids) > 0 {
+			series, err = dbmodels.Series_IDs(app, sids)
+			if err != nil {
+				return nil, err
+			}
+			dbmodels.Sort_Series_Title(series)
+		}
+	}
+
+	places := []*dbmodels.Place{}
+	if placeIDs := result.Entry.Places(); len(placeIDs) > 0 {
+		placeIDsAny := make([]any, 0, len(placeIDs))
+		for _, placeID := range placeIDs {
+			placeIDsAny = append(placeIDsAny, placeID)
+		}
+		places, err = dbmodels.Places_IDs(app, placeIDsAny)
+		if err != nil {
+			return nil, err
+		}
+		dbmodels.Sort_Places_Name(places)
+	}
+
+	agents := map[string]*dbmodels.Agent{}
+	if len(result.EntriesAgents) > 0 {
+		aids := make([]any, 0, len(result.EntriesAgents))
+		for _, rel := range result.EntriesAgents {
+			if rel != nil && rel.Agent() != "" {
+				aids = append(aids, rel.Agent())
+			}
+		}
+		if len(aids) > 0 {
+			loadedAgents, err := dbmodels.Agents_IDs(app, aids)
+			if err != nil {
+				return nil, err
+			}
+			for _, agent := range loadedAgents {
+				agents[agent.Id] = agent
+			}
+		}
+	}
+
 	return &AlmanachEditResult{
 		User:           user,
+		Series:         series,
+		Places:         places,
+		Agents:         agents,
 		AlmanachResult: *result,
 		NextByID:       nextByID,
 		PrevByID:       prevByID,

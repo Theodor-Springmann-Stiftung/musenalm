@@ -75,7 +75,7 @@
 					this.syncSidebarActive();
 					if (this.sidebarCollapsed) {
 						this.$nextTick(() => {
-							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
+							document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
 								el.open = true;
 							});
 						});
@@ -87,7 +87,7 @@
 					this.syncSidebarState();
 					if (this.sidebarCollapsed) {
 						this.$nextTick(() => {
-							document.querySelectorAll('#admin-sidebar details').forEach((el) => {
+							document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
 								el.open = true;
 							});
 						});

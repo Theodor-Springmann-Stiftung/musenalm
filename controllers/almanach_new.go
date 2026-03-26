@@ -52,7 +52,10 @@ func (p *AlmanachNewPage) GET(engine *templating.Engine, app core.App) HandleFun
 
 		filters := NewBeitraegeFilterParameters(e)
 		result := &AlmanachEditResult{
-			User: nil,
+			User:   nil,
+			Series: []*dbmodels.Series{},
+			Places: []*dbmodels.Place{},
+			Agents: map[string]*dbmodels.Agent{},
 			AlmanachResult: AlmanachResult{
 				Entry:           entry,
 				SeriesRelations: []*dbmodels.REntriesSeries{},

@@ -238,11 +238,23 @@
 		@apply relative hidden;
 	}
 
+	.admin-sidebar-collapsed-public {
+		@apply relative hidden;
+	}
+
 	.admin-sidebar-collapsed-create-trigger {
 		@apply inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-950;
 	}
 
+	.admin-sidebar-collapsed-public-trigger {
+		@apply inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-950;
+	}
+
 	.admin-sidebar-collapsed-create-trigger.is-open {
+		@apply bg-slate-100 text-slate-950;
+	}
+
+	.admin-sidebar-collapsed-public-trigger.is-open {
 		@apply bg-slate-100 text-slate-950;
 	}
 
@@ -261,11 +273,46 @@
 		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 	}
 
+	.admin-sidebar-collapsed-public-popout,
+	.admin-sidebar-collapsed-public-submenu {
+		@apply flex flex-col gap-1;
+		position: absolute;
+		top: 0;
+		left: calc(100% + 0.025rem);
+		z-index: 100;
+		width: max-content;
+		min-width: 12.5rem;
+		border: 1px solid var(--color-stone-300);
+		border-radius: 0.375rem;
+		background: white;
+		padding: 0.5rem;
+		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+	}
+
+	.admin-sidebar-collapsed-public-submenu {
+		left: calc(100% + 12.8rem);
+		z-index: 101;
+		min-width: 11rem;
+	}
+
 	.admin-sidebar-collapsed-create-link {
 		@apply no-underline rounded-sm px-2.5 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-950;
 	}
 
+	.admin-sidebar-collapsed-public-link {
+		@apply no-underline rounded-sm px-2.5 py-1.5 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-950;
+	}
+
+	.admin-sidebar-collapsed-public-subtrigger {
+		@apply inline-flex items-center justify-between gap-3;
+	}
+
 	.admin-sidebar-collapsed-create-link.active {
+		@apply bg-slate-100 font-semibold text-slate-950;
+	}
+
+	.admin-sidebar-collapsed-public-link.active,
+	.admin-sidebar-collapsed-public-subtrigger.active {
 		@apply bg-slate-100 font-semibold text-slate-950;
 	}
 
@@ -305,8 +352,28 @@
 		@apply mt-0.5 flex flex-col gap-0.5;
 	}
 
+	.admin-sidebar-group {
+		@apply mt-1;
+	}
+
+	.admin-sidebar-group-title {
+		@apply px-4 pt-2 pb-1 text-[0.82rem] font-sans font-medium text-stone-500;
+	}
+
+	.admin-sidebar-group-title-prominent {
+		@apply text-[0.82rem] font-serif font-bold text-stone-500;
+	}
+
+	.admin-sidebar-group-links {
+		@apply flex flex-col gap-0.5;
+	}
+
 	.admin-sidebar-link {
 		@apply no-underline block border-l-[3px] border-l-transparent px-4 py-1.5 font-sans text-[0.92rem] font-medium text-slate-700 transition-all duration-100;
+	}
+
+	.admin-sidebar-link-nested {
+		@apply pl-7;
 	}
 
 	.admin-sidebar-link-label {
@@ -339,11 +406,11 @@
 	}
 
 	.admin-sidebar-account-name {
-		@apply mt-1 text-[1.18rem] font-semibold text-slate-900;
+		@apply mt-1 text-[0.96rem] font-semibold text-slate-900;
 	}
 
 	.admin-sidebar-account-role {
-		@apply mt-0.5 font-serif text-[0.98rem] italic text-stone-600;
+		@apply mt-0.5 font-serif text-[0.85rem] italic text-stone-600;
 	}
 
 	.admin-sidebar-account-links {
@@ -410,7 +477,15 @@
 		@apply mx-2 mt-2 mb-2 flex justify-center;
 	}
 
+	.admin-layout-sidebar-collapsed .admin-sidebar-collapsed-public {
+		@apply mx-2 mt-2 mb-2 flex justify-center;
+	}
+
 	.admin-layout-sidebar-collapsed .admin-sidebar-create-section {
+		@apply hidden;
+	}
+
+	.admin-layout-sidebar-collapsed .admin-sidebar-public-section {
 		@apply hidden;
 	}
 

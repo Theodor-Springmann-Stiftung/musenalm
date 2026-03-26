@@ -27,6 +27,7 @@
 {{- $isUserInviteActive := HasPrefix $path "/admin/user/management/access" -}}
 {{- $isUserManagementActive := and (HasPrefix $path "/admin/user/management") (not $isUserInviteActive) -}}
 {{- $isProfileActive := and $profilePathPrefix (HasPrefix $path $profilePathPrefix) -}}
+{{- $isPublicSectionActive := false -}}
 {{- $isCreateSectionActive := or $isNewBandActive $isNewSeriesActive $isNewPlaceActive $isNewPersonActive -}}
 {{- $isListsSectionActive := or $isBandsActive $isSeriesActive $isPlacesActive $isPersonsActive $isAbbreviationsActive $isPagesActive -}}
 {{- $isAdminSectionActive := or $isSettingsActive $isExportsActive $isUserInviteActive $isUserManagementActive -}}
@@ -53,6 +54,40 @@
 		</button>
 	</div>
 
+	<div class="admin-sidebar-collapsed-public" x-data="{ open: false, submenu: '' }" @click.outside="open = false; submenu = ''">
+		<button
+			type="button"
+			class="admin-sidebar-collapsed-public-trigger"
+			:class="{ 'is-open': open }"
+			title="Öffentliche Seiten"
+			@click="if (open) { open = false; submenu = '' } else { open = true }">
+			<i class="ri-global-line" aria-hidden="true"></i>
+		</button>
+		<div x-cloak x-show="open" class="admin-sidebar-collapsed-public-popout">
+			<a href="/reihen/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Reihen</a>
+			<a href="/personen/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Personen</a>
+			<a href="/suche/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Suche</a>
+			<button
+				type="button"
+				class="admin-sidebar-collapsed-public-link admin-sidebar-collapsed-public-subtrigger"
+				:class="{ 'active': submenu === 'redaktion' }"
+				@click.stop="submenu = submenu === 'redaktion' ? '' : 'redaktion'"
+				@mouseenter="submenu = 'redaktion'"
+				@focus="submenu = 'redaktion'">
+				<span>Redaktion</span>
+				<i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+			</button>
+		</div>
+		<div x-cloak x-show="open && submenu === 'redaktion'" class="admin-sidebar-collapsed-public-submenu">
+			<a href="/redaktion/einleitung/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Einleitung</a>
+			<a href="/redaktion/benutzerhinweise/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Hinweise</a>
+			<a href="/redaktion/literatur/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Literatur</a>
+			<a href="/redaktion/lesekabinett/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Lesekabinett</a>
+			<a href="/redaktion/danksagungen/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Danksagungen</a>
+			<a href="/redaktion/kontakt/" hx-boost="false" class="admin-sidebar-collapsed-public-link">Kontakt</a>
+		</div>
+	</div>
+
 	<div class="admin-sidebar-collapsed-create" x-data="{ open: false }" @click.outside="open = false">
 		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" title="Neu" @click="open = !open">
 			<i class="ri-add-circle-line" aria-hidden="true"></i>
@@ -66,6 +101,74 @@
 	</div>
 
 	<nav class="admin-sidebar-nav" aria-label="Administration Navigation">
+		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-public-section" {{ if $isPublicSectionActive }}open data-section-current="true"{{ end }}>
+			<summary class="admin-sidebar-section-title">
+				<span>&Ouml;ffentliche Seiten</span>
+				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
+			</summary>
+			<div class="admin-sidebar-sub">
+				<a href="/reihen/" hx-boost="false" title="Reihen" class="admin-sidebar-link">
+					<span class="admin-sidebar-link-label">
+						<i class="ri-book-shelf-line admin-sidebar-link-icon" aria-hidden="true"></i>
+						<span>Reihen</span>
+					</span>
+				</a>
+				<a href="/personen/" hx-boost="false" title="Personen" class="admin-sidebar-link">
+					<span class="admin-sidebar-link-label">
+						<i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i>
+						<span>Personen</span>
+					</span>
+				</a>
+				<a href="/suche/" hx-boost="false" title="Suche" class="admin-sidebar-link">
+					<span class="admin-sidebar-link-label">
+						<i class="ri-search-line admin-sidebar-link-icon" aria-hidden="true"></i>
+						<span>Suche</span>
+					</span>
+				</a>
+				<div class="admin-sidebar-group">
+					<div class="admin-sidebar-group-title admin-sidebar-group-title-prominent">Redaktion</div>
+					<div class="admin-sidebar-group-links">
+						<a href="/redaktion/einleitung/" hx-boost="false" title="Einleitung" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-quill-pen-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Einleitung</span>
+							</span>
+						</a>
+						<a href="/redaktion/benutzerhinweise/" hx-boost="false" title="Hinweise" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-information-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Hinweise</span>
+							</span>
+						</a>
+						<a href="/redaktion/literatur/" hx-boost="false" title="Literatur" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-book-open-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Literatur</span>
+							</span>
+						</a>
+						<a href="/redaktion/lesekabinett/" hx-boost="false" title="Lesekabinett" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-archive-drawer-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Lesekabinett</span>
+							</span>
+						</a>
+						<a href="/redaktion/danksagungen/" hx-boost="false" title="Danksagungen" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-heart-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Danksagungen</span>
+							</span>
+						</a>
+						<a href="/redaktion/kontakt/" hx-boost="false" title="Kontakt" class="admin-sidebar-link admin-sidebar-link-nested">
+							<span class="admin-sidebar-link-label">
+								<i class="ri-mail-line admin-sidebar-link-icon" aria-hidden="true"></i>
+								<span>Kontakt</span>
+							</span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</details>
+
 		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-create-section" {{ if $isCreateSectionActive }}open data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
 				<span>Neu</span>
