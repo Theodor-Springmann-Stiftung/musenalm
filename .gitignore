@@ -5,7 +5,8 @@ _tmp/
 .gomodcache/
 import/Almanach-Bilder/
 Almanach-Bilder/
-musenalm
+musenalm-data/
+.playwright-cli/
 node_modules
 tmp/
 bin/

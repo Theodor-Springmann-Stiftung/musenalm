@@ -2,9 +2,9 @@ package xmlmodels
 
 const (
 	BESCHREIBUNGEN_FN = "beschreibungen.txt"
-	STATIC_IMG_PATH   = "import/Static-Bilder/"
-	DATA_PATH         = "import/data/"
-	IMG_PATH          = "import/Almanach-Bilder/"
+	STATIC_IMG_PATH   = "musenalm-data/Static-Bilder/"
+	DATA_PATH         = "musenalm-data/data/"
+	IMG_PATH          = "musenalm-data/Almanach-Bilder/"
 
 	GM_BIBLIO_FN                = "GM-BIBLIO.xml"
 	AKTEURE_FN                  = "Akteure.xml"

@@ -27,7 +27,7 @@ const (
 	REIHEN_TITLE       = "Reihen"
 	REIHEN_DESCRIPTION = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Reihenverzeichnis."
 	REIHEN_TEXT        = "<p>Ziel der Musenalm ist die&nbsp;bibliographische Erfassung eines Jahrhunderts deutscher Almanache und Taschenb&uuml;cher;<strong>&nbsp;</strong>das Projekt ist im Aufbau und wird kontinuierlich weitergef&uuml;hrt.</p><p>Verzeichnet werden:</p><ul><li><strong>Reihen </strong>und<strong> B&auml;nde</strong> bekannter Almanache und einzelne Druckauflagen mit ausf&uuml;hrlichen bibliographischen Angaben und kurzer systematisierter&nbsp;<strong>Darstellung ihres strukturellen Aufbaus </strong>&nbsp;(Paginierung, Anordnung der Druckteile, Graphiken und Beilagen),<strong><br></strong></li><li><strong>Beitr&auml;ge literarisch oder musisch ausgerichteter Almanache&nbsp;</strong>einzeln, nach Autor, &Uuml;berschrift und Incipit,<strong> </strong>inklusive<strong> Digitalisate </strong>graphischer und musischer Beitr&auml;ge,</li><li>Beitr&auml;ge vorwiegend&nbsp;<strong>nicht literarischer Almanache</strong>&nbsp;in der Regel durch Wiedergabe des&nbsp;<strong>Inhaltsverzeichnisses.</strong></li></ul><p>Die Bibliographie ist zug&auml;nglich mit umfangreichen Suchfunktionen &uuml;ber:</p><ul><li><strong>Reihentitel der Almanache,</strong></li><li><strong>Abbildungen (Graphiken und Musikbeilagen),</strong></li><li>Personennamen von Herausgebern und Beitr&auml;gern einerseits &uuml;ber normierte<strong> Realnamen </strong>und andererseits &uuml;ber die im Druck erscheinenden Schreibweisen der Personen (auch Pseudonyme)<strong> </strong>als<strong> Autornamen,</strong></li><li><strong>Einzeltitel und Incipit </strong>(w&ouml;rtliche Textanf&auml;nge) von Beitr&auml;gen.</li></ul><p>Die Musenalm ist ein Projekt der Theodor Springmann Stiftung in Heidelberg.</p>"
-	REIHEN_IMAGE_PATH  = "./import/Static-Bilder/musen.png"
+	REIHEN_IMAGE_PATH  = "./musenalm-data/Static-Bilder/musen.png"
 
 	DANKSAGUNGEN_TEXT = `<div>
 <p>Der bibliographische Auftrieb auf die Musenalm bedarf der Unterst&uuml;tzung durch ihre Nutzer und insbesondere durch die Besitzer seltener und wenig bekannter, kaum auffindbarer Almanache und Taschenb&uuml;cher des gew&auml;hlten Zeitraumes von etwa 1750 bis 1870. Sie helfen uns durch Hinweise, Leihgaben auf kurze Frist, sowie durch Benennung von Fehlern und Unstimmigkeiten, die uns unterlaufen m&ouml;gen, sich aber auch aus Eigen- und Abarten untersuchter Exemplare herleiten k&ouml;nnen.</p>
@@ -658,7 +658,7 @@ const (
 	KABINETT_DESCRIPTION    = "Musenalm: Verzeichnis deutschsprachiger Almanache des 18. und 19. Jahrhunderts. Historische Texte zum Almanachwesen."
 	LESEKABINETT_FILES_PATH = "./views/public/Lesekabinett"
 
-	ABKUERZUNGEN_PATH = "./import/data/abkuerzungen.txt"
+	ABKUERZUNGEN_PATH = "./musenalm-data/data/abkuerzungen.txt"
 )
 
 type lesekabinettFileSeed struct {

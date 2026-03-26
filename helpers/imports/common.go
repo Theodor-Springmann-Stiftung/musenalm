@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const importDirName = "import"
+const importDirName = "musenalm-data"
 
 var importNamePattern = regexp.MustCompile(`^(\d{4})-(\d{2})(?:-(\d{2}))?-MUSENALM-(DATA|FILES)`)
 
