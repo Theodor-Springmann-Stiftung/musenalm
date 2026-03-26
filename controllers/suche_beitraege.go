@@ -189,7 +189,7 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 	}
 
 	resultentryids := []any{}
-	for entryid, _ := range uniqueresultentryids {
+	for entryid := range uniqueresultentryids {
 		resultentryids = append(resultentryids, entryid)
 	}
 
@@ -215,7 +215,7 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 	}
 
 	aids := []any{}
-	for aid, _ := range uniqueaids {
+	for aid := range uniqueaids {
 		aids = append(aids, aid)
 	}
 

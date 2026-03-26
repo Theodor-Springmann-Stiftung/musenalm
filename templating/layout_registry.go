@@ -58,7 +58,7 @@ func (r *LayoutRegistry) load() error {
 
 	entries, err := fs.ReadDir(r.layoutsFS, ".")
 	if err != nil {
-		return NewError(FileAccessError, ".")
+		return NewError(ErrFileAccess, ".")
 	}
 
 	for _, e := range entries {
@@ -88,7 +88,7 @@ func (r *LayoutRegistry) Layout(name string, funcmap *template.FuncMap) (*templa
 	r.Load()
 	context, ok := r.layouts[name]
 	if !ok {
-		return nil, NewError(NoTemplateError, name)
+		return nil, NewError(ErrNoTemplate, name)
 	}
 
 	t, err := context.Template(r.layoutsFS, funcmap)

@@ -88,7 +88,7 @@ func (r *TemplateRegistry) Add(path string, t *template.Template, funcmap *templ
 		r.Load()
 		tc, ok := r.templates[path]
 		if !ok {
-			return NewError(NoTemplateError, path)
+			return NewError(ErrNoTemplate, path)
 		}
 
 		template, err := tc.Template(r.routesFS, funcmap)

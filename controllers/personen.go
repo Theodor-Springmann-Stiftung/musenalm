@@ -120,22 +120,20 @@ func (p *PersonenPage) FilterRequest(app core.App, engine *templating.Engine, e 
 func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e *core.RequestEvent) error {
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	data := map[string]interface{}{}
-	agents := []*dbmodels.Agent{}
 	altagents := []*dbmodels.Agent{}
 
-	a, err := dbmodels.FTS5SearchAgents(app, search)
+	agents, err := dbmodels.FTS5SearchAgents(app, search)
 	if err != nil {
 		return engine.Response404(e, err, data)
 	}
-	agents = a
 
 	if len(agents) == 0 {
 		// INFO: Fallback to regular search, if FTS5 fails
-		a, aa, err := dbmodels.BasicSearchAgents(app, search)
+		var aa []*dbmodels.Agent
+		agents, aa, err = dbmodels.BasicSearchAgents(app, search)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		agents = a
 		altagents = aa
 	} else {
 		data["FTS"] = true

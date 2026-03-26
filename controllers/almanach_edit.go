@@ -385,13 +385,13 @@ type almanachNewRelationPayload struct {
 func (payload *almanachEditPayload) Validate() error {
 	payload.Entry.Status = strings.TrimSpace(payload.Entry.Status)
 	if strings.TrimSpace(payload.Entry.PreferredTitle) == "" {
-		return fmt.Errorf("Kurztitel ist erforderlich.")
+		return fmt.Errorf("kurztitel ist erforderlich")
 	}
 	if payload.Entry.Year == nil {
-		return fmt.Errorf("Jahr muss angegeben werden.")
+		return fmt.Errorf("jahr muss angegeben werden")
 	}
 	if payload.Entry.Status == "" || !slices.Contains(dbmodels.EDITORSTATE_VALUES, payload.Entry.Status) {
-		return fmt.Errorf("Ungültiger Status.")
+		return fmt.Errorf("ungültiger status")
 	}
 	for _, relation := range payload.SeriesRelations {
 		if err := validateRelationType(relation.Type, dbmodels.SERIES_RELATIONS); err != nil {
@@ -426,23 +426,23 @@ func (payload *almanachEditPayload) Validate() error {
 		}
 	}
 	if preferredCount == 0 {
-		return fmt.Errorf("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.")
+		return fmt.Errorf("mindestens ein bevorzugter reihentitel muss verknüpft sein")
 	}
 	if preferredCount > 1 {
-		return fmt.Errorf("Es darf nur ein bevorzugter Reihentitel gesetzt sein.")
+		return fmt.Errorf("es darf nur ein bevorzugter reihentitel gesetzt sein")
 	}
 
 	// Check for duplicate series relations
 	seriesTargetIDs := make(map[string]bool)
 	for _, relation := range payload.SeriesRelations {
 		if seriesTargetIDs[relation.TargetID] {
-			return fmt.Errorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
+			return fmt.Errorf("doppelte reihenverknüpfungen sind nicht erlaubt")
 		}
 		seriesTargetIDs[relation.TargetID] = true
 	}
 	for _, relation := range payload.NewSeriesRelations {
 		if seriesTargetIDs[relation.TargetID] {
-			return fmt.Errorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
+			return fmt.Errorf("doppelte reihenverknüpfungen sind nicht erlaubt")
 		}
 		seriesTargetIDs[relation.TargetID] = true
 	}
@@ -453,10 +453,10 @@ func (payload *almanachEditPayload) Validate() error {
 func validateRelationType(value string, allowed []string) error {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
+		return fmt.Errorf("ungültiger beziehungstyp")
 	}
 	if !slices.Contains(allowed, value) {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
+		return fmt.Errorf("ungültiger beziehungstyp")
 	}
 	return nil
 }
@@ -528,7 +528,7 @@ func applyItemsChanges(tx core.App, entry *dbmodels.Entry, payload *almanachEdit
 			}
 			item = dbmodels.NewItem(record)
 			if item.Entry() != entry.Id {
-				return fmt.Errorf("Exemplar %s gehört zu einem anderen Eintrag.", itemID)
+				return fmt.Errorf("exemplar %s gehört zu einem anderen eintrag", itemID)
 			}
 		} else {
 			collection, err := getItemsCollection()
@@ -598,7 +598,7 @@ func applySeriesRelations(tx core.App, entry *dbmodels.Entry, payload *almanachE
 		}
 		proxy := dbmodels.NewREntriesSeries(record)
 		if proxy.Entry() != entry.Id {
-			return fmt.Errorf("Relation %s gehört zu einem anderen Eintrag.", relationID)
+			return fmt.Errorf("relation %s gehört zu einem anderen eintrag", relationID)
 		}
 		proxy.SetEntry(entry.Id)
 		proxy.SetSeries(strings.TrimSpace(relation.TargetID))
@@ -675,7 +675,7 @@ func applyAgentRelations(tx core.App, entry *dbmodels.Entry, payload *almanachEd
 		}
 		proxy := dbmodels.NewREntriesAgents(record)
 		if proxy.Entry() != entry.Id {
-			return fmt.Errorf("Relation %s gehört zu einem anderen Eintrag.", relationID)
+			return fmt.Errorf("relation %s gehört zu einem anderen eintrag", relationID)
 		}
 		proxy.SetEntry(entry.Id)
 		proxy.SetAgent(strings.TrimSpace(relation.TargetID))

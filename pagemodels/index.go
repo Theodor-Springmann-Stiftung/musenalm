@@ -1,67 +1,6 @@
 package pagemodels
 
-import (
-	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/filesystem"
-)
-
-type IndexBilder struct {
-	core.BaseRecordProxy
-}
-
-func (b *IndexBilder) TableName() string {
-	return GeneratePageTableName(P_INDEX_NAME, T_INDEX_BILDER)
-}
-
-func NewIndexBilder(record *core.Record) *IndexBilder {
-	i := &IndexBilder{}
-	i.SetProxyRecord(record)
-	return i
-}
-
-func (b *IndexBilder) Titel() string {
-	return b.GetString(F_TITLE)
-}
-
-func (b *IndexBilder) SetTitel(titel string) {
-	b.Set(F_TITLE, titel)
-}
-
-func (b *IndexBilder) Beschreibung() string {
-	return b.GetString(F_DESCRIPTION)
-}
-
-func (b *IndexBilder) SetBeschreibung(beschreibung string) {
-	b.Set(F_DESCRIPTION, beschreibung)
-}
-
-func (b *IndexBilder) Bild() string {
-	return b.GetString(F_IMAGE)
-}
-
-func (b *IndexBilder) SetBild(bild *filesystem.File) {
-	b.Set(F_IMAGE, bild)
-}
-
-func (r *IndexBilder) BildPath() string {
-	img := r.Bild()
-	ret := "/api/files/" + r.TableName() + "/" + r.Id + "/" + img
-	return ret
-}
-
-func (b *IndexBilder) Vorschau() string {
-	return b.GetString(F_PREVIEW)
-}
-
-func (b *IndexBilder) SetVorschau(vorschau *filesystem.File) {
-	b.Set(F_PREVIEW, vorschau)
-}
-
-func (r *IndexBilder) VorschauPath() string {
-	img := r.Vorschau()
-	ret := "/api/files/" + r.TableName() + "/" + r.Id + "/" + img
-	return ret
-}
+import "github.com/pocketbase/pocketbase/core"
 
 type IndexTexte struct {
 	core.BaseRecordProxy
@@ -69,12 +8,6 @@ type IndexTexte struct {
 
 func (t *IndexTexte) TableName() string {
 	return GeneratePageTableName(P_INDEX_NAME)
-}
-
-func NewIndexTexte(record *core.Record) *IndexTexte {
-	i := &IndexTexte{}
-	i.SetProxyRecord(record)
-	return i
 }
 
 func (t *IndexTexte) Title() string {

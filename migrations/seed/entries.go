@@ -122,8 +122,6 @@ func handlePreferredTitleEntry(
 	jahr := strconv.Itoa(band.Jahr)
 	if band.Jahr == 0 {
 		jahr = "[o. J.]"
-	} else {
-		jahr = jahr
 	}
 
 	bevti := slices.IndexFunc(rels, func(r xmlmodels.Relation_Band_Reihe) bool { return r.Relation == "1" })

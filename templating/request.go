@@ -46,10 +46,6 @@ func (r *Request) User() *dbmodels.FixedUser {
 	return nil
 }
 
-func (r *Request) SetUser(user *dbmodels.FixedUser) {
-	r.Set("user", user)
-}
-
 func (r *Request) Session() *dbmodels.FixedSession {
 	if session := r.Get("session"); session != nil {
 		s, _ := session.(*dbmodels.FixedSession)
@@ -69,20 +65,6 @@ func (r *Request) AccessToken() *dbmodels.FixedAccessToken {
 func (r *Request) IsAdmin() bool {
 	if user := r.User(); user != nil {
 		return user.Role == "Admin"
-	}
-	return false
-}
-
-func (r *Request) IsAuthenticated() bool {
-	if user := r.User(); user != nil {
-		return true
-	}
-	return false
-}
-
-func (r *Request) IsEditor() bool {
-	if user := r.User(); user != nil {
-		return user.Role == "Editor"
 	}
 	return false
 }

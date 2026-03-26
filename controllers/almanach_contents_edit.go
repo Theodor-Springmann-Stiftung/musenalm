@@ -464,7 +464,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				}
 				content := dbmodels.NewContent(record)
 				if content.Entry() != entry.Id {
-					return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
+					return fmt.Errorf("beitrag gehört zu einem anderen band")
 				}
 				deleteSet := map[string]struct{}{}
 				for _, scan := range deleteScans {
@@ -678,7 +678,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			}
 			content := dbmodels.NewContent(record)
 			if content.Entry() != entry.Id {
-				return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
+				return fmt.Errorf("beitrag gehört zu einem anderen band")
 			}
 
 			relationsTable := dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)
@@ -952,13 +952,6 @@ type contentAgentRelationsPayload struct {
 	DeletedIDs   []string
 }
 
-type contentAgentRender struct {
-	Id        string
-	Agent     string
-	Type      string
-	Uncertain bool
-}
-
 func valuesForKey(form url.Values, key string) []string {
 	if values, ok := form[key]; ok {
 		return values
@@ -1061,10 +1054,10 @@ func validateContentAgentRelations(payload contentAgentRelationsPayload) error {
 func validateRelationTypeValue(value string, allowed []string) error {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
+		return fmt.Errorf("ungültiger beziehungstyp")
 	}
 	if !slices.Contains(allowed, value) {
-		return fmt.Errorf("Ungültiger Beziehungstyp.")
+		return fmt.Errorf("ungültiger beziehungstyp")
 	}
 	return nil
 }
@@ -1076,7 +1069,7 @@ func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields m
 		if content.Numbering() > 0 {
 			label = strconv.FormatFloat(content.Numbering(), 'f', -1, 64)
 		}
-		return fmt.Errorf("Kurztitel ist erforderlich (Beitrag %s).", label)
+		return fmt.Errorf("kurztitel ist erforderlich (beitrag %s)", label)
 	}
 
 	status := strings.TrimSpace(firstValue(fields["edit_state"]))
@@ -1084,12 +1077,12 @@ func applyContentForm(content *dbmodels.Content, entry *dbmodels.Entry, fields m
 		status = content.EditState()
 	}
 	if !slices.Contains(dbmodels.EDITORSTATE_VALUES, status) {
-		return fmt.Errorf("Ungültiger Status (Beitrag %s).", content.Id)
+		return fmt.Errorf("ungültiger status (beitrag %s)", content.Id)
 	}
 
 	musenalmTypes := sanitizeContentStrings(fields["musenalm_type"])
 	if len(musenalmTypes) == 0 {
-		return fmt.Errorf("Musenalm-Typ ist erforderlich (Beitrag %s).", content.Id)
+		return fmt.Errorf("musenalm-typ ist erforderlich (beitrag %s)", content.Id)
 	}
 
 	if numbering <= 0 {
@@ -1170,7 +1163,7 @@ func applyContentAgentRelations(tx core.App, content *dbmodels.Content, payload 
 		}
 		proxy := dbmodels.NewRContentsAgents(record)
 		if proxy.Content() != content.Id {
-			return fmt.Errorf("Relation %s gehört zu einem anderen Beitrag.", relationID)
+			return fmt.Errorf("relation %s gehört zu einem anderen beitrag", relationID)
 		}
 		proxy.SetContent(content.Id)
 		proxy.SetAgent(strings.TrimSpace(relation.TargetID))
@@ -1219,56 +1212,6 @@ func applyContentAgentRelations(tx core.App, content *dbmodels.Content, payload 
 	}
 
 	return nil
-}
-
-func applyContentFormDraft(content *dbmodels.Content, entry *dbmodels.Entry, fields map[string][]string, numbering float64) {
-	if value, ok := optionalFieldValue(fields, "variant_title"); ok {
-		content.SetVariantTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "parallel_title"); ok {
-		content.SetParallelTitle(value)
-	}
-	if value, ok := optionalFieldValue(fields, "title_statement"); ok {
-		content.SetTitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "subtitle_statement"); ok {
-		content.SetSubtitleStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "incipit_statement"); ok {
-		content.SetIncipitStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "responsibility_statement"); ok {
-		content.SetResponsibilityStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "place_statement"); ok {
-		content.SetPlaceStmt(value)
-	}
-	if value, ok := optionalFieldValue(fields, "edit_comment"); ok {
-		content.SetComment(value)
-	}
-	if value, ok := optionalFieldValue(fields, "annotation"); ok {
-		content.SetAnnotation(value)
-	}
-
-	content.SetExtent(strings.TrimSpace(firstValue(fields["extent"])))
-	content.SetLanguage(sanitizeContentStrings(fields["language"]))
-	if values, ok := fields["content_type"]; ok {
-		content.SetContentType(sanitizeContentStrings(values))
-	}
-	content.SetMusenalmType(sanitizeContentStrings(fields["musenalm_type"]))
-	content.SetMusenalmPagination(strings.TrimSpace(firstValue(fields["musenalm_pagination"])))
-	content.SetEntry(entry.Id)
-	content.SetYear(entry.Year())
-
-	if status := strings.TrimSpace(firstValue(fields["edit_state"])); status != "" {
-		content.SetEditState(status)
-	}
-	if numbering > 0 {
-		content.SetNumbering(numbering)
-	}
-	if preferredTitle := buildContentPreferredTitle(content, fields); preferredTitle != "" {
-		content.SetPreferredTitle(preferredTitle)
-	}
 }
 
 func sanitizeContentStrings(values []string) []string {

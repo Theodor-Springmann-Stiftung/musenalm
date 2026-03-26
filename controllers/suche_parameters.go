@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,7 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-var ErrNoQuery = fmt.Errorf("No query")
+var ErrNoQuery = errors.New("no query")
 
 const (
 	SEARCH_PARAM_ALM_NR      = "alm"
@@ -163,12 +164,8 @@ func (p SearchParameters) AllSearchTermsBeitraege() string {
 func (p SearchParameters) includedParams(q string) []string {
 	res := []string{}
 	que := dbmodels.NormalizeQuery(q)
-	for _, qq := range que.Include {
-		res = append(res, qq)
-	}
-	for _, qq := range que.UnsafeI {
-		res = append(res, qq)
-	}
+	res = append(res, que.Include...)
+	res = append(res, que.UnsafeI...)
 	return res
 }
 

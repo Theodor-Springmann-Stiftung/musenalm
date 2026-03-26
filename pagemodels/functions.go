@@ -36,36 +36,6 @@ func TextField(name string) *core.TextField {
 	return &core.TextField{Name: name, Required: false, Presentable: false}
 }
 
-func ImageField(name string, multiselect bool) *core.FileField {
-	maxSelect := 1
-	if multiselect {
-		maxSelect = 999
-	}
-	return &core.FileField{
-		Name:      name,
-		Required:  false,
-		MaxSize:   100 * 1024 * 1024,
-		MaxSelect: maxSelect,
-		MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
-		Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
-	}
-}
-
-func RequiredImageField(name string, multiselect bool) *core.FileField {
-	maxSelect := 1
-	if multiselect {
-		maxSelect = 999
-	}
-	return &core.FileField{
-		Name:      name,
-		Required:  true,
-		MaxSize:   100 * 1024 * 1024,
-		MaxSelect: maxSelect,
-		MimeTypes: dbmodels.MUSENALM_MIME_TYPES,
-		Thumbs:    []string{"0x300", "0x500", "0x1000", "300x0", "500x0", "1000x0"},
-	}
-}
-
 func CreatedUpdatedFields() core.FieldsList {
 	return core.NewFieldsList(
 		&core.AutodateField{Name: dbmodels.CREATED_FIELD, OnCreate: true},

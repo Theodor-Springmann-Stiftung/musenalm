@@ -16,37 +16,3 @@ func Assert(err error, msg ...string) {
 	}
 	os.Exit(1)
 }
-
-func AssertNonNil(obj interface{}, msg ...string) {
-	if obj != nil {
-		return
-	}
-
-	for msg := range msg {
-		fmt.Println(msg)
-	}
-	os.Exit(1)
-}
-
-func AssertNil(obj interface{}, msg ...string) {
-	if obj == nil {
-		return
-	}
-
-	for msg := range msg {
-		fmt.Println(msg)
-	}
-	os.Exit(1)
-}
-
-func AssertStr(str string, msg ...string) {
-	if str != "" {
-		return
-	}
-
-	fmt.Println(str)
-	for msg := range msg {
-		fmt.Println(msg)
-	}
-	os.Exit(1)
-}

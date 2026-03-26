@@ -64,21 +64,6 @@ func upsertHTML(app core.App, key, value string) error {
 	return app.Save(record)
 }
 
-func upsertData(app core.App, key string, value any) error {
-	collection, err := app.FindCollectionByNameOrId(dbmodels.DATA_TABLE)
-	if err != nil {
-		return err
-	}
-
-	record, _ := app.FindFirstRecordByData(collection.Id, dbmodels.KEY_FIELD, key)
-	if record == nil {
-		record = core.NewRecord(collection)
-		record.Set(dbmodels.KEY_FIELD, key)
-	}
-	record.Set(dbmodels.VALUE_FIELD, value)
-	return app.Save(record)
-}
-
 func deleteByKey(app core.App, tableName, key string) error {
 	collection, err := app.FindCollectionByNameOrId(tableName)
 	if err != nil {

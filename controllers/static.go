@@ -47,18 +47,3 @@ func RegisterTextPage(url, name string, layout ...string) {
 		URL:      url,
 	})
 }
-
-func RegisterDefaultPage(url string, name string, layout ...string) {
-	layoutName := templating.DEFAULT_LAYOUT_NAME
-	if len(layout) > 0 {
-		layoutName = layout[0]
-	}
-
-	app.Register(&pagemodels.DefaultPage[*pagemodels.DefaultPageRecord]{
-		Name:     name,
-		Layout:   layoutName,
-		Template: url,
-		URL:      url,
-		Record:   &pagemodels.DefaultPageRecord{},
-	})
-}

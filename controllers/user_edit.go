@@ -57,7 +57,7 @@ func (p *UserEditPage) getData(app core.App, data map[string]any, e *core.Reques
 	uid := e.Request.PathValue(UID_PATH_VALUE)
 	user, err := dbmodels.Users_ID(app, uid)
 	if err != nil {
-		return fmt.Errorf("Konnte Nutzer nicht finden: %w", err)
+		return fmt.Errorf("konnte nutzer nicht finden: %w", err)
 	}
 
 	fu := user.Fixed()

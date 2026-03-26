@@ -11,26 +11,6 @@ const (
 	DEFAULT_PAGESIZE_BAENDE = 40
 )
 
-type BaendeFilterParameters struct {
-	Agent string
-	Year  string
-	Place string
-	State string
-}
-
-func NewBaendeFilterParameters(ev *core.RequestEvent) BaendeFilterParameters {
-	agent := ev.Request.URL.Query().Get("agent")
-	year := ev.Request.URL.Query().Get("year")
-	place := ev.Request.URL.Query().Get("place")
-	state := ev.Request.URL.Query().Get("state")
-	return BaendeFilterParameters{
-		Agent: agent,
-		Year:  year,
-		Place: place,
-		State: state,
-	}
-}
-
 type SearchResultBaende struct {
 	Queries []dbmodels.FTS5QueryRequest
 
@@ -159,7 +139,7 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 	}
 
 	hits := []string{}
-	pages := []int{}
+	var pages []int
 	if params.Sort == "series" {
 		dbmodels.Sort_Series_Title(series)
 		for _, s := range series {

@@ -97,6 +97,7 @@ func (bc *BaendeCache) GetUsers() interface{} {
 func (bc *BaendeCache) GetContentsCount() interface{} {
 	return bc.ContentsCount
 }
+
 const (
 	TEST_SUPERUSER_MAIL = "demo@example.com"
 	TEST_SUPERUSER_PASS = "password"
@@ -152,7 +153,7 @@ func (app *App) setupTestuser() BootFunc {
 
 		superusersCol, err := e.App.FindCachedCollectionByNameOrId(core.CollectionNameSuperusers)
 		if err != nil {
-			return fmt.Errorf("Failed to fetch %q collection: %w.", core.CollectionNameSuperusers, err)
+			return fmt.Errorf("failed to fetch %q collection: %w", core.CollectionNameSuperusers, err)
 		}
 
 		superuser, err := e.App.FindAuthRecordByEmail(superusersCol, TEST_SUPERUSER_MAIL)
@@ -164,7 +165,7 @@ func (app *App) setupTestuser() BootFunc {
 				NewQuery("DELETE FROM " + superusersCol.Name + " WHERE id = '" + superuser.Id + "'").
 				Execute()
 			if err != nil {
-				return fmt.Errorf("Failed to delete superuser account: %w.", err)
+				return fmt.Errorf("failed to delete superuser account: %w", err)
 			}
 
 			return nil
@@ -176,7 +177,7 @@ func (app *App) setupTestuser() BootFunc {
 		superuser.SetPassword(TEST_SUPERUSER_PASS)
 
 		if err := e.App.Save(superuser); err != nil {
-			return fmt.Errorf("Failed to upsert superuser account: %w.", err)
+			return fmt.Errorf("failed to upsert superuser account: %w", err)
 		}
 
 		return e.Next()
@@ -431,7 +432,7 @@ func (app *App) ensureDataCache() {
 
 	data, err := dbmodels.Data_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("Failed to fetch data cache: %v", err)
+		app.PB.Logger().Error("failed to fetch data cache", "error", err)
 		return
 	}
 
@@ -461,7 +462,7 @@ func (app *App) ensureHtmlCache() {
 
 	html, err := dbmodels.Html_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("Failed to fetch html cache: %v", err)
+		app.PB.Logger().Error("failed to fetch html cache", "error", err)
 		return
 	}
 
@@ -483,7 +484,7 @@ func (app *App) ensureHtmlCache() {
 
 func (app *App) ensurePagesCache() {
 	app.pagesMutex.RLock()
-	if app.pagesCache != nil && len(app.pagesCache) > 0 {
+	if len(app.pagesCache) > 0 {
 		app.pagesMutex.RUnlock()
 		return
 	}
@@ -491,7 +492,7 @@ func (app *App) ensurePagesCache() {
 
 	pages, err := dbmodels.Pages_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("Failed to fetch pages cache: %v", err)
+		app.PB.Logger().Error("failed to fetch pages cache", "error", err)
 		return
 	}
 
@@ -512,7 +513,7 @@ func (app *App) ensurePagesCache() {
 	}
 
 	app.pagesMutex.Lock()
-	if app.pagesCache == nil || len(app.pagesCache) == 0 {
+	if len(app.pagesCache) == 0 {
 		app.pagesCache = cache
 	}
 	app.pagesMutex.Unlock()
@@ -520,7 +521,7 @@ func (app *App) ensurePagesCache() {
 
 func (app *App) ensureImagesCache() {
 	app.imagesMutex.RLock()
-	if app.imagesCache != nil && len(app.imagesCache) > 0 {
+	if len(app.imagesCache) > 0 {
 		app.imagesMutex.RUnlock()
 		return
 	}
@@ -528,7 +529,7 @@ func (app *App) ensureImagesCache() {
 
 	images, err := dbmodels.Images_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("Failed to fetch images cache: %v", err)
+		app.PB.Logger().Error("failed to fetch images cache", "error", err)
 		return
 	}
 
@@ -538,7 +539,7 @@ func (app *App) ensureImagesCache() {
 	}
 
 	app.imagesMutex.Lock()
-	if app.imagesCache == nil || len(app.imagesCache) == 0 {
+	if len(app.imagesCache) == 0 {
 		app.imagesCache = cache
 	}
 	app.imagesMutex.Unlock()

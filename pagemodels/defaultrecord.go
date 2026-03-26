@@ -8,12 +8,6 @@ type DefaultPageRecord struct {
 	core.BaseRecordProxy
 }
 
-func NewDefaultPageRecord(record *core.Record) *DefaultPageRecord {
-	i := &DefaultPageRecord{}
-	i.SetProxyRecord(record)
-	return i
-}
-
 func (r *DefaultPageRecord) Title() string {
 	return r.GetString(F_TITLE)
 }

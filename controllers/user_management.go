@@ -74,7 +74,7 @@ func (p *UserManagementPage) getData(app core.App, req *templating.Request, data
 	records := []*core.Record{}
 	err := app.RecordQuery(dbmodels.USERS_TABLE).OrderBy(dbmodels.USERS_NAME_FIELD).All(&records)
 	if err != nil {
-		return fmt.Errorf("Konnte keine Nutzer laden: %w", err)
+		return fmt.Errorf("konnte keine nutzer laden: %w", err)
 	}
 
 	users := make([]*dbmodels.User, 0, len(records))
@@ -84,7 +84,7 @@ func (p *UserManagementPage) getData(app core.App, req *templating.Request, data
 
 	sessionCounts, err := GetSessionsCounts(app)
 	if err != nil {
-		return fmt.Errorf("Konnte keine Sitzungsanzahlen laden: %w", err)
+		return fmt.Errorf("konnte keine sitzungsanzahlen laden: %w", err)
 	}
 
 	scmap := make(map[string]int)
@@ -107,12 +107,12 @@ func (p *UserManagementPage) ErrorResponse(engine *templating.Engine, e *core.Re
 
 	err = p.getData(e.App, req, data)
 	if err != nil {
-		engine.Response500(e, fmt.Errorf("Nutzerdaten konnten nicht geladen werden: %w", err), data)
+		engine.Response500(e, fmt.Errorf("nutzerdaten konnten nicht geladen werden: %w", err), data)
 	}
 
 	str, err := engine.RenderToString(e, data, p.Template, p.Layout)
 	if err != nil {
-		engine.Response500(e, fmt.Errorf("Konnte Fehlerseite nicht rendern: %w", err), data)
+		engine.Response500(e, fmt.Errorf("konnte fehlerseite nicht rendern: %w", err), data)
 	}
 
 	e.Response.Header().Add("HX-Push-Url", "false")
@@ -127,7 +127,7 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("formulardaten ungültig: %w", err))
 		}
 
 		req := templating.NewRequest(e)
@@ -137,13 +137,13 @@ func (p *UserManagementPage) POSTDeactivate(engine *templating.Engine, app core.
 
 		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
+			return p.ErrorResponse(engine, e, fmt.Errorf("konnte nutzer nicht finden"))
 		}
 
 		u.SetDeactivated(true)
 
 		if err := app.Save(u); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht deaktivieren: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("konnte nutzer nicht deaktivieren: %w", err))
 		}
 
 		DeleteSessionsForUser(app, u.Id)
@@ -170,7 +170,7 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("formulardaten ungültig: %w", err))
 		}
 
 		req := templating.NewRequest(e)
@@ -180,13 +180,13 @@ func (p *UserManagementPage) POSTActivate(engine *templating.Engine, app core.Ap
 
 		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
+			return p.ErrorResponse(engine, e, fmt.Errorf("konnte nutzer nicht finden"))
 		}
 
 		u.SetDeactivated(false)
 
 		if err := app.Save(u); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht aktivieren: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("konnte nutzer nicht aktivieren: %w", err))
 		}
 
 		go DeleteSessionsForUser(app, u.Id)
@@ -213,7 +213,7 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 		}{}
 
 		if err := e.BindBody(&formdata); err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Formulardaten ungültig: %w", err))
+			return p.ErrorResponse(engine, e, fmt.Errorf("formulardaten ungültig: %w", err))
 		}
 
 		req := templating.NewRequest(e)
@@ -223,7 +223,7 @@ func (p *UserManagementPage) POSTLogout(engine *templating.Engine, app core.App)
 
 		u, err := dbmodels.Users_ID(app, formdata.User)
 		if err != nil {
-			return p.ErrorResponse(engine, e, fmt.Errorf("Konnte Nutzer nicht finden."))
+			return p.ErrorResponse(engine, e, fmt.Errorf("konnte nutzer nicht finden"))
 		}
 
 		DeleteSessionsForUser(app, u.Id)

@@ -500,25 +500,6 @@ func (r *SeriesListResult) Count() int {
 	return len(r.Series) + len(r.AltSeries) + len(r.IDSeries)
 }
 
-func Entries_Series(app core.App, series []*dbmodels.Series) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
-	relations, err := dbmodels.REntriesSeries_Seriess(app, dbmodels.Ids(series))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	eids := []any{}
-	for _, r := range relations {
-		eids = append(eids, r.Entry())
-	}
-
-	entries, err := dbmodels.Entries_IDs(app, eids)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return entries, relations, nil
-}
-
 func Entries_Series_IDs(app core.App, ids []any) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
 	relations, err := dbmodels.REntriesSeries_Seriess(app, ids)
 	if err != nil {

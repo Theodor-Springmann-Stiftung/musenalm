@@ -20,7 +20,7 @@ func ItemsFromBändeAndBIBLIO(
 ) ([]*dbmodels.Item, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
 	records := make([]*dbmodels.Item, 0, len(entries.Bände))
-	r := regexp.MustCompile("\\d{6}")
+	r := regexp.MustCompile(`\d{6}`)
 	if err != nil {
 		fmt.Println(err)
 		return records, err
@@ -63,7 +63,7 @@ func ItemsFromBändeAndBIBLIO(
 				}
 			}
 
-			if last != nil && len(last) > 0 {
+			if len(last) > 0 {
 				t[nr] = string(last)
 			}
 		}

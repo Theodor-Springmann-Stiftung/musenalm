@@ -70,16 +70,3 @@ func legacyAlmForBand(
 	row, ok := legacy.AlmByBiblioID[band.BiblioID]
 	return row, ok
 }
-
-func LegacyFallbackContentsByEntry(matches map[int]LegacyBandMatch) map[int][]xmlmodels.LegacyINHTabRow {
-	ret := make(map[int][]xmlmodels.LegacyINHTabRow)
-
-	for bandID, match := range matches {
-		if len(match.Rows) == 0 {
-			continue
-		}
-		ret[bandID] = match.Rows
-	}
-
-	return ret
-}

@@ -124,10 +124,6 @@ func RebuildFTS(app core.App) error {
 	return rebuildFTSWithContext(app, true, context.Background())
 }
 
-func RebuildFTSFromScratch(app core.App) error {
-	return rebuildFTSFromScratchWithContext(app, context.Background())
-}
-
 func rebuildFTSFromScratchWithContext(app core.App, ctx context.Context) error {
 	setFTS5RebuildState(app, "running", "Neuaufbau wird vorbereitet...", 0, 0, "")
 	if err := checkFTS5Canceled(app, ctx, 0, 0); err != nil {

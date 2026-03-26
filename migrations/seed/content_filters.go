@@ -6,14 +6,6 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 )
 
-func CountContentsByBand(inhalte xmlmodels.Inhalte) map[int]int {
-	counts := make(map[int]int)
-	for _, inhalt := range inhalte.Inhalte {
-		counts[inhalt.Band]++
-	}
-	return counts
-}
-
 func countFilteredModernContentsByBand(inhalte xmlmodels.Inhalte, images imageIndex) map[int]int {
 	filteredCounts := make(map[int]int)
 	for _, inhalt := range inhalte.Inhalte {
@@ -23,10 +15,6 @@ func countFilteredModernContentsByBand(inhalte xmlmodels.Inhalte, images imageIn
 		filteredCounts[inhalt.Band]++
 	}
 	return filteredCounts
-}
-
-func ContentCountsAfterFilter(inhalte xmlmodels.Inhalte) map[int]int {
-	return countFilteredModernContentsByBand(inhalte, getImages(xmlmodels.IMG_PATH))
 }
 
 func SelectedContentCounts(
