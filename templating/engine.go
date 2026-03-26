@@ -110,9 +110,6 @@ func (e *Engine) startWsServerOnPort9000() {
 }
 
 func (e *Engine) funcs() error {
-	e.mu.Lock()
-	e.mu.Unlock()
-
 	// Passing HTML
 	e.AddFunc("Safe", functions.Safe)
 	e.AddFunc("SafeJS", functions.SafeJS)
@@ -229,7 +226,7 @@ func (e *Engine) Render(out io.Writer, path string, ld map[string]any, layout ..
 	e.regmu.Lock()
 	defer e.regmu.Unlock()
 	var l *template.Template
-	if layout == nil || len(layout) == 0 {
+	if len(layout) == 0 {
 		lay, err := e.LayoutRegistry.Default(&e.FuncMap)
 		if err != nil {
 			return err

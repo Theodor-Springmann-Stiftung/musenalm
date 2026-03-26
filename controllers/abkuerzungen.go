@@ -112,12 +112,6 @@ func (p *AbkuerzungenPage) GET(engine *templating.Engine, app core.App) HandleFu
 	}
 }
 
-type abkFormEntry struct {
-	Key    string `form:"key"`
-	Value  string `form:"value"`
-	Delete string `form:"_delete"`
-}
-
 func (p *AbkuerzungenPage) POST(engine *templating.Engine, ia pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		app := ia.Core()

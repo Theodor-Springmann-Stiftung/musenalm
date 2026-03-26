@@ -30,7 +30,7 @@ func (c *TemplateContext) Parse(fsys fs.FS) error {
 	entries, err := fs.ReadDir(fsys, fspath)
 
 	if err != nil {
-		return NewError(InvalidPathError, c.Path)
+		return NewError(ErrInvalidPath, c.Path)
 	}
 
 	for _, e := range entries {
@@ -41,7 +41,7 @@ func (c *TemplateContext) Parse(fsys fs.FS) error {
 			if e.Name() == TEMPLATE_COMPONENT_DIRECTORY {
 				entries, err := fs.ReadDir(fsys, filepath.Join(fspath, e.Name()))
 				if err != nil {
-					return NewError(FileAccessError, filepath.Join(fspath, e.Name()))
+					return NewError(ErrFileAccess, filepath.Join(fspath, e.Name()))
 				}
 
 				for _, e := range entries {
@@ -111,7 +111,7 @@ func readTemplates(fsys fs.FS, t *template.Template, paths map[string]string, fu
 	for k, v := range paths {
 		text, err := fs.ReadFile(fsys, v)
 		if err != nil {
-			return nil, NewError(FileAccessError, v)
+			return nil, NewError(ErrFileAccess, v)
 		}
 
 		temp := template.New(k)

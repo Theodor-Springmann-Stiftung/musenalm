@@ -143,10 +143,6 @@ func (app *App) runCanonicalEffects(pbApp core.App, effects canonical.MutationEf
 	}
 }
 
-func updateEntryFTS5(app core.App, entry *dbmodels.Entry) error {
-	return updateEntryFTS5WithContents(app, entry, true)
-}
-
 func updateEntryFTS5WithContents(app core.App, entry *dbmodels.Entry, updateContents bool) error {
 	if entry == nil {
 		return nil

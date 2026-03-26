@@ -216,7 +216,7 @@ func IntoQueryRequests(f []string, q Query) []FTS5QueryRequest {
 }
 
 func FTS5Search(app core.App, table string, mapfq ...FTS5QueryRequest) ([]*FTS5IDQueryResult, error) {
-	if mapfq == nil || len(mapfq) == 0 || table == "" {
+	if len(mapfq) == 0 || table == "" {
 		return nil, ErrInvalidQuery
 	}
 
@@ -346,11 +346,6 @@ func BulkInsertFTS5Series(query *dbx.Query, series *Series) error {
 		SERIES_FTS5_FIELDS,
 		FTS5ValuesSeries(series)...,
 	)
-}
-
-func InsertFTS5Item(app core.App, item *Item) error {
-	query := FTS5InsertQuery(app, ITEMS_TABLE, ITEMS_FTS5_FIELDS)
-	return BulkInsertFTS5Item(query, item)
 }
 
 func BulkInsertFTS5Item(query *dbx.Query, item *Item) error {
@@ -530,19 +525,6 @@ func FTS5ValuesAgent(agent *Agent) []string {
 		datatypes.DeleteTags(agent.Annotation()),
 		datatypes.DeleteTags(agent.Comment()),
 		agent.References(),
-	}
-}
-
-func FTS5ValuesItems(item *Item) []string {
-	return []string{
-		item.Location(),
-		item.Owner(),
-		strings.Join(item.Media(), DIVIDER_STR),
-		item.Condition(),
-		item.Identifier(),
-		item.Uri(),
-		datatypes.DeleteTags(item.Annotation()),
-		datatypes.DeleteTags(item.Comment()),
 	}
 }
 

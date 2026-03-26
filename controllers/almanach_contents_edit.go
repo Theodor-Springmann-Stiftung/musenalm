@@ -44,6 +44,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, ia, store))
@@ -435,7 +436,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				}
 				content := dbmodels.NewContent(record)
 				if content.Entry() != entry.Id {
-					return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
+					return fmt.Errorf("beitrag gehört zu einem anderen band")
 				}
 				if err := store.UpdateContentScans(tx, content, canonical.ContentScansInput{
 					UploadedFiles:  uploadedScans,
@@ -550,7 +551,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			}
 			content := dbmodels.NewContent(record)
 			if content.Entry() != entry.Id {
-				return fmt.Errorf("Beitrag gehört zu einem anderen Band.")
+				return fmt.Errorf("beitrag gehört zu einem anderen band")
 			}
 
 			if err := store.DeleteContent(tx, content, effects); err != nil {
@@ -779,6 +780,7 @@ type contentFormInput struct {
 	SubtitleStatement       string
 	IncipitStatement        string
 	ResponsibilityStatement string
+	Pseudonym               bool
 	PlaceStatement          string
 	Extent                  string
 	Annotation              string
@@ -826,6 +828,7 @@ func parseContentsForm(form url.Values) map[string]contentFormInput {
 			SubtitleStatement:       strings.TrimSpace(firstValue(fields["subtitle_statement"])),
 			IncipitStatement:        strings.TrimSpace(firstValue(fields["incipit_statement"])),
 			ResponsibilityStatement: strings.TrimSpace(firstValue(fields["responsibility_statement"])),
+			Pseudonym:               parseOptionalBoolField(fields, "pseudonym"),
 			PlaceStatement:          strings.TrimSpace(firstValue(fields["place_statement"])),
 			Extent:                  strings.TrimSpace(firstValue(fields["extent"])),
 			Annotation:              strings.TrimSpace(firstValue(fields["annotation"])),
@@ -852,13 +855,6 @@ type contentAgentRelationsPayload struct {
 	Relations    []contentAgentRelationPayload
 	NewRelations []contentAgentRelationPayload
 	DeletedIDs   []string
-}
-
-type contentAgentRender struct {
-	Id        string
-	Agent     string
-	Type      string
-	Uncertain bool
 }
 
 func valuesForKey(form url.Values, key string) []string {
@@ -945,7 +941,6 @@ func parseContentAgentRelations(form url.Values, contentID string) contentAgentR
 
 	return payload
 }
-
 func sanitizeContentStrings(values []string) []string {
 	cleaned := make([]string, 0, len(values))
 	seen := map[string]struct{}{}
@@ -968,6 +963,20 @@ func firstValue(values []string) string {
 		return ""
 	}
 	return values[0]
+}
+
+func parseOptionalBoolField(fields map[string][]string, key string) bool {
+	values, ok := fields[key]
+	if !ok || len(values) == 0 {
+		return false
+	}
+	value := strings.TrimSpace(values[len(values)-1])
+	switch strings.ToLower(value) {
+	case "1", "true", "on", "yes":
+		return true
+	default:
+		return false
+	}
 }
 
 func parseContentsOrder(form url.Values) []string {

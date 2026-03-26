@@ -32,16 +32,6 @@ func (e *ConflictError) Error() string {
 	return e.Message
 }
 
-func IsValidationError(err error) bool {
-	var target *ValidationError
-	return errors.As(err, &target)
-}
-
-func IsConflictError(err error) bool {
-	var target *ConflictError
-	return errors.As(err, &target)
-}
-
 type DeleteOptions struct {
 	ExpectedUpdatedAt *time.Time
 }
@@ -94,6 +84,7 @@ type EntryInput struct {
 	VariantTitle      string
 	Incipit           string
 	Responsibility    string
+	Pseudonym         bool
 	Publication       string
 	PlaceStatement    string
 	Edition           string
@@ -135,6 +126,7 @@ type ContentInput struct {
 	Subtitle          string
 	Incipit           string
 	Responsibility    string
+	Pseudonym         bool
 	PlaceStatement    string
 	Extent            string
 	Annotation        string
@@ -1014,6 +1006,7 @@ func (s *Store) applyEntryInput(entry *dbmodels.Entry, input EntryInput) {
 	entry.SetVariantTitle(strings.TrimSpace(input.VariantTitle))
 	entry.SetIncipitStmt(strings.TrimSpace(input.Incipit))
 	entry.SetResponsibilityStmt(strings.TrimSpace(input.Responsibility))
+	entry.SetPseudonym(input.Pseudonym)
 	entry.SetPublicationStmt(strings.TrimSpace(input.Publication))
 	entry.SetPlaceStmt(strings.TrimSpace(input.PlaceStatement))
 	entry.SetEdition(strings.TrimSpace(input.Edition))
@@ -1084,6 +1077,7 @@ func (s *Store) applyContentInput(content *dbmodels.Content, entry *dbmodels.Ent
 	content.SetSubtitleStmt(strings.TrimSpace(input.Subtitle))
 	content.SetIncipitStmt(strings.TrimSpace(input.Incipit))
 	content.SetResponsibilityStmt(strings.TrimSpace(input.Responsibility))
+	content.SetPseudonym(input.Pseudonym)
 	content.SetPlaceStmt(strings.TrimSpace(input.PlaceStatement))
 	content.SetYear(entry.Year())
 	content.SetExtent(strings.TrimSpace(input.Extent))

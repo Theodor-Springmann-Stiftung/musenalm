@@ -488,8 +488,9 @@ const (
 	PUBLICATION_STMT_FIELD    = "publication_statement"
 	PLACE_STMT_FIELD          = "place_statement"
 
-	EDITION_FIELD = "edition"
-	YEAR_FIELD    = "year"
+	EDITION_FIELD   = "edition"
+	YEAR_FIELD      = "year"
+	PSEUDONYM_FIELD = "pseudonym"
 
 	LANGUAGE_FIELD     = "language"
 	CONTENT_TYPE_FIELD = "content_type"

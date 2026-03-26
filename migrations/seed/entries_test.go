@@ -83,6 +83,39 @@ func TestEnrichEntryFromLegacyFillMissingOnly(t *testing.T) {
 	}
 }
 
+func TestEnrichEntryFromLegacyExtractsPseudonymMarkers(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	enrichEntryFromLegacy(entry, xmlmodels.LegacyAlmNeuRow{
+		Herausgeber: "Editor #",
+		Anmerkungen: "# Pseud. /) Hinweis",
+	})
+
+	if !entry.Pseudonym() {
+		t.Fatal("expected legacy pseudonym marker to set pseudonym")
+	}
+	if entry.ResponsibilityStmt() != "Editor" {
+		t.Fatalf("expected stripped legacy responsibility, got %q", entry.ResponsibilityStmt())
+	}
+	if entry.Annotation() != "Hinweis" {
+		t.Fatalf("expected stripped legacy annotation, got %q", entry.Annotation())
+	}
+}
+
+func TestExtractEntryPseudonymImportDataRemovesTaggedMarkerPrefix(t *testing.T) {
+	data := extractEntryPseudonymImportData("H. Clauren #", "<div># Pseud. /) 19 Jgg 1818-1837</div>")
+
+	if !data.pseudonym {
+		t.Fatal("expected tagged entry marker to set pseudonym")
+	}
+	if data.responsibility != "H. Clauren" {
+		t.Fatalf("expected stripped responsibility, got %q", data.responsibility)
+	}
+	if data.annotation != "19 Jgg 1818-1837" {
+		t.Fatalf("expected stripped tagged annotation, got %q", data.annotation)
+	}
+}
+
 func TestHandlePreferredTitleEntryPrefersLegacyReihentitel(t *testing.T) {
 	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
 	band := xmlmodels.Band{
@@ -168,5 +201,51 @@ func TestDetermineEntryEditStateUnknownWithoutAutopsie(t *testing.T) {
 	got := determineEntryEditState(entry, xmlmodels.Band{}, LegacyBandMatch{}, false, 1)
 	if got != dbmodels.EDITORSTATE_VALUES[0] {
 		t.Fatalf("expected Unknown, got %q", got)
+	}
+}
+
+func TestHandleDeprecatedIncludesLegacyEditProvenance(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	handleDeprecated(entry, xmlmodels.Band{}, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{
+			BearbeitetAm:  " 2024-01-02 03:04:05.000Z ",
+			BearbeitetVon: " AB ",
+		},
+	}, true)
+
+	deprecated, ok := entry.Get(dbmodels.MUSENALM_DEPRECATED_FIELD).(dbmodels.Deprecated)
+	if !ok {
+		t.Fatalf("expected deprecated field to store dbmodels.Deprecated, got %T", entry.Get(dbmodels.MUSENALM_DEPRECATED_FIELD))
+	}
+	if deprecated.BearbeitetAm != "2024-01-02 03:04:05.000Z" {
+		t.Fatalf("expected trimmed legacy BearbeitetAm, got %q", deprecated.BearbeitetAm)
+	}
+	if deprecated.BearbeitetVon != "AB" {
+		t.Fatalf("expected trimmed legacy BearbeitetVon, got %q", deprecated.BearbeitetVon)
+	}
+}
+
+func TestApplyLegacyUpdatedToEntrySetsUpdatedFromLegacyBand(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	applyLegacyUpdatedToEntry(entry, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{BearbeitetAm: "2024-01-02 03:04:05.000Z"},
+	}, true)
+
+	if got := entry.Updated().String(); got != "2024-01-02 03:04:05.000Z" {
+		t.Fatalf("expected updated timestamp from legacy band, got %q", got)
+	}
+}
+
+func TestApplyLegacyUpdatedToEntryIgnoresInvalidLegacyTimestamp(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	applyLegacyUpdatedToEntry(entry, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{BearbeitetAm: "invalid"},
+	}, true)
+
+	if !entry.Updated().IsZero() {
+		t.Fatalf("expected zero updated timestamp, got %q", entry.Updated().String())
 	}
 }

@@ -40,46 +40,6 @@ func FTS5SearchAgents(app core.App, query string) ([]*Agent, error) {
 	return a, nil
 }
 
-func AgentsForEntries(app core.App, entries []*Entry) (map[string]*Agent, AgentsEntries, error) {
-	eids := []any{}
-	for _, e := range entries {
-		eids = append(eids, e.Id)
-	}
-
-	relations := []*REntriesAgents{}
-	err := app.RecordQuery(RelationTableName(ENTRIES_TABLE, AGENTS_TABLE)).
-		Where(dbx.HashExp{ENTRIES_TABLE: eids}).
-		All(&relations)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	agentIds := []any{}
-	for _, r := range relations {
-		agentIds = append(agentIds, r.Agent())
-	}
-
-	agents := []*Agent{}
-	err = app.RecordQuery(AGENTS_TABLE).
-		Where(dbx.HashExp{ID_FIELD: agentIds}).
-		All(&agents)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	agentsMap := make(map[string]*Agent, len(agents))
-	for _, a := range agents {
-		agentsMap[a.Id] = a
-	}
-
-	relationMap := make(map[string][]*REntriesAgents, len(entries))
-	for _, r := range relations {
-		relationMap[r.Entry()] = append(relationMap[r.Entry()], r)
-	}
-
-	return agentsMap, relationMap, nil
-}
-
 func AgentsForContents(app core.App, contents []*Content) (map[string]*Agent, AgentsContents, error) {
 	cids := []any{}
 	for _, c := range contents {
@@ -188,19 +148,6 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 	collator.SortStrings(ids)
 
 	return ids, nil
-}
-
-func AgentsForLetter(app core.App, letter string) ([]*Agent, error) {
-	agents := []*Agent{}
-	err := app.RecordQuery(AGENTS_TABLE).
-		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
-		OrderBy(AGENTS_NAME_FIELD).
-		All(&agents)
-	if err != nil {
-		return nil, err
-	}
-
-	return agents, nil
 }
 
 func BasicSearchAgents(app core.App, query string) ([]*Agent, []*Agent, error) {

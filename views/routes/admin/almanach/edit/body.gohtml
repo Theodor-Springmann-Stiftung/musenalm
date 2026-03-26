@@ -274,20 +274,15 @@ type AlmanachResult struct {
 						<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
 							Felder hinzufügen</button>
 
-						<div class="inputwrapper {{ if eq $model.result.Entry.TitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
+						<div class="inputwrapper" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
-								<label for="title" class="inputlabel menu-label">Titel</label>
+								<label for="title" class="inputlabel">Titel</label>
 								<tool-tip position="top" class="!inline">
 									<div class="data-tip">{{ help "entries" "title_statement" }}</div>
 									<i class="ri-question-line"></i>
 								</tool-tip>
 							</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
 							</div>
 
 							<textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea>
@@ -370,24 +365,29 @@ type AlmanachResult struct {
 							<textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea>
 						</div>
 
-						<div class="inputwrapper {{ if eq $model.result.Entry.ResponsibilityStmt "" }}hidden{{ end }}" data-dm-target="publication">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="responsibility_statement" class="inputlabel
-									menu-label">Herausgeberangabe</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "responsibility_statement" }}</div>
-										<i class="ri-question-line"></i>
-									</tool-tip>
+						<div class="flex flex-row gap-2 w-full items-start" data-dm-target="publication">
+							<div class="inputwrapper flex-1 min-w-0">
+								<div class="inputlabelrow">
+									<div class="flex items-center gap-1">
+										<label for="responsibility_statement" class="inputlabel">Herausgeberangabe</label>
+										<tool-tip position="top" class="!inline">
+											<div class="data-tip">{{ help "entries" "responsibility_statement" }}</div>
+											<i class="ri-question-line"></i>
+										</tool-tip>
+									</div>
 								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
+
+								<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
 							</div>
 
-							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+							<div class="inputwrapper shrink-0">
+								<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+									<input type="checkbox" name="pseudonym" id="pseudonym" {{ if $model.result.Entry.Pseudonym }}checked{{ end }} data-boolean-checkbox />
+									<label class="flex items-center gap-1 text-gray-700" for="pseudonym">
+										<span>Pseudonym</span>
+									</label>
+								</div>
+							</div>
 						</div>
 
 						<div class="mt-3 inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="publication">

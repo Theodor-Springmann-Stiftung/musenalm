@@ -81,8 +81,3 @@ func FindLatestImport(kind string) (*ImportCandidate, error) {
 
 	return &ImportCandidate{Path: path, IsZip: false}, nil
 }
-
-func HasImport(kind string) bool {
-	candidate, err := FindLatestImport(kind)
-	return err == nil && candidate != nil
-}

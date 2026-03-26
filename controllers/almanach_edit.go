@@ -277,6 +277,7 @@ type almanachEntryPayload struct {
 	VariantTitle            string `json:"variant_title"`
 	Incipit                 string `json:"incipit"`
 	ResponsibilityStatement string `json:"responsibility_statement"`
+	Pseudonym               bool   `json:"pseudonym"`
 	PublicationStatement    string `json:"publication_statement"`
 	PlaceStatement          string `json:"place_statement"`
 	Edition                 string `json:"edition"`

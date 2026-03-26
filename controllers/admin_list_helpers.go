@@ -65,28 +65,6 @@ func paginatedQueryWindow(offset, totalCount, pageSize int, showAggregated bool)
 	return start, limit, endIndex, endIndex, endIndex < totalCount
 }
 
-func stringSetFromItems(items ...string) map[string]struct{} {
-	result := make(map[string]struct{}, len(items))
-	for _, item := range items {
-		if item == "" {
-			continue
-		}
-		result[item] = struct{}{}
-	}
-	return result
-}
-
-func stringSetFromSlice(items []string) map[string]struct{} {
-	result := make(map[string]struct{}, len(items))
-	for _, item := range items {
-		if item == "" {
-			continue
-		}
-		result[item] = struct{}{}
-	}
-	return result
-}
-
 func anySliceFromStringSet(items map[string]struct{}) []any {
 	if len(items) == 0 {
 		return nil

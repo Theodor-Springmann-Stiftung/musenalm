@@ -121,13 +121,6 @@ func (c *UserSessionCache) DeleteSessionByUserID(uid string) {
 	})
 }
 
-func (c *UserSessionCache) Clear() {
-	c.cache.Clear()
-	c.mu.Lock()
-	c.approximateSize = 0
-	c.mu.Unlock()
-}
-
 func (c *UserSessionCache) startCleanupRoutine() {
 	ticker := time.NewTicker(c.cleanupInterval)
 	defer ticker.Stop()
@@ -163,12 +156,4 @@ func (c *UserSessionCache) cleanupExpiredItems() {
 	c.mu.Lock()
 	c.approximateSize = newSize
 	c.mu.Unlock()
-}
-
-func (c *UserSessionCache) StopCleanup() {
-	select {
-	case <-c.stopCleanupSignal:
-	default:
-		close(c.stopCleanupSignal)
-	}
 }

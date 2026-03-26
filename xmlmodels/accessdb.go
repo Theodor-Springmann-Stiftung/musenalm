@@ -113,7 +113,7 @@ func ReadAccessDB(path string, logger *slog.Logger) (*AccessDB, error) {
 	wg.Wait()
 
 	if len(DB.BIBLIO) == 0 || len(DB.Akteure.Akteure) == 0 || len(DB.Orte.Orte) == 0 || len(DB.Reihen.Reihen) == 0 || len(DB.Bände.Bände) == 0 || len(DB.Inhalte.Inhalte) == 0 || len(DB.Relationen_Bände_Akteure.Relationen) == 0 || len(DB.Relationen_Bände_Reihen.Relationen) == 0 || len(DB.Relationen_Inhalte_Akteure.Relationen) == 0 {
-		return nil, fmt.Errorf("Source files could not be read")
+		return nil, fmt.Errorf("source files could not be read")
 	}
 
 	return &DB, nil

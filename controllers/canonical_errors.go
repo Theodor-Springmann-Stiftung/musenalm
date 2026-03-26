@@ -23,14 +23,6 @@ func canonicalErrorMessage(err error, fallback string) string {
 	return fallback
 }
 
-func canonicalConflictMessage(err error) (string, bool) {
-	var conflictErr *canonical.ConflictError
-	if errors.As(err, &conflictErr) {
-		return conflictErr.Error(), true
-	}
-	return "", false
-}
-
 func parseExpectedUpdatedAt(value string) (*time.Time, error) {
 	if value == "" {
 		return nil, nil

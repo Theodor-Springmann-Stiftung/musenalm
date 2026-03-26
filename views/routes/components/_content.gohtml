@@ -131,7 +131,10 @@
 			{{- if $content.ResponsibilityStmt -}}
 				<div class="fieldlabel">Autorangabe</div>
 				<div class="fieldvalue italic {{ if $isPerson }}search-text{{ end }}">
-					{{- $content.ResponsibilityStmt -}}
+					<span>{{- $content.ResponsibilityStmt -}}</span>
+					{{- if $content.Pseudonym -}}
+						{{- template "_pseudonym_pill" . -}}
+					{{- end -}}
 				</div>
 			{{- end -}}
 			{{- if $rcas -}}

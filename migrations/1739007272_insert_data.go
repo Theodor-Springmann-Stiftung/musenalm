@@ -104,7 +104,7 @@ func init() {
 
 		wg.Wait()
 
-		legacyMatches := seed.LegacyBandMatches(adb.Bände, legacyData)
+		legacyMatches := seed.LegacyBandMatches(adb.Bände, adb.Inhalte, legacyData)
 		contentCounts := seed.SelectedContentCounts(adb.Inhalte, legacyMatches)
 		entries, err := seed.RecordsFromBände(app, *adb, placesmap, contentCounts, legacyMatches)
 		if err != nil {

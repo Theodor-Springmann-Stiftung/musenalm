@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/url"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -14,8 +13,6 @@ import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
 )
 
 const (
@@ -351,93 +348,6 @@ func searchAdminAgentIDs(app core.App, search string) (map[string]struct{}, bool
 	}
 
 	return result, false, nil
-}
-
-func filterAgentsByIDs(agents []*dbmodels.Agent, allowed map[string]struct{}) []*dbmodels.Agent {
-	if len(allowed) == 0 {
-		return []*dbmodels.Agent{}
-	}
-	result := make([]*dbmodels.Agent, 0, len(agents))
-	for _, agent := range agents {
-		if agent == nil {
-			continue
-		}
-		if _, ok := allowed[agent.Id]; ok {
-			result = append(result, agent)
-		}
-	}
-	return result
-}
-
-func filterAgentsByCorporateBody(agents []*dbmodels.Agent, corp string) []*dbmodels.Agent {
-	if corp == "" {
-		return agents
-	}
-	wantOrg := corp == "org"
-	result := make([]*dbmodels.Agent, 0, len(agents))
-	for _, agent := range agents {
-		if agent == nil {
-			continue
-		}
-		if agent.CorporateBody() == wantOrg {
-			result = append(result, agent)
-		}
-	}
-	return result
-}
-
-func filterAgentsByProfession(agents []*dbmodels.Agent, profession string) []*dbmodels.Agent {
-	if profession == "" {
-		return agents
-	}
-	needle := strings.ToLower(strings.TrimSpace(professionLabelForValue(profession)))
-	result := make([]*dbmodels.Agent, 0, len(agents))
-	for _, agent := range agents {
-		if agent == nil {
-			continue
-		}
-		if strings.Contains(strings.ToLower(agent.Profession()), needle) {
-			result = append(result, agent)
-		}
-	}
-	return result
-}
-
-func filterAgentsByLetter(agents []*dbmodels.Agent, letter string) []*dbmodels.Agent {
-	if letter == "" {
-		return agents
-	}
-	letter = normalizeAdminLetter(letter)
-	result := make([]*dbmodels.Agent, 0, len(agents))
-	for _, agent := range agents {
-		if agent == nil {
-			continue
-		}
-		if normalizedAdminInitial(agent.Name()) == letter {
-			result = append(result, agent)
-		}
-	}
-	return result
-}
-
-func buildAdminAgentLetters(agents []*dbmodels.Agent) []string {
-	lettersSet := map[string]struct{}{}
-	for _, agent := range agents {
-		if agent == nil {
-			continue
-		}
-		letter := strings.ToUpper(firstTitleLetter(agent.Name()))
-		if letter != "" {
-			lettersSet[letter] = struct{}{}
-		}
-	}
-	letters := make([]string, 0, len(lettersSet))
-	for letter := range lettersSet {
-		letters = append(letters, letter)
-	}
-	collator := collate.New(language.German)
-	slices.SortFunc(letters, collator.CompareString)
-	return letters
 }
 
 func buildAdminAgentProfessionFilters() []*PersonenAdminProfessionFilter {

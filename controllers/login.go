@@ -114,20 +114,20 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 		data["formdata"] = formdata
 
 		if _, err := CSRF_CACHE.ValidateTokenBundle(formdata.CsrfNonce, formdata.CsrfToken); err != nil {
-			return Unauthorized(engine, e, fmt.Errorf("Ungültiges CSRF-Token oder Zeit abgelaufen. Bitte versuchen Sie es erneut."), data)
+			return Unauthorized(engine, e, fmt.Errorf("ungültiges CSRF-token oder zeit abgelaufen, bitte versuchen sie es erneut"), data)
 		}
 
 		if formdata.Username == "" || formdata.Password == "" {
-			return Unauthorized(engine, e, fmt.Errorf("Benuztername oder Passwort falsch. Bitte versuchen Sie es erneut."), data)
+			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
 		user, err := dbmodels.Users_Email(app, formdata.Username)
 		if err != nil || !user.ValidatePassword(formdata.Password) {
-			return Unauthorized(engine, e, fmt.Errorf("Benuztername oder Passwort falsch. Bitte versuchen Sie es erneut."), data)
+			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
 		if user.Deactivated() {
-			return Unauthorized(engine, e, fmt.Errorf("Ihr Benutzerkonto ist deaktiviert. Bitte kontaktieren Sie den Administrator."), data)
+			return Unauthorized(engine, e, fmt.Errorf("ihr benutzerkonto ist deaktiviert, bitte kontaktieren sie den administrator"), data)
 		}
 
 		duration := time.Hour * 2

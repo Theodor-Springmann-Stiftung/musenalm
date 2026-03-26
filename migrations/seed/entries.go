@@ -10,6 +10,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func RecordsFromBände(
@@ -44,6 +45,7 @@ func RecordsFromBände(
 	for i := 0; i < len(adb.Bände.Bände); i++ {
 		band := adb.Bände.Bände[i]
 		record := dbmodels.NewEntry(core.NewRecord(collection))
+		pseudonymData := extractEntryPseudonymImportData(band.Verantwortlichkeitsangabe, band.Anmerkungen)
 
 		// TODO: Hier bevorzugter reihentitel + jahr, oder irgendein reihentitel, oder reihentitelALT
 		if band.ReihentitelALT == "" {
@@ -52,8 +54,9 @@ func RecordsFromBände(
 
 		record.SetTitleStmt(NormalizeString(band.Titelangabe))
 		record.SetReferences(NormalizeString(band.Nachweis))
-		record.SetAnnotation(NormalizeString(band.Anmerkungen))
-		record.SetResponsibilityStmt(NormalizeString(band.Verantwortlichkeitsangabe))
+		record.SetAnnotation(NormalizeString(pseudonymData.annotation))
+		record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
+		record.SetPseudonym(pseudonymData.pseudonym)
 		record.SetPlaceStmt(NormalizeString(band.Ortsangabe))
 		record.SetExtent(NormalizeString(band.Struktur))
 		record.SetCarrierType([]string{"Band"})
@@ -86,7 +89,8 @@ func RecordsFromBände(
 		}
 
 		handlePreferredTitleEntry(record, band, rmap, relmap, match, hasLegacy)
-		handleDeprecated(record, band)
+		handleDeprecated(record, band, match, hasLegacy)
+		applyLegacyUpdatedToEntry(record, match, hasLegacy)
 		handleOrte(record, band, omap, app, ocoll, places)
 
 		records = append(records, record)
@@ -120,8 +124,6 @@ func handlePreferredTitleEntry(
 	jahr := strconv.Itoa(band.Jahr)
 	if band.Jahr == 0 {
 		jahr = "[o. J.]"
-	} else {
-		jahr = jahr
 	}
 
 	bevti := slices.IndexFunc(rels, func(r xmlmodels.Relation_Band_Reihe) bool { return r.Relation == "1" })
@@ -205,7 +207,7 @@ func handleOrte(
 	}
 }
 
-func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band) {
+func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band, legacy LegacyBandMatch, hasLegacy bool) {
 	depr := dbmodels.Deprecated{
 		Reihentitel: NormalizeString(band.ReihentitelALT),
 		Norm:        NormalizeString(band.Norm),
@@ -214,25 +216,58 @@ func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band) {
 		Gesichtet:   band.Gesichtet,
 		Erfasst:     band.Erfasst,
 	}
+	if hasLegacy {
+		depr.BearbeitetAm = strings.TrimSpace(legacy.LegacyAlm.BearbeitetAm)
+		depr.BearbeitetVon = strings.TrimSpace(legacy.LegacyAlm.BearbeitetVon)
+	}
 
 	record.SetDeprecated(depr)
 }
 
+func parseLegacyEditedAt(raw string) (types.DateTime, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return types.DateTime{}, false
+	}
+
+	dt, err := types.ParseDateTime(raw)
+	if err != nil || dt.IsZero() {
+		return types.DateTime{}, false
+	}
+
+	return dt, true
+}
+
+func applyLegacyUpdatedToEntry(record *dbmodels.Entry, legacy LegacyBandMatch, hasLegacy bool) {
+	if !hasLegacy {
+		return
+	}
+
+	if updated, ok := parseLegacyEditedAt(legacy.LegacyAlm.BearbeitetAm); ok {
+		record.SetUpdated(updated)
+	}
+}
+
 func enrichEntryFromLegacy(record *dbmodels.Entry, legacy xmlmodels.LegacyAlmNeuRow) {
+	pseudonymData := extractEntryPseudonymImportData(legacy.Herausgeber, legacy.Anmerkungen)
+	if pseudonymData.pseudonym {
+		record.SetPseudonym(true)
+	}
+
 	if record.Year() == 0 && legacy.Jahr != 0 {
 		record.SetYear(legacy.Jahr)
 	}
 
-	if strings.TrimSpace(record.ResponsibilityStmt()) == "" && strings.TrimSpace(legacy.Herausgeber) != "" {
-		record.SetResponsibilityStmt(NormalizeString(legacy.Herausgeber))
+	if strings.TrimSpace(record.ResponsibilityStmt()) == "" && strings.TrimSpace(pseudonymData.responsibility) != "" {
+		record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
 	}
 
 	if strings.TrimSpace(record.PlaceStmt()) == "" && strings.TrimSpace(legacy.Ort) != "" {
 		record.SetPlaceStmt(NormalizeString(legacy.Ort))
 	}
 
-	if strings.TrimSpace(record.Annotation()) == "" && strings.TrimSpace(legacy.Anmerkungen) != "" {
-		record.SetAnnotation(NormalizeString(legacy.Anmerkungen))
+	if strings.TrimSpace(record.Annotation()) == "" && strings.TrimSpace(pseudonymData.annotation) != "" {
+		record.SetAnnotation(NormalizeString(pseudonymData.annotation))
 	}
 
 	if strings.TrimSpace(record.References()) == "" && strings.TrimSpace(legacy.Nachweis) != "" {

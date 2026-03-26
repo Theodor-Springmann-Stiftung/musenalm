@@ -27,3 +27,59 @@ func TestSelectedContentCountsPreservesModernCountsBeforeCutover(t *testing.T) {
 		t.Fatalf("expected legacy count 1 for 4849, got %d", got[4849])
 	}
 }
+
+func TestSelectedContentCountsUsesLegacyFallbackBeforeCutoverWhenModernContentIsFilteredOut(t *testing.T) {
+	inhalte := xmlmodels.Inhalte{
+		Inhalte: []xmlmodels.Inhalt{
+			{ID: 1, Band: 4848, Typ: xmlmodels.Typ{Value: []string{"Gedicht/Lied"}}, Urheberangabe: "unbezeichnet"},
+		},
+	}
+
+	legacy := map[int]LegacyBandMatch{
+		4848: {
+			LegacyAlm: xmlmodels.LegacyAlmNeuRow{Nummer: 4848},
+			Rows: []xmlmodels.LegacyINHTabRow{
+				{INHNR: 10, Titel: "Legacy A"},
+				{INHNR: 11, Titel: "Legacy B"},
+			},
+		},
+	}
+
+	got := SelectedContentCounts(inhalte, legacy)
+	if got[4848] != 2 {
+		t.Fatalf("expected legacy fallback count 2 for 4848, got %d", got[4848])
+	}
+}
+
+func TestFilterLegacyRowsForFallbackSkipsDummyRows(t *testing.T) {
+	rows := []xmlmodels.LegacyINHTabRow{
+		{INHNR: 1, Autor: "unbezeichnet", Objekt: "Gedicht/Lied"},
+		{INHNR: 2, Titel: "Legacy title"},
+	}
+
+	got := filterLegacyRowsForFallback(rows, 42, imageIndex{})
+	if len(got) != 1 {
+		t.Fatalf("expected 1 filtered legacy row, got %d", len(got))
+	}
+	if got[0].INHNR != 2 {
+		t.Fatalf("expected INHNR 2 to survive filtering, got %d", got[0].INHNR)
+	}
+}
+
+func TestShouldSkipDummyLegacyContentKeepsRowsWithScans(t *testing.T) {
+	row := xmlmodels.LegacyINHTabRow{
+		INHNR:  1,
+		Autor:  "unbezeichnet",
+		Objekt: "Gedicht/Lied",
+	}
+
+	images := imageIndex{
+		byLegacyEntryContent: map[string][]string{
+			legacyImageKey(42, 1): {"scan.jpg"},
+		},
+	}
+
+	if shouldSkipDummyLegacyContent(row, 42, images) {
+		t.Fatal("expected legacy row with scans to be kept")
+	}
+}

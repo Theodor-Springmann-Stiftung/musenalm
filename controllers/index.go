@@ -46,10 +46,8 @@ func (p *IndexPage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 }
 
 func Shuffle[T any](arr []T) {
-	rand.Seed(time.Now().UnixNano()) // Ensure random seed
-	n := len(arr)
-	for i := n - 1; i > 0; i-- {
-		j := rand.Intn(i + 1)           // Get a random index
-		arr[i], arr[j] = arr[j], arr[i] // Swap
-	}
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	rng.Shuffle(len(arr), func(i, j int) {
+		arr[i], arr[j] = arr[j], arr[i]
+	})
 }

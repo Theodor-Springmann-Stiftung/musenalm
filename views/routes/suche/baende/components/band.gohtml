@@ -119,7 +119,10 @@
 		{{- end -}}
 		{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
 			<div class="italic {{ if $isPersons -}}search-text{{- end -}}">
-				{{ $entry.ResponsibilityStmt -}}
+				<span>{{ $entry.ResponsibilityStmt -}}</span>
+				{{- if $entry.Pseudonym -}}
+					{{- template "_pseudonym_pill" . -}}
+				{{- end -}}
 			</div>
 		{{- end -}}
 		<div class="">

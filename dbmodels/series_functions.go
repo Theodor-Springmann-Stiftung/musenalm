@@ -12,18 +12,6 @@ import (
 
 type SeriesEntries map[string][]*REntriesSeries
 
-func MusenalmIDSearchSeries(app core.App, query string) ([]*Series, error) {
-	series := []*Series{}
-	err := app.RecordQuery(SERIES_TABLE).
-		Where(dbx.Like(MUSENALMID_FIELD, query).Match(true, false)).
-		All(&series)
-	if err != nil {
-		return nil, err
-	}
-
-	return series, nil
-}
-
 func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error) {
 	query = strings.TrimSpace(query)
 	query = datatypes.DeleteTags(query)

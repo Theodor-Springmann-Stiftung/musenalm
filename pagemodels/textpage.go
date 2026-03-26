@@ -14,12 +14,6 @@ type TextPage struct {
 	URL      string
 }
 
-func NewTextPage(record *core.Record) *TextPage {
-	i := &TextPage{}
-	i.SetProxyRecord(record)
-	return i
-}
-
 func (r *TextPage) Title() string {
 	return r.GetString(F_TITLE)
 }

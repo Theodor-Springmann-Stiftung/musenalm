@@ -412,6 +412,7 @@ export class AlmanachEditPage extends HTMLElement {
 			variant_title: this._readValue(formData, "varianttitle"),
 			incipit: this._readValue(formData, "incipit"),
 			responsibility_statement: this._readValue(formData, "responsibility_statement"),
+			pseudonym: this._readChecked("pseudonym"),
 			publication_statement: this._readValue(formData, "publication_statement"),
 			place_statement: this._readValue(formData, "place_statement"),
 			edition: this._readValue(formData, "edition"),
@@ -660,6 +661,20 @@ export class AlmanachEditPage extends HTMLElement {
 	_readValue(formData, field) {
 		const value = formData.get(field);
 		return value ? String(value).trim() : "";
+	}
+
+	_readChecked(field) {
+		if (!this._form?.elements) {
+			return false;
+		}
+		const input = this._form.elements.namedItem(field);
+		if (!input) {
+			return false;
+		}
+		if (typeof RadioNodeList !== "undefined" && input instanceof RadioNodeList) {
+			return Array.from(input).some((element) => element?.checked);
+		}
+		return Boolean(input.checked);
 	}
 
 	_setSavingState(isSaving) {

@@ -15,11 +15,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-// InvalidateSortedEntriesCache clears the cached sorted entries list
-func InvalidateSortedEntriesCache() {
-	app.InvalidateSortedEntriesCache()
-}
-
 // getSortedEntries returns cached sorted entries or loads and caches them
 func getSortedEntries(pbApp core.App) ([]*dbmodels.Entry, error) {
 	return app.GetSortedEntries(pbApp)
@@ -344,6 +339,9 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	dbmodels.Sort_Contents_Numbering(contents)
 
 	contentsagents, err := dbmodels.RContentsAgents_Contents(app, dbmodels.Ids(contents))
+	if err != nil {
+		return nil, err
+	}
 	caids := []any{}
 	caMap := map[string][]*dbmodels.RContentsAgents{}
 	for _, r := range contentsagents {
@@ -392,7 +390,6 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		NextByTitle:    nextByTitle,
 	}
 
-	ret.Collections()
 	return ret, nil
 
 }
@@ -423,19 +420,6 @@ func entryNeighborsByPreferredTitle(app core.App, entryID string) (*dbmodels.Ent
 	return nil, nil, nil
 }
 
-func (r *AlmanachResult) Collections() {
-	ids := []int{}
-	collections := []*dbmodels.Content{}
-	for _, s := range r.Contents {
-		ids = append(ids, s.MusenalmID())
-		for _, t := range s.MusenalmType() {
-			if t == "Sammlung" {
-				collections = append(collections, s)
-			}
-		}
-	}
-}
-
 func Types_Contents(contents []*dbmodels.Content) []string {
 	types := map[string]bool{}
 	for _, c := range contents {
@@ -445,7 +429,7 @@ func Types_Contents(contents []*dbmodels.Content) []string {
 	}
 
 	ret := make([]string, 0, len(types))
-	for t, _ := range types {
+	for t := range types {
 		ret = append(ret, t)
 	}
 

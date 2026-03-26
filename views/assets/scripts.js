@@ -8358,6 +8358,7 @@ class Kd extends HTMLElement {
       variant_title: this._readValue(t, "varianttitle"),
       incipit: this._readValue(t, "incipit"),
       responsibility_statement: this._readValue(t, "responsibility_statement"),
+      pseudonym: this._readChecked("pseudonym"),
       publication_statement: this._readValue(t, "publication_statement"),
       place_statement: this._readValue(t, "place_statement"),
       edition: this._readValue(t, "edition"),
@@ -8506,6 +8507,12 @@ class Kd extends HTMLElement {
   _readValue(t, e) {
     const i = t.get(e);
     return i ? String(i).trim() : "";
+  }
+  _readChecked(t) {
+    if (!this._form?.elements)
+      return !1;
+    const e = this._form.elements.namedItem(t);
+    return e ? typeof RadioNodeList < "u" && e instanceof RadioNodeList ? Array.from(e).some((i) => i?.checked) : !!e.checked : !1;
   }
   _setSavingState(t) {
     if (this._isSaving = t, !this._saveButton)

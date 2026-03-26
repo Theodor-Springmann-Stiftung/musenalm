@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"slices"
 
@@ -101,7 +101,7 @@ func (p *SuchePage) SearchBaendeRequest(app core.App, engine *templating.Engine,
 	return engine.Response200(e, p.Template+params.Collection+"/", data, p.Layout)
 }
 
-var ErrInvalidCollectionType = fmt.Errorf("Invalid collection type")
+var ErrInvalidCollectionType = errors.New("invalid collection type")
 
 type Parameters struct {
 	Extended    bool

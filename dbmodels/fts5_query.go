@@ -46,36 +46,8 @@ func (q *FTS5Query) From(tn string) *FTS5Query {
 	return q
 }
 
-func (q *FTS5Query) Select(fields ...string) *FTS5Query {
-	if len(fields) == 0 {
-		return q
-	}
-
-	q.SELECT = append(q.SELECT, fields...)
-	return q
-}
-
 func (q *FTS5Query) SelectID() *FTS5Query {
 	q.SELECT = append(q.SELECT, ID_FIELD)
-	return q
-}
-
-func (q *FTS5Query) Match(fields []string, value string) *FTS5Query {
-	if len(value) < 3 {
-		return q
-	}
-
-	q.MATCH = append([]FTS5QueryPhrase{
-		FTS5QueryPhrase{
-			Fields: fields,
-			Op:     NONE,
-			Value:  value,
-		}}, q.MATCH...)
-
-	if len(q.MATCH) > 1 && q.MATCH[1].Op == NONE {
-		q.MATCH[1].Op = OP_AND
-	}
-
 	return q
 }
 
