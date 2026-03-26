@@ -7,8 +7,7 @@
 		"editor_user" (index $model.result.Users $entry.Editor)
 		"contents_count" (index $model.result.ContentsCount $entry.Id)
 		"series_links" (index $model.result.SeriesLinks $entry.Id)
+		"agent_rels" (index $model.result.EntriesAgents $entry.Id)
 		"can_edit" (IsAdminOrEditor $model.request.user)
-		"expanded" false
-		"details" nil
 	) -}}
 {{- end -}}

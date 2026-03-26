@@ -82,7 +82,7 @@
 				</th>
 				<th class="py-2 pr-4 whitespace-nowrap col-extent w-[18rem] align-bottom">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
-						<span class="font-semibold tracking-wide">Umfang&thinsp;/&thinsp;Maße</span>
+						<span class="font-semibold tracking-wide">Struktur&thinsp;/&thinsp;Maße</span>
 						<span class="font-semibold tracking-wide">Sprache</span>
 					</div>
 				</th>
@@ -104,13 +104,43 @@
 				<th class="py-2 pr-4 whitespace-nowrap col-series hidden align-bottom w-[18rem]">
 					<span class="font-semibold tracking-wide">Reihen</span>
 				</th>
+				<th class="py-2 pr-4 whitespace-nowrap col-linked-places hidden align-bottom w-[16rem]"
+					:aria-sort="sortField === 'linked_places' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
+						@click="changeSort('linked_places', $event)">
+						<span class="font-semibold tracking-wide">Verknüpfte Orte</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'linked_places' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'linked_places' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'linked_places'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
+				<th class="py-2 pr-4 whitespace-nowrap col-linked-persons hidden align-bottom w-[16rem]"
+					:aria-sort="sortField === 'linked_persons' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
+					<button type="button"
+						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
+						@click="changeSort('linked_persons', $event)">
+						<span class="font-semibold tracking-wide">Verknüpfte Personen</span>
+						<i class="text-xs opacity-70 transition-colors"
+						   :class="{
+								'ri-arrow-up-line text-blue-600': sortField === 'linked_persons' && sortOrder === 'asc',
+								'ri-arrow-down-line text-blue-600': sortField === 'linked_persons' && sortOrder === 'desc',
+								'ri-arrow-up-down-line text-gray-400': sortField !== 'linked_persons'
+						   }"
+						   aria-hidden="true"></i>
+					</button>
+				</th>
 				<th class="py-2 pr-8 whitespace-nowrap col-modified align-bottom w-[11.25rem]"
 					:aria-sort="sortField === 'updated' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 							@click="changeSort('updated', $event)">
-							<span class="font-semibold tracking-wide">Bearbeitet am</span>
+							<span class="font-semibold tracking-wide">Bearbeitet</span>
 							<i class="text-xs opacity-70 transition-colors"
 							   :class="{
 									'ri-arrow-up-line text-blue-600': sortField === 'updated' && sortOrder === 'asc',
@@ -119,8 +149,7 @@
 							   }"
 							   aria-hidden="true"></i>
 						</button>
-						<span class="font-semibold tracking-wide">Benutzer</span>
-						<span class="font-semibold tracking-wide">Bearbeitungsvermerke</span>
+						<span class="font-semibold tracking-wide">Vermerk</span>
 					</div>
 				</th>
 			</tr>
@@ -128,7 +157,7 @@
 		{{- if not (len $model.result.Entries) -}}
 			<tbody>
 				<tr>
-					<td colspan="8" class="py-6 text-center text-base text-gray-500">
+					<td colspan="10" class="py-6 text-center text-base text-gray-500">
 						Keine Bände gefunden.
 					</td>
 				</tr>
@@ -141,9 +170,8 @@
 				"editor_user" (index $model.result.Users $entry.Editor)
 				"contents_count" (index $model.result.ContentsCount $entry.Id)
 				"series_links" (index $model.result.SeriesLinks $entry.Id)
+				"agent_rels" (index $model.result.EntriesAgents $entry.Id)
 				"can_edit" (IsAdminOrEditor $model.request.user)
-				"expanded" false
-				"details" nil
 			) -}}
 		{{- end -}}
 	</table>
@@ -153,7 +181,7 @@
 	(() => {
 		const toggleRoot = document.querySelector('[data-role="baende-column-toggle"]');
 		if (toggleRoot) {
-			const storageKey = "baende-columns-v4";
+			const storageKey = "baende-columns-v5";
 			let saved = null;
 			try {
 				saved = JSON.parse(localStorage.getItem(storageKey) || "null");

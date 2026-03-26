@@ -3,16 +3,21 @@
 {{ $comment := .comment }}
 
 <div class="admin-list-meta flex flex-col gap-1.5">
-	{{- if $updated -}}
-		<div class="tabular-nums font-medium text-slate-800">{{ GermanShortDateTime $updated }}</div>
-	{{- end -}}
-	{{- if $editorUser -}}
-		<div class="font-semibold text-slate-900">{{ $editorUser.Name }}</div>
+	{{- if or $updated $editorUser -}}
+		<div>
+			<div class="text-base font-semibold text-gray-500">Bearbeitet</div>
+			{{- if $updated -}}
+				<div class="tabular-nums mt-0.5 font-medium text-slate-800">{{ GermanShortDateTime $updated }}</div>
+			{{- end -}}
+			{{- if $editorUser -}}
+				<div class="font-semibold text-slate-900">{{ $editorUser.Name }}</div>
+			{{- end -}}
+		</div>
 	{{- end -}}
 	{{- if $comment -}}
-		<div class="pt-1">
-			<div class="admin-list-inline-meta">Bearbeitungsvermerke</div>
-			<div class="annotation-content mt-0.5 font-sans text-base leading-snug text-gray-700">{{- Safe (ReplaceSlashParen $comment) -}}</div>
+		<div>
+			<div class="text-base font-semibold text-gray-500">Vermerk</div>
+			<div class="annotation-content mt-0.5 hyphens-auto font-sans text-base leading-snug italic text-gray-700">{{- Safe (ReplaceSlashParen $comment) -}}</div>
 		</div>
 	{{- end -}}
 </div>

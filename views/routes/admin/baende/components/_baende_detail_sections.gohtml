@@ -2,7 +2,7 @@
 {{ $details := .details }}
 <div class="baende-detail-stack">
 	{{- if $entry.Annotation -}}
-		<div class="baende-detail-row">
+		<div class="baende-detail-row detail-if-col-hidden-annotations hidden">
 			<div class="baende-detail-label">Annotation</div>
 			<div class="baende-detail-value annotation-content">{{- Safe (ReplaceSlashParen $entry.Annotation) -}}</div>
 		</div>
@@ -18,7 +18,18 @@
 	{{- if ne $entry.Year 0 -}}
 		<div class="baende-detail-row detail-if-col-hidden-year hidden">
 			<div class="baende-detail-label">Jahr</div>
-			<div class="baende-detail-value">{{ $entry.Year }}</div>
+			<div class="baende-detail-value">
+				<a
+					href="/admin/baende/?offset=0&sort=title&order=asc&year={{ $entry.Year }}"
+					hx-target="#admin-main-content"
+					hx-swap="innerHTML"
+					hx-push-url="true"
+					hx-indicator="#admin-main-loading"
+					hx-headers='{"X-Admin-Main-Nav":"true"}'
+					class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+					{{ $entry.Year }}
+				</a>
+			</div>
 		</div>
 	{{- end -}}
 
@@ -49,7 +60,7 @@
 		<div class="detail-if-col-hidden-extent hidden">
 			{{- if $entry.Extent -}}
 				<div class="baende-detail-row">
-					<div class="baende-detail-label">Umfang</div>
+					<div class="baende-detail-label">Struktur</div>
 					<div class="baende-detail-value">{{ $entry.Extent }}</div>
 				</div>
 			{{- end -}}
@@ -76,11 +87,21 @@
 			<div class="baende-detail-value">
 				<div class="flex flex-col gap-1">
 					{{- range $_, $link := $details.SeriesLinks -}}
+						{{- $series := seriesDisplay $link.Series.Id -}}
 						<div>
 							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
 								<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $link.Relation.Type }}</span>
 							{{- end -}}
-							<a href="/reihe/{{ $link.Series.MusenalmID }}">{{ $link.Series.Title }}</a>
+							<a
+								href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.ID }}"
+								hx-target="#admin-main-content"
+								hx-swap="innerHTML"
+								hx-push-url="true"
+								hx-indicator="#admin-main-loading"
+								hx-headers='{"X-Admin-Main-Nav":"true"}'
+								class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+								{{ $series.Name }}
+							</a>
 						</div>
 					{{- end -}}
 				</div>
@@ -88,13 +109,25 @@
 		</div>
 	{{- end -}}
 
-	{{- if $details.Places -}}
-		<div class="baende-detail-row">
+	{{- if $entry.Places -}}
+		<div class="baende-detail-row detail-if-col-hidden-linked-places hidden">
 			<div class="baende-detail-label">Orte</div>
 			<div class="baende-detail-value">
 				<div class="flex flex-col gap-1">
-					{{- range $_, $place := $details.Places -}}
-						<div><a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a></div>
+					{{- range $_, $placeID := $entry.Places -}}
+						{{- $place := placeDisplay $placeID -}}
+						<div>
+							<a
+								href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.ID }}"
+								hx-target="#admin-main-content"
+								hx-swap="innerHTML"
+								hx-push-url="true"
+								hx-indicator="#admin-main-loading"
+								hx-headers='{"X-Admin-Main-Nav":"true"}'
+								class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+								{{ $place.Name }}
+							</a>
+						</div>
 					{{- end -}}
 				</div>
 			</div>
@@ -102,19 +135,25 @@
 	{{- end -}}
 
 	{{- if $details.AgentRels -}}
-		<div class="baende-detail-row">
+		<div class="baende-detail-row detail-if-col-hidden-linked-persons hidden">
 			<div class="baende-detail-label">Personen</div>
 			<div class="baende-detail-value">
 				<div class="flex flex-col gap-1">
 					{{- range $_, $arel := $details.AgentRels -}}
-						{{- range $_, $agent := $details.Agents -}}
-							{{- if eq $agent.Id $arel.Agent -}}
-								<div>
-									<a href="/person/{{ $agent.Id }}">{{ $agent.Name }}</a>
-									<span class="ml-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $arel.Type }}</span>
-								</div>
-							{{- end -}}
-						{{- end -}}
+						{{- $agent := agentDisplay $arel.Agent -}}
+						<div>
+							<a
+								href="/admin/baende/?offset=0&sort=title&order=asc&person={{ $agent.ID }}"
+								hx-target="#admin-main-content"
+								hx-swap="innerHTML"
+								hx-push-url="true"
+								hx-indicator="#admin-main-loading"
+								hx-headers='{"X-Admin-Main-Nav":"true"}'
+								class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+								{{ $agent.Name }}
+							</a>
+							<span class="ml-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $arel.Type }}</span>
+						</div>
 					{{- end -}}
 				</div>
 			</div>

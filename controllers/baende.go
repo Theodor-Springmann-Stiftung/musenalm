@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
@@ -37,7 +37,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(bp)
+	musapp.Register(bp)
 }
 
 type BaendePage struct {
@@ -50,8 +50,12 @@ type BaendeResult struct {
 	EntriesSeries map[string][]*dbmodels.REntriesSeries
 	SeriesLinks   map[string][]*BaendeSeriesLink
 	Places        map[string]*dbmodels.Place
+	PlaceLabels   map[string][]string
+	PlaceLinks    map[string][]*BaendeRelationLink
 	Agents        map[string]*dbmodels.Agent
 	EntriesAgents map[string][]*dbmodels.REntriesAgents
+	AgentLabels   map[string][]string
+	AgentLinks    map[string][]*BaendeRelationLink
 	Items         map[string][]*dbmodels.Item
 	Users         map[string]*dbmodels.User
 	ContentsCount map[string]int
@@ -60,6 +64,11 @@ type BaendeResult struct {
 type BaendeSeriesLink struct {
 	Series   *dbmodels.Series
 	Relation *dbmodels.REntriesSeries
+}
+
+type BaendeRelationLink struct {
+	ID    string
+	Label string
 }
 
 type baendeFilterData struct {
@@ -98,22 +107,6 @@ var baendeRequestCache struct {
 	filters  *baendeFilterData
 }
 
-type BaendeDetailsResult struct {
-	Entry         *dbmodels.Entry
-	Series        []*dbmodels.Series
-	SeriesLinks   []*BaendeSeriesLink
-	Places        []*dbmodels.Place
-	Agents        []*dbmodels.Agent
-	Items         []*dbmodels.Item
-	SeriesRels    []*dbmodels.REntriesSeries
-	AgentRels     []*dbmodels.REntriesAgents
-	EditorUser    *dbmodels.User
-	ContentsCount int
-	IsAdmin       bool
-	CanEdit       bool
-	CSRFToken     string
-}
-
 func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_BAENDE)
@@ -122,8 +115,6 @@ func (p *BaendePage) Setup(router *router.Router[*core.RequestEvent], ia pagemod
 	rg.GET("results/", p.handleResults(engine, app, ia))
 	rg.GET("more/", p.handleMore(engine, app, ia))
 	rg.GET("filters/{kind}/", p.handleFilterOptions(engine, app, ia))
-	rg.GET("details/{id}", p.handleDetails(engine, app))
-	rg.GET("row/{id}", p.handleRow(engine, app))
 	rg.GET("delete-info/{id}", p.handleDeleteInfo(engine, app))
 	return nil
 }
@@ -182,171 +173,6 @@ func (p *BaendePage) handleFilterOptions(engine *templating.Engine, app core.App
 	}
 }
 
-func (p *BaendePage) handleRow(engine *templating.Engine, app core.App) HandleFunc {
-	return func(e *core.RequestEvent) error {
-		req := templating.NewRequest(e)
-		if req.User() == nil {
-			return e.Redirect(303, URL_BAENDE_LOGIN)
-		}
-
-		id := e.Request.PathValue("id")
-		if id == "" {
-			return engine.Response404(e, nil, nil)
-		}
-
-		entry, err := dbmodels.Entries_MusenalmID(app, id)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-
-		items, err := dbmodels.Items_Entry(app, entry.Id)
-		if err != nil {
-			app.Logger().Error("Failed to get items for entry", "error", err)
-		}
-
-		contents, err := dbmodels.Contents_Entry(app, entry.Id)
-		if err != nil {
-			app.Logger().Error("Failed to get contents for entry", "error", err)
-		}
-		contentsCount := 0
-		if contents != nil {
-			contentsCount = len(contents)
-		}
-
-		var editorUser *dbmodels.User
-		if editorID := entry.Editor(); editorID != "" {
-			user, err := dbmodels.Users_ID(app, editorID)
-			if err != nil {
-				app.Logger().Error("Failed to get editor user for entry", "error", err)
-			} else {
-				editorUser = user
-			}
-		}
-
-		series, relations, err := Series_Entries(app, []*dbmodels.Entry{entry})
-		if err != nil {
-			app.Logger().Error("Failed to get series for row entry", "error", err)
-		}
-		seriesMap := make(map[string]*dbmodels.Series, len(series))
-		for _, s := range series {
-			if s == nil {
-				continue
-			}
-			seriesMap[s.Id] = s
-		}
-
-		data := map[string]any{
-			"entry":          entry,
-			"items":          items,
-			"editor_user":    editorUser,
-			"contents_count": contentsCount,
-			"series_links":   buildBaendeSeriesLinks(seriesMap, relations),
-			"is_admin":       req.IsAdmin(),
-			"can_edit":       req.IsAdmin() || req.IsEditor(),
-			"csrf_token":     req.Session().Token,
-		}
-
-		return engine.Response200(e, TEMPLATE_BAENDE_ROW, data, pagemodels.LAYOUT_FRAGMENT)
-	}
-}
-
-func (p *BaendePage) handleDetails(engine *templating.Engine, app core.App) HandleFunc {
-	return func(e *core.RequestEvent) error {
-		req := templating.NewRequest(e)
-		if req.User() == nil {
-			return e.Redirect(303, URL_BAENDE_LOGIN)
-		}
-
-		id := e.Request.PathValue("id")
-		if id == "" {
-			return engine.Response404(e, nil, nil)
-		}
-
-		entry, err := dbmodels.Entries_MusenalmID(app, id)
-		if err != nil {
-			return engine.Response404(e, err, nil)
-		}
-
-		entryIDs := []any{entry.Id}
-
-		series, relations, err := Series_Entries(app, []*dbmodels.Entry{entry})
-		if err != nil {
-			app.Logger().Error("Failed to get series for entry", "error", err)
-		}
-
-		agents, arelations, err := Agents_Entries_IDs(app, entryIDs)
-		if err != nil {
-			app.Logger().Error("Failed to get agents for entry", "error", err)
-		}
-
-		toStringAny := func(ss []string) []any {
-			res := make([]any, len(ss))
-			for i, s := range ss {
-				res[i] = s
-			}
-			return res
-		}
-
-		places, err := dbmodels.Places_IDs(app, toStringAny(entry.Places()))
-		if err != nil {
-			app.Logger().Error("Failed to get places for entry", "error", err)
-		}
-
-		items, err := dbmodels.Items_Entry(app, entry.Id)
-		if err != nil {
-			app.Logger().Error("Failed to get items for entry", "error", err)
-		}
-
-		contents, err := dbmodels.Contents_Entry(app, entry.Id)
-		if err != nil {
-			app.Logger().Error("Failed to get contents for entry", "error", err)
-		}
-		contentsCount := 0
-		if contents != nil {
-			contentsCount = len(contents)
-		}
-
-		var editorUser *dbmodels.User
-		if editorID := entry.Editor(); editorID != "" {
-			user, err := dbmodels.Users_ID(app, editorID)
-			if err != nil {
-				app.Logger().Error("Failed to get editor user for entry", "error", err)
-			} else {
-				editorUser = user
-			}
-		}
-
-		data := map[string]any{
-			"result": &BaendeDetailsResult{
-				Entry:  entry,
-				Series: series,
-				SeriesLinks: buildBaendeSeriesLinks(func() map[string]*dbmodels.Series {
-					seriesMap := make(map[string]*dbmodels.Series, len(series))
-					for _, s := range series {
-						if s == nil {
-							continue
-						}
-						seriesMap[s.Id] = s
-					}
-					return seriesMap
-				}(), relations),
-				Places:        places,
-				Agents:        agents,
-				Items:         items,
-				SeriesRels:    relations,
-				AgentRels:     arelations,
-				EditorUser:    editorUser,
-				ContentsCount: contentsCount,
-				IsAdmin:       req.IsAdmin(),
-				CanEdit:       req.IsAdmin() || req.IsEditor(),
-				CSRFToken:     req.Session().Token,
-			},
-		}
-
-		return engine.Response200(e, TEMPLATE_BAENDE_DETAILS, data, pagemodels.LAYOUT_FRAGMENT)
-	}
-}
-
 func (p *BaendePage) handleDeleteInfo(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
@@ -393,6 +219,11 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		timer.Finish(err)
 	}()
 
+	displayApp, ok := ma.(*musapp.App)
+	if !ok {
+		return data, fmt.Errorf("unexpected app type %T", ma)
+	}
+
 	// Get offset from query params (default 0)
 	offset := 0
 	if offsetStr := e.Request.URL.Query().Get("offset"); offsetStr != "" {
@@ -430,6 +261,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		"signatur":       true,
 		"responsibility": true,
 		"place":          true,
+		"linked_places":  true,
+		"linked_persons": true,
 		"updated":        true,
 	}
 	if !validSorts[sort] {
@@ -499,6 +332,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	if !ok {
 		return data, fmt.Errorf("failed to get contents count from cache")
 	}
+	entryPlaceLabels := buildBaendePlaceLabelsDisplayMap(allEntries, displayApp)
+	entryAgentLabels := buildBaendeAgentLabelsDisplayMap(allEntries, entryAgentsMap, displayApp)
 	timer.Mark("cache_extract")
 
 	// Apply search/letter/filters
@@ -549,8 +384,8 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	timer.Mark("filters")
 
 	// The unsearched path now starts from a cached sorted slice, so it doesn't need resorting.
-	if search != "" {
-		sortBaendeEntries(filteredEntries, sort, itemsMap)
+	if search != "" || requiresBaendeRuntimeSort(sort) {
+		sortBaendeEntries(filteredEntries, sort, itemsMap, entryPlaceLabels, entryAgentLabels)
 	}
 
 	// Reverse for descending order
@@ -594,8 +429,12 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		EntriesSeries: entrySeriesMap,
 		SeriesLinks:   buildBaendeSeriesLinksMap(pageEntries, seriesMap, entrySeriesMap),
 		Places:        placesMap,
+		PlaceLabels:   nil,
+		PlaceLinks:    nil,
 		Agents:        agentsMap,
 		EntriesAgents: entryAgentsMap,
+		AgentLabels:   nil,
+		AgentLinks:    nil,
 		Items:         itemsMap,
 		Users:         usersMap,
 		ContentsCount: contentsCount,
@@ -712,7 +551,16 @@ func selectBaendeSortedEntries(sortedEntries map[string][]*dbmodels.Entry, sort 
 	return sortedEntries["title"]
 }
 
-func sortBaendeEntries(entries []*dbmodels.Entry, sort string, itemsMap map[string][]*dbmodels.Item) {
+func requiresBaendeRuntimeSort(sort string) bool {
+	switch sort {
+	case "linked_places", "linked_persons":
+		return true
+	default:
+		return false
+	}
+}
+
+func sortBaendeEntries(entries []*dbmodels.Entry, sort string, itemsMap map[string][]*dbmodels.Item, entryPlaceLabels map[string][]string, entryAgentLabels map[string][]string) {
 	switch sort {
 	case "alm":
 		dbmodels.Sort_Entries_MusenalmID(entries)
@@ -724,6 +572,10 @@ func sortBaendeEntries(entries []*dbmodels.Entry, sort string, itemsMap map[stri
 		dbmodels.Sort_Entries_Responsibility_Title(entries)
 	case "place":
 		dbmodels.Sort_Entries_Place_Title(entries)
+	case "linked_places":
+		sortBaendeEntriesByLabels(entries, entryPlaceLabels)
+	case "linked_persons":
+		sortBaendeEntriesByLabels(entries, entryAgentLabels)
 	case "updated":
 		dbmodels.Sort_Entries_Updated(entries)
 	default:
@@ -736,6 +588,14 @@ func reverseBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
 	copy(reversed, entries)
 	slices.Reverse(reversed)
 	return reversed
+}
+
+func toAnyStrings(values []string) []any {
+	res := make([]any, len(values))
+	for i, value := range values {
+		res[i] = value
+	}
+	return res
 }
 
 func buildBaendeFilterData(cache pagemodels.BaendeCacheInterface, entries []*dbmodels.Entry, agentsMap map[string]*dbmodels.Agent, usersMap map[string]*dbmodels.User, placesMap map[string]*dbmodels.Place, seriesMap map[string]*dbmodels.Series, entrySeriesMap map[string][]*dbmodels.REntriesSeries) *baendeFilterData {
@@ -1425,4 +1285,263 @@ func buildBaendeSeriesLinks(seriesMap map[string]*dbmodels.Series, rels []*dbmod
 	})
 
 	return links
+}
+
+func buildBaendePlaceLabelsMap(entries []*dbmodels.Entry, placesMap map[string]*dbmodels.Place) map[string][]string {
+	labelsByEntry := make(map[string][]string, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		labelsByEntry[entry.Id] = collectBaendePlaceLabels(entry, placesMap)
+	}
+	return labelsByEntry
+}
+
+func buildBaendePlaceLabelsDisplayMap(entries []*dbmodels.Entry, displayApp *musapp.App) map[string][]string {
+	labelsByEntry := make(map[string][]string, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		labels := make([]string, 0, len(entry.Places()))
+		seen := make(map[string]struct{}, len(entry.Places()))
+		for _, placeID := range entry.Places() {
+			if placeID == "" {
+				continue
+			}
+			display := displayApp.GetPlaceDisplay(placeID)
+			if display == nil || strings.TrimSpace(display.Name) == "" {
+				continue
+			}
+			if _, ok := seen[display.ID]; ok {
+				continue
+			}
+			seen[display.ID] = struct{}{}
+			labels = append(labels, display.Name)
+		}
+		sortGermanStrings(labels)
+		labelsByEntry[entry.Id] = labels
+	}
+	return labelsByEntry
+}
+
+func buildBaendePlaceLinksMap(entries []*dbmodels.Entry, placesMap map[string]*dbmodels.Place) map[string][]*BaendeRelationLink {
+	linksByEntry := make(map[string][]*BaendeRelationLink, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		linksByEntry[entry.Id] = collectBaendePlaceLinks(entry, placesMap)
+	}
+	return linksByEntry
+}
+
+func collectBaendePlaceLabels(entry *dbmodels.Entry, placesMap map[string]*dbmodels.Place) []string {
+	if entry == nil {
+		return nil
+	}
+	labels := make([]string, 0, len(entry.Places()))
+	seen := make(map[string]struct{}, len(entry.Places()))
+	for _, placeID := range entry.Places() {
+		if placeID == "" {
+			continue
+		}
+		place := placesMap[placeID]
+		if place == nil || place.Name() == "" {
+			continue
+		}
+		label := place.Name()
+		if _, ok := seen[label]; ok {
+			continue
+		}
+		seen[label] = struct{}{}
+		labels = append(labels, label)
+	}
+	sortGermanStrings(labels)
+	return labels
+}
+
+func collectBaendePlaceLinks(entry *dbmodels.Entry, placesMap map[string]*dbmodels.Place) []*BaendeRelationLink {
+	if entry == nil {
+		return nil
+	}
+	links := make([]*BaendeRelationLink, 0, len(entry.Places()))
+	seen := make(map[string]struct{}, len(entry.Places()))
+	for _, placeID := range entry.Places() {
+		if placeID == "" {
+			continue
+		}
+		place := placesMap[placeID]
+		if place == nil || place.Name() == "" {
+			continue
+		}
+		if _, ok := seen[place.Id]; ok {
+			continue
+		}
+		seen[place.Id] = struct{}{}
+		links = append(links, &BaendeRelationLink{
+			ID:    place.Id,
+			Label: place.Name(),
+		})
+	}
+	sortBaendeRelationLinks(links)
+	return links
+}
+
+func buildBaendeAgentLabelsMap(entries []*dbmodels.Entry, entryAgentsMap map[string][]*dbmodels.REntriesAgents, agentsMap map[string]*dbmodels.Agent) map[string][]string {
+	labelsByEntry := make(map[string][]string, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		labelsByEntry[entry.Id] = collectBaendeAgentLabels(entryAgentsMap[entry.Id], agentsMap)
+	}
+	return labelsByEntry
+}
+
+func buildBaendeAgentLabelsDisplayMap(entries []*dbmodels.Entry, entryAgentsMap map[string][]*dbmodels.REntriesAgents, displayApp *musapp.App) map[string][]string {
+	labelsByEntry := make(map[string][]string, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		labels := make([]string, 0, len(entryAgentsMap[entry.Id]))
+		seen := make(map[string]struct{}, len(entryAgentsMap[entry.Id]))
+		for _, rel := range entryAgentsMap[entry.Id] {
+			if rel == nil {
+				continue
+			}
+			display := displayApp.GetAgentDisplay(rel.Agent())
+			if display == nil || strings.TrimSpace(display.Name) == "" {
+				continue
+			}
+			if _, ok := seen[display.ID]; ok {
+				continue
+			}
+			seen[display.ID] = struct{}{}
+			labels = append(labels, display.Name)
+		}
+		sortGermanStrings(labels)
+		labelsByEntry[entry.Id] = labels
+	}
+	return labelsByEntry
+}
+
+func buildBaendeAgentLinksMap(entries []*dbmodels.Entry, entryAgentsMap map[string][]*dbmodels.REntriesAgents, agentsMap map[string]*dbmodels.Agent) map[string][]*BaendeRelationLink {
+	linksByEntry := make(map[string][]*BaendeRelationLink, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		linksByEntry[entry.Id] = collectBaendeAgentLinks(entryAgentsMap[entry.Id], agentsMap)
+	}
+	return linksByEntry
+}
+
+func collectBaendeAgentLabels(rels []*dbmodels.REntriesAgents, agentsMap map[string]*dbmodels.Agent) []string {
+	labels := make([]string, 0, len(rels))
+	seen := make(map[string]struct{}, len(rels))
+	for _, rel := range rels {
+		if rel == nil {
+			continue
+		}
+		agent := agentsMap[rel.Agent()]
+		if agent == nil || agent.Name() == "" {
+			continue
+		}
+		label := agent.Name()
+		if _, ok := seen[label]; ok {
+			continue
+		}
+		seen[label] = struct{}{}
+		labels = append(labels, label)
+	}
+	sortGermanStrings(labels)
+	return labels
+}
+
+func collectBaendeAgentLinks(rels []*dbmodels.REntriesAgents, agentsMap map[string]*dbmodels.Agent) []*BaendeRelationLink {
+	links := make([]*BaendeRelationLink, 0, len(rels))
+	seen := make(map[string]struct{}, len(rels))
+	for _, rel := range rels {
+		if rel == nil {
+			continue
+		}
+		agent := agentsMap[rel.Agent()]
+		if agent == nil || agent.Name() == "" {
+			continue
+		}
+		if _, ok := seen[agent.Id]; ok {
+			continue
+		}
+		seen[agent.Id] = struct{}{}
+		links = append(links, &BaendeRelationLink{
+			ID:    agent.Id,
+			Label: agent.Name(),
+		})
+	}
+	sortBaendeRelationLinks(links)
+	return links
+}
+
+func sortBaendeEntriesByLabels(entries []*dbmodels.Entry, labelsByEntry map[string][]string) {
+	collator := collate.New(language.German)
+	slices.SortFunc(entries, func(a, b *dbmodels.Entry) int {
+		aLabel := baendeJoinedLabels(labelsByEntry[a.Id])
+		bLabel := baendeJoinedLabels(labelsByEntry[b.Id])
+		if cmp := collator.CompareString(aLabel, bLabel); cmp != 0 {
+			return cmp
+		}
+		return compareBaendeTitles(collator, a, b)
+	})
+}
+
+func baendeJoinedLabels(labels []string) string {
+	if len(labels) == 0 {
+		return ""
+	}
+	return strings.Join(labels, " | ")
+}
+
+func compareBaendeTitles(collator *collate.Collator, a, b *dbmodels.Entry) int {
+	aTitle := baendeSortTitle(a)
+	bTitle := baendeSortTitle(b)
+	if cmp := collator.CompareString(aTitle, bTitle); cmp != 0 {
+		return cmp
+	}
+	if a.Year() != b.Year() {
+		if a.Year() < b.Year() {
+			return -1
+		}
+		return 1
+	}
+	return collator.CompareString(a.MusenalmIDString(), b.MusenalmIDString())
+}
+
+func baendeSortTitle(entry *dbmodels.Entry) string {
+	if entry == nil {
+		return ""
+	}
+	if title := strings.TrimSpace(entry.PreferredTitle()); title != "" {
+		return title
+	}
+	if title := strings.TrimSpace(entry.TitleStmt()); title != "" {
+		return title
+	}
+	return entry.MusenalmIDString()
+}
+
+func sortGermanStrings(values []string) {
+	collator := collate.New(language.German)
+	slices.SortFunc(values, func(a, b string) int {
+		return collator.CompareString(a, b)
+	})
+}
+
+func sortBaendeRelationLinks(links []*BaendeRelationLink) {
+	collator := collate.New(language.German)
+	slices.SortFunc(links, func(a, b *BaendeRelationLink) int {
+		return collator.CompareString(a.Label, b.Label)
+	})
 }

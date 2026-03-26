@@ -264,7 +264,7 @@
 				</div>
 			</div>
 			<div class="admin-list-count-summary shrink-0 self-start whitespace-nowrap">
-				<span x-text="currentCount"></span><span>&thinsp;/&thinsp;</span><span x-text="totalCount"></span> Orte
+				<span x-text="currentCount"></span><span>&thinsp;/&thinsp;</span><span x-text="totalCount"></span><span>&thinsp;Orte</span>
 			</div>
 		</div>
 	</header>
@@ -294,7 +294,8 @@
 					"
 					:disabled="loading">
 					<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
-					<span x-text="loading ? 'Lädt...' : 'Weitere 80 laden'">Weitere 80 laden</span>
+					<span x-show="!loading">Weitere 80 Einträge laden</span>
+					<span x-show="loading">Lädt...</span>
 				</button>
 			</div>
 

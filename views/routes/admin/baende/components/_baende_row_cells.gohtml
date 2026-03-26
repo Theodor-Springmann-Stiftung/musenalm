@@ -1,5 +1,5 @@
 {{ $entry := .entry }}
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 whitespace-nowrap w-[12.5rem]{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+<td class="pt-2 pb-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem]{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
 	<div class="flex flex-col gap-1">
 		<span class="inline-flex w-full items-center px-2.5 py-0 text-base font-semibold text-black">Alm {{ $entry.MusenalmID }}</span>
 		{{- if $entry.References -}}
@@ -43,7 +43,7 @@
 		</div>
 	</div>
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-title">
+<td class="pt-2 pb-2 pr-4 col-title">
 	<div class="font-semibold text-slate-900 text-base leading-snug">
 		{{- if $entry.PreferredTitle -}}
 			<span class="inline">{{ $entry.PreferredTitle }}</span>
@@ -76,6 +76,12 @@
 			{{ $entry.TitleStmt }}
 		</div>
 	{{- end -}}
+	{{- if $entry.Annotation -}}
+		<div class="col-annotations baende-inline-annotation annotation-content mt-4 hidden hyphens-auto text-slate-800 text-base leading-snug font-sans">
+			<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">Anm.</span>
+			<span>{{- Safe (ReplaceSlashParenSlash $entry.Annotation) -}}</span>
+		</div>
+	{{- end -}}
 	{{- if or $entry.SubtitleStmt $entry.VariantTitle $entry.ParallelTitle $entry.IncipitStmt -}}
 		<div class="flex flex-col gap-1 text-base text-gray-700 mt-1">
 			{{- if $entry.SubtitleStmt -}}
@@ -93,12 +99,22 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 whitespace-nowrap col-year hidden w-[5.5rem]">
+<td class="pt-2 pb-2 pr-4 whitespace-nowrap col-year hidden w-[5.5rem]">
 	{{- if ne $entry.Year 0 -}}
-		{{ $entry.Year }}
+		<a
+			href="/admin/baende/?offset=0&sort=title&order=asc&year={{ $entry.Year }}"
+			onclick="event.stopPropagation();"
+			hx-target="#admin-main-content"
+			hx-swap="innerHTML"
+			hx-push-url="true"
+			hx-indicator="#admin-main-loading"
+			hx-headers='{"X-Admin-Main-Nav":"true"}'
+			class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+			{{ $entry.Year }}
+		</a>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-appearance">
+<td class="pt-2 pb-2 pr-4 col-appearance">
 	{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
 		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
@@ -122,29 +138,35 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-extent">
+<td class="pt-2 pb-2 pr-4 col-extent">
 	{{- if or $entry.Extent $entry.Dimensions $entry.Language -}}
-		<div class="flex flex-col gap-1 text-base text-gray-700">
+		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- if $entry.Extent -}}
-				<div class="leading-snug text-slate-800">{{ $entry.Extent }}</div>
+				<div>
+					<div class="text-base font-semibold text-gray-500">Struktur</div>
+					<div class="mt-0.5 leading-snug text-slate-800">{{ $entry.Extent }}</div>
+				</div>
 			{{- end -}}
 			{{- if $entry.Dimensions -}}
-				<div class="leading-snug text-slate-800">{{ $entry.Dimensions }}</div>
-			{{- end -}}
-			{{- if or $entry.Extent $entry.Dimensions -}}
-				<div class="h-1"></div>
+				<div>
+					<div class="text-base font-semibold text-gray-500">Maße</div>
+					<div class="mt-0.5 leading-snug text-slate-800">{{ $entry.Dimensions }}</div>
+				</div>
 			{{- end -}}
 			{{- if $entry.Language -}}
-				<div class="flex flex-wrap gap-x-2 gap-y-1 pt-0.5 font-sans text-base italic text-gray-700">
-					{{- range $i, $lang := $entry.Language -}}
-						<span>{{ LanguageNameGerman $lang }}</span>
-					{{- end -}}
+				<div>
+					<div class="text-base font-semibold text-gray-500">Sprache</div>
+					<div class="mt-0.5 flex flex-wrap gap-x-2 gap-y-1 font-sans text-base italic text-gray-700">
+						{{- range $i, $lang := $entry.Language -}}
+							<span>{{ LanguageNameGerman $lang }}</span>
+						{{- end -}}
+					</div>
 				</div>
 			{{- end -}}
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-signatures w-[7.5rem]">
+<td class="pt-2 pb-2 pr-4 col-signatures w-[7.5rem]">
 	{{- if .items -}}
 		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- range $_, $item := .items -}}
@@ -162,18 +184,73 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-series hidden w-[18rem]">
+<td class="pt-2 pb-2 pr-4 col-series hidden w-[18rem]">
 	{{- if .series_links -}}
 		<div class="flex flex-col gap-1.5 text-base text-gray-700">
 			{{- range $_, $link := .series_links -}}
+				{{- $series := seriesDisplay $link.Series.Id -}}
 				<div>
-					<a href="/reihe/{{ $link.Series.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body">{{ $link.Series.Title }}</a>
+					<a
+						href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.ID }}"
+						onclick="event.stopPropagation();"
+						hx-target="#admin-main-content"
+						hx-swap="innerHTML"
+						hx-push-url="true"
+						hx-indicator="#admin-main-loading"
+						hx-headers='{"X-Admin-Main-Nav":"true"}'
+						class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+						{{ $series.Name }}
+					</a>
 				</div>
 			{{- end -}}
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-8 col-modified w-[11.25rem]">
+<td class="pt-2 pb-2 pr-4 col-linked-places hidden w-[16rem]">
+	{{- if $entry.Places -}}
+		<div class="flex flex-col gap-1.5 text-base text-gray-700">
+			{{- range $_, $placeID := $entry.Places -}}
+				{{- $place := placeDisplay $placeID -}}
+				<div>
+					<a
+						href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.ID }}"
+						onclick="event.stopPropagation();"
+						hx-target="#admin-main-content"
+						hx-swap="innerHTML"
+						hx-push-url="true"
+						hx-indicator="#admin-main-loading"
+						hx-headers='{"X-Admin-Main-Nav":"true"}'
+						class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+						{{ $place.Name }}
+					</a>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</td>
+<td class="pt-2 pb-2 pr-4 col-linked-persons hidden w-[16rem]">
+	{{- if .agent_rels -}}
+		<div class="flex flex-col gap-1.5 text-base text-gray-700">
+			{{- range $_, $rel := .agent_rels -}}
+				{{- $agent := agentDisplay $rel.Agent -}}
+				<div>
+					<a
+						href="/admin/baende/?offset=0&sort=title&order=asc&person={{ $agent.ID }}"
+						onclick="event.stopPropagation();"
+						hx-target="#admin-main-content"
+						hx-swap="innerHTML"
+						hx-push-url="true"
+						hx-indicator="#admin-main-loading"
+						hx-headers='{"X-Admin-Main-Nav":"true"}'
+						class="text-slate-700 underline decoration-dotted hover:text-slate-900 hover:decoration-solid underline-offset-3">
+						{{ $agent.Name }}
+					</a>
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</td>
+<td class="pt-2 pb-2 pr-8 col-modified w-[11.25rem]">
 	{{ template "_modified_notes_cell" (Dict
 		"updated" $entry.Updated
 		"editor_user" .editor_user

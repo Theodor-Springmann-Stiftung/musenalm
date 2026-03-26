@@ -1008,6 +1008,21 @@
 		@apply font-sans text-base;
 	}
 
+	.baende-inline-annotation p,
+	.baende-inline-annotation div,
+	.baende-inline-annotation blockquote,
+	.baende-inline-annotation ul,
+	.baende-inline-annotation ol,
+	.baende-inline-annotation li,
+	.baende-inline-annotation h1,
+	.baende-inline-annotation pre {
+		display: inline;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: transparent;
+	}
+
 	.baende-details-card .annotation-small {
 		@apply text-sm;
 	}

@@ -887,6 +887,9 @@
   .w-\[12rem\] {
     width: 12rem;
   }
+  .w-\[16rem\] {
+    width: 16rem;
+  }
   .w-\[18rem\] {
     width: 18rem;
   }
@@ -2127,6 +2130,12 @@
   .underline {
     text-decoration-line: underline;
   }
+  .decoration-dotted {
+    text-decoration-style: dotted;
+  }
+  .underline-offset-3 {
+    text-underline-offset: 3px;
+  }
   .opacity-0 {
     opacity: 0%;
   }
@@ -2638,6 +2647,13 @@
     &:hover {
       @media (hover: hover) {
         text-decoration-line: underline;
+      }
+    }
+  }
+  .hover\:decoration-solid {
+    &:hover {
+      @media (hover: hover) {
+        text-decoration-style: solid;
       }
     }
   }
@@ -6557,6 +6573,20 @@
     font-family: var(--font-sans);
     font-size: var(--text-base);
     line-height: var(--tw-leading, var(--text-base--line-height));
+  }
+  .baende-inline-annotation p,
+	.baende-inline-annotation div,
+	.baende-inline-annotation blockquote,
+	.baende-inline-annotation ul,
+	.baende-inline-annotation ol,
+	.baende-inline-annotation li,
+	.baende-inline-annotation h1,
+	.baende-inline-annotation pre {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
   .baende-details-card .annotation-small {
     font-size: var(--text-sm);
