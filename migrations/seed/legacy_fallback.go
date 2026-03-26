@@ -15,12 +15,16 @@ func UsesLegacyContents(entryID int) bool {
 
 func LegacyBandMatches(
 	baende xmlmodels.Bände,
+	inhalte xmlmodels.Inhalte,
 	legacy *xmlmodels.LegacyFallbackData,
 ) map[int]LegacyBandMatch {
 	ret := make(map[int]LegacyBandMatch)
 	if legacy == nil {
 		return ret
 	}
+
+	images := getImages(xmlmodels.IMG_PATH)
+	modernFilteredCounts := countFilteredModernContentsByBand(inhalte, images)
 
 	for _, band := range baende.Bände {
 		oldEntry, ok := legacyAlmForBand(band, legacy)
@@ -36,6 +40,8 @@ func LegacyBandMatches(
 		match := LegacyBandMatch{LegacyAlm: oldEntry}
 		if UsesLegacyContents(band.ID) {
 			match.Rows = legacy.InhalteByEntryID[oldEntryID]
+		} else if modernFilteredCounts[band.ID] == 0 {
+			match.Rows = filterLegacyRowsForFallback(legacy.InhalteByEntryID[oldEntryID], oldEntryID, images)
 		}
 
 		ret[band.ID] = match
