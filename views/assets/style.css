@@ -1565,12 +1565,6 @@
       background-color: color-mix(in oklab, var(--color-stone-100) 70%, transparent);
     }
   }
-  .bg-stone-100\/80 {
-    background-color: color-mix(in srgb, oklch(97% 0.001 106.424) 80%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-stone-100) 80%, transparent);
-    }
-  }
   .bg-stone-200 {
     background-color: var(--color-stone-200);
   }
@@ -6020,6 +6014,12 @@
         }
       }
     }
+  }
+  .admin-list-row-static {
+    transition-property: none;
+  }
+  .admin-list-row-static:hover {
+    background-color: inherit;
   }
   .admin-list-actions {
     display: flex;

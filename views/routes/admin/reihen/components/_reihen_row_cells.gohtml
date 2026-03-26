@@ -1,5 +1,5 @@
 {{ $series := .series }}
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 whitespace-nowrap w-[6.5rem]">
+<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 whitespace-nowrap w-[6.5rem]{{ if eq $series.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $series.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
 	<div class="flex flex-col gap-1">
 		<span class="inline-flex w-full items-center px-2.5 py-0 text-base font-semibold text-black">Nr {{ $series.MusenalmID }}</span>
 		{{- if $series.References -}}
@@ -16,11 +16,19 @@
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-band-count whitespace-nowrap">
 	<div class="admin-list-count">
 		<tool-tip position="top" class="inline">
-			<span class="admin-list-inline-stat">
+			<a
+				href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.Id }}"
+				onclick="event.stopPropagation();"
+				hx-target="#admin-main-content"
+				hx-swap="innerHTML"
+				hx-push-url="true"
+				hx-indicator="#admin-main-loading"
+				hx-headers='{"X-Admin-Main-Nav":"true"}'
+				class="admin-list-chip">
 				<i class="ri-book-line"></i>
 				<span>{{ len .band_links }}</span>
-			</span>
-			<div class="data-tip">Bände</div>
+			</a>
+			<div class="data-tip">Bände anzeigen</div>
 		</tool-tip>
 	</div>
 </td>

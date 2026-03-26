@@ -129,18 +129,6 @@
 			if (d !== current) d.open = false;
 		});
 	},
-	closeExpandedRows(currentId = '') {
-		const groups = this.$root.querySelectorAll('[data-role=\'reihen-row-group\']');
-		groups.forEach((group) => {
-			const seriesId = group.getAttribute('data-series-id') || '';
-			if (!seriesId || seriesId === currentId) return;
-			if (!group.querySelector('[data-role=\'reihen-details\']')) return;
-			htmx.ajax('GET', `/admin/reihen/row/${seriesId}`, {
-				target: group,
-				swap: 'outerHTML',
-			});
-		});
-	},
 	changeSort(field, event = null) {
 		if (this.sortField === field) {
 			this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';

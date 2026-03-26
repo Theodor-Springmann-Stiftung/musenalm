@@ -21,9 +21,20 @@
 		<td class="py-2 pr-4">
 			{{- if (index $model.bcount $place.Id) -}}
 				<div class="admin-list-count">
-					<tool-tip position="top">
-						<span class="admin-list-inline-stat"><i class="ri-book-line"></i> {{ index $model.bcount $place.Id }}</span>
-						<div class="data-tip">Bände</div>
+					<tool-tip position="top" class="inline">
+						<a
+							href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.Id }}"
+							onclick="event.stopPropagation();"
+							hx-target="#admin-main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							hx-indicator="#admin-main-loading"
+							hx-headers='{"X-Admin-Main-Nav":"true"}'
+							class="admin-list-chip">
+							<i class="ri-book-line"></i>
+							<span>{{ index $model.bcount $place.Id }}</span>
+						</a>
+						<div class="data-tip">Bände anzeigen</div>
 					</tool-tip>
 				</div>
 			{{- end -}}

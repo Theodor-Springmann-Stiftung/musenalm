@@ -1,31 +1,9 @@
 {{ $series := .series }}
 <tbody data-role="reihen-row-group" data-series-id="{{ $series.MusenalmID }}">
 	<tr
-		class="admin-list-row cursor-pointer {{ if .expanded }}bg-stone-100 hover:bg-stone-100 border-b-0{{ end }}"
+		class="admin-list-row admin-list-row-static{{ if eq $series.EditState "Unknown" }} bg-stone-100/70{{ else if eq $series.EditState "ToDo" }} bg-red-50{{ else if eq $series.EditState "Review" }} bg-amber-50{{ end }}"
 		data-role="reihen-row"
-		data-series-id="{{ $series.MusenalmID }}"
-		{{- if .expanded -}}
-		hx-get="/admin/reihen/row/{{ $series.MusenalmID }}"
-		{{- else -}}
-		@click="closeExpandedRows('{{ $series.MusenalmID }}')"
-		hx-get="/admin/reihen/details/{{ $series.MusenalmID }}"
-		{{- end -}}
-		hx-target="closest tbody"
-		hx-swap="outerHTML">
+		data-series-id="{{ $series.MusenalmID }}">
 		{{ template "_reihen_row_cells" . }}
 	</tr>
-	{{- if .expanded -}}
-		<tr class="border-b border-stone-200 bg-stone-100/80" data-role="reihen-details" data-series-id="{{ $series.MusenalmID }}">
-			<td class="w-[6.5rem] py-0 pr-4 pl-4"></td>
-			<td colspan="2" class="p-0 align-top">
-				{{ template "_reihen_detail_sections" (Dict
-					"series" $series
-					"band_links" .band_links
-					"can_edit" .can_edit
-				) }}
-			</td>
-			<td class="p-0"></td>
-			<td class="p-0"></td>
-		</tr>
-	{{- end -}}
 </tbody>
