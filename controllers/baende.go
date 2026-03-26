@@ -902,7 +902,7 @@ func searchBaendeEntriesFTS(app core.App, query string) ([]*dbmodels.Entry, erro
 		}
 	}
 
-	itemRequests := dbmodels.IntoQueryRequests(dbmodels.ITEMS_FTS5_FIELDS, terms)
+	itemRequests := dbmodels.IntoQueryRequests([]string{dbmodels.ITEMS_IDENTIFIER_FIELD}, terms)
 	if len(itemRequests) > 0 {
 		ids, err := dbmodels.FTS5Search(app, dbmodels.ITEMS_TABLE, itemRequests...)
 		if err != nil {
