@@ -38,7 +38,12 @@
 			{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
 				<div class="baende-detail-row">
 					<div class="baende-detail-label">Herausgaberangabe</div>
-					<div class="baende-detail-value">{{ $entry.ResponsibilityStmt }}</div>
+					<div class="baende-detail-value flex flex-wrap items-center gap-x-2 gap-y-1">
+						<span>{{ $entry.ResponsibilityStmt }}</span>
+						{{- if $entry.Pseudonym -}}
+							<span class="inline-flex items-center rounded-xs bg-slate-200 px-1.5 py-0.5 font-sans text-[0.72rem] font-semibold text-slate-700">Pseudonym</span>
+						{{- end -}}
+					</div>
 				</div>
 			{{- end -}}
 			{{- if $entry.PublicationStmt -}}
