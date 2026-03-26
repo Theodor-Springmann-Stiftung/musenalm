@@ -41,6 +41,7 @@ func (idx imageIndex) PathsForLegacyContent(entryID, contentID int) []string {
 func RecordsFromInhalte(
 	app core.App,
 	inhalte xmlmodels.Inhalte,
+	legacy map[int]LegacyBandMatch,
 	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Content, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
@@ -72,6 +73,7 @@ func RecordsFromInhalte(
 		record.SetTitleStmt(NormalizeString(inhalt.Titelangabe))
 		record.SetIncipitStmt(NormalizeString(inhalt.Incipit))
 		record.SetYear(band.Year())
+		applyLegacyUpdatedToContent(record, legacy[inhalt.Band])
 
 		counting, ok := dbmodels.MUSENALM_PAGINATION_VALUES[inhalt.Paginierung]
 		if ok {
@@ -119,7 +121,7 @@ func RecordsFromInhalteWithLegacy(
 	legacy map[int]LegacyBandMatch,
 	entries map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Content, error) {
-	records, err := RecordsFromInhalte(app, inhalte, entries)
+	records, err := RecordsFromInhalte(app, inhalte, legacy, entries)
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +169,7 @@ func RecordsFromLegacyINHTab(
 			record.SetTitleStmt(NormalizeString(row.Titel))
 			record.SetIncipitStmt(NormalizeString(row.Incipit))
 			record.SetYear(entry.Year())
+			applyLegacyUpdatedToContent(record, match)
 
 			if counting, ok := dbmodels.MUSENALM_PAGINATION_VALUES[row.Paginierung]; ok {
 				record.SetMusenalmPagination(counting)
@@ -201,6 +204,12 @@ func RecordsFromLegacyINHTab(
 	}
 
 	return records, nil
+}
+
+func applyLegacyUpdatedToContent(record *dbmodels.Content, legacy LegacyBandMatch) {
+	if updated, ok := parseLegacyEditedAt(legacy.LegacyAlm.BearbeitetAm); ok {
+		record.SetUpdated(updated)
+	}
 }
 
 func legacyMusenalmTypes(raw string) []string {

@@ -170,3 +170,49 @@ func TestDetermineEntryEditStateUnknownWithoutAutopsie(t *testing.T) {
 		t.Fatalf("expected Unknown, got %q", got)
 	}
 }
+
+func TestHandleDeprecatedIncludesLegacyEditProvenance(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	handleDeprecated(entry, xmlmodels.Band{}, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{
+			BearbeitetAm:  " 2024-01-02 03:04:05.000Z ",
+			BearbeitetVon: " AB ",
+		},
+	}, true)
+
+	deprecated, ok := entry.Get(dbmodels.MUSENALM_DEPRECATED_FIELD).(dbmodels.Deprecated)
+	if !ok {
+		t.Fatalf("expected deprecated field to store dbmodels.Deprecated, got %T", entry.Get(dbmodels.MUSENALM_DEPRECATED_FIELD))
+	}
+	if deprecated.BearbeitetAm != "2024-01-02 03:04:05.000Z" {
+		t.Fatalf("expected trimmed legacy BearbeitetAm, got %q", deprecated.BearbeitetAm)
+	}
+	if deprecated.BearbeitetVon != "AB" {
+		t.Fatalf("expected trimmed legacy BearbeitetVon, got %q", deprecated.BearbeitetVon)
+	}
+}
+
+func TestApplyLegacyUpdatedToEntrySetsUpdatedFromLegacyBand(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	applyLegacyUpdatedToEntry(entry, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{BearbeitetAm: "2024-01-02 03:04:05.000Z"},
+	}, true)
+
+	if got := entry.Updated().String(); got != "2024-01-02 03:04:05.000Z" {
+		t.Fatalf("expected updated timestamp from legacy band, got %q", got)
+	}
+}
+
+func TestApplyLegacyUpdatedToEntryIgnoresInvalidLegacyTimestamp(t *testing.T) {
+	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
+
+	applyLegacyUpdatedToEntry(entry, LegacyBandMatch{
+		LegacyAlm: xmlmodels.LegacyAlmNeuRow{BearbeitetAm: "invalid"},
+	}, true)
+
+	if !entry.Updated().IsZero() {
+		t.Fatalf("expected zero updated timestamp, got %q", entry.Updated().String())
+	}
+}

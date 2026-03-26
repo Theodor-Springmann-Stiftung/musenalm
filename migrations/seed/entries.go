@@ -10,6 +10,7 @@ import (
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/xmlmodels"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func RecordsFromBände(
@@ -86,7 +87,8 @@ func RecordsFromBände(
 		}
 
 		handlePreferredTitleEntry(record, band, rmap, relmap, match, hasLegacy)
-		handleDeprecated(record, band)
+		handleDeprecated(record, band, match, hasLegacy)
+		applyLegacyUpdatedToEntry(record, match, hasLegacy)
 		handleOrte(record, band, omap, app, ocoll, places)
 
 		records = append(records, record)
@@ -205,7 +207,7 @@ func handleOrte(
 	}
 }
 
-func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band) {
+func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band, legacy LegacyBandMatch, hasLegacy bool) {
 	depr := dbmodels.Deprecated{
 		Reihentitel: NormalizeString(band.ReihentitelALT),
 		Norm:        NormalizeString(band.Norm),
@@ -214,8 +216,36 @@ func handleDeprecated(record *dbmodels.Entry, band xmlmodels.Band) {
 		Gesichtet:   band.Gesichtet,
 		Erfasst:     band.Erfasst,
 	}
+	if hasLegacy {
+		depr.BearbeitetAm = strings.TrimSpace(legacy.LegacyAlm.BearbeitetAm)
+		depr.BearbeitetVon = strings.TrimSpace(legacy.LegacyAlm.BearbeitetVon)
+	}
 
 	record.SetDeprecated(depr)
+}
+
+func parseLegacyEditedAt(raw string) (types.DateTime, bool) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return types.DateTime{}, false
+	}
+
+	dt, err := types.ParseDateTime(raw)
+	if err != nil || dt.IsZero() {
+		return types.DateTime{}, false
+	}
+
+	return dt, true
+}
+
+func applyLegacyUpdatedToEntry(record *dbmodels.Entry, legacy LegacyBandMatch, hasLegacy bool) {
+	if !hasLegacy {
+		return
+	}
+
+	if updated, ok := parseLegacyEditedAt(legacy.LegacyAlm.BearbeitetAm); ok {
+		record.SetUpdated(updated)
+	}
 }
 
 func enrichEntryFromLegacy(record *dbmodels.Entry, legacy xmlmodels.LegacyAlmNeuRow) {

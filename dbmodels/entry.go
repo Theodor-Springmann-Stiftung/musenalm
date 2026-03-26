@@ -250,7 +250,7 @@ func (e *Entry) Updated() types.DateTime {
 }
 
 func (e *Entry) SetUpdated(updated types.DateTime) {
-	e.Set(UPDATED_FIELD, updated)
+	e.SetRaw(UPDATED_FIELD, updated)
 }
 
 func (e *Entry) Created() types.DateTime {
