@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
@@ -35,20 +36,25 @@ type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
-	PB               *pocketbase.PocketBase
-	MAConfig         Config
-	Pages            []pagemodels.IPage
-	dataCache        *PrefixCache
-	dataMutex        sync.RWMutex
-	htmlCache        *PrefixCache
-	htmlMutex        sync.RWMutex
-	pagesCache       map[string]PageMetaData
-	pagesMutex       sync.RWMutex
-	imagesCache      map[string]*dbmodels.Image
-	imagesMutex      sync.RWMutex
-	baendeCache      *BaendeCache
-	baendeCacheMutex sync.RWMutex
-	canonicalStore   *canonical.Store
+	PB                        *pocketbase.PocketBase
+	MAConfig                  Config
+	Pages                     []pagemodels.IPage
+	dataCache                 *PrefixCache
+	dataMutex                 sync.RWMutex
+	htmlCache                 *PrefixCache
+	htmlMutex                 sync.RWMutex
+	pagesCache                map[string]PageMetaData
+	pagesMutex                sync.RWMutex
+	imagesCache               map[string]*dbmodels.Image
+	imagesMutex               sync.RWMutex
+	baendeCache               *BaendeCache
+	baendeCacheMutex          sync.RWMutex
+	displayCache              atomic.Pointer[DisplayCache]
+	displayCacheBuildMutex    sync.Mutex
+	displayCacheRefreshMutex  sync.Mutex
+	displayCacheRefreshRun    bool
+	displayCacheRefreshQueued bool
+	canonicalStore            *canonical.Store
 }
 
 type BaendeCache struct {
@@ -342,6 +348,21 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		app.htmlMutex.RLock()
 		defer app.htmlMutex.RUnlock()
 		return app.htmlCache.GetPrefix(prefix)
+	})
+	engine.AddFunc("agentDisplay", func(id string) *AgentDisplay {
+		return app.GetAgentDisplay(id)
+	})
+	engine.AddFunc("seriesDisplay", func(id string) *SeriesDisplay {
+		return app.GetSeriesDisplay(id)
+	})
+	engine.AddFunc("entryDisplay", func(id string) *EntryDisplay {
+		return app.GetEntryDisplay(id)
+	})
+	engine.AddFunc("placeDisplay", func(id string) *PlaceDisplay {
+		return app.GetPlaceDisplay(id)
+	})
+	engine.AddFunc("contentDisplay", func(id string) *ContentDisplay {
+		return app.GetContentDisplay(id)
 	})
 
 	app.ResetImagesCache()

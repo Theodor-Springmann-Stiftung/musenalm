@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -27,33 +29,32 @@ type ReihePage struct {
 
 // TODO: data richtig seutzen, damit die Reihe mit dem template _reihe angezeigt wird
 func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
-	app := ia.Core()
+	musenalmApp, ok := ia.(*app.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
+	pbApp := musenalmApp.Core()
 	router.GET(URL_REIHE, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]interface{})
-		reihe, err := dbmodels.Series_MusenalmID(app, id)
+		reihe, err := dbmodels.Series_MusenalmID(pbApp, id)
 		if err != nil || reihe == nil || reihe.Id == "" {
 			return engine.Response404(e, err, data)
 		}
 		data["series"] = reihe
 
-		entries, relations, err := Entries_Series_IDs(app, []any{reihe.Id})
+		relations, err := seriesRelationsBySeriesIDs(pbApp, []any{reihe.Id})
 		if err != nil {
 			return engine.Response404(e, err, data)
-		}
-
-		emap := make(map[string]*dbmodels.Entry)
-		for _, entry := range entries {
-			emap[entry.Id] = entry
 		}
 
 		rmap := make(map[string][]*dbmodels.REntriesSeries)
 		for _, relation := range relations {
 			rmap[relation.Series()] = append(rmap[relation.Series()], relation)
 		}
+		sortSeriesRelationsByEntryYear(rmap[reihe.Id], musenalmApp)
 
 		data["relations"] = rmap[reihe.Id]
-		data["entries"] = emap
 
 		return p.Get(e, engine, data)
 

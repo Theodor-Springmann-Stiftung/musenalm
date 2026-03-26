@@ -6,7 +6,7 @@
 		{{ if and .search $model.result.IDSeries }}
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.IDSeries }}
-					{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries
+					{{ template "_reihe" (Arr $r $model.result.EntriesSeries
 					true false false $model.request) }}
 				{{ end }}
 			</div>
@@ -15,7 +15,7 @@
 		{{ if $model.result.Series }}
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.Series }}
-					{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries false false
+					{{ template "_reihe" (Arr $r $model.result.EntriesSeries false false
 						false $model.request)
 					}}
 				{{ end }}
@@ -46,7 +46,7 @@
 			</div>
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.AltSeries }}
-					{{ template "_reihe" (Arr $r $model.result.Entries $model.result.EntriesSeries
+					{{ template "_reihe" (Arr $r $model.result.EntriesSeries
 					false true true $model.request) }}
 				{{ end }}
 			</div>

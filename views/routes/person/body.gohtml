@@ -3,14 +3,13 @@
 	Agent *dbmodels.Agent
 
 	BResult       []*dbmodels.Series                    // Sorted
-	Entries       map[string]*dbmodels.Entry            // KEY: Entry ID
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // KEY: Series ID
 	EntriesAgents map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
+	EntryCount    int
 
 	CResult        []*dbmodels.Entry                      /// Sorted
 	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // KEY: Content ID
-	Agents         map[string]*dbmodels.Agent             // KEY: Agent ID
 	}
 */}}
 
@@ -132,7 +131,7 @@
 					{{ end }}
 					<div class="">
 						{{- $bds := index $model.result.EntriesSeries $r.Id -}}
-						{{ template "personreiherelations" (Arr $r $bds $model.result.Entries true
+						{{ template "personreiherelations" (Arr $r $bds true
 							$model.result.EntriesAgents)
 						}}
 					</div>
@@ -193,7 +192,7 @@
 					<div class="mb-7 hidden tab-list-panel">
 						{{- range $i, $c := $contents -}}
 							{{- $rels := index $model.result.ContentsAgents $c.Id -}}
-							{{- template "_content" Arr $c $e $rels $model.result.Agents  false true -}}
+							{{- template "_content" Arr $c $e $rels false true -}}
 						{{- end -}}
 					</div>
 				{{- end -}}

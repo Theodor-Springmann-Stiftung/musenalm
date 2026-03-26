@@ -1,10 +1,9 @@
 {{ $r := index . 0 }}
-{{ $entries := index .	1 }}
-{{ $relations := index . 2 }}
-{{ $showidseries := index . 3 }}
-{{ $marka := index . 4 }}
-{{ $markr := index . 5 }}
-{{ $request := index . 6 }}
+{{ $relations := index . 1 }}
+{{ $showidseries := index . 2 }}
+{{ $marka := index . 3 }}
+{{ $markr := index . 4 }}
+{{ $request := index . 5 }}
 
 {{ $bds := index $relations $r.Id }}
 
@@ -19,12 +18,11 @@
 		{{ end }}
 		{{ if $showidseries }}
 			{{ range $_, $rel := $bds }}
+				{{ $entry := entryDisplay $rel.Entry }}
 				<div class="font-sans text-sm px-2 py-1 bg-stone-100 searchable my-0.5">
 					Almanach-Nr.
 					<span class="reihen-text">
-						{{ (index $entries
-							$rel.Entry).MusenalmID
-						}}
+						{{ $entry.MusenalmID }}
 					</span>
 				</div>
 			{{ end }}
@@ -57,6 +55,6 @@
 				<span class="{{ if $marka }}reihen-text{{ end }} annotation-content">{{ Safe $r.Annotation }}</span>
 			{{ end }}
 		</div>
-		{{ template "_reiherelations" (Arr $r $bds $entries false $request) }}
+		{{ template "_reiherelations" (Arr $r $bds false $request) }}
 	</div>
 </div>

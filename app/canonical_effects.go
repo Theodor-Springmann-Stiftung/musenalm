@@ -15,6 +15,9 @@ func (app *App) HandleCanonicalEffects(pbApp core.App, effects canonical.Mutatio
 	if effects.ResetBaende {
 		app.ResetBaendeCache()
 	}
+	if shouldResetDisplayCache(effects) {
+		app.ScheduleDisplayCacheRebuild()
+	}
 	if !effects.HasAsyncWork() {
 		return
 	}
@@ -233,4 +236,17 @@ func sortedEntryModeKeys(values map[string]canonical.EntryFTSMode) []string {
 	}
 	sort.Strings(ids)
 	return ids
+}
+
+func shouldResetDisplayCache(effects canonical.MutationEffects) bool {
+	return len(effects.UpdateAgents) > 0 ||
+		len(effects.DeleteAgents) > 0 ||
+		len(effects.UpdatePlaces) > 0 ||
+		len(effects.DeletePlaces) > 0 ||
+		len(effects.UpdateSeries) > 0 ||
+		len(effects.DeleteSeries) > 0 ||
+		len(effects.UpdateEntries) > 0 ||
+		len(effects.DeleteEntries) > 0 ||
+		len(effects.UpdateContents) > 0 ||
+		len(effects.DeleteContents) > 0
 }

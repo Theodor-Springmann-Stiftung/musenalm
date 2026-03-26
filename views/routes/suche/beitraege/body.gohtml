@@ -6,7 +6,6 @@
 	// these are the sorted IDs for hits
 	Hits     []string
 	Entries  map[string]*dbmodels.Entry     // <- Key: Entry ID
-	Agents   map[string]*dbmodels.Agent     // <- Key: Agent IDs
 	Contents map[string][]*dbmodels.Content // <- Key: Entry ID, or year
 
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key: Content ID
@@ -231,7 +230,7 @@
 						<div class="mb-7 tab-list-panel">
 							{{- range $i, $c := $contents -}}
 								{{- $rels := index $model.result.ContentsAgents $c.Id -}}
-								{{- template "_content" Arr $c $e $rels $model.result.Agents  false true
+								{{- template "_content" Arr $c $e $rels false false true
 									$model.parameters $model.request
 								-}}
 							{{- end -}}

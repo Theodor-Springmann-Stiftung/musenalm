@@ -106,7 +106,6 @@ type SearchResultBeitraege struct {
 	// these are the sorted IDs for hits
 	Hits     []string
 	Entries  map[string]*dbmodels.Entry     // <- Key: Entry ID
-	Agents   map[string]*dbmodels.Agent     // <- Key: Agent IDs
 	Contents map[string][]*dbmodels.Content // <- Key: Entry ID, or year
 
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key: Content ID
@@ -121,7 +120,6 @@ func EmptyResultBeitraege() *SearchResultBeitraege {
 	return &SearchResultBeitraege{
 		Hits:           []string{},
 		Entries:        make(map[string]*dbmodels.Entry),
-		Agents:         make(map[string]*dbmodels.Agent),
 		Contents:       make(map[string][]*dbmodels.Content),
 		ContentsAgents: make(map[string][]*dbmodels.RContentsAgents),
 	}
@@ -238,11 +236,6 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 		contentsagents[a.Content()] = append(contentsagents[a.Content()], a)
 	}
 
-	agentsmap := make(map[string]*dbmodels.Agent)
-	for _, a := range agents {
-		agentsmap[a.Id] = a
-	}
-
 	entriesmap := make(map[string]*dbmodels.Entry)
 	years := make(map[int]bool)
 	for _, e := range entries {
@@ -278,7 +271,6 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 		Queries:        queries,
 		Hits:           hits,
 		Entries:        entriesmap,
-		Agents:         agentsmap,
 		Contents:       contentsmap,
 		ContentsAgents: contentsagents,
 		Pages:          pages,

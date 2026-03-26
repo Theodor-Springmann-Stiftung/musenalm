@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -30,13 +31,16 @@ type PersonPage struct {
 }
 
 func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
-	app := ia.Core()
+	musenalmApp, ok := ia.(*app.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
 	router.GET(URL_PERSON, func(e *core.RequestEvent) error {
 		person := e.Request.PathValue("id")
 		data := make(map[string]interface{})
 		data[PARAM_PERSON] = person
 
-		result, err := NewAgentResult(app, person)
+		result, err := NewAgentResult(musenalmApp, person)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -52,19 +56,19 @@ type AgentResult struct {
 	Agent *dbmodels.Agent
 
 	BResult       []*dbmodels.Series                    // Sorted
-	Entries       map[string]*dbmodels.Entry            // KEY: Entry ID
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // KEY: Series ID
 	EntriesAgents map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
+	EntryCount    int
 
 	// INFO: we could save a DB query by quering the entries table only once
 	CResult        []*dbmodels.Entry                      /// Sorted
 	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // KEY: Content ID
-	Agents         map[string]*dbmodels.Agent             // KEY: Agent ID
 }
 
-func NewAgentResult(app core.App, id string) (*AgentResult, error) {
-	agent, err := dbmodels.Agents_ID(app, id)
+func NewAgentResult(musenalmApp *app.App, id string) (*AgentResult, error) {
+	pbApp := musenalmApp.Core()
+	agent, err := dbmodels.Agents_ID(pbApp, id)
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +77,12 @@ func NewAgentResult(app core.App, id string) (*AgentResult, error) {
 		Agent: agent,
 	}
 
-	err = res.FilterEntriesByPerson(app, id, res)
+	err = res.FilterEntriesByPerson(musenalmApp, id, res)
 	if err != nil {
 		return nil, err
 	}
 
-	err = res.FilterContentsByEntry(app, id, res)
+	err = res.FilterContentsByEntry(pbApp, id, res)
 	if err != nil {
 		return nil, err
 	}
@@ -86,9 +90,10 @@ func NewAgentResult(app core.App, id string) (*AgentResult, error) {
 	return res, nil
 }
 
-func (p *AgentResult) FilterEntriesByPerson(app core.App, id string, res *AgentResult) error {
+func (p *AgentResult) FilterEntriesByPerson(musenalmApp *app.App, id string, res *AgentResult) error {
+	pbApp := musenalmApp.Core()
 	// 1. DB Hit
-	relations, err := dbmodels.REntriesAgents_Agent(app, id)
+	relations, err := dbmodels.REntriesAgents_Agent(pbApp, id)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
@@ -98,27 +103,20 @@ func (p *AgentResult) FilterEntriesByPerson(app core.App, id string, res *AgentR
 	}
 
 	entriesagents := make(map[string][]*dbmodels.REntriesAgents)
-	entryIds := []any{}
+	entryIDs := make([]any, 0, len(relations))
+	seenEntryIDs := make(map[string]struct{}, len(relations))
 	for _, r := range relations {
-		entryIds = append(entryIds, r.Entry())
 		entriesagents[r.Entry()] = append(entriesagents[r.Entry()], r)
+		if _, seen := seenEntryIDs[r.Entry()]; !seen {
+			seenEntryIDs[r.Entry()] = struct{}{}
+			entryIDs = append(entryIDs, r.Entry())
+		}
 	}
 	res.EntriesAgents = entriesagents
-
-	// 2. DB Hit
-	entries, err := dbmodels.Entries_IDs(app, entryIds)
-	if err != nil {
-		return err
-	}
-
-	entryMap := make(map[string]*dbmodels.Entry, len(entries))
-	for _, e := range entries {
-		entryMap[e.Id] = e
-	}
-	res.Entries = entryMap
+	res.EntryCount = len(seenEntryIDs)
 
 	// 3. DB Hit
-	entriesseries, err := dbmodels.REntriesSeries_Entries(app, entryIds)
+	entriesseries, err := dbmodels.REntriesSeries_Entries(pbApp, entryIDs)
 	if err != nil {
 		return err
 	}
@@ -128,7 +126,7 @@ func (p *AgentResult) FilterEntriesByPerson(app core.App, id string, res *AgentR
 	}
 
 	for _, r := range entriesseriesmap {
-		dbmodels.Sort_REntriesSeries_Year(r, entryMap)
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
 
 	res.EntriesSeries = entriesseriesmap
@@ -139,7 +137,7 @@ func (p *AgentResult) FilterEntriesByPerson(app core.App, id string, res *AgentR
 	}
 
 	// 4. DB Hit
-	series, err := dbmodels.Series_IDs(app, seriesIds)
+	series, err := dbmodels.Series_IDs(pbApp, seriesIds)
 	if err != nil {
 		return err
 	}
@@ -159,36 +157,39 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 		return nil
 	}
 
-	contentsagents := make(map[string][]*dbmodels.RContentsAgents)
-	contentIds := []any{}
-	agentids := []any{}
+	contentIDs := make([]any, 0, len(relations))
+	seenContentIDs := make(map[string]struct{}, len(relations))
 	for _, r := range relations {
-		contentIds = append(contentIds, r.Content())
-		agentids = append(agentids, r.Agent())
-		contentsagents[r.Content()] = append(contentsagents[r.Content()], r)
+		if _, seen := seenContentIDs[r.Content()]; !seen {
+			seenContentIDs[r.Content()] = struct{}{}
+			contentIDs = append(contentIDs, r.Content())
+		}
+	}
+
+	contents, err := dbmodels.Contents_IDs(app, contentIDs)
+	if err != nil {
+		return err
+	}
+
+	allContentRelations, err := dbmodels.RContentsAgents_Contents(app, contentIDs)
+	if err != nil {
+		return err
+	}
+	contentsagents := make(map[string][]*dbmodels.RContentsAgents, len(allContentRelations))
+	for _, relation := range allContentRelations {
+		contentsagents[relation.Content()] = append(contentsagents[relation.Content()], relation)
 	}
 	res.ContentsAgents = contentsagents
 
-	agents, err := dbmodels.Agents_IDs(app, agentids)
-	if err != nil {
-		return err
-	}
-	aMap := make(map[string]*dbmodels.Agent, len(agents))
-	for _, a := range agents {
-		aMap[a.Id] = a
-	}
-	res.Agents = aMap
-
-	contents, err := dbmodels.Contents_IDs(app, contentIds)
-	if err != nil {
-		return err
-	}
-
 	contentMap := make(map[string][]*dbmodels.Content, len(contents))
 	entrykeys := []any{}
+	seenEntryIDs := make(map[string]struct{}, len(contents))
 	for _, c := range contents {
 		contentMap[c.Entry()] = append(contentMap[c.Entry()], c)
-		entrykeys = append(entrykeys, c.Entry())
+		if _, seen := seenEntryIDs[c.Entry()]; !seen {
+			seenEntryIDs[c.Entry()] = struct{}{}
+			entrykeys = append(entrykeys, c.Entry())
+		}
 	}
 	res.Contents = contentMap
 
@@ -207,7 +208,7 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 }
 
 func (p *AgentResult) LenEntries() int {
-	return len(p.Entries)
+	return p.EntryCount
 }
 
 func (p *AgentResult) LenSeries() int {

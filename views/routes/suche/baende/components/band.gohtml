@@ -1,6 +1,5 @@
 {{- $model := index . 0 -}}
 {{- $entry := index . 1 -}}
-{{- $series := index . 2 -}}
 {{/* .parameters
 	type SearchParameters struct {
 	Parameters
@@ -33,10 +32,7 @@
 	type SearchResultBaende struct {
 	// these are the sorted IDs for hits
 	Hits    []string
-	Series  map[string]*dbmodels.Series // <- Key: Series ID
 	Entries map[string]*dbmodels.Entry  // <- Key: Entry ID
-	Places  map[string]*dbmodels.Place  // <- All places, Key: Place IDs
-	Agents  map[string]*dbmodels.Agent  // <- Key: Agent IDs
 
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Whatever the Hit IDs are
 	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
@@ -128,12 +124,10 @@
 		<div class="">
 			{{- if $entry.Places -}}
 				{{- range $_, $placeid := $entry.Places -}}
-					{{- $place := index $model.result.Places $placeid -}}
-					{{- if $place -}}
-						<div class="inline pr-1 {{ if $isPlaces -}}search-text{{- end -}}">
-							<a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a>,
-						</div>
-					{{- end -}}
+					{{- $place := placeDisplay $placeid -}}
+					<div class="inline pr-1 {{ if $isPlaces -}}search-text{{- end -}}">
+						<a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a>,
+					</div>
 				{{- end -}}
 			{{- end -}}
 			<a href="/reihen/?year={{ $entry.Year }}&hidden=true">
@@ -148,21 +142,19 @@
 		{{- if $srels -}}
 			<div class="flex flex-row flex-wrap py-1 gap-y-1">
 				{{- range $_, $srel := $srels -}}
-					{{- $series := index $model.result.Series $srel.Series -}}
-					{{- if $series -}}
-						<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
-							<span class="border-r pr-2 border-gray-300">Reihentitel</span
-							><a
-								href="/reihe/{{ $series.MusenalmID }}"
-								class="no-underline pl-2 block {{ if
-									$isSeries
-								-}}
-									search-text
-								{{- end -}}">
-								<b>{{- $series.Title -}}</b>
-							</a>
-						</div>
-					{{- end -}}
+					{{- $series := seriesDisplay $srel.Series -}}
+					<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
+						<span class="border-r pr-2 border-gray-300">Reihentitel</span
+						><a
+							href="/reihe/{{ $series.MusenalmID }}"
+							class="no-underline pl-2 block {{ if
+								$isSeries
+							-}}
+								search-text
+							{{- end -}}">
+							<b>{{- $series.Name -}}</b>
+						</a>
+					</div>
 				{{- end -}}
 			</div>
 		{{- end -}}
@@ -170,21 +162,19 @@
 		{{- if $arels -}}
 			<div class="flex flex-row flex-wrap py-1 gap-y-1">
 				{{- range $_, $arel := $arels -}}
-					{{- $agent := index $model.result.Agents $arel.Agent -}}
-					{{- if $agent -}}
-						<div class="inline-block text-base font-sans bg-slate-100 rounded mr-2">
-							<span class="border-r px-2 border-gray-300"> {{- $arel.Type -}} </span
-							><a
-								href="/person/{{ $agent.Id }}"
-								class="no-underline px-1.5 {{ if
-									$isPersons
-								-}}
-									search-text
-								{{- end -}}">
-								<b>{{- $agent.Name -}}</b>
-							</a>
-						</div>
-					{{- end -}}
+					{{- $agent := agentDisplay $arel.Agent -}}
+					<div class="inline-block text-base font-sans bg-slate-100 rounded mr-2">
+						<span class="border-r px-2 border-gray-300"> {{- $arel.Type -}} </span
+						><a
+							href="/person/{{ $agent.Id }}"
+							class="no-underline px-1.5 {{ if
+								$isPersons
+							-}}
+								search-text
+							{{- end -}}">
+							<b>{{- $agent.Name -}}</b>
+						</a>
+					</div>
 				{{- end -}}
 			</div>
 		{{- end -}}

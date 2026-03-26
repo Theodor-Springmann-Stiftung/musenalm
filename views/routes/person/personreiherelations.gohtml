@@ -1,13 +1,12 @@
 {{ $reihe := index . 0 }}
 {{ $rels := index . 1 }}
-{{ $entries := index . 2 }}
-{{ $shownos := index . 3 }}
-{{ $relations := index . 4 }}
+{{ $shownos := index . 2 }}
+{{ $relations := index . 3 }}
 
 {{- if $rels -}}
 	<div class="reiherelations flex flex-col text-base font-sans w-full pt-1 -ml-3">
 		{{- range $_, $rel := $rels -}}
-			{{- $bd := index $entries $rel.Entry -}}
+			{{- $bd := entryDisplay $rel.Entry -}}
 			{{- $arels := index $relations $rel.Entry -}}
 
 			{{- if $bd -}}

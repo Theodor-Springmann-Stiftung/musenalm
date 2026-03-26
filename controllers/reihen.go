@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -41,27 +43,30 @@ type ReihenPage struct {
 }
 
 func (p *ReihenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
-	app := ia.Core()
-	router.GET(URL_REIHEN, p.handlePage(engine, app))
-	router.GET(URL_REIHEN_RESULTS, p.handleResults(engine, app))
+	musenalmApp, ok := ia.(*app.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
+	router.GET(URL_REIHEN, p.handlePage(engine, musenalmApp))
+	router.GET(URL_REIHEN_RESULTS, p.handleResults(engine, musenalmApp))
 
 	return nil
 }
 
-func (p *ReihenPage) handlePage(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenPage) handlePage(engine *templating.Engine, musenalmApp *app.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		data, err := p.buildResultData(app, e)
+		data, err := p.buildResultData(musenalmApp, e)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		data["common"] = NewCommonReihenData(app)
+		data["common"] = NewCommonReihenData(musenalmApp.Core())
 		return engine.Response200(e, URL_REIHEN, data)
 	}
 }
 
-func (p *ReihenPage) handleResults(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenPage) handleResults(engine *templating.Engine, musenalmApp *app.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		data, err := p.buildResultData(app, e)
+		data, err := p.buildResultData(musenalmApp, e)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -70,7 +75,7 @@ func (p *ReihenPage) handleResults(engine *templating.Engine, app core.App) Hand
 }
 
 // TODO: Suchverhalten bei gefilterten Personen, Orten und Jahren
-func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[string]any, error) {
+func (p *ReihenPage) buildResultData(musenalmApp *app.App, e *core.RequestEvent) (map[string]any, error) {
 	data := map[string]any{}
 	data[PARAM_HIDDEN] = e.Request.URL.Query().Get(PARAM_HIDDEN)
 
@@ -78,7 +83,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 	search := e.Request.URL.Query().Get(PARAM_SEARCH)
 	if search != "" {
 		data[PARAM_SEARCH] = search
-		result, err := NewSeriesResult_Search(app, search)
+		result, err := NewSeriesResult_Search(musenalmApp, search)
 		if err != nil {
 			return data, err
 		}
@@ -89,7 +94,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 	person := e.Request.URL.Query().Get(PARAM_PERSON)
 	if person != "" {
 		data[PARAM_PERSON] = person
-		result, err := NewSeriesResult_Agent(app, person)
+		result, err := NewSeriesResult_Agent(musenalmApp, person)
 		if err != nil {
 			return data, err
 		}
@@ -100,7 +105,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 	place := e.Request.URL.Query().Get(PARAM_PLACE)
 	if place != "" {
 		data[PARAM_PLACE] = place
-		result, err := NewSeriesResult_Place(app, place)
+		result, err := NewSeriesResult_Place(musenalmApp, place)
 		if err != nil {
 			return data, err
 		}
@@ -115,7 +120,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 		if err != nil {
 			return data, err
 		}
-		result, err := NewSeriesResult_Year(app, y)
+		result, err := NewSeriesResult_Year(musenalmApp, y)
 		if err != nil {
 			return data, err
 		}
@@ -138,7 +143,7 @@ func (p *ReihenPage) buildResultData(app core.App, e *core.RequestEvent) (map[st
 		}
 	}
 
-	result, err := NewSeriesListResult_Letter(app, letter)
+	result, err := NewSeriesListResult_Letter(musenalmApp, letter)
 	if err != nil {
 		return data, err
 	}
@@ -224,7 +229,6 @@ func NewCommonReihenData(app core.App) CommonReihenData {
 
 type SeriesListResult struct {
 	Series        []*dbmodels.Series
-	Entries       map[string]*dbmodels.Entry            // <-- Key is Entry.ID
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // <-- Key is Series.ID
 
 	// INFO: Only on agent request
@@ -239,9 +243,10 @@ type SeriesListResult struct {
 	Place *dbmodels.Place
 }
 
-func NewSeriesListResult_Letter(app core.App, letter string) (*SeriesListResult, error) {
+func NewSeriesListResult_Letter(musenalmApp *app.App, letter string) (*SeriesListResult, error) {
+	pbApp := musenalmApp.Core()
 	series := []*dbmodels.Series{}
-	err := app.RecordQuery(dbmodels.SERIES_TABLE).
+	err := pbApp.RecordQuery(dbmodels.SERIES_TABLE).
 		Where(dbx.Like(dbmodels.SERIES_TITLE_FIELD, letter).Match(false, true)).
 		OrderBy(dbmodels.SERIES_TITLE_FIELD).
 		All(&series)
@@ -250,46 +255,34 @@ func NewSeriesListResult_Letter(app core.App, letter string) (*SeriesListResult,
 	}
 	dbmodels.Sort_Series_Title(series)
 
-	relations, err := dbmodels.REntriesSeries_Seriess(app, dbmodels.Ids(series))
+	relations, err := dbmodels.REntriesSeries_Seriess(pbApp, dbmodels.Ids(series))
 	if err != nil {
 		return nil, err
 	}
 
-	eids := []any{}
 	relationsMap := map[string][]*dbmodels.REntriesSeries{}
 	for _, r := range relations {
 		relationsMap[r.Series()] = append(relationsMap[r.Series()], r)
-		eids = append(eids, r.Entry())
-	}
-
-	entries, err := dbmodels.Entries_IDs(app, eids)
-	if err != nil {
-		return nil, err
-	}
-
-	entriesMap := map[string]*dbmodels.Entry{}
-	for _, e := range entries {
-		entriesMap[e.Id] = e
 	}
 
 	for _, r := range relationsMap {
-		dbmodels.Sort_REntriesSeries_Year(r, entriesMap)
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
 
 	return &SeriesListResult{
 		Series:        series,
-		Entries:       entriesMap,
 		EntriesSeries: relationsMap,
 	}, nil
 }
 
-func NewSeriesResult_Agent(app core.App, person string) (*SeriesListResult, error) {
-	agent, err := dbmodels.Agents_ID(app, person)
+func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResult, error) {
+	pbApp := musenalmApp.Core()
+	agent, err := dbmodels.Agents_ID(pbApp, person)
 	if err != nil {
 		return nil, err
 	}
 
-	entriesagentsrels, err := dbmodels.REntriesAgents_Agent(app, agent.Id)
+	entriesagentsrels, err := dbmodels.REntriesAgents_Agent(pbApp, agent.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -301,17 +294,7 @@ func NewSeriesResult_Agent(app core.App, person string) (*SeriesListResult, erro
 		entriesagents[r.Entry()] = append(entriesagents[r.Entry()], r)
 	}
 
-	entries, err := dbmodels.Entries_IDs(app, eids)
-	if err != nil {
-		return nil, err
-	}
-
-	entriesMap := map[string]*dbmodels.Entry{}
-	for _, e := range entries {
-		entriesMap[e.Id] = e
-	}
-
-	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(app, eids)
+	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(pbApp, eids)
 	if err != nil {
 		return nil, err
 	}
@@ -323,39 +306,41 @@ func NewSeriesResult_Agent(app core.App, person string) (*SeriesListResult, erro
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
 	}
 
-	series, err := dbmodels.Series_IDs(app, sids)
+	series, err := dbmodels.Series_IDs(pbApp, sids)
 	if err != nil {
 		return nil, err
 	}
 
 	dbmodels.Sort_Series_Title(series)
+	for _, r := range entriesseries {
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
+	}
 
 	return &SeriesListResult{
 		Series:        series,
-		Entries:       entriesMap,
 		EntriesSeries: entriesseries,
 		Agent:         agent,
 		EntriesAgents: entriesagents,
 	}, nil
 }
 
-func NewSeriesResult_Year(app core.App, year int) (*SeriesListResult, error) {
-	entries := []*dbmodels.Entry{}
-	err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, error) {
+	pbApp := musenalmApp.Core()
+	entries := []*core.Record{}
+	err := pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
+		Select(dbmodels.ID_FIELD).
 		Where(dbx.HashExp{dbmodels.YEAR_FIELD: year}).
 		All(&entries)
 	if err != nil {
 		return nil, err
 	}
 
-	entriesMap := map[string]*dbmodels.Entry{}
 	eids := []any{}
 	for _, e := range entries {
 		eids = append(eids, e.Id)
-		entriesMap[e.Id] = e
 	}
 
-	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(app, eids)
+	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(pbApp, eids)
 	if err != nil {
 		return nil, err
 	}
@@ -367,42 +352,44 @@ func NewSeriesResult_Year(app core.App, year int) (*SeriesListResult, error) {
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
 	}
 
-	series, err := dbmodels.Series_IDs(app, sids)
+	series, err := dbmodels.Series_IDs(pbApp, sids)
 	if err != nil {
 		return nil, err
 	}
 
 	dbmodels.Sort_Series_Title(series)
+	for _, r := range entriesseries {
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
+	}
 
 	return &SeriesListResult{
 		Series:        series,
-		Entries:       entriesMap,
 		EntriesSeries: entriesseries,
 	}, nil
 }
 
-func NewSeriesResult_Place(app core.App, place string) (*SeriesListResult, error) {
-	p, err := dbmodels.Places_ID(app, place)
+func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResult, error) {
+	pbApp := musenalmApp.Core()
+	p, err := dbmodels.Places_ID(pbApp, place)
 	if err != nil {
 		return nil, err
 	}
 
-	entries := []*dbmodels.Entry{}
-	err = app.RecordQuery(dbmodels.ENTRIES_TABLE).
+	entries := []*core.Record{}
+	err = pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
+		Select(dbmodels.ID_FIELD).
 		Where(dbx.Like(dbmodels.PLACES_TABLE, place).Match(true, true)).
 		All(&entries)
 	if err != nil {
 		return nil, err
 	}
 
-	entriesMap := map[string]*dbmodels.Entry{}
 	eids := []any{}
 	for _, e := range entries {
 		eids = append(eids, e.Id)
-		entriesMap[e.Id] = e
 	}
 
-	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(app, eids)
+	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(pbApp, eids)
 	if err != nil {
 		return nil, err
 	}
@@ -414,23 +401,26 @@ func NewSeriesResult_Place(app core.App, place string) (*SeriesListResult, error
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
 	}
 
-	series, err := dbmodels.Series_IDs(app, sids)
+	series, err := dbmodels.Series_IDs(pbApp, sids)
 	if err != nil {
 		return nil, err
 	}
 
 	dbmodels.Sort_Series_Title(series)
+	for _, r := range entriesseries {
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
+	}
 
 	return &SeriesListResult{
 		Series:        series,
-		Entries:       entriesMap,
 		EntriesSeries: entriesseries,
 		Place:         p,
 	}, nil
 }
 
-func NewSeriesResult_Search(app core.App, search string) (*SeriesListResult, error) {
-	series, altseries, err := dbmodels.BasicSearchSeries(app, search)
+func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListResult, error) {
+	pbApp := musenalmApp.Core()
+	series, altseries, err := dbmodels.BasicSearchSeries(pbApp, search)
 	if err != nil {
 		return nil, err
 	}
@@ -442,31 +432,28 @@ func NewSeriesResult_Search(app core.App, search string) (*SeriesListResult, err
 	keys = append(keys, dbmodels.Ids(series)...)
 	keys = append(keys, dbmodels.Ids(altseries)...)
 
-	entries, relations, err := Entries_Series_IDs(app, keys)
+	relations, err := seriesRelationsBySeriesIDs(pbApp, keys)
 	if err != nil {
 		return nil, err
 	}
 
 	relationsMap := make(map[string][]*dbmodels.REntriesSeries)
-	entriesMap := make(map[string]*dbmodels.Entry)
 	for _, v := range relations {
 		relationsMap[v.Series()] = append(relationsMap[v.Series()], v)
 	}
-
-	for _, v := range entries {
-		entriesMap[v.Id] = v
+	for _, r := range relationsMap {
+		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
 
 	ret := &SeriesListResult{
 		Series:        series,
 		AltSeries:     altseries,
-		Entries:       entriesMap,
 		EntriesSeries: relationsMap,
 	}
 
 	if _, err := strconv.Atoi(strings.TrimSpace(search)); err == nil {
 		identries := []*dbmodels.Entry{}
-		err := app.RecordQuery(dbmodels.ENTRIES_TABLE).
+		err := pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
 			Where(dbx.HashExp{dbmodels.MUSENALMID_FIELD: search}).
 			All(&identries)
 		if err != nil {
@@ -474,8 +461,8 @@ func NewSeriesResult_Search(app core.App, search string) (*SeriesListResult, err
 		}
 
 		if len(identries) != 0 {
-			app.Logger().Info("Found entries by musenalmid", "count", len(identries))
-			idseries, idrelations, err := Series_Entries(app, identries)
+			pbApp.Logger().Info("Found entries by musenalmid", "count", len(identries))
+			idseries, idrelations, err := Series_Entries(pbApp, identries)
 			if err != nil {
 				return nil, err
 			}
@@ -486,9 +473,8 @@ func NewSeriesResult_Search(app core.App, search string) (*SeriesListResult, err
 			for _, v := range idrelations {
 				ret.EntriesSeries[v.Series()] = append(relationsMap[v.Series()], v)
 			}
-
-			for _, v := range identries {
-				ret.Entries[v.Id] = v
+			for _, r := range ret.EntriesSeries {
+				sortSeriesRelationsByEntryYear(r, musenalmApp)
 			}
 		}
 	}
@@ -500,23 +486,42 @@ func (r *SeriesListResult) Count() int {
 	return len(r.Series) + len(r.AltSeries) + len(r.IDSeries)
 }
 
-func Entries_Series_IDs(app core.App, ids []any) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
-	relations, err := dbmodels.REntriesSeries_Seriess(app, ids)
+func seriesRelationsBySeriesIDs(pbApp core.App, ids []any) ([]*dbmodels.REntriesSeries, error) {
+	relations, err := dbmodels.REntriesSeries_Seriess(pbApp, ids)
+	if err != nil {
+		return nil, err
+	}
+	return relations, nil
+}
+
+func Entries_Series_IDs(pbApp core.App, ids []any) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
+	relations, err := seriesRelationsBySeriesIDs(pbApp, ids)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	eids := []any{}
-	for _, r := range relations {
-		eids = append(eids, r.Entry())
+	entryIDs := make([]any, 0, len(relations))
+	for _, relation := range relations {
+		entryIDs = append(entryIDs, relation.Entry())
 	}
 
-	entries, err := dbmodels.Entries_IDs(app, eids)
+	entries, err := dbmodels.Entries_IDs(pbApp, entryIDs)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return entries, relations, nil
+}
+
+func sortSeriesRelationsByEntryYear(relations []*dbmodels.REntriesSeries, musenalmApp *app.App) {
+	slices.SortFunc(relations, func(left, right *dbmodels.REntriesSeries) int {
+		leftEntry := musenalmApp.GetEntryDisplay(left.Entry())
+		rightEntry := musenalmApp.GetEntryDisplay(right.Entry())
+		if leftEntry.Year == rightEntry.Year {
+			return leftEntry.MusenalmID - rightEntry.MusenalmID
+		}
+		return leftEntry.Year - rightEntry.Year
+	})
 }
 
 func Series_Entries(app core.App, entries []*dbmodels.Entry) ([]*dbmodels.Series, []*dbmodels.REntriesSeries, error) {

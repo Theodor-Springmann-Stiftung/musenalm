@@ -73,7 +73,7 @@
 		<div class="mt-8">
 			{{- range $i, $c := $model.result.Contents -}}
 				{{- $rels := index $model.result.ContentsAgents $c.Id -}}
-				{{- template "_content" Arr $c $model.result.Entry $rels $model.result.Agents false false false $model.request -}}
+				{{- template "_content" Arr $c $model.result.Entry $rels false false false false $model.request -}}
 			{{- end -}}
 		</div>
 	</div>

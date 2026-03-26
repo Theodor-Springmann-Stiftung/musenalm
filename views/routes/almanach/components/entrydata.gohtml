@@ -2,11 +2,9 @@
 {{/* .result:
 	type AlmanachResult struct {
 	Entry          *dbmodels.Entry
-	Places         []*dbmodels.Place
-	Series         []*dbmodels.Series
+	SeriesRelations []*dbmodels.REntriesSeries
 	Contents       []*dbmodels.Content
 	Items          []*dbmodels.Item
-	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
 	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
@@ -181,13 +179,13 @@
 						</div>
 					</div>
 				{{- end -}}
-				{{- if $model.result.Series -}}
+				{{- if $model.result.SeriesRelations -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Reihen</div>
 						<div class="fieldvalue">
-							{{- range $i, $s := $model.result.Series -}}
+							{{- range $i, $rel := $model.result.SeriesRelations -}}
+								{{- $s := seriesDisplay $rel.Series -}}
 								<div>
-									{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 									{{- if $rel -}}
 										{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
 											<span class="text-sm font-sans mr-2">
@@ -207,17 +205,18 @@
 											</span>
 										{{- end -}}
 									{{- end -}}
-									<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Title }}</a>
+									<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Name }}</a>
 								</div>
 							{{- end -}}
 						</div>
 					</div>
 				{{- end -}}
-				{{- if $model.result.Places -}}
+				{{- if $model.result.Entry.Places -}}
 					<div class="entryrow">
 						<div class="fieldlabel">Orte</div>
 						<div class="fieldvalue">
-							{{- range $i, $p := $model.result.Places -}}
+							{{- range $i, $placeID := $model.result.Entry.Places -}}
+								{{- $p := placeDisplay $placeID -}}
 								<div>
 									<a href="/reihen?place={{ $p.Id }}&hidden=true">{{ $p.Name }}</a>
 								</div>
@@ -230,7 +229,7 @@
 						<div class="fieldlabel">Personen</div>
 						<div class="fieldvalue">
 							{{- range $i, $r := $model.result.EntriesAgents -}}
-								{{- $a := index $model.result.Agents $r.Agent -}}
+								{{- $a := agentDisplay $r.Agent -}}
 								{{- if $a -}}
 									<div>
 										<a href="/person/{{ $a.Id }}">

@@ -7,7 +7,6 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/datatypes"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/dbx"
@@ -81,15 +80,13 @@ func (p *AlmanachPage) GETContents(engine *templating.Engine, app core.App) Hand
 }
 
 type AlmanachResult struct {
-	Entry          *dbmodels.Entry
-	Places         []*dbmodels.Place
-	Series         []*dbmodels.Series
-	Contents       []*dbmodels.Content
-	Items          []*dbmodels.Item
-	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
-	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
-	EntriesAgents  []*dbmodels.REntriesAgents
-	ContentsAgents map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	Entry           *dbmodels.Entry
+	SeriesRelations []*dbmodels.REntriesSeries
+	Contents        []*dbmodels.Content
+	Items           []*dbmodels.Item
+	EntriesSeries   map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents   []*dbmodels.REntriesAgents
+	ContentsAgents  map[string][]*dbmodels.RContentsAgents // <- Key is content id
 
 	Types       []string
 	HasScans    bool
@@ -125,11 +122,6 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 		return nil, err
 	}
 
-	places, err := dbmodels.Places_IDs(app, datatypes.ToAny(entry.Places()))
-	if err != nil {
-		return nil, err
-	}
-
 	srelations, err := dbmodels.REntriesSeries_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
@@ -142,29 +134,9 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 		srelationsMap[r.Series()] = r
 	}
 
-	series, err := dbmodels.Series_IDs(app, sids)
-	if err != nil {
-		return nil, err
-	}
-
 	entriesagents, err := dbmodels.REntriesAgents_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
-	}
-
-	agentIDs := []any{}
-	for _, r := range entriesagents {
-		agentIDs = append(agentIDs, r.Agent())
-	}
-
-	agents, err := dbmodels.Agents_IDs(app, agentIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	agentsMap := map[string]*dbmodels.Agent{}
-	for _, a := range agents {
-		agentsMap[a.Id] = a
 	}
 
 	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, entry.Id)
@@ -178,15 +150,13 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 	}
 
 	ret := &AlmanachResult{
-		Entry:         entry,
-		Places:        places,
-		Series:        series,
-		Agents:        agentsMap,
-		EntriesSeries: srelationsMap,
-		EntriesAgents: entriesagents,
-		HasContents:   hasContents,
-		PrevByTitle:   prevByTitle,
-		NextByTitle:   nextByTitle,
+		Entry:           entry,
+		SeriesRelations: srelations,
+		EntriesSeries:   srelationsMap,
+		EntriesAgents:   entriesagents,
+		HasContents:     hasContents,
+		PrevByTitle:     prevByTitle,
+		NextByTitle:     nextByTitle,
 	}
 
 	return ret, nil
@@ -236,27 +206,14 @@ func NewAlmanachContentsResult(app core.App, id string, params BeitraegeFilterPa
 	if err != nil {
 		return nil, err
 	}
-	caids := []any{}
 	caMap := map[string][]*dbmodels.RContentsAgents{}
 	for _, r := range contentsagents {
-		caids = append(caids, r.Agent())
 		caMap[r.Content()] = append(caMap[r.Content()], r)
-	}
-
-	agents, err := dbmodels.Agents_IDs(app, caids)
-	if err != nil {
-		return nil, err
-	}
-
-	agentsMap := map[string]*dbmodels.Agent{}
-	for _, a := range agents {
-		agentsMap[a.Id] = a
 	}
 
 	ret := &AlmanachResult{
 		Entry:          entry,
 		Contents:       contents,
-		Agents:         agentsMap,
 		ContentsAgents: caMap,
 		Types:          types,
 		HasScans:       hs,
@@ -275,11 +232,6 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		return nil, err
 	}
 
-	places, err := dbmodels.Places_IDs(app, datatypes.ToAny(entry.Places()))
-	if err != nil {
-		return nil, err
-	}
-
 	srelations, err := dbmodels.REntriesSeries_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
@@ -290,11 +242,6 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	for _, r := range srelations {
 		sids = append(sids, r.Series())
 		srelationsMap[r.Series()] = r
-	}
-
-	series, err := dbmodels.Series_IDs(app, sids)
-	if err != nil {
-		return nil, err
 	}
 
 	contents, err := dbmodels.Contents_Entry(app, entry.Id)
@@ -342,10 +289,8 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	if err != nil {
 		return nil, err
 	}
-	caids := []any{}
 	caMap := map[string][]*dbmodels.RContentsAgents{}
 	for _, r := range contentsagents {
-		caids = append(caids, r.Agent())
 		caMap[r.Content()] = append(caMap[r.Content()], r)
 	}
 
@@ -354,40 +299,24 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		return nil, err
 	}
 
-	for _, r := range entriesagents {
-		caids = append(caids, r.Agent())
-	}
-
-	agents, err := dbmodels.Agents_IDs(app, caids)
-	if err != nil {
-		return nil, err
-	}
-
-	agentsMap := map[string]*dbmodels.Agent{}
-	for _, a := range agents {
-		agentsMap[a.Id] = a
-	}
-
 	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, entry.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &AlmanachResult{
-		Entry:          entry,
-		Places:         places,
-		Series:         series,
-		Contents:       contents,
-		Items:          items,
-		Agents:         agentsMap,
-		EntriesSeries:  srelationsMap,
-		EntriesAgents:  entriesagents,
-		ContentsAgents: caMap,
-		Types:          types,
-		HasScans:       hs,
-		HasContents:    hasContents,
-		PrevByTitle:    prevByTitle,
-		NextByTitle:    nextByTitle,
+		Entry:           entry,
+		SeriesRelations: srelations,
+		Contents:        contents,
+		Items:           items,
+		EntriesSeries:   srelationsMap,
+		EntriesAgents:   entriesagents,
+		ContentsAgents:  caMap,
+		Types:           types,
+		HasScans:        hs,
+		HasContents:     hasContents,
+		PrevByTitle:     prevByTitle,
+		NextByTitle:     nextByTitle,
 	}
 
 	return ret, nil

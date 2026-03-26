@@ -32,14 +32,15 @@
 
 
 <div id="breadcrumbs">
-	{{- range $i, $s := $model.result.Series -}}
+	{{- range $i, $rel := $model.result.SeriesRelations -}}
+		{{- $s := seriesDisplay $rel.Series -}}
 		<div>
 			<div class="{{ if $i -}}opacity-0 pointer-events-none select-none{{- end -}}">
-				<a href="/reihen/?letter={{- First $s.Title -}}" class="">Reihen</a>
+				<a href="/reihen/?letter={{- First $s.Name -}}" class="">Reihen</a>
 				<i class="ri-arrow-right-wide-line"></i>
 			</div>
 			<div>
-				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Title }}</a>
+				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Name }}</a>
 			</div>
 			<div>
 				{{- if $model.result.Entry.Year -}}

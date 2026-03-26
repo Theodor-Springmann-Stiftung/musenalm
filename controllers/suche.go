@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -39,7 +40,10 @@ func init() {
 }
 
 func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
-	app := ia.Core()
+	musenalmApp, ok := ia.(*app.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
 	router.GET(URL_SUCHE_ALT, func(e *core.RequestEvent) error {
 		return e.Redirect(http.StatusPermanentRedirect, DEFAULT_SUCHE)
 	})
@@ -53,11 +57,11 @@ func (p *SuchePage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 		allparas, _ := NewSearchParameters(e, *paras)
 
 		if allparas.IsBaendeSearch() {
-			return p.SearchBaendeRequest(app, engine, e, *allparas)
+			return p.SearchBaendeRequest(musenalmApp, engine, e, *allparas)
 		}
 
 		if allparas.IsBeitraegeSearch() {
-			return p.SearchBeitraegeRequest(app, engine, e, *allparas)
+			return p.SearchBeitraegeRequest(musenalmApp, engine, e, *allparas)
 		}
 
 		data := make(map[string]any)
@@ -73,10 +77,10 @@ func (p *SuchePage) SimpleSearchReihenRequest(app core.App, engine *templating.E
 	return engine.Response404(e, nil, nil)
 }
 
-func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
+func (p *SuchePage) SearchBeitraegeRequest(app *app.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
 	data := make(map[string]any)
 	filterparams := NewBeitraegeFilterParameters(e)
-	result, err := NewSearchBeitraege(app, params, filterparams)
+	result, err := NewSearchBeitraege(app.Core(), params, filterparams)
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
@@ -88,7 +92,7 @@ func (p *SuchePage) SearchBeitraegeRequest(app core.App, engine *templating.Engi
 	return engine.Response200(e, p.Template+params.Collection+"/", data, p.Layout)
 }
 
-func (p *SuchePage) SearchBaendeRequest(app core.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
+func (p *SuchePage) SearchBaendeRequest(app *app.App, engine *templating.Engine, e *core.RequestEvent, params SearchParameters) error {
 	data := make(map[string]any)
 
 	result, err := NewSearchBaende(app, params)

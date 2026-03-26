@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"database/sql"
+	"slices"
 
+	musenalmapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -16,10 +18,7 @@ type SearchResultBaende struct {
 
 	// these are the sorted IDs for hits
 	Hits    []string
-	Series  map[string]*dbmodels.Series // <- Key: Series ID
-	Entries map[string]*dbmodels.Entry  // <- Key: Entry ID
-	Places  map[string]*dbmodels.Place  // <- All places, Key: Place IDs
-	Agents  map[string]*dbmodels.Agent  // <- Key: Agent IDs
+	Entries map[string]*dbmodels.Entry // <- Key: Entry ID
 
 	// INFO: this is as they say doppelt gemoppelt bc of a logic error i made while tired
 	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Entry ID
@@ -32,22 +31,20 @@ type SearchResultBaende struct {
 func EmptyResultBaende() *SearchResultBaende {
 	return &SearchResultBaende{
 		Hits:          []string{},
-		Series:        make(map[string]*dbmodels.Series),
 		Entries:       make(map[string]*dbmodels.Entry),
-		Places:        make(map[string]*dbmodels.Place),
-		Agents:        make(map[string]*dbmodels.Agent),
 		EntriesSeries: make(map[string][]*dbmodels.REntriesSeries),
 		SeriesEntries: make(map[string][]*dbmodels.REntriesSeries),
 		EntriesAgents: make(map[string][]*dbmodels.REntriesAgents),
 	}
 }
 
-func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende, error) {
+func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResultBaende, error) {
+	coreApp := app.Core()
 	entries := []*dbmodels.Entry{}
 	queries := params.FieldSetBaende()
 
 	if params.AlmString != "" {
-		e, err := dbmodels.Entries_MusenalmID(app, params.AlmString)
+		e, err := dbmodels.Entries_MusenalmID(coreApp, params.AlmString)
 		if err != nil && err == sql.ErrNoRows {
 			return EmptyResultBaende(), nil
 		} else if err != nil {
@@ -60,7 +57,7 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 			return nil, ErrNoQuery
 		}
 
-		ids, err := dbmodels.FTS5Search(app, dbmodels.ENTRIES_TABLE, queries...)
+		ids, err := dbmodels.FTS5Search(coreApp, dbmodels.ENTRIES_TABLE, queries...)
 		if err != nil {
 			return nil, err
 		} else if len(ids) == 0 {
@@ -72,7 +69,7 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 			resultids = append(resultids, id.ID)
 		}
 
-		e, err := dbmodels.Entries_IDs(app, resultids)
+		e, err := dbmodels.Entries_IDs(coreApp, resultids)
 		if err != nil {
 			return nil, err
 		}
@@ -89,14 +86,9 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 		entriesmap[entry.Id] = entry
 	}
 
-	series, relations, err := Series_Entries(app, entries)
+	relations, err := dbmodels.REntriesSeries_Entries(coreApp, resultids)
 	if err != nil {
 		return nil, err
-	}
-
-	seriesmap := make(map[string]*dbmodels.Series)
-	for _, s := range series {
-		seriesmap[s.Id] = s
 	}
 
 	relationsmap := make(map[string][]*dbmodels.REntriesSeries)
@@ -106,14 +98,9 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 		relationsmap[r.Entry()] = append(relationsmap[r.Entry()], r)
 	}
 
-	agents, arelations, err := Agents_Entries_IDs(app, resultids)
+	arelations, err := dbmodels.REntriesAgents_Entries(coreApp, resultids)
 	if err != nil {
 		return nil, err
-	}
-
-	agentsmap := make(map[string]*dbmodels.Agent)
-	for _, a := range agents {
-		agentsmap[a.Id] = a
 	}
 
 	relationsagentsmap := make(map[string][]*dbmodels.REntriesAgents)
@@ -121,30 +108,23 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 		relationsagentsmap[r.Entry()] = append(relationsagentsmap[r.Entry()], r)
 	}
 
-	placesids := []any{}
-	for _, entry := range entries {
-		for _, place := range entry.Places() {
-			placesids = append(placesids, place)
-		}
-	}
-
-	places, err := dbmodels.Places_IDs(app, placesids)
-	if err != nil {
-		return nil, err
-	}
-
-	placesmap := make(map[string]*dbmodels.Place)
-	for _, place := range places {
-		placesmap[place.Id] = place
-	}
-
 	hits := []string{}
 	var pages []int
 	if params.Sort == "series" {
-		dbmodels.Sort_Series_Title(series)
-		for _, s := range series {
-			hits = append(hits, s.Id)
+		for seriesID := range invrelationsmap {
+			hits = append(hits, seriesID)
 		}
+		slices.SortFunc(hits, func(left, right string) int {
+			leftSeries := app.GetSeriesDisplay(left)
+			rightSeries := app.GetSeriesDisplay(right)
+			if leftSeries.Name == rightSeries.Name {
+				return leftSeries.MusenalmID - rightSeries.MusenalmID
+			}
+			if leftSeries.Name < rightSeries.Name {
+				return -1
+			}
+			return 1
+		})
 		pages = PagesMap(hits, invrelationsmap, DEFAULT_PAGESIZE_BAENDE)
 	} else {
 		dbmodels.Sort_Entries_Year_Title(entries)
@@ -166,10 +146,7 @@ func NewSearchBaende(app core.App, params SearchParameters) (*SearchResultBaende
 
 	return &SearchResultBaende{
 		Hits:          hits,
-		Series:        seriesmap,
 		Entries:       entriesmap,
-		Places:        placesmap,
-		Agents:        agentsmap,
 		EntriesSeries: relationsmap,
 		SeriesEntries: invrelationsmap,
 		EntriesAgents: relationsagentsmap,
@@ -187,7 +164,7 @@ func (r SearchResultBaende) Count() int {
 }
 
 func (r SearchResultBaende) SeriesCount() int {
-	return len(r.Series)
+	return len(r.SeriesEntries)
 }
 
 func Agents_Entries_IDs(app core.App, ids []any) ([]*dbmodels.Agent, []*dbmodels.REntriesAgents, error) {

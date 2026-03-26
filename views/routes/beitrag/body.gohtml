@@ -1,12 +1,7 @@
 {{- $model := . }}
 {{/* type BeitragResult struct {
 	Entry          *dbmodels.Entry
-	Places         []*dbmodels.Place
-	Series         []*dbmodels.Series
 	Content        *dbmodels.Content
-	Agents         map[string]*dbmodels.Agent          // <- Key is agent id
-	EntriesSeries  map[string]*dbmodels.REntriesSeries // <- Key is series id
-	EntriesAgents  []*dbmodels.REntriesAgents
 	ContentsAgents []*dbmodels.RContentsAgents // <- Key is content id
 	}
 */}}
@@ -67,6 +62,6 @@
 	</span>
 
 	<div class="mt-7">
-		{{- template "_content"  Arr $model.result.Content $model.result.Entry $model.result.ContentsAgents $model.result.Agents true -}}
+		{{- template "_content"  Arr $model.result.Content $model.result.Entry $model.result.ContentsAgents false true -}}
 	</div>
 </div>
