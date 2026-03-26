@@ -121,13 +121,24 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
-		user, err := dbmodels.Users_Email(app, formdata.Username)
-		if err != nil || !user.ValidatePassword(formdata.Password) {
-			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
-		}
+		user, userErr := dbmodels.Users_Email(app, formdata.Username)
+		userAuthenticated := userErr == nil && user.ValidatePassword(formdata.Password)
 
-		if user.Deactivated() {
+		superuser, superuserErr := app.FindAuthRecordByEmail(core.CollectionNameSuperusers, formdata.Username)
+		superuserAuthenticated := superuserErr == nil && superuser.ValidatePassword(formdata.Password)
+
+		sessionUserID := ""
+		sessionSuperuserID := ""
+
+		switch {
+		case userAuthenticated && !user.Deactivated():
+			sessionUserID = user.Id
+		case superuserAuthenticated:
+			sessionSuperuserID = superuser.Id
+		case userAuthenticated && user.Deactivated():
 			return Unauthorized(engine, e, fmt.Errorf("ihr benutzerkonto ist deaktiviert, bitte kontaktieren sie den administrator"), data)
+		default:
+			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
 		duration := time.Hour * 2
@@ -135,7 +146,15 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			duration = time.Hour * 24 * 90
 		}
 
-		token, err := dbmodels.CreateSessionToken(app, user.Id, e.RealIP(), e.Request.UserAgent(), formdata.Persistent == "on", duration)
+		token, err := dbmodels.CreateSessionToken(
+			app,
+			sessionUserID,
+			sessionSuperuserID,
+			e.RealIP(),
+			e.Request.UserAgent(),
+			formdata.Persistent == "on",
+			duration,
+		)
 		if err != nil || token == nil || token.SessionTokenClear == "" {
 			return engine.Response500(e, err, data)
 		}

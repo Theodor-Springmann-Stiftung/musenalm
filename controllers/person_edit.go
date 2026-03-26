@@ -270,8 +270,8 @@ func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string
 	agent.SetFictional(formdata.Fictional)
 	agent.SetEditState(status)
 	agent.SetComment(strings.TrimSpace(formdata.Comment))
-	if user != nil {
-		agent.SetEditor(user.Id)
+	if editorID := editableUserID(user); editorID != "" {
+		agent.SetEditor(editorID)
 	}
 }
 
@@ -301,10 +301,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, ia pagemo
 
 		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			return store.UpdateAgent(tx, agent, canonical.AgentInput{
 				Name:              formdata.Name,
 				Pseudonyms:        formdata.Pseudonyms,

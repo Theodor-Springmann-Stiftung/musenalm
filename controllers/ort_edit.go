@@ -154,8 +154,8 @@ func applyPlaceForm(place *dbmodels.Place, formdata ortEditForm, name string, st
 	place.SetFictional(formdata.Fictional)
 	place.SetEditState(status)
 	place.SetComment(strings.TrimSpace(formdata.Comment))
-	if user != nil {
-		place.SetEditor(user.Id)
+	if editorID := editableUserID(user); editorID != "" {
+		place.SetEditor(editorID)
 	}
 }
 
@@ -185,10 +185,7 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, ia pagemodel
 
 		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			return store.UpdatePlace(tx, place, canonical.PlaceInput{
 				Name:              formdata.Name,
 				Pseudonyms:        formdata.Pseudonyms,

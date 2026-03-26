@@ -44,8 +44,17 @@ func (c *UserSessionCache) Set(user *dbmodels.User, session *dbmodels.Session) (
 		return nil, nil
 	}
 
+	fixed := user.Fixed()
+	return c.SetFixed(&fixed, session)
+}
+
+func (c *UserSessionCache) SetFixed(user *dbmodels.FixedUser, session *dbmodels.Session) (*dbmodels.FixedUser, *dbmodels.FixedSession) {
+	if user == nil || session == nil {
+		return nil, nil
+	}
+
 	newEntry := &cacheEntry{
-		user:    user.Fixed(),
+		user:    *user,
 		session: session.Fixed(),
 	}
 

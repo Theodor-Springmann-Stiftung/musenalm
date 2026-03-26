@@ -150,10 +150,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 
 		user := req.User()
 		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			entryInput := canonicalEntryInput(&payload, editorID)
 			entryInput.ExpectedUpdatedAt = expectedUpdatedAt
 			if err := store.UpdateEntry(tx, entry, entryInput, effects); err != nil {

@@ -57,19 +57,37 @@ func Authenticated(app core.App) func(*core.RequestEvent) error {
 				return e.Next()
 			}
 
-			slog.Debug("Session loaded from database", "session", s.Id, "user", s.User())
-			u, err := dbmodels.Users_ID(app, s.User())
-			if err != nil {
+			slog.Debug("Session loaded from database", "session", s.Id, "user", s.User(), "superuser", s.Superuser())
+
+			switch {
+			case s.User() != "":
+				u, err := dbmodels.Users_ID(app, s.User())
+				if err != nil {
+					e.SetCookie(deact_cookie)
+					e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
+					return e.Next()
+				}
+				user, session = SESSION_CACHE.Set(u, s)
+			case s.Superuser() != "":
+				record, err := app.FindRecordById(core.CollectionNameSuperusers, s.Superuser())
+				if err != nil {
+					e.SetCookie(deact_cookie)
+					e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
+					return e.Next()
+				}
+
+				fixed := dbmodels.FixedSuperuser(record)
+				user, session = SESSION_CACHE.SetFixed(&fixed, s)
+			default:
 				e.SetCookie(deact_cookie)
 				e.Response.Header().Set("Clear-Site-Data", "\"cookies\"")
 				return e.Next()
 			}
-			user, session = SESSION_CACHE.Set(u, s)
 		}
 
 		slog.Debug("User session detected", "user", user.Id, "name", user.Name, "session", session.ID)
 
-		if session.IsExpired() || user.Deactivated {
+		if session.IsExpired() || (!user.IsSuperuser && user.Deactivated) {
 			// TODO: (Maybe) less rigid handling here: for creation or update of items forgive shortly
 			// expired tokens, if CSRF and everything else is a match.
 			slog.Warn("Session expired", "user", user.Id, "name", user.Name, "session", session.ID)

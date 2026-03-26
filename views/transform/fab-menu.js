@@ -11,6 +11,7 @@ export class FabMenu extends HTMLElement {
 		const userName = this.getAttribute("data-user-name") || "Benutzer";
 		const userEmail = this.getAttribute("data-user-email") || "";
 		const userId = this.getAttribute("data-user-id") || "";
+		const isSuperuser = this.getAttribute("data-user-is-superuser") === "true";
 		const isAdminOrEditor = this.getAttribute("data-is-admin-or-editor") === "true";
 		const isAdmin = this.getAttribute("data-is-admin") === "true";
 		const redirectPath = this.getAttribute("data-redirect-path") || "";
@@ -362,6 +363,12 @@ export class FabMenu extends HTMLElement {
 		// Build the unified menu content
 		const contextualSection = halfOpenContent ? halfOpenContent : "";
 		const contextualDivider = halfOpenContent ? '<div class="border-t border-gray-200"></div>' : "";
+		const profileSection = isSuperuser
+			? ""
+			: `<a href="/admin/user/${userId}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
+							<i class="ri-user-3-line text-base text-gray-700 mr-2.5"></i>
+							<span class="text-gray-900">Profil bearbeiten</span>
+						</a>`;
 
 		// Insert HTML into light DOM
 		this.innerHTML = `
@@ -381,10 +388,7 @@ export class FabMenu extends HTMLElement {
 							<div class="font-semibold text-gray-900 text-sm">${userName}</div>
 							<div class="text-xs text-gray-600 truncate">${userEmail}</div>
 						</div>
-						<a href="/admin/user/${userId}/edit?redirectTo=${encodeURIComponent(window.location.href)}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
-							<i class="ri-user-3-line text-base text-gray-700 mr-2.5"></i>
-							<span class="text-gray-900">Profil bearbeiten</span>
-						</a>
+						${profileSection}
 						<a href="/logout?redirectTo=${redirectPath}" class="flex items-center px-3 py-1.5 hover:bg-gray-100 transition-colors no-underline text-sm">
 							<i class="ri-logout-box-line text-base text-gray-700 mr-2.5 mb-1"></i>
 							<span class="text-gray-900">Logout</span>

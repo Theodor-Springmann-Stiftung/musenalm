@@ -341,10 +341,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			relationsByContent[contentID] = parseContentAgentRelations(e.Request.PostForm, contentID)
 		}
 		user := req.User()
-		editorID := ""
-		if user != nil {
-			editorID = user.Id
-		}
+		editorID := editableUserID(user)
 		existingByID := make(map[string]*dbmodels.Content, len(contents))
 		for _, content := range contents {
 			existingByID[content.Id] = content
@@ -503,10 +500,7 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 			return engine.Response404(e, err, nil)
 		}
 
-		editorID := ""
-		if user := req.User(); user != nil {
-			editorID = user.Id
-		}
+		editorID := editableUserID(req.User())
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			return store.UpdateEntryExtent(tx, entry, e.Request.FormValue("extent"), editorID, effects)
 		}); err != nil {
@@ -614,10 +608,7 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 			return renderContentsImagesHTMXError(e, "Bitte eine Datei auswaehlen.", isHTMX)
 		}
 
-		editorID := ""
-		if user := req.User(); user != nil {
-			editorID = user.Id
-		}
+		editorID := editableUserID(req.User())
 		if err := app.RunInTransaction(func(tx core.App) error {
 			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
 			if err != nil {
@@ -697,10 +688,7 @@ func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app
 			return renderContentsImagesHTMXError(e, "Datei nicht gefunden.", isHTMX)
 		}
 
-		editorID := ""
-		if user := req.User(); user != nil {
-			editorID = user.Id
-		}
+		editorID := editableUserID(req.User())
 		if err := app.RunInTransaction(func(tx core.App) error {
 			record, err := tx.FindRecordById(dbmodels.CONTENTS_TABLE, content.Id)
 			if err != nil {

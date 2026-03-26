@@ -3,6 +3,7 @@
   data-user-name="{{ if .request.user.Name }}{{ .request.user.Name }}{{ end }}"
   data-user-email="{{ .request.user.Email }}"
   data-user-id="{{ .request.user.Id }}"
+  data-user-is-superuser="{{ if .request.user.IsSuperuser }}true{{ else }}false{{ end }}"
   data-is-admin-or-editor="{{ if (IsAdminOrEditor .request.user) }}true{{ else }}false{{ end }}"
   data-is-admin="{{ if eq .request.user.Role "Admin" }}true{{ else }}false{{ end }}"
   data-redirect-path="{{ .request.fullpath }}"

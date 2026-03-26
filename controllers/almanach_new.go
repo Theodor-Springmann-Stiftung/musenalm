@@ -105,10 +105,7 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, ia p
 		var entry *dbmodels.Entry
 		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			newEntry, err := store.CreateEntry(tx, canonicalEntryInput(&payload, editorID), effects)
 			if err != nil {
 				return err

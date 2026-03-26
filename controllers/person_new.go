@@ -96,10 +96,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemod
 		var createdAgent *dbmodels.Agent
 		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			agent, err := store.CreateAgent(tx, canonical.AgentInput{
 				Name:             formdata.Name,
 				Pseudonyms:       formdata.Pseudonyms,

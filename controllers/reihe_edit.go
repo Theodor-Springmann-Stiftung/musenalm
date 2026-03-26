@@ -302,8 +302,8 @@ func applySeriesForm(series *dbmodels.Series, formdata reiheEditForm, title stri
 	series.SetFrequency(strings.TrimSpace(formdata.Frequency))
 	series.SetEditState(status)
 	series.SetComment(strings.TrimSpace(formdata.Comment))
-	if user != nil {
-		series.SetEditor(user.Id)
+	if editorID := editableUserID(user); editorID != "" {
+		series.SetEditor(editorID)
 	}
 }
 
@@ -333,10 +333,7 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, ia pagemod
 
 		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := ""
-			if user != nil {
-				editorID = user.Id
-			}
+			editorID := editableUserID(user)
 			return store.UpdateSeries(tx, series, canonical.SeriesInput{
 				Title:             formdata.Title,
 				Pseudonyms:        formdata.Pseudonyms,

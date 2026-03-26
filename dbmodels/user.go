@@ -17,6 +17,7 @@ type FixedUser struct {
 	Verified    bool           `json:"verified"`
 	Settings    string         `json:"settings"`
 	Deactivated bool           `json:"deactivated"`
+	IsSuperuser bool           `json:"is_superuser"`
 }
 
 var _ core.RecordProxy = (*Place)(nil)
@@ -92,5 +93,22 @@ func (u *User) Fixed() FixedUser {
 		Avatar:      u.Avatar(),
 		Verified:    u.Verified(),
 		Deactivated: u.Deactivated(),
+	}
+}
+
+func FixedSuperuser(record *core.Record) FixedUser {
+	name := record.GetString(USERS_NAME_FIELD)
+	if name == "" {
+		name = record.Email()
+	}
+
+	return FixedUser{
+		Id:          record.Id,
+		Email:       record.Email(),
+		Name:        name,
+		Role:        "Admin",
+		Verified:    record.Verified(),
+		Deactivated: false,
+		IsSuperuser: true,
 	}
 }

@@ -8,6 +8,7 @@ import (
 type FixedSession struct {
 	ID         string         `json:"id"`
 	Token      string         `json:"token"`
+	Superuser  string         `json:"superuser"`
 	User       string         `json:"user"`
 	Created    string         `json:"created"`
 	Updated    string         `json:"updated"`
@@ -54,6 +55,14 @@ func (u *Session) User() string {
 
 func (u *Session) SetUser(userId string) {
 	u.Set(SESSIONS_USER_FIELD, userId)
+}
+
+func (u *Session) Superuser() string {
+	return u.GetString(SESSIONS_SUPERUSER_FIELD)
+}
+
+func (u *Session) SetSuperuser(superuserId string) {
+	u.Set(SESSIONS_SUPERUSER_FIELD, superuserId)
 }
 
 func (u *Session) Created() string {
@@ -128,6 +137,7 @@ func (u *Session) Fixed() FixedSession {
 	return FixedSession{
 		ID:         u.Id,
 		Token:      u.Token(),
+		Superuser:  u.Superuser(),
 		User:       u.User(),
 		Created:    u.Created(),
 		Updated:    u.Updated(),

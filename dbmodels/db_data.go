@@ -520,6 +520,7 @@ const (
 
 	SESSIONS_TOKEN_FIELD       = "token"
 	SESSIONS_CSRF_FIELD        = "csrf"
+	SESSIONS_SUPERUSER_FIELD   = "superuser"
 	SESSIONS_USER_FIELD        = "user"
 	SESSIONS_IP_FIELD          = "ip"
 	SESSIONS_USER_AGENT_FIELD  = "agent"

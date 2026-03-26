@@ -39,11 +39,15 @@ func generateSecureRandomToken(length int) (string, error) {
 func CreateSessionToken(
 	app core.App,
 	userID string,
+	superuserID string,
 	ipAddress string,
 	userAgent string,
 	isPersistent bool,
 	sessionDuration time.Duration,
 ) (*Session, error) {
+	if (userID == "" && superuserID == "") || (userID != "" && superuserID != "") {
+		return nil, fmt.Errorf("exactly one session principal must be set")
+	}
 
 	collection, err := app.FindCollectionByNameOrId(SESSIONS_TABLE)
 	if err != nil {
@@ -67,7 +71,12 @@ func CreateSessionToken(
 	session.SessionTokenClear = sessionTokenClear
 	session.SetToken(HashStringSHA256(sessionTokenClear))
 	session.SetCSRF(csrfTokenClear)
-	session.SetUser(userID)
+	if userID != "" {
+		session.SetUser(userID)
+	}
+	if superuserID != "" {
+		session.SetSuperuser(superuserID)
+	}
 
 	date := types.NowDateTime()
 	expires := date.Add(sessionDuration)
@@ -84,6 +93,11 @@ func CreateSessionToken(
 		return nil, fmt.Errorf("failed to save session token record: %w", errSave)
 	}
 
-	app.Logger().Info("Successfully created session token entry", "recordId", record.Id, "userID", userID)
+	app.Logger().Info(
+		"Successfully created session token entry",
+		"recordId", record.Id,
+		"userID", userID,
+		"superuserID", superuserID,
+	)
 	return session, nil
 }

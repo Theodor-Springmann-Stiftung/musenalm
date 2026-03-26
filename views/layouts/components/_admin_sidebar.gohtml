@@ -1,11 +1,13 @@
 {{ $model := . }}
 {{- $accountHref := "/login/" -}}
 {{- $profilePathPrefix := "" -}}
+{{- $canEditAccount := false -}}
 {{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
 {{- $path := "" -}}
-{{- if and $model.request $model.request.user -}}
+{{- if and $model.request $model.request.user (not $model.request.user.IsSuperuser) -}}
 	{{- $accountHref = (printf "/admin/user/%s/edit/" $model.request.user.Id) -}}
 	{{- $profilePathPrefix = (printf "/admin/user/%s/edit" $model.request.user.Id) -}}
+	{{- $canEditAccount = true -}}
 {{- end -}}
 {{- if and $model.request $model.request.path -}}
 	{{- $path = $model.request.path -}}
@@ -131,9 +133,11 @@
 			<span class="admin-sidebar-account-icon" title="Konto">
 				<i class="ri-user-line" aria-hidden="true"></i>
 			</span>
-			<a href="{{ $accountHref }}" title="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
-				<span class="admin-sidebar-link-label"><i class="ri-pencil-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Bearbeiten</span></span>
-			</a>
+			{{- if $canEditAccount -}}
+				<a href="{{ $accountHref }}" title="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
+					<span class="admin-sidebar-link-label"><i class="ri-pencil-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Bearbeiten</span></span>
+				</a>
+			{{- end -}}
 			<a href="/logout/?redirectTo=/reihen/" title="Logout" class="admin-sidebar-link admin-sidebar-account-link">
 				<span class="admin-sidebar-link-label"><i class="ri-logout-box-r-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Logout</span></span>
 			</a>
