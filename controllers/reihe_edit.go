@@ -302,7 +302,8 @@ func applySeriesForm(series *dbmodels.Series, formdata reiheEditForm, title stri
 	series.SetFrequency(strings.TrimSpace(formdata.Frequency))
 	series.SetEditState(status)
 	series.SetComment(strings.TrimSpace(formdata.Comment))
-	if editorID := editableUserID(user); editorID != "" {
+	if user != nil && !user.IsSuperuser {
+		editorID := user.Id
 		series.SetEditor(editorID)
 	}
 }
@@ -331,9 +332,8 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, ia pagemod
 			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
-		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := editableUserID(user)
+			editorID := req.EditorUserID()
 			return store.UpdateSeries(tx, series, canonical.SeriesInput{
 				Title:             formdata.Title,
 				Pseudonyms:        formdata.Pseudonyms,

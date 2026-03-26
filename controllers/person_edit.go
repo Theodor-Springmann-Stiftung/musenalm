@@ -270,7 +270,8 @@ func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string
 	agent.SetFictional(formdata.Fictional)
 	agent.SetEditState(status)
 	agent.SetComment(strings.TrimSpace(formdata.Comment))
-	if editorID := editableUserID(user); editorID != "" {
+	if user != nil && !user.IsSuperuser {
+		editorID := user.Id
 		agent.SetEditor(editorID)
 	}
 }
@@ -299,9 +300,8 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, ia pagemo
 			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
-		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := editableUserID(user)
+			editorID := req.EditorUserID()
 			return store.UpdateAgent(tx, agent, canonical.AgentInput{
 				Name:              formdata.Name,
 				Pseudonyms:        formdata.Pseudonyms,

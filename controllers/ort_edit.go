@@ -154,7 +154,8 @@ func applyPlaceForm(place *dbmodels.Place, formdata ortEditForm, name string, st
 	place.SetFictional(formdata.Fictional)
 	place.SetEditState(status)
 	place.SetComment(strings.TrimSpace(formdata.Comment))
-	if editorID := editableUserID(user); editorID != "" {
+	if user != nil && !user.IsSuperuser {
+		editorID := user.Id
 		place.SetEditor(editorID)
 	}
 }
@@ -183,9 +184,8 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, ia pagemodel
 			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
 		}
 
-		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := editableUserID(user)
+			editorID := req.EditorUserID()
 			return store.UpdatePlace(tx, place, canonical.PlaceInput{
 				Name:              formdata.Name,
 				Pseudonyms:        formdata.Pseudonyms,

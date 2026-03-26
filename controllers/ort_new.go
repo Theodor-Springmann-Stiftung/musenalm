@@ -90,9 +90,8 @@ func (p *OrtNewPage) POST(engine *templating.Engine, app core.App, ia pagemodels
 		}
 
 		var createdPlace *dbmodels.Place
-		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := editableUserID(user)
+			editorID := req.EditorUserID()
 			place, err := store.CreatePlace(tx, canonical.PlaceInput{
 				Name:       formdata.Name,
 				Pseudonyms: formdata.Pseudonyms,

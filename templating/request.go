@@ -76,6 +76,14 @@ func (r *Request) IsEditor() bool {
 	return false
 }
 
+func (r *Request) EditorUserID() string {
+	user := r.User()
+	if user == nil || user.IsSuperuser {
+		return ""
+	}
+	return user.Id
+}
+
 func (r *Request) CheckCSRF(target string) error {
 	target = strings.TrimSpace(target)
 	if r.Session() == nil || target == "" {

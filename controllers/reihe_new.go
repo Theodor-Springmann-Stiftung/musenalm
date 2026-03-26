@@ -94,9 +94,8 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, ia pagemode
 		}
 
 		var createdSeries *dbmodels.Series
-		user := req.User()
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			editorID := editableUserID(user)
+			editorID := req.EditorUserID()
 			series, err := store.CreateSeries(tx, canonical.SeriesInput{
 				Title:      formdata.Title,
 				Pseudonyms: formdata.Pseudonyms,
