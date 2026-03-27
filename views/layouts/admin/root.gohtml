@@ -103,7 +103,7 @@
 			@htmx:history-restore.window="syncSidebarActive(window.location.pathname)"
 			:class="{ 'admin-layout-sidebar-collapsed': sidebarCollapsed }"
 			class="admin-layout">
-			<aside class="admin-sidebar-frame" id="header">
+			<aside class="select-none admin-sidebar-frame" id="header">
 				{{ template "_admin_sidebar" . }}
 			</aside>
 			<div class="admin-layout-main">

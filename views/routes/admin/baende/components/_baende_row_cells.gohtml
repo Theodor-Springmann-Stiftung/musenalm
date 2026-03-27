@@ -78,7 +78,8 @@
 	{{- end -}}
 	{{- if $entry.Annotation -}}
 		<div class="col-annotations baende-inline-annotation annotation-content mt-4 hidden hyphens-auto text-slate-800 text-base leading-snug font-sans">
-			<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">Anm.</span>
+			<span class="mr-1 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem]
+			font-semibold text-slate-700 align-middle">Anm.</span>
 			<span>{{- Safe (ReplaceSlashParenSlash $entry.Annotation) -}}</span>
 		</div>
 	{{- end -}}
