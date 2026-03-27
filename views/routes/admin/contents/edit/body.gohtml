@@ -252,6 +252,7 @@
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotation" /> Anmerkungen</label>
 								</div>
 							</div>
 						</details>
@@ -273,9 +274,16 @@
 			</div>
 		</div>
 		<div class="mt-2 flex flex-col" data-role="contents-panel">
-			<div class="flex flex-col gap-0"
+			<table class="w-full border-collapse table-auto"
 				data-role="contents-list"
 				data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+				<colgroup>
+					<col class="w-[4.5rem]" data-role="content-col-move">
+					<col data-role="content-col-alm">
+					<col>
+					<col>
+					<col>
+				</colgroup>
 				{{- range $_, $content := $model.result.Contents -}}
 					{{- template "_content_item" (Dict
 						"content" $content
@@ -292,7 +300,7 @@
 						"is_new" false
 					) -}}
 				{{- end -}}
-			</div>
+			</table>
 		</div>
 	{{- else -}}
 		<div class="py-2 flex items-center justify-end gap-3">
@@ -509,27 +517,19 @@
 			return targets;
 		};
 
-		const updateMarks = () => {
-			if (typeof Mark !== "function") {
-				return;
-			}
-			const terms = [];
-			const rawQuery = (filterInput.value || "").trim();
-			const rawPage = (filterPage?.value || "").trim();
-			const rawType = (filterType?.value || "").trim();
-			if (rawQuery) {
-				terms.push(rawQuery);
-			}
-			if (rawPage) {
-				terms.push(rawPage);
-			}
-			if (rawType) {
-				terms.push(rawType);
-			}
-			const targets = getMarkTargets();
-			if (targets.length === 0) {
-				return;
-			}
+					const updateMarks = () => {
+						if (typeof Mark !== "function") {
+							return;
+						}
+						const terms = [];
+						const rawQuery = (filterInput.value || "").trim();
+						if (rawQuery) {
+							terms.push(rawQuery);
+						}
+						const targets = getMarkTargets();
+						if (targets.length === 0) {
+							return;
+						}
 			const markInstance = new Mark(targets);
 			markInstance.unmark({
 				done: () => {
@@ -693,6 +693,7 @@
 					: `${visibleCount} von ${totalCount} Einträgen`;
 			}
 
+			window.__contentsApplyViewState?.();
 			updateFilterUi();
 			updateMarks();
 		};
@@ -766,6 +767,7 @@
 
 	const initViewOptions = () => {
 		const toggle = document.querySelector("[data-role='contents-column-toggle']");
+		const list = document.querySelector("[data-role='contents-list']");
 		if (!toggle || toggle.dataset.init === "true") {
 			return;
 		}
@@ -776,6 +778,7 @@
 			"move-controls": true,
 			"alm-number": true,
 			"type": true,
+			"annotation": false,
 			"responsibility": true,
 			"linked-agents": true,
 			"scans": true,
@@ -794,18 +797,34 @@
 			"move-controls": "[data-role='content-move-controls']",
 			"alm-number": "[data-role='content-alm-number']",
 			"type": "[data-role='content-type-group']",
+			"annotation": "[data-role='content-annotation']",
 			"responsibility": "[data-role='content-responsibility']",
 			"linked-agents": "[data-role='content-linked-agents']",
 			"scans": "[data-role='content-scans']",
 		};
+		const columnSelectors = {
+			"move-controls": ["[data-role='content-col-move']", "[data-role='content-cell-move']"],
+			"alm-number": ["[data-role='content-col-alm']", "[data-role='content-cell-alm']"],
+		};
 
 		const applyState = () => {
+			const filtering = !!list?.hasAttribute("data-filtering");
 			Object.entries(selectors).forEach(([key, selector]) => {
+				const isVisible = key === "move-controls" ? state[key] && !filtering : state[key];
 				document.querySelectorAll(selector).forEach((el) => {
-					el.style.display = state[key] ? "" : "none";
+					el.style.display = isVisible ? "" : "none";
+				});
+			});
+			Object.entries(columnSelectors).forEach(([key, selectorList]) => {
+				const isVisible = key === "move-controls" ? state[key] && !filtering : state[key];
+				selectorList.forEach((selector) => {
+					document.querySelectorAll(selector).forEach((el) => {
+						el.style.display = isVisible ? "" : "none";
+					});
 				});
 			});
 		};
+		window.__contentsApplyViewState = applyState;
 
 		toggle.querySelectorAll("input[data-col]").forEach((input) => {
 			const key = input.dataset.col;

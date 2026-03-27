@@ -9,54 +9,54 @@
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
-<div data-role="content-item" class="relative border-b border-stone-200 transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80" data-content-id="{{ $contentID }}">
-	<div data-role="content-view">
-		<div class="bg-transparent overflow-visible">
-			<div class="flex items-center justify-between gap-3 bg-transparent px-4 py-1.5 flex-nowrap whitespace-nowrap" data-content-header="true">
-				<div class="flex items-center gap-1.5 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
-					<div class="flex items-center gap-1" data-role="content-move-controls">
-						<button
-							type="button"
-							class="text-slate-600 rounded-sm px-1 py-0.5 text-xs cursor-grab"
-							data-role="content-drag-handle"
-							draggable="true"
-							aria-label="Beitrag verschieben">
-							<i class="ri-draggable text-xs"></i>
-						</button>
-						<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
-							<i class="ri-arrow-up-line text-xs"></i>
-						</button>
-						<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
-							<i class="ri-arrow-down-line text-xs"></i>
-						</button>
-					</div>
-					<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700" data-role="content-alm-number">
-						{{ $content.MusenalmID }}
-					</span>
-					{{- if $content.MusenalmType -}}
-						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden" data-role="content-type-group">
-							{{- range $i, $t := $content.MusenalmType -}}
-								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded-xs text-xs font-semibold" data-role="content-type-pill">{{- $t -}}</span>
-							{{- end -}}
-						</span>
-					{{- end -}}
-					<div class="flex items-baseline gap-0 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
-						<a
-							href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
-							class="no-underline hover:text-slate-900 cursor-pointer min-w-0 shrink overflow-hidden">
-							{{- if $content.PreferredTitle -}}
-								<span class="content-search-text block text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
-							{{- else if $content.TitleStmt -}}
-								<span class="content-search-text block text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
-							{{- end -}}
-						</a>
+<tr data-role="content-item" class="border-b border-stone-200 align-top transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80" data-content-id="{{ $contentID }}">
+	<td class="px-2 py-2 align-top w-[4.5rem]" data-role="content-cell-move">
+		<div class="flex items-center gap-1" data-role="content-move-controls">
+			<button
+				type="button"
+				class="text-slate-600 rounded-sm px-1 py-0.5 text-xs cursor-grab"
+				data-role="content-drag-handle"
+				draggable="true"
+				aria-label="Beitrag verschieben">
+				<i class="ri-draggable text-xs"></i>
+			</button>
+			<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-up" aria-label="Beitrag nach oben">
+				<i class="ri-arrow-up-line text-xs"></i>
+			</button>
+			<button type="button" class="text-slate-600 rounded-sm px-1 py-0.5 text-xs transition-colors hover:bg-stone-300" data-role="content-move-down" aria-label="Beitrag nach unten">
+				<i class="ri-arrow-down-line text-xs"></i>
+			</button>
+		</div>
+	</td>
+	<td class="px-2 py-2 align-top whitespace-nowrap w-px" data-role="content-cell-alm">
+		<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700" data-role="content-alm-number">
+			{{ $content.MusenalmID }}
+		</span>
+	</td>
+	<td class="px-2 py-2 align-top">
+		<div class="flex min-w-0 flex-col gap-2">
+			<div class="flex items-start justify-between gap-4" data-content-header="true">
+				<div class="min-w-0 flex-1">
+					<div class="min-w-0 text-gray-800" data-role="content-header-title">
+						{{- if $content.MusenalmType -}}
+							<span class="mr-2 inline-flex flex-wrap items-center gap-1 align-middle text-gray-700 font-normal" data-role="content-type-group">
+								{{- range $i, $t := $content.MusenalmType -}}
+									<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded-xs text-xs font-semibold" data-role="content-type-pill">{{- $t -}}</span>
+								{{- end -}}
+							</span>
+						{{- end -}}
+						{{- if $content.PreferredTitle -}}
+							<span class="content-search-text inline text-lg font-normal leading-snug text-slate-900" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
+						{{- else if $content.TitleStmt -}}
+							<span class="content-search-text inline text-lg font-normal italic leading-snug text-slate-900" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
+						{{- end -}}
 						{{- if $content.ResponsibilityStmt -}}
-							<span class="content-search-text shrink-0 text-lg font-normal italic text-slate-700" data-role="content-responsibility">
+							<span class="content-search-text inline text-lg font-normal italic leading-snug text-slate-700" data-role="content-responsibility">
 								<span class="mx-1.5 font-semibold not-italic">&middot;</span><span>{{ $content.ResponsibilityStmt }}</span>
 							</span>
 						{{- end -}}
 						{{- if $contentAgentDisplays -}}
-							<span class="content-search-text min-w-0 truncate text-lg font-normal text-slate-700" data-role="content-linked-agents">
+							<span class="content-search-text inline text-lg font-normal leading-snug text-slate-700" data-role="content-linked-agents">
 								<span class="mx-1.5 font-semibold">&middot;</span>
 								{{- range $i, $agent := $contentAgentDisplays -}}
 									{{- if $i }}, {{ end -}}
@@ -64,7 +64,7 @@
 								{{- end -}}
 							</span>
 						{{- else if $contentAgents -}}
-							<span class="content-search-text min-w-0 truncate text-lg font-normal text-slate-700" data-role="content-linked-agents">
+							<span class="content-search-text inline text-lg font-normal leading-snug text-slate-700" data-role="content-linked-agents">
 								<span class="mx-1.5 font-semibold">&middot;</span>
 								{{- $printedAgents := false -}}
 								{{- range $rel := $contentAgents -}}
@@ -79,10 +79,10 @@
 						{{- end -}}
 					</div>
 				</div>
-				<div class="flex items-center gap-1.5 flex-nowrap whitespace-nowrap shrink-0">
+				<div class="ml-4 flex shrink-0 items-start gap-2">
 					{{- $scans := $content.ImagePaths -}}
 					{{- if $scans -}}
-						<span class="inline-flex items-center gap-1 mr-2.5" data-role="content-scans">
+						<span class="inline-flex items-center gap-1" data-role="content-scans">
 							{{- range $i, $scan := $scans -}}
 								{{- if lt $i 3 -}}
 									<popup-image data-image-url="{{- $scan -}}" class="inline-flex items-center">
@@ -100,59 +100,71 @@
 							{{- if $content.Extent -}}S.&thinsp;{{- $content.Extent -}}{{- else -}}&nbsp;&nbsp;&nbsp;{{- end -}}
 						</span>
 					{{- end -}}
-					<tool-tip position="top" class="inline">
-						<span class="status-badge text-xs shadow-sm ml-2" data-status="{{ $content.EditState }}">
-							<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-						</span>
-						<div class="data-tip">
-							{{- if eq $content.EditState "Unknown" -}}
-								Gesucht
-							{{- else if eq $content.EditState "ToDo" -}}
-								Zu erledigen
-							{{- else if eq $content.EditState "Review" -}}
-								Überprüfen
-							{{- else if eq $content.EditState "Seen" -}}
-								Autopsiert
-							{{- else if eq $content.EditState "Edited" -}}
-								Erfasst
-							{{- else -}}
-								{{ $content.EditState }}
-							{{- end -}}
-						</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<a
-							href="/beitrag/{{ $content.MusenalmID }}"
-							target="_blank"
-							rel="noopener"
-							class="admin-list-chip"
-							aria-label="In neuem Tab öffnen">
-							<i class="ri-external-link-line"></i>
-						</a>
-						<div class="data-tip">In neuem Tab öffnen</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<a
-							href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
-							class="admin-list-chip"
-							aria-label="Beitrag bearbeiten">
-							<i class="ri-edit-line"></i>
-						</a>
-						<div class="data-tip">Bearbeiten</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<button
-							type="button"
-							class="admin-list-chip-danger"
-							data-role="content-delete-view"
-							aria-label="Beitrag löschen">
-							<i class="ri-delete-bin-line"></i>
-						</button>
-						<div class="data-tip">Löschen</div>
-					</tool-tip>
 				</div>
 			</div>
-			<div data-role="content-match-display" class="content-search-text hidden px-4 py-1.5 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
+			{{- if $content.Annotation -}}
+				<div class="col-annotations baende-inline-annotation annotation-content text-base leading-snug text-slate-800 font-sans hyphens-auto" data-role="content-annotation" style="display:none;">
+					<span class="inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 align-middle text-[0.72rem] font-semibold text-slate-700">Anm.</span>
+					<div class="mt-2">{{- Safe (ReplaceSlashParenSlash $content.Annotation) -}}</div>
+				</div>
+			{{- end -}}
+			<div data-role="content-match-display" class="content-search-text hidden text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400 px-3 py-2 rounded-r-sm"></div>
 		</div>
-	</div>
-</div>
+	</td>
+	<td class="px-2 py-2 align-top whitespace-nowrap w-px">
+		<tool-tip position="top" class="inline">
+			<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
+				<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+			</span>
+			<div class="data-tip">
+				{{- if eq $content.EditState "Unknown" -}}
+					Gesucht
+				{{- else if eq $content.EditState "ToDo" -}}
+					Zu erledigen
+				{{- else if eq $content.EditState "Review" -}}
+					Überprüfen
+				{{- else if eq $content.EditState "Seen" -}}
+					Autopsiert
+				{{- else if eq $content.EditState "Edited" -}}
+					Erfasst
+				{{- else -}}
+					{{ $content.EditState }}
+				{{- end -}}
+			</div>
+		</tool-tip>
+	</td>
+	<td class="px-2 py-2 align-top whitespace-nowrap w-px">
+		<div class="flex items-center justify-end gap-1.5">
+			<tool-tip position="top" class="inline">
+				<a
+					href="/beitrag/{{ $content.MusenalmID }}"
+					target="_blank"
+					rel="noopener"
+					class="admin-list-chip"
+					aria-label="In neuem Tab öffnen">
+					<i class="ri-external-link-line"></i>
+				</a>
+				<div class="data-tip">In neuem Tab öffnen</div>
+			</tool-tip>
+			<tool-tip position="top" class="inline">
+				<a
+					href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+					class="admin-list-chip"
+					aria-label="Beitrag bearbeiten">
+					<i class="ri-edit-line"></i>
+				</a>
+				<div class="data-tip">Bearbeiten</div>
+			</tool-tip>
+			<tool-tip position="top" class="inline">
+				<button
+					type="button"
+					class="admin-list-chip-danger"
+					data-role="content-delete-view"
+					aria-label="Beitrag löschen">
+					<i class="ri-delete-bin-line"></i>
+				</button>
+				<div class="data-tip">Löschen</div>
+			</tool-tip>
+		</div>
+	</td>
+</tr>
