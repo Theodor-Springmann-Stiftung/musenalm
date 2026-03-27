@@ -32,156 +32,156 @@ type AlmanachResult struct {
 		{{- end -}}
 	{{- end -}}
 {{- end -}}
+{{- $bandTitle := "Neuer Band" -}}
+{{- if not $model.is_new -}}
+	{{- $bandTitle = $model.result.Entry.PreferredTitle -}}
+{{- end -}}
+{{- $contentCount := 0 -}}
+{{- if and $model.result $model.result.Contents -}}
+	{{- $contentCount = len $model.result.Contents -}}
+{{- end -}}
 
 <almanach-edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
+<div class="simple-entity-page">
 
-<div class="edit-header-shell">
-	<div class="edit-header-layout">
-		<div class="edit-header-main">
-		<div class="edit-header-overline">
-			<div class="header-tabs">
-				{{- if and (not $model.is_new) $preferredSeriesMusenalmID -}}
-					<a href="/admin/reihe/{{- $preferredSeriesMusenalmID -}}/edit" class="header-tab">
-						<i class="ri-book-shelf-line"></i> Reihe
-					</a>
-				{{- else -}}
-					<span class="header-tab header-tab-disabled">
-						<i class="ri-book-shelf-line"></i> Reihe
-					</span>
-				{{- end -}}
-				<span class="header-tab-sep">›</span>
-				<span class="header-tab header-tab-active">
-					<i class="ri-book-line"></i> Almanach
-				</span>
-				<span class="header-tab-sep">›</span>
-				{{- if not $model.is_new -}}
-					<a href="/admin/almanach/{{- $model.result.Entry.MusenalmID -}}/contents/edit" class="header-tab">
-						<i class="ri-file-list-3-line"></i> Beiträge
-					</a>
-				{{- else -}}
-					<span class="header-tab header-tab-disabled">
-						<i class="ri-file-list-3-line"></i> Beiträge
-					</span>
-				{{- end -}}
-			</div>
-		</div>
-		<h1 class="edit-header-title">
-			{{- if $model.is_new -}}
-				 Neuen Almanach anlegen
-			{{- else -}}
-				{{- $model.result.Entry.PreferredTitle -}}
-			{{- end -}}
-		</h1>
-			{{- if not $model.is_new -}}
-				<div class="edit-header-links">
-					<div>
-						<a
-							href="/almanach/{{ $model.result.Entry.MusenalmID }}"
-							class="edit-header-link">
-							<i class="ri-eye-line"></i> Anschauen
-						</a>
-					</div>
-					&middot;
-					<div class="flex flex-row">
-						{{- if $model.result.PrevByID -}}
-							<div>
-								<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/edit/" class="text-gray-700 hover:text-slate-950 no-underline block ">
-									<i class="ri-arrow-left-s-line"></i>
-								</a>
-							</div>
-						{{- end -}}
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit font-bold">
-						{{ $model.result.Entry.MusenalmID }}
-							<tool-tip position="right" class="!inline">
-								<div class="data-tip">{{ help "entries" "musenalm_id" }}</div>
-								<i class="ri-information-line"></i>
-							</tool-tip>
-						</div>
-						{{- if $model.result.NextByID -}}
-							<div>
-								<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/edit/" class="text-gray-700 hover:text-slate-950 block  no-underline"><i class="ri-arrow-right-s-line"></i></a>
-							</div>
-						{{- end -}}
-					</div>
-				</div>
-			{{- end -}}
-		</div>
-		{{- if not $model.is_new -}}
-		<div class="edit-header-meta" id="almanach-header-data">
-			<div class="flex flex-col justify-end gap-y-6 pr-20">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-navigation-line"></i> Navigation
-					</div>
-					<div class="flex items-center gap-2">
-						{{- if $model.result.PrevByTitle -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
-								<a
-									href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/edit/"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-left-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-left-s-line"></i>
-							</span>
-						{{- end -}}
-						<span class="text-gray-800 font-bold no-underline">
-						A&thinsp;-&thinsp;Z
-						</span>
-						{{- if $model.result.NextByTitle -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
-								<a
-									href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/edit/"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-right-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-right-s-line"></i>
-							</span>
-						{{- end -}}
-					</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-						<tool-tip position="right" class="!inline">
-							<div class="data-tip">{{ help "entries" "id" }}</div>
-							<i class="ri-information-line"></i>
-						</tool-tip>
-					</div>
-					<div class="whitespace-nowrap tabular-nums">{{ $model.result.Entry.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
-					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums" id="almanach-updated-stamp">
-							<span id="almanach-updated-date">{{ GermanDate $model.result.Entry.Updated }}</span>,
-							<span id="almanach-updated-time">{{ GermanTime $model.result.Entry.Updated }}</span>h
-						</div>
-						<div
-							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
-							id="almanach-updated-user">
-							<i class="ri-user-line mr-1"></i>
-							<span id="almanach-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{{- end -}}
+<header class="admin-page-header simple-entity-header">
+	<div class="simple-entity-title-row">
+		<tool-tip position="top" class="inline">
+			<span class="simple-entity-title-icon" aria-label="Band">
+				<i class="ri-book-line"></i>
+			</span>
+			<div class="data-tip">Band</div>
+		</tool-tip>
+		<h1 class="simple-entity-title">{{ $bandTitle }}</h1>
 	</div>
-</div>
+
+	{{- if not $model.is_new -}}
+		<div class="admin-list-toolbar">
+			<div class="admin-list-toolbar-primary simple-entity-header-actions">
+				<tool-tip position="top" class="inline">
+					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-chip" aria-label="Beiträge">
+						<i class="ri-file-list-3-line"></i>
+						<span>Beiträge</span>
+						<span class="admin-list-badge">{{ $contentCount }}</span>
+					</a>
+					<div class="data-tip">{{ $contentCount }} Beiträge bearbeiten</div>
+				</tool-tip>
+				<tool-tip position="top" class="inline">
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
+						<i class="ri-eye-line"></i>
+					</a>
+					<div class="data-tip">Anschauen</div>
+				</tool-tip>
+				<tool-tip position="top" class="inline">
+					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
+						<i class="ri-external-link-line"></i>
+					</a>
+					<div class="data-tip">In neuem Tab öffnen</div>
+				</tool-tip>
+				<tool-tip position="top" class="inline">
+					<a href="/admin/baende/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Liste aller Bände">
+						<i class="ri-list-check-2"></i>
+					</a>
+					<div class="data-tip">Liste aller Bände</div>
+				</tool-tip>
+				{{- if $model.result.PrevByTitle -}}
+					<tool-tip position="top" class="inline">
+						<a href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
+							<i class="ri-arrow-left-s-line"></i>
+						</a>
+						<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
+					</tool-tip>
+				{{- else -}}
+					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
+						<i class="ri-arrow-left-s-line"></i>
+					</span>
+				{{- end -}}
+				<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
+				{{- if $model.result.NextByTitle -}}
+					<tool-tip position="top" class="inline">
+						<a href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
+							<i class="ri-arrow-right-s-line"></i>
+						</a>
+						<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
+					</tool-tip>
+				{{- else -}}
+					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
+						<i class="ri-arrow-right-s-line"></i>
+					</span>
+				{{- end -}}
+			</div>
+
+			<div class="admin-list-toolbar-secondary simple-entity-meta-inline" id="almanach-header-data">
+				<span class="simple-entity-meta-item">
+					{{- if $model.result.PrevByID -}}
+						<tool-tip position="top" class="inline">
+							<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
+								<i class="ri-arrow-left-s-line"></i>
+							</a>
+							<div class="data-tip">{{ $model.result.PrevByID.MusenalmID }}: {{ $model.result.PrevByID.PreferredTitle }}</div>
+						</tool-tip>
+					{{- else -}}
+						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
+							<i class="ri-arrow-left-s-line"></i>
+						</span>
+					{{- end -}}
+					<tool-tip position="top" class="inline">
+						<span class="simple-entity-meta-icon" aria-hidden="true">
+							<i class="ri-fingerprint-line"></i>
+						</span>
+						<div class="data-tip">{{ help "entries" "musenalm_id" }}</div>
+					</tool-tip>
+					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.MusenalmID }}</span>
+					{{- if $model.result.NextByID -}}
+						<tool-tip position="top" class="inline">
+							<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
+								<i class="ri-arrow-right-s-line"></i>
+							</a>
+							<div class="data-tip">{{ $model.result.NextByID.MusenalmID }}: {{ $model.result.NextByID.PreferredTitle }}</div>
+						</tool-tip>
+					{{- else -}}
+						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
+							<i class="ri-arrow-right-s-line"></i>
+						</span>
+					{{- end -}}
+				</span>
+				<span class="simple-entity-meta-sep">|</span>
+				<span class="simple-entity-meta-item">
+					<tool-tip position="top" class="inline">
+						<span class="simple-entity-meta-icon" aria-hidden="true">
+							<i class="ri-database-2-line"></i>
+						</span>
+						<div class="data-tip">{{ help "entries" "id" }}</div>
+					</tool-tip>
+					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.Id }}</span>
+				</span>
+				<span class="simple-entity-meta-sep">|</span>
+				<span class="simple-entity-meta-item">
+					<tool-tip position="top" class="inline">
+						<span class="simple-entity-meta-icon" aria-hidden="true">
+							<i class="ri-calendar-line"></i>
+						</span>
+						<div class="data-tip">Zuletzt bearbeitet</div>
+					</tool-tip>
+					<span class="simple-entity-meta-item-value tabular-nums" id="almanach-updated-stamp">{{ GermanShortDateTime $model.result.Entry.Updated }}</span>
+				</span>
+				{{- if $model.result.User -}}
+					<span class="simple-entity-meta-sep">|</span>
+					<span class="simple-entity-meta-item {{ if not $model.result.User }}hidden{{ end }}" id="almanach-updated-user">
+						<tool-tip position="top" class="inline">
+							<span class="simple-entity-meta-icon" aria-hidden="true">
+								<i class="ri-user-line"></i>
+							</span>
+							<div class="data-tip">Zuletzt bearbeitet von</div>
+						</tool-tip>
+						<span class="simple-entity-meta-item-value" id="almanach-updated-user-name">{{ $model.result.User.Name }}</span>
+					</span>
+				{{- end -}}
+			</div>
+		</div>
+	{{- end -}}
+</header>
 
 <div class="edit-content-shell">
 	{{/* usermessage moved into action bar */}}
@@ -1272,7 +1272,7 @@ type AlmanachResult struct {
 		<!-- End Right Column -->
 		</div>
 		<div class="form-action-bar">
-			<div class="form-action-bar-inner">
+			<div class="form-action-bar-inner simple-entity-action-bar-inner">
 				<div id="user-message" class="form-action-bar-message">
 					<p
 						id="almanach-save-feedback"
@@ -1287,27 +1287,27 @@ type AlmanachResult struct {
 					</p>
 				</div>
 				<div class="form-action-bar-actions">
-					<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
+					<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
 						<i class="ri-close-line"></i>
 						<span>Abbrechen</span>
 					</a>
 					{{- if not $model.is_new -}}
 						<button
 							type="button"
-							class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
+							class="simple-entity-button simple-entity-button-danger w-40"
 							data-role="almanach-delete">
 							<i class="ri-delete-bin-line"></i>
 							<span>Eintrag löschen</span>
 						</button>
 					{{- end -}}
 					{{- if not $model.is_new -}}
-						<button type="button" class="submitbutton w-40 flex items-center gap-2 justify-center" data-role="almanach-save">
+						<button type="button" class="simple-entity-button simple-entity-button-primary w-40" data-role="almanach-save">
 							<i class="ri-save-line"></i>
 							<span>Speichern</span>
 						</button>
 						<button
 							type="button"
-							class="submitbutton flex items-center gap-2 justify-center"
+							class="simple-entity-button simple-entity-button-primary"
 							data-role="almanach-save-view"
 							data-redirect-url="/almanach/{{ $model.result.Entry.MusenalmID }}">
 							<i class="ri-eye-line"></i>
@@ -1315,7 +1315,7 @@ type AlmanachResult struct {
 						</button>
 					{{- end -}}
 					{{- if $model.is_new -}}
-						<button type="button" class="submitbutton w-40 flex items-center gap-2 justify-center" data-role="almanach-save">
+						<button type="button" class="simple-entity-button simple-entity-button-primary w-40" data-role="almanach-save">
 							<i class="ri-save-line"></i>
 							<span>Speichern</span>
 						</button>
@@ -1469,5 +1469,6 @@ type AlmanachResult struct {
 		</script>
 		{{- end -}}
 	</form>
+</div>
 </div>
 </almanach-edit-page>

@@ -30,6 +30,9 @@
 							<i class="ri-arrow-down-line text-xs"></i>
 						</button>
 					</div>
+					<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
+						Alm {{ $content.MusenalmID }}
+					</span>
 					{{- if $content.MusenalmType -}}
 						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
 							{{- range $i, $t := $content.MusenalmType -}}
@@ -73,19 +76,25 @@
 					<span class="status-badge text-xs shadow-sm ml-2" data-status="{{ $content.EditState }}">
 						<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 					</span>
-					<a
-						href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
-						class="resetbutton w-8 h-8 flex items-center justify-center rounded-sm cursor-pointer hover:bg-stone-300"
-						aria-label="Beitrag bearbeiten">
-						<i class="ri-edit-2-line text-sm"></i>
-					</a>
-					<button
-						type="button"
-						class="resetbutton w-8 h-8 flex items-center justify-center text-red-700 hover:text-red-900 hover:bg-red-100 rounded-sm"
-						data-role="content-delete-view"
-						aria-label="Beitrag löschen">
-						<i class="ri-delete-bin-line text-sm"></i>
-					</button>
+					<tool-tip position="top" class="inline">
+						<a
+							href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+							class="admin-list-chip"
+							aria-label="Beitrag bearbeiten">
+							<i class="ri-edit-line"></i>
+						</a>
+						<div class="data-tip">Bearbeiten</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<button
+							type="button"
+							class="admin-list-chip-danger"
+							data-role="content-delete-view"
+							aria-label="Beitrag löschen">
+							<i class="ri-delete-bin-line"></i>
+						</button>
+						<div class="data-tip">Löschen</div>
+					</tool-tip>
 				</div>
 			</div>
 			<div data-role="content-match-display" class="content-search-text hidden px-2 py-1 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
