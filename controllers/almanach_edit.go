@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/functions"
@@ -30,7 +30,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(ep)
+	musapp.Register(ep)
 }
 
 type AlmanachEditPage struct {
@@ -42,19 +42,20 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia p
 	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ALMANACH_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
-	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app))
+	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app, ia))
 	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app, ia, store))
 	return nil
 }
 
-func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
 		data := make(map[string]any)
 		filters := NewBeitraegeFilterParameters(e)
-		result, err := NewAlmanachEditResult(app, id, filters)
+		displayApp, _ := ma.(*musapp.App)
+		result, err := NewAlmanachEditResult(app, displayApp, id, filters)
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
@@ -86,11 +87,12 @@ type AlmanachEditResult struct {
 	AlmanachResult
 }
 
-func NewAlmanachEditResult(app core.App, id string, filters BeitraegeFilterParameters) (*AlmanachEditResult, error) {
+func NewAlmanachEditResult(app core.App, displayApp *musapp.App, id string, filters BeitraegeFilterParameters) (*AlmanachEditResult, error) {
 	result, err := NewAlmanachResult(app, id, filters)
 	if err != nil {
 		return nil, err
 	}
+	result.ContentAgentDisplays = buildContentAgentDisplays(result.Contents, result.ContentsAgents, displayApp)
 
 	var user *dbmodels.User
 	if result.Entry.Editor() != "" {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
@@ -29,7 +29,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(ep)
+	musapp.Register(ep)
 }
 
 type AlmanachContentsEditPage struct {
@@ -41,10 +41,10 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	store := ia.GetCanonicalStore()
 	rg := router.Group(URL_ALMANACH_CONTENTS_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
-	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app))
-	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app))
-	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app))
-	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app))
+	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app, ia))
+	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app, ia))
+	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app, ia))
+	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app, ia))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, ia, store))
@@ -53,12 +53,13 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	return nil
 }
 
-func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
 		data := make(map[string]any)
-		result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+		displayApp, _ := ma.(*musapp.App)
+		result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
@@ -80,7 +81,7 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App) 
 	}
 }
 
-func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		contentMusenalmID := strings.TrimSpace(e.Request.PathValue("contentMusenalmId"))
@@ -90,7 +91,8 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 
 		req := templating.NewRequest(e)
 		data := make(map[string]any)
-		result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+		displayApp, _ := ma.(*musapp.App)
+		result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
@@ -163,12 +165,13 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 	}
 }
 
-func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.App) HandleFunc {
+func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
 		data := make(map[string]any)
-		result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+		displayApp, _ := ma.(*musapp.App)
+		result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
 		if err != nil {
 			engine.Response404(e, err, nil)
 		}
@@ -201,11 +204,12 @@ func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.Ap
 	}
 }
 
-func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app core.App, e *core.RequestEvent, message string) error {
+func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app core.App, ma pagemodels.IApp, e *core.RequestEvent, message string) error {
 	id := e.Request.PathValue("id")
 	req := templating.NewRequest(e)
 	data := make(map[string]any)
-	result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+	displayApp, _ := ma.(*musapp.App)
+	result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
@@ -222,22 +226,23 @@ func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app co
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
-func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, app core.App, e *core.RequestEvent, contentID string, message string) error {
+func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, app core.App, ma pagemodels.IApp, e *core.RequestEvent, contentID string, message string) error {
 	id := e.Request.PathValue("id")
 	req := templating.NewRequest(e)
 	data := make(map[string]any)
-	result, err := NewAlmanachEditResult(app, id, BeitraegeFilterParameters{})
+	displayApp, _ := ma.(*musapp.App)
+	result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
 
 	contents, err := dbmodels.Contents_IDs(app, []any{contentID})
 	if err != nil || len(contents) == 0 {
-		return p.renderError(engine, app, e, message)
+		return p.renderError(engine, app, ma, e, message)
 	}
 	content := contents[0]
 	if content.Entry() != result.Entry.Id {
-		return p.renderError(engine, app, e, message)
+		return p.renderError(engine, app, ma, e, message)
 	}
 
 	entryContents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
@@ -305,7 +310,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 			if err := e.Request.ParseMultipartForm(router.DefaultMaxMemory); err != nil {
 				if e.Request.MultipartForm == nil {
 					if err := e.Request.ParseForm(); err != nil {
-						return p.renderError(engine, app, e, err.Error())
+						return p.renderError(engine, app, ia, e, err.Error())
 					}
 				}
 			}
@@ -314,9 +319,9 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
 		renderError := func(message string) error {
 			if contentID != "" {
-				return p.renderItemError(engine, app, e, contentID, message)
+				return p.renderItemError(engine, app, ia, e, contentID, message)
 			}
-			return p.renderError(engine, app, e, message)
+			return p.renderError(engine, app, ia, e, message)
 		}
 
 		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
@@ -330,7 +335,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		contents, err := dbmodels.Contents_Entry(app, entry.Id)
 		if err != nil {
-			return p.renderError(engine, app, e, "Beiträge konnten nicht geladen werden.")
+			return p.renderError(engine, app, ia, e, "Beiträge konnten nicht geladen werden.")
 		}
 
 		contentInputs := parseContentsForm(e.Request.PostForm)
@@ -487,11 +492,11 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 		req := templating.NewRequest(e)
 
 		if err := e.Request.ParseForm(); err != nil {
-			return p.renderError(engine, app, e, "Formulardaten ungültig.")
+			return p.renderError(engine, app, ia, e, "Formulardaten ungültig.")
 		}
 
 		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+			return p.renderError(engine, app, ia, e, err.Error())
 		}
 
 		entry, err := dbmodels.Entries_MusenalmID(app, id)
@@ -504,7 +509,7 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 			return store.UpdateEntryExtent(tx, entry, e.Request.FormValue("extent"), editorID, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update entry extent", "entry_id", entry.Id, "error", err)
-			return p.renderError(engine, app, e, "Struktur/Umfang konnte nicht gespeichert werden.")
+			return p.renderError(engine, app, ia, e, "Struktur/Umfang konnte nicht gespeichert werden.")
 		}
 
 		setFlashSuccess(e, "Struktur/Umfang gespeichert.")
@@ -520,16 +525,16 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
 
 		if err := e.Request.ParseForm(); err != nil {
-			return p.renderError(engine, app, e, "Formulardaten ungültig.")
+			return p.renderError(engine, app, ia, e, "Formulardaten ungültig.")
 		}
 
 		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
-			return p.renderError(engine, app, e, err.Error())
+			return p.renderError(engine, app, ia, e, err.Error())
 		}
 
 		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
 		if contentID == "" {
-			return p.renderError(engine, app, e, "Beitrag konnte nicht gelöscht werden.")
+			return p.renderError(engine, app, ia, e, "Beitrag konnte nicht gelöscht werden.")
 		}
 
 		entry, err := dbmodels.Entries_MusenalmID(app, id)
@@ -554,7 +559,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 			return err
 		}); err != nil {
 			app.Logger().Error("Failed to delete content", "entry_id", entry.Id, "content_id", contentID, "error", err)
-			return p.renderError(engine, app, e, "Beitrag konnte nicht gelöscht werden.")
+			return p.renderError(engine, app, ia, e, "Beitrag konnte nicht gelöscht werden.")
 		}
 
 		if isHTMX {

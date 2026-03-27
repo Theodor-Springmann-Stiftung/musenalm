@@ -3,18 +3,18 @@
 {{- $csrf := index . "csrf_token" -}}
 {{- $agents := index . "agents" -}}
 {{- $contentAgents := index . "content_agents" -}}
+{{- $contentAgentDisplays := index . "content_agent_displays" -}}
 {{- $overrideID := index . "content_id" -}}
 {{- $contentID := $content.Id -}}
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
-
-<div data-role="content-item" class="relative odd:bg-stone-100" data-content-id="{{ $contentID }}">
+<div data-role="content-item" class="relative border-b border-stone-200 transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80" data-content-id="{{ $contentID }}">
 	<div data-role="content-view">
 		<div class="bg-transparent overflow-visible">
-			<div class="flex items-center justify-between gap-2 bg-transparent px-2 py-0.5 flex-nowrap whitespace-nowrap" data-content-header="true">
+			<div class="flex items-center justify-between gap-3 bg-transparent px-4 py-1.5 flex-nowrap whitespace-nowrap" data-content-header="true">
 				<div class="flex items-center gap-1.5 text-sm font-bold text-gray-800 flex-1 min-w-0 flex-nowrap whitespace-nowrap">
-					<div class="flex items-center gap-1">
+					<div class="flex items-center gap-1" data-role="content-move-controls">
 						<button
 							type="button"
 							class="text-slate-600 rounded-sm px-1 py-0.5 text-xs cursor-grab"
@@ -30,32 +30,59 @@
 							<i class="ri-arrow-down-line text-xs"></i>
 						</button>
 					</div>
-					<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
-						Alm {{ $content.MusenalmID }}
+					<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700" data-role="content-alm-number">
+						{{ $content.MusenalmID }}
 					</span>
 					{{- if $content.MusenalmType -}}
-						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden">
+						<span class="flex flex-nowrap gap-1 text-gray-700 font-normal overflow-hidden" data-role="content-type-group">
 							{{- range $i, $t := $content.MusenalmType -}}
-								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm" data-role="content-type-pill">{{- $t -}}</span>
+								<span class="content-search-text bg-slate-200 text-slate-900 px-1.5 py-0.5 rounded-xs text-xs font-semibold" data-role="content-type-pill">{{- $t -}}</span>
 							{{- end -}}
 						</span>
 					{{- end -}}
-					<div class="flex items-baseline gap-2 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
+					<div class="flex items-baseline gap-0 text-gray-800 min-w-0 flex-1 overflow-hidden flex-nowrap whitespace-nowrap" data-role="content-header-title">
 						<a
 							href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
-							class="no-underline hover:text-slate-900 cursor-pointer">
+							class="no-underline hover:text-slate-900 cursor-pointer min-w-0 shrink overflow-hidden">
 							{{- if $content.PreferredTitle -}}
-								<span class="content-search-text text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
+								<span class="content-search-text block text-lg font-normal truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.PreferredTitle -}}</span>
 							{{- else if $content.TitleStmt -}}
-								<span class="content-search-text text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
+								<span class="content-search-text block text-lg font-normal italic truncate min-w-0 overflow-hidden" data-role="content-header-title-text">{{- $content.TitleStmt -}}</span>
 							{{- end -}}
 						</a>
+						{{- if $content.ResponsibilityStmt -}}
+							<span class="content-search-text shrink-0 text-lg font-normal italic text-slate-700" data-role="content-responsibility">
+								<span class="mx-1.5 font-semibold not-italic">&middot;</span><span>{{ $content.ResponsibilityStmt }}</span>
+							</span>
+						{{- end -}}
+						{{- if $contentAgentDisplays -}}
+							<span class="content-search-text min-w-0 truncate text-lg font-normal text-slate-700" data-role="content-linked-agents">
+								<span class="mx-1.5 font-semibold">&middot;</span>
+								{{- range $i, $agent := $contentAgentDisplays -}}
+									{{- if $i }}, {{ end -}}
+									<a href="/admin/person/{{ $agent.ID }}/edit/" class="font-normal not-italic underline decoration-dotted underline-offset-3 hover:text-slate-900 hover:decoration-solid">{{ $agent.Name }}</a>
+								{{- end -}}
+							</span>
+						{{- else if $contentAgents -}}
+							<span class="content-search-text min-w-0 truncate text-lg font-normal text-slate-700" data-role="content-linked-agents">
+								<span class="mx-1.5 font-semibold">&middot;</span>
+								{{- $printedAgents := false -}}
+								{{- range $rel := $contentAgents -}}
+									{{- $agent := index $agents $rel.Agent -}}
+									{{- if $agent -}}
+										{{- if $printedAgents }}, {{ end -}}
+										<a href="/admin/person/{{ $agent.Id }}/edit/" class="font-normal not-italic underline decoration-dotted underline-offset-3 hover:text-slate-900 hover:decoration-solid">{{ $agent.Name }}</a>
+										{{- $printedAgents = true -}}
+									{{- end -}}
+								{{- end -}}
+							</span>
+						{{- end -}}
 					</div>
 				</div>
 				<div class="flex items-center gap-1.5 flex-nowrap whitespace-nowrap shrink-0">
 					{{- $scans := $content.ImagePaths -}}
 					{{- if $scans -}}
-						<span class="inline-flex items-center gap-1 mr-2.5">
+						<span class="inline-flex items-center gap-1 mr-2.5" data-role="content-scans">
 							{{- range $i, $scan := $scans -}}
 								{{- if lt $i 3 -}}
 									<popup-image data-image-url="{{- $scan -}}" class="inline-flex items-center">
@@ -73,9 +100,37 @@
 							{{- if $content.Extent -}}S.&thinsp;{{- $content.Extent -}}{{- else -}}&nbsp;&nbsp;&nbsp;{{- end -}}
 						</span>
 					{{- end -}}
-					<span class="status-badge text-xs shadow-sm ml-2" data-status="{{ $content.EditState }}">
-						<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-					</span>
+					<tool-tip position="top" class="inline">
+						<span class="status-badge text-xs shadow-sm ml-2" data-status="{{ $content.EditState }}">
+							<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+						</span>
+						<div class="data-tip">
+							{{- if eq $content.EditState "Unknown" -}}
+								Gesucht
+							{{- else if eq $content.EditState "ToDo" -}}
+								Zu erledigen
+							{{- else if eq $content.EditState "Review" -}}
+								Überprüfen
+							{{- else if eq $content.EditState "Seen" -}}
+								Autopsiert
+							{{- else if eq $content.EditState "Edited" -}}
+								Erfasst
+							{{- else -}}
+								{{ $content.EditState }}
+							{{- end -}}
+						</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<a
+							href="/beitrag/{{ $content.MusenalmID }}"
+							target="_blank"
+							rel="noopener"
+							class="admin-list-chip"
+							aria-label="In neuem Tab öffnen">
+							<i class="ri-external-link-line"></i>
+						</a>
+						<div class="data-tip">In neuem Tab öffnen</div>
+					</tool-tip>
 					<tool-tip position="top" class="inline">
 						<a
 							href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
@@ -97,7 +152,7 @@
 					</tool-tip>
 				</div>
 			</div>
-			<div data-role="content-match-display" class="content-search-text hidden px-2 py-1 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
+			<div data-role="content-match-display" class="content-search-text hidden px-4 py-1.5 text-sm text-gray-600 bg-amber-50 border-l-2 border-amber-400"></div>
 		</div>
 	</div>
 </div>

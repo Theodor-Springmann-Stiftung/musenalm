@@ -237,6 +237,25 @@
 				</div>
 
 				<div class="admin-list-toolbar-secondary justify-end">
+					<div class="relative">
+						<details class="font-sans text-base list-none" data-role="contents-column-toggle">
+							<summary class="admin-list-secondary-trigger flex items-center gap-2">
+								<i class="ri-eye-line"></i>
+								<span>Ansicht</span>
+								<i class="ri-arrow-down-s-line"></i>
+							</summary>
+							<div class="absolute right-0 mt-2 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="move-controls" checked /> Verschieben</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="alm-number" checked /> Alm-Nummer</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="type" checked /> Typ</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
+								</div>
+							</div>
+						</details>
+					</div>
 					<span id="content-filter-count" class="admin-list-count-summary whitespace-nowrap" data-role="content-filter-count">
 						{{ len $model.result.Contents }} Einträge
 					</span>
@@ -267,6 +286,7 @@
 						"pagination_values" $model.pagination_values
 						"agents" $model.result.Agents
 						"content_agents" (index $model.result.ContentsAgents $content.Id)
+						"content_agent_displays" (index $model.result.ContentAgentDisplays $content.Id)
 						"agent_relations" $model.agent_relations
 						"open_edit" false
 						"is_new" false
@@ -336,12 +356,9 @@
 			contentType: [{{- range $j, $ct := $content.ContentType -}}{{- if $j }},{{ end }}"{{ $ct }}"{{- end -}}],
 			comment: "{{ $content.Comment }}",
 			agents: [
-				{{- $contentAgents := index $model.result.ContentsAgents $content.Id -}}
-				{{- range $j, $rel := $contentAgents -}}
-					{{- $agent := index $model.result.Agents $rel.Agent -}}
-					{{- if $agent -}}
-						{{- if $j }},{{ end }}{name: "{{ $agent.Name }}", bio: "{{ $agent.BiographicalData }}"}
-					{{- end -}}
+				{{- $contentAgentDisplays := index $model.result.ContentAgentDisplays $content.Id -}}
+				{{- range $j, $agent := $contentAgentDisplays -}}
+					{{- if $j }},{{ end }}{name: "{{ $agent.Name }}", bio: "{{ $agent.LifeDates }}"}
 				{{- end -}}
 			],
 			annotation: {{ SafeJS $content.Annotation }}
@@ -747,6 +764,64 @@
 		updateFilterUi();
 	};
 
+	const initViewOptions = () => {
+		const toggle = document.querySelector("[data-role='contents-column-toggle']");
+		if (!toggle || toggle.dataset.init === "true") {
+			return;
+		}
+		toggle.dataset.init = "true";
+
+		const storageKey = "admin-contents-view-options";
+		const defaults = {
+			"move-controls": true,
+			"alm-number": true,
+			"type": true,
+			"responsibility": true,
+			"linked-agents": true,
+			"scans": true,
+		};
+
+		let state = { ...defaults };
+		try {
+			const raw = window.localStorage.getItem(storageKey);
+			if (raw) {
+				const parsed = JSON.parse(raw);
+				state = { ...defaults, ...parsed };
+			}
+		} catch {}
+
+		const selectors = {
+			"move-controls": "[data-role='content-move-controls']",
+			"alm-number": "[data-role='content-alm-number']",
+			"type": "[data-role='content-type-group']",
+			"responsibility": "[data-role='content-responsibility']",
+			"linked-agents": "[data-role='content-linked-agents']",
+			"scans": "[data-role='content-scans']",
+		};
+
+		const applyState = () => {
+			Object.entries(selectors).forEach(([key, selector]) => {
+				document.querySelectorAll(selector).forEach((el) => {
+					el.style.display = state[key] ? "" : "none";
+				});
+			});
+		};
+
+		toggle.querySelectorAll("input[data-col]").forEach((input) => {
+			const key = input.dataset.col;
+			input.checked = !!state[key];
+			input.addEventListener("change", () => {
+				state[key] = input.checked;
+				applyState();
+				try {
+					window.localStorage.setItem(storageKey, JSON.stringify(state));
+				} catch {}
+			});
+		});
+
+		applyState();
+	};
+
 	const initPage = () => {
 		list = document.querySelector("[data-role='contents-list']");
 		if (!list) {
@@ -1081,10 +1156,12 @@
 	};
 
 	initFilter();
+	initViewOptions();
 	initPage();
 	window.addEventListener("pageshow", (event) => {
 		if (event.persisted) {
 			initFilter();
+			initViewOptions();
 			initPage();
 		}
 	});

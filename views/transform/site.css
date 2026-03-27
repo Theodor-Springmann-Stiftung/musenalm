@@ -1479,12 +1479,6 @@
 		} /* Pause at the final position */
 	}
 
-	/* Filter input focus state */
-	[data-role="content-filter-input"]:focus {
-		border-color: rgb(148 163 184);
-		box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
-	}
-
 	/* Ensure filtered items are truly hidden (no height) */
 	[data-role="content-item"][style*="display: none"] {
 		display: none !important;

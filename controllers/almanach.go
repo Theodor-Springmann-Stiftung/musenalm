@@ -5,18 +5,20 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 // getSortedEntries returns cached sorted entries or loads and caches them
 func getSortedEntries(pbApp core.App) ([]*dbmodels.Entry, error) {
-	return app.GetSortedEntries(pbApp)
+	return musapp.GetSortedEntries(pbApp)
 }
 
 func init() {
@@ -28,7 +30,7 @@ func init() {
 			Layout:   templating.DEFAULT_LAYOUT_NAME,
 		},
 	}
-	app.Register(rp)
+	musapp.Register(rp)
 }
 
 type AlmanachPage struct {
@@ -80,13 +82,14 @@ func (p *AlmanachPage) GETContents(engine *templating.Engine, app core.App) Hand
 }
 
 type AlmanachResult struct {
-	Entry           *dbmodels.Entry
-	SeriesRelations []*dbmodels.REntriesSeries
-	Contents        []*dbmodels.Content
-	Items           []*dbmodels.Item
-	EntriesSeries   map[string]*dbmodels.REntriesSeries // <- Key is series id
-	EntriesAgents   []*dbmodels.REntriesAgents
-	ContentsAgents  map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	Entry                *dbmodels.Entry
+	SeriesRelations      []*dbmodels.REntriesSeries
+	Contents             []*dbmodels.Content
+	Items                []*dbmodels.Item
+	EntriesSeries        map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents        []*dbmodels.REntriesAgents
+	ContentsAgents       map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	ContentAgentDisplays map[string][]*ContentAgentDisplay      // <- Key is content id
 
 	Types       []string
 	HasScans    bool
@@ -94,6 +97,67 @@ type AlmanachResult struct {
 
 	PrevByTitle *dbmodels.Entry
 	NextByTitle *dbmodels.Entry
+}
+
+type ContentAgentDisplay struct {
+	ID        string
+	Name      string
+	LifeDates string
+}
+
+func buildContentAgentDisplays(contents []*dbmodels.Content, contentAgents map[string][]*dbmodels.RContentsAgents, displayApp *musapp.App) map[string][]*ContentAgentDisplay {
+	displaysByContent := make(map[string][]*ContentAgentDisplay, len(contents))
+	if displayApp == nil {
+		return displaysByContent
+	}
+
+	collator := collate.New(language.German)
+	for _, content := range contents {
+		if content == nil {
+			continue
+		}
+
+		rels := contentAgents[content.Id]
+		displays := make([]*ContentAgentDisplay, 0, len(rels))
+		seen := make(map[string]struct{}, len(rels))
+		for _, rel := range rels {
+			if rel == nil || rel.Agent() == "" {
+				continue
+			}
+
+			display := displayApp.GetAgentDisplay(rel.Agent())
+			if display == nil {
+				continue
+			}
+
+			name := strings.TrimSpace(display.Name)
+			if name == "" {
+				continue
+			}
+
+			displayID := strings.TrimSpace(display.ID)
+			if displayID == "" {
+				displayID = rel.Agent()
+			}
+			if _, ok := seen[displayID]; ok {
+				continue
+			}
+			seen[displayID] = struct{}{}
+
+			displays = append(displays, &ContentAgentDisplay{
+				ID:        displayID,
+				Name:      name,
+				LifeDates: strings.TrimSpace(display.LifeDates),
+			})
+		}
+
+		sort.Slice(displays, func(i, j int) bool {
+			return collator.CompareString(displays[i].Name, displays[j].Name) < 0
+		})
+		displaysByContent[content.Id] = displays
+	}
+
+	return displaysByContent
 }
 
 func entryHasContents(app core.App, entryID string) (bool, error) {
