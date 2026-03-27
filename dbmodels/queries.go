@@ -249,6 +249,11 @@ func Contents_IDs(app core.App, ids []any) ([]*Content, error) {
 	return TableByIDs[*Content](app, CONTENTS_TABLE, ids)
 }
 
+func Contents_ID(app core.App, id string) (*Content, error) {
+	ret, err := TableByID[Content](app, CONTENTS_TABLE, id)
+	return &ret, err
+}
+
 func Contents_Entry(app core.App, id string) ([]*Content, error) {
 	return TableByFields[*Content](
 		app,
@@ -256,6 +261,27 @@ func Contents_Entry(app core.App, id string) ([]*Content, error) {
 		ENTRIES_TABLE,
 		id,
 	)
+}
+
+func MaxContentMusenalmIDForEntry(app core.App, entryID string) (int, error) {
+	if entryID == "" {
+		return 0, nil
+	}
+
+	var row struct {
+		MaxID int `db:"max_id"`
+	}
+
+	err := app.DB().NewQuery(
+		"SELECT COALESCE(MAX(" + MUSENALMID_FIELD + "), 0) AS max_id FROM " + CONTENTS_TABLE + " WHERE " + ENTRIES_TABLE + " = {:entry}",
+	).Bind(dbx.Params{
+		"entry": entryID,
+	}).One(&row)
+	if err != nil {
+		return 0, err
+	}
+
+	return row.MaxID, nil
 }
 
 func Items_Entry(app core.App, id string) ([]*Item, error) {

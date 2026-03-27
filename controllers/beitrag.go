@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -30,9 +33,12 @@ func (p *BeitragPage) Setup(router *router.Router[*core.RequestEvent], ia pagemo
 	router.GET(p.URL, func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		data := make(map[string]any)
-		result, err := NewBeitragResult(app, id)
+		result, redirect, err := NewBeitragResult(app, id)
 		if err != nil {
-			engine.Response404(e, err, nil)
+			return engine.Response404(e, err, nil)
+		}
+		if redirect {
+			return e.Redirect(http.StatusFound, fmt.Sprintf(URL_BEITRAG_VIEW_FORMAT, result.Content.MusenalmID()))
 		}
 		data["result"] = result
 
@@ -49,25 +55,25 @@ type BeitragResult struct {
 	ContentsAgents []*dbmodels.RContentsAgents // <- Key is content id
 }
 
-func NewBeitragResult(app core.App, id string) (*BeitragResult, error) {
-	content, err := dbmodels.Contents_MusenalmID(app, id)
+func NewBeitragResult(app core.App, id string) (*BeitragResult, bool, error) {
+	content, redirect, err := dbmodels.ResolveContentByPermalink(app, id)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	entry, err := dbmodels.Entries_ID(app, content.Entry())
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	acrelations, err := dbmodels.RContentsAgents_Content(app, content.Id)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	return &BeitragResult{
 		Entry:          entry,
 		Content:        content,
 		ContentsAgents: acrelations,
-	}, nil
+	}, redirect, nil
 }

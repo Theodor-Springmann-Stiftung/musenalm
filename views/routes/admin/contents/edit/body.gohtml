@@ -173,7 +173,29 @@
 			</button>
 		</form>
 	</div>
+	{{- $activeReservation := $model.result.ActiveContentNumberReservation -}}
 	{{- $hasContents := gt (len $model.result.Contents) 0 -}}
+	{{- if $activeReservation -}}
+		<div class="border-t border-b border-orange-300 bg-orange-50 px-4 py-3">
+			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-orange-900">
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<span class="inline-flex items-center gap-2 font-semibold text-orange-900">
+						<i class="ri-bookmark-line"></i>
+						<span>Nummernblock reserviert!</span>
+					</span>
+					<span class="font-semibold tabular-nums">{{ $activeReservation.StartMusenalmID }}-{{ $activeReservation.EndMusenalmID }}</span>
+					<span>(<span class="tabular-nums">{{ $activeReservation.RemainingCount }}</span> verbleibend)</span>
+				</div>
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation/deactivate" class="flex items-center gap-2">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<button type="submit" class="simple-entity-button !w-auto !border-orange-700 !bg-orange-600 !px-3 !py-1.5 text-sm !text-orange-50 hover:!bg-orange-700 hover:!text-white">
+						<i class="ri-close-circle-line"></i>
+						<span>Reservierung deaktivieren</span>
+					</button>
+				</form>
+			</div>
+		</div>
+	{{- end -}}
 	{{- if $hasContents -}}
 		<div class="admin-list-toolbar !mt-1 border-b border-stone-200 pt-1 pb-3">
 			<div class="grid w-full grid-cols-[minmax(0,1fr)_max-content] items-center gap-x-6 gap-y-3 px-4">
@@ -302,6 +324,55 @@
 				{{- end -}}
 			</table>
 		</div>
+		<div class="border-t border-stone-200 px-4 py-3">
+			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+				{{- if not $activeReservation -}}
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
+					<select
+						name="reserved_count"
+						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+						required>
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="80">80</option>
+						<option value="100">100</option>
+						<option value="150">150</option>
+						<option value="200">200</option>
+						<option value="300">300</option>
+						<option value="500">500</option>
+					</select>
+					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
+						<i class="ri-bookmark-line"></i>
+						<span>Block reservieren</span>
+					</button>
+				</form>
+				{{- else -}}
+				<div></div>
+				{{- end -}}
+				<div class="flex flex-wrap items-center justify-end gap-3">
+					<button
+						type="button"
+						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950"
+						data-role="content-renumber-open"
+						data-renumber-mode="preserve">
+						<i class="ri-sort-number-asc"></i>
+						<span>Nummern neu zuordnen</span>
+					</button>
+					<button
+						type="button"
+						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950 disabled:cursor-not-allowed disabled:opacity-50"
+						data-role="content-renumber-open"
+						data-renumber-mode="new"
+						{{- if $activeReservation }} disabled title="Nur ohne aktiven Reservierungsblock möglich."{{- end -}}>
+						<i class="ri-hashtag"></i>
+						<span>Neue Nummern vergeben</span>
+					</button>
+				</div>
+			</div>
+		</div>
 	{{- else -}}
 		<div class="py-2 flex items-center justify-end gap-3">
 			<span id="content-filter-count" class="text-sm font-semibold text-gray-600 whitespace-nowrap" data-role="content-filter-count">
@@ -323,6 +394,34 @@
 				</div>
 			</div>
 		</div>
+		{{- if not $activeReservation -}}
+			<div class="border-t border-stone-200 px-4 py-3">
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-slate-700">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+						<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
+						<select
+							name="reserved_count"
+							class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+							required>
+							<option value="10">10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="80">80</option>
+							<option value="100">100</option>
+							<option value="150">150</option>
+							<option value="200">200</option>
+							<option value="300">300</option>
+							<option value="500">500</option>
+						</select>
+					</div>
+					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
+						<i class="ri-bookmark-line"></i>
+						<span>Block reservieren</span>
+					</button>
+				</form>
+			</div>
+		{{- end -}}
 	{{- end -}}
 </div>
 
@@ -337,6 +436,25 @@
 			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-delete-cancel">Abbrechen</button>
 			<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="content-delete-confirm">
 				Löschen
+			</button>
+		</div>
+	</div>
+</dialog>
+
+<dialog id="content-renumber-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+	<div class="p-5 w-[32rem] max-w-[calc(100vw-2rem)]">
+		<div class="text-base font-bold text-gray-900">Beiträge neu nummerieren?</div>
+		<div id="content-renumber-dialog-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+		<p class="text-sm text-gray-700 mt-3">
+			Achtung: Durch das Neu-Nummerieren können Verweise auf Beitragsnummern auf der Musenalm ungültig werden, insb. in Anmerkungen von Beiträgen oder Bänden.
+		</p>
+		<p id="content-renumber-dialog-warning" class="hidden text-sm font-bold text-gray-900 mt-3">
+			Achtung! Bisherige URLs werden invalidiert, oder können zu anderen Beiträgen führen!
+		</p>
+		<div class="flex items-center justify-end gap-3 mt-5">
+			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="content-renumber-cancel">Abbrechen</button>
+			<button type="button" class="submitbutton w-auto bg-orange-700 hover:bg-orange-800 px-3 py-1 text-sm" data-role="content-renumber-confirm">
+				Bestätigen
 			</button>
 		</div>
 	</div>
@@ -886,6 +1004,14 @@
 		const deleteConfirmBtn = deleteDialog?.querySelector("[data-role='content-delete-confirm']");
 		const deleteCancelBtn = deleteDialog?.querySelector("[data-role='content-delete-cancel']");
 		let itemToDelete = null;
+		const renumberDialog = document.getElementById("content-renumber-dialog");
+		const renumberDialogTitle = document.getElementById("content-renumber-dialog-title");
+		const renumberDialogWarning = document.getElementById("content-renumber-dialog-warning");
+		const renumberConfirmBtn = renumberDialog?.querySelector("[data-role='content-renumber-confirm']");
+		const renumberCancelBtn = renumberDialog?.querySelector("[data-role='content-renumber-cancel']");
+		const renumberPreserveEndpoint = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/renumber/preserve";
+		const renumberNewEndpoint = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/renumber/new";
+		let renumberMode = "";
 
 		const deleteContent = (item) => {
 			if (!item) {
@@ -940,6 +1066,33 @@
 					deleteContent(itemToDelete);
 					itemToDelete = null;
 				}
+			});
+		}
+
+		if (renumberDialog && renumberDialog.dataset.init !== "true") {
+			renumberDialog.dataset.init = "true";
+			renumberCancelBtn?.addEventListener("click", () => renumberDialog.close());
+			renumberDialog.addEventListener("cancel", (event) => {
+				event.preventDefault();
+				renumberDialog.close();
+			});
+			renumberConfirmBtn?.addEventListener("click", () => {
+				if (!csrfToken || !renumberMode) {
+					renumberDialog?.close();
+					return;
+				}
+				const form = document.createElement("form");
+				form.method = "POST";
+				form.action = renumberMode === "preserve" ? renumberPreserveEndpoint : renumberNewEndpoint;
+
+				const csrfField = document.createElement("input");
+				csrfField.type = "hidden";
+				csrfField.name = "csrf_token";
+				csrfField.value = csrfToken;
+				form.appendChild(csrfField);
+
+				document.body.appendChild(form);
+				form.submit();
 			});
 		}
 
@@ -1016,6 +1169,32 @@
 				});
 			}
 		};
+
+		document.querySelectorAll("[data-role='content-renumber-open']").forEach((button) => {
+			button.addEventListener("click", () => {
+				if (button.disabled || !renumberDialog) {
+					return;
+				}
+				renumberMode = button.dataset.renumberMode || "";
+				if (!renumberMode) {
+					return;
+				}
+				if (renumberDialogTitle) {
+					renumberDialogTitle.textContent = renumberMode === "preserve"
+						? "Nummern werden beibehalten, aber die Zuordnung ändert sich."
+						: "Permalinks bleiben erhalten und leiten auf die jeweils neue Nummer weiter.";
+				}
+				if (renumberDialogWarning) {
+					renumberDialogWarning.classList.toggle("hidden", renumberMode !== "preserve");
+				}
+				if (renumberConfirmBtn) {
+					renumberConfirmBtn.textContent = renumberMode === "preserve"
+						? "Nummern neu zuordnen"
+						: "Neue Nummern vergeben";
+				}
+				renumberDialog.showModal();
+			});
+		});
 
 		getItems().forEach((item) => {
 			setupItem(item);

@@ -533,6 +533,10 @@
 		@apply hidden;
 	}
 
+	.admin-layout-sidebar-collapsed .admin-sidebar-link[aria-current="page"] .admin-sidebar-link-detail {
+		display: none !important;
+	}
+
 	.admin-layout-sidebar-collapsed .admin-sidebar-link-icon {
 		@apply text-base;
 	}

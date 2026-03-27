@@ -7,4 +7,16 @@
 			element.setAttribute("aria-current", "location");
 		}
 	}
+
+	const pruneAdminSidebarDetails = () => {
+		document.querySelectorAll("[data-admin-main-link]").forEach((link) => {
+			if (link.getAttribute("aria-current") === "page") {
+				return;
+			}
+			link.querySelectorAll(".admin-sidebar-link-detail").forEach((detail) => detail.remove());
+		});
+	};
+
+	pruneAdminSidebarDetails();
+	document.body.addEventListener("htmx:afterSwap", pruneAdminSidebarDetails);
 </script>

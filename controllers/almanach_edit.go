@@ -93,6 +93,10 @@ func NewAlmanachEditResult(app core.App, displayApp *musapp.App, id string, filt
 		return nil, err
 	}
 	result.ContentAgentDisplays = buildContentAgentDisplays(result.Contents, result.ContentsAgents, displayApp)
+	result.ActiveContentNumberReservation, err = dbmodels.ActiveContentNumberReservationForEntry(app, result.Entry.Id)
+	if err != nil {
+		return nil, err
+	}
 
 	var user *dbmodels.User
 	if result.Entry.Editor() != "" {

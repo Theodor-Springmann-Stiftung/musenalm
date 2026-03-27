@@ -711,7 +711,7 @@ func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentI
 	}
 
 	content := dbmodels.NewContent(core.NewRecord(collection))
-	nextID, err := nextMusenalmID(tx, dbmodels.CONTENTS_TABLE)
+	nextID, err := s.allocateContentMusenalmID(tx, entry)
 	if err != nil {
 		return nil, err
 	}
@@ -727,6 +727,75 @@ func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentI
 	}
 
 	return content, nil
+}
+
+func (s *Store) CreateContentNumberReservation(tx core.App, entry *dbmodels.Entry, reservedCount int) (*dbmodels.ContentNumberReservation, error) {
+	if entry == nil || strings.TrimSpace(entry.Id) == "" {
+		return nil, validationErrorf("Band wurde nicht gefunden.")
+	}
+	if reservedCount <= 0 {
+		return nil, validationErrorf("Die Anzahl der zu reservierenden Alm-Nummern muss groesser als 0 sein.")
+	}
+
+	activeReservation, err := dbmodels.ActiveContentNumberReservationForEntry(tx, entry.Id)
+	if err != nil {
+		return nil, err
+	}
+	if activeReservation != nil {
+		return nil, conflictErrorf("Fuer diesen Band ist bereits ein aktiver Reservierungsblock vorhanden.")
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.CONTENT_NUMBER_RESERVATIONS_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	startID := 0
+	highestEntryContentID, err := dbmodels.MaxContentMusenalmIDForEntry(tx, entry.Id)
+	if err != nil {
+		return nil, err
+	}
+	if highestEntryContentID > 0 {
+		candidateStart := highestEntryContentID + 1
+		rangeEnd := candidateStart + reservedCount - 1
+		fits, err := s.contentNumberRangeFitsForEntry(tx, entry.Id, candidateStart, rangeEnd)
+		if err != nil {
+			return nil, err
+		}
+		if fits {
+			startID = candidateStart
+		}
+	}
+	if startID == 0 {
+		startID, err = globalNextContentMusenalmID(tx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	reservation := dbmodels.NewContentNumberReservation(core.NewRecord(collection))
+	reservation.SetEntry(entry.Id)
+	reservation.SetStartMusenalmID(startID)
+	reservation.SetReservedCount(reservedCount)
+	reservation.SetNextMusenalmID(startID)
+	reservation.SetActive(true)
+
+	if err := tx.Save(reservation); err != nil {
+		return nil, err
+	}
+
+	return reservation, nil
+}
+
+func (s *Store) DeactivateContentNumberReservation(tx core.App, reservation *dbmodels.ContentNumberReservation) error {
+	if reservation == nil {
+		return validationErrorf("Keine aktive Reservierung gefunden.")
+	}
+	if !reservation.Active() {
+		return nil
+	}
+	reservation.SetActive(false)
+	return tx.Save(reservation)
 }
 
 func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbmodels.Entry, input ContentInput, effects *MutationEffects) error {
@@ -942,6 +1011,134 @@ func (s *Store) RenumberEntryContents(tx core.App, entryID string) ([]*dbmodels.
 	}
 
 	return contents, nil
+}
+
+func (s *Store) ReassignEntryContentMusenalmIDsPreserveSet(tx core.App, entryID string) ([]*dbmodels.Content, error) {
+	contents, err := dbmodels.Contents_Entry(tx, entryID)
+	if err != nil {
+		return nil, err
+	}
+	if len(contents) == 0 {
+		return nil, validationErrorf("Keine Beiträge zum Neu-Nummerieren vorhanden.")
+	}
+
+	dbmodels.Sort_Contents_Numbering(contents)
+	targetIDs := make([]int, 0, len(contents))
+	for _, content := range contents {
+		targetIDs = append(targetIDs, content.MusenalmID())
+	}
+	slices.Sort(targetIDs)
+
+	if err := s.reassignContentMusenalmIDs(tx, contents, targetIDs); err != nil {
+		return nil, err
+	}
+	return contents, nil
+}
+
+func (s *Store) ReassignEntryContentMusenalmIDsNew(tx core.App, entryID string) ([]*dbmodels.Content, error) {
+	activeReservation, err := dbmodels.ActiveContentNumberReservationForEntry(tx, entryID)
+	if err != nil {
+		return nil, err
+	}
+	if activeReservation != nil {
+		return nil, conflictErrorf("Solange ein aktiver Reservierungsblock besteht, können keine neuen Nummern vergeben werden.")
+	}
+
+	contents, err := dbmodels.Contents_Entry(tx, entryID)
+	if err != nil {
+		return nil, err
+	}
+	if len(contents) == 0 {
+		return nil, validationErrorf("Keine Beiträge zum Neu-Nummerieren vorhanden.")
+	}
+
+	dbmodels.Sort_Contents_Numbering(contents)
+	if err := s.upsertContentPermalinkRedirects(tx, contents); err != nil {
+		return nil, err
+	}
+	startID, err := globalNextContentMusenalmID(tx)
+	if err != nil {
+		return nil, err
+	}
+	targetIDs := make([]int, 0, len(contents))
+	for idx := range contents {
+		targetIDs = append(targetIDs, startID+idx)
+	}
+
+	if err := s.reassignContentMusenalmIDs(tx, contents, targetIDs); err != nil {
+		return nil, err
+	}
+	return contents, nil
+}
+
+func (s *Store) upsertContentPermalinkRedirects(tx core.App, contents []*dbmodels.Content) error {
+	if len(contents) == 0 {
+		return nil
+	}
+
+	collection, err := tx.FindCollectionByNameOrId(dbmodels.CONTENT_PERMALINK_REDIRECTS_TABLE)
+	if err != nil {
+		return err
+	}
+
+	for _, content := range contents {
+		if content == nil || strings.TrimSpace(content.Id) == "" || content.MusenalmID() <= 0 {
+			continue
+		}
+
+		existing, err := dbmodels.ContentPermalinkRedirect_OldMusenalmIDInt(tx, content.MusenalmID())
+		if err != nil {
+			return err
+		}
+		if existing != nil {
+			if existing.Content() != content.Id {
+				return conflictErrorf("Alte Beitragsnummer %d ist bereits als Redirect vergeben.", content.MusenalmID())
+			}
+			continue
+		}
+
+		redirect := dbmodels.NewContentPermalinkRedirect(core.NewRecord(collection))
+		redirect.SetContent(content.Id)
+		redirect.SetOldMusenalmID(content.MusenalmID())
+		if err := tx.Save(redirect); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) reassignContentMusenalmIDs(tx core.App, contents []*dbmodels.Content, targetIDs []int) error {
+	if len(contents) != len(targetIDs) {
+		return validationErrorf("Ungültige Renummerierung.")
+	}
+	if len(contents) == 0 {
+		return nil
+	}
+
+	tempStart, err := globalNextContentMusenalmID(tx)
+	if err != nil {
+		return err
+	}
+	if maxTarget := slices.Max(targetIDs); tempStart <= maxTarget {
+		tempStart = maxTarget + 1
+	}
+
+	for idx, content := range contents {
+		content.SetMusenalmID(tempStart + idx)
+		if err := tx.Save(content); err != nil {
+			return err
+		}
+	}
+
+	for idx, content := range contents {
+		content.SetMusenalmID(targetIDs[idx])
+		if err := tx.Save(content); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Store) PlaceEntries(app core.App, placeID string) ([]*dbmodels.Entry, error) {
@@ -1371,6 +1568,110 @@ func nextMusenalmID(app core.App, table string) (int, error) {
 	}
 
 	return record.MusenalmID + 1, nil
+}
+
+func globalNextContentMusenalmID(app core.App) (int, error) {
+	nextContentID, err := nextMusenalmID(app, dbmodels.CONTENTS_TABLE)
+	if err != nil {
+		return 0, err
+	}
+
+	maxReservedID, err := dbmodels.MaxReservedContentMusenalmID(app)
+	if err != nil {
+		return 0, err
+	}
+
+	maxRedirectID, err := dbmodels.MaxContentPermalinkRedirectMusenalmID(app)
+	if err != nil {
+		return 0, err
+	}
+
+	nextID := nextContentID
+	if maxReservedID+1 > nextID {
+		nextID = maxReservedID + 1
+	}
+	if maxRedirectID+1 > nextID {
+		nextID = maxRedirectID + 1
+	}
+	return nextID, nil
+}
+
+func (s *Store) allocateContentMusenalmID(tx core.App, entry *dbmodels.Entry) (int, error) {
+	if entry == nil || strings.TrimSpace(entry.Id) == "" {
+		return 0, validationErrorf("Band wurde nicht gefunden.")
+	}
+
+	reservation, err := dbmodels.ActiveContentNumberReservationForEntry(tx, entry.Id)
+	if err != nil {
+		return 0, err
+	}
+	if reservation == nil {
+		return globalNextContentMusenalmID(tx)
+	}
+
+	for reservation.HasRemaining() {
+		assignedID := reservation.NextMusenalmID()
+		blocked, err := dbmodels.ContentPermalinkRedirectRangeBlocked(tx, assignedID, assignedID)
+		if err != nil {
+			return 0, err
+		}
+		if blocked {
+			reservation.SetNextMusenalmID(assignedID + 1)
+			continue
+		}
+
+		reservation.SetNextMusenalmID(assignedID + 1)
+		if !reservation.HasRemaining() {
+			reservation.SetActive(false)
+		}
+		if err := tx.Save(reservation); err != nil {
+			return 0, err
+		}
+
+		return assignedID, nil
+	}
+
+	reservation.SetActive(false)
+	if err := tx.Save(reservation); err != nil {
+		return 0, err
+	}
+	return globalNextContentMusenalmID(tx)
+}
+
+func (s *Store) contentNumberRangeFitsForEntry(tx core.App, entryID string, startID, endID int) (bool, error) {
+	if startID <= 0 || endID < startID {
+		return false, nil
+	}
+
+	var row struct {
+		Count int `db:"count"`
+	}
+	err := tx.DB().NewQuery(
+		"SELECT COUNT(*) AS count FROM " + dbmodels.CONTENTS_TABLE + " WHERE " + dbmodels.MUSENALMID_FIELD + " BETWEEN {:start} AND {:end}",
+	).Bind(dbx.Params{
+		"start": startID,
+		"end":   endID,
+	}).One(&row)
+	if err != nil {
+		return false, err
+	}
+	if row.Count > 0 {
+		return false, nil
+	}
+
+	redirectBlocked, err := dbmodels.ContentPermalinkRedirectRangeBlocked(tx, startID, endID)
+	if err != nil {
+		return false, err
+	}
+	if redirectBlocked {
+		return false, nil
+	}
+
+	blocked, err := dbmodels.ReservationRangeBlockedForOtherEntries(tx, entryID, startID, endID)
+	if err != nil {
+		return false, err
+	}
+	return !blocked, nil
 }
 
 func sanitizeStrings(values []string) []string {

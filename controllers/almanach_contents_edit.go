@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,10 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app, ia))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_RESERVATION, p.POSTReserveNumbers(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_RESERVATION_STOP, p.POSTDeactivateReservation(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_RENUMBER_PRESERVE, p.POSTRenumberPreserve(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_RENUMBER_NEW, p.POSTRenumberNew(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT_EXTENT, p.POSTUpdateExtent(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_UPLOAD, p.POSTUploadScans(engine, app, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE_SCAN, p.POSTDeleteScan(engine, app, store))
@@ -408,11 +413,19 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				created = append(created, content)
 			}
 			for _, content := range contents {
-				input, ok := contentInputs[content.Id]
-				if !ok {
+				input, hasInput := contentInputs[content.Id]
+				newNumbering, hasOrder := orderMap[content.Id]
+				if !hasInput && !hasOrder {
 					continue
 				}
-				input.Numbering = orderMap[content.Id]
+				if !hasInput {
+					content.SetNumbering(newNumbering)
+					if err := tx.Save(content); err != nil {
+						return err
+					}
+					continue
+				}
+				input.Numbering = newNumbering
 				if input.Numbering <= 0 {
 					input.Numbering = content.Numbering()
 				}
@@ -513,6 +526,123 @@ func (p *AlmanachContentsEditPage) POSTUpdateExtent(engine *templating.Engine, a
 		}
 
 		setFlashSuccess(e, "Struktur/Umfang gespeichert.")
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
+		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
+func (p *AlmanachContentsEditPage) POSTReserveNumbers(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		if err := e.Request.ParseForm(); err != nil {
+			return p.renderError(engine, app, ia, e, "Formulardaten ungueltig.")
+		}
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return p.renderError(engine, app, ia, e, err.Error())
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		reservedCount, err := strconv.Atoi(strings.TrimSpace(e.Request.FormValue("reserved_count")))
+		if err != nil {
+			return p.renderError(engine, app, ia, e, "Bitte eine gueltige Anzahl fuer den Reservierungsblock angeben.")
+		}
+
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			_, err := store.CreateContentNumberReservation(tx, entry, reservedCount)
+			return err
+		}); err != nil {
+			app.Logger().Error("Failed to reserve content numbers", "entry_id", entry.Id, "error", err)
+			return p.renderError(engine, app, ia, e, canonicalErrorMessage(err, "Reservierung fehlgeschlagen."))
+		}
+
+		setFlashSuccess(e, "Alm-Nummernblock reserviert.")
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
+		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
+func (p *AlmanachContentsEditPage) POSTDeactivateReservation(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		if err := e.Request.ParseForm(); err != nil {
+			return p.renderError(engine, app, ia, e, "Formulardaten ungueltig.")
+		}
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return p.renderError(engine, app, ia, e, err.Error())
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			reservation, err := dbmodels.ActiveContentNumberReservationForEntry(tx, entry.Id)
+			if err != nil {
+				return err
+			}
+			return store.DeactivateContentNumberReservation(tx, reservation)
+		}); err != nil {
+			app.Logger().Error("Failed to deactivate content reservation", "entry_id", entry.Id, "error", err)
+			return p.renderError(engine, app, ia, e, canonicalErrorMessage(err, "Reservierung konnte nicht deaktiviert werden."))
+		}
+
+		setFlashSuccess(e, "Reservierung deaktiviert.")
+		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
+		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
+func (p *AlmanachContentsEditPage) POSTRenumberPreserve(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return p.postRenumberContents(engine, app, ia, store, true)
+}
+
+func (p *AlmanachContentsEditPage) POSTRenumberNew(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return p.postRenumberContents(engine, app, ia, store, false)
+}
+
+func (p *AlmanachContentsEditPage) postRenumberContents(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store, preserveNumbers bool) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		if err := e.Request.ParseForm(); err != nil {
+			return p.renderError(engine, app, ia, e, "Formulardaten ungültig.")
+		}
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return p.renderError(engine, app, ia, e, err.Error())
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return engine.Response404(e, err, nil)
+		}
+
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			if preserveNumbers {
+				_, err := store.ReassignEntryContentMusenalmIDsPreserveSet(tx, entry.Id)
+				return err
+			}
+			_, err := store.ReassignEntryContentMusenalmIDsNew(tx, entry.Id)
+			return err
+		}); err != nil {
+			app.Logger().Error("Failed to renumber contents", "entry_id", entry.Id, "preserve_numbers", preserveNumbers, "error", err)
+			return p.renderError(engine, app, ia, e, canonicalErrorMessage(err, "Beiträge konnten nicht neu nummeriert werden."))
+		}
+
+		if preserveNumbers {
+			setFlashSuccess(e, "Beiträge neu nummeriert. Vorhandene Nummern wurden neu zugeordnet.")
+		} else {
+			setFlashSuccess(e, "Beiträge neu nummeriert. Neue Nummern wurden vergeben.")
+		}
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}

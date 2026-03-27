@@ -82,14 +82,15 @@ func (p *AlmanachPage) GETContents(engine *templating.Engine, app core.App) Hand
 }
 
 type AlmanachResult struct {
-	Entry                *dbmodels.Entry
-	SeriesRelations      []*dbmodels.REntriesSeries
-	Contents             []*dbmodels.Content
-	Items                []*dbmodels.Item
-	EntriesSeries        map[string]*dbmodels.REntriesSeries // <- Key is series id
-	EntriesAgents        []*dbmodels.REntriesAgents
-	ContentsAgents       map[string][]*dbmodels.RContentsAgents // <- Key is content id
-	ContentAgentDisplays map[string][]*ContentAgentDisplay      // <- Key is content id
+	Entry                          *dbmodels.Entry
+	SeriesRelations                []*dbmodels.REntriesSeries
+	Contents                       []*dbmodels.Content
+	Items                          []*dbmodels.Item
+	EntriesSeries                  map[string]*dbmodels.REntriesSeries // <- Key is series id
+	EntriesAgents                  []*dbmodels.REntriesAgents
+	ContentsAgents                 map[string][]*dbmodels.RContentsAgents // <- Key is content id
+	ContentAgentDisplays           map[string][]*ContentAgentDisplay      // <- Key is content id
+	ActiveContentNumberReservation *dbmodels.ContentNumberReservation
 
 	Types       []string
 	HasScans    bool
