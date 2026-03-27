@@ -362,7 +362,14 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				</div>
 
 				<div id="reihen-count" class="admin-list-count-summary whitespace-nowrap">
-					{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Series }}{{ end }} Reihen
+					{{- $totalCount := len $model.result.Series -}}
+					{{- if $model.total_count }}{{ $totalCount = $model.total_count }}{{ end -}}
+					{{- if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end -}}
+					{{- if eq $totalCount 1 -}}
+						{{ $totalCount }} Reihe
+					{{- else -}}
+						{{ $totalCount }} Reihen
+					{{- end -}}
 				</div>
 			</div>
 		</div>
@@ -392,7 +399,8 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						const totalCount = Number($event.detail.xhr.getResponseHeader('X-Total-Count'));
 						const countEl = document.getElementById('reihen-count');
 						if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
-							countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Reihen`;
+							const label = totalCount === 1 ? 'Reihe' : 'Reihen';
+							countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} ${label}`;
 						}
 						updateUrl();
 					"
@@ -581,9 +589,11 @@ class="admin-page-shell font-sans pt-0 pb-8">
 								if (!Number.isNaN(current) && current > 0) current -= 1;
 								if (total !== null && !Number.isNaN(total) && total > 0) total -= 1;
 								if (hasSlash && total !== null) {
-									countEl.textContent = `${current} / ${total} Reihen`;
+									const label = total === 1 ? "Reihe" : "Reihen";
+									countEl.textContent = `${current} / ${total} ${label}`;
 								} else {
-									countEl.textContent = `${current} Reihen`;
+									const label = current === 1 ? "Reihe" : "Reihen";
+									countEl.textContent = `${current} ${label}`;
 								}
 							}
 						}

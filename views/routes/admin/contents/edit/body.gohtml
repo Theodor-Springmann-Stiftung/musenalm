@@ -147,7 +147,7 @@
 	{{- end -}}
 </header>
 
-<div class="admin-page-body admin-page-body-wide admin-page-body-flush admin-page-body-tight-top">
+<div class="admin-page-body admin-page-body-wide admin-page-body-flush admin-page-body-tight-top flex min-h-0 flex-1 flex-col">
 	{{ template "_usermessage" $model }}
 	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
 		<i class="ri-loader-4-line spinning mr-2"></i>
@@ -280,7 +280,11 @@
 						</details>
 					</div>
 					<span id="content-filter-count" class="admin-list-count-summary whitespace-nowrap" data-role="content-filter-count">
-						{{ len $model.result.Contents }} Einträge
+						{{- if eq (len $model.result.Contents) 1 -}}
+							1 Eintrag
+						{{- else -}}
+							{{ len $model.result.Contents }} Einträge
+						{{- end -}}
 					</span>
 					<tool-tip position="top" class="inline">
 						<button
@@ -295,7 +299,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="mt-2 flex flex-col" data-role="contents-panel">
+		<div class="mt-2 flex shrink-0 flex-col" data-role="contents-panel">
 			<table class="w-full border-collapse table-auto"
 				data-role="contents-list"
 				data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
@@ -324,6 +328,7 @@
 				{{- end -}}
 			</table>
 		</div>
+		<div class="grow"></div>
 		<div class="border-t border-stone-200 px-4 py-3">
 			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
 				{{- if not $activeReservation -}}
@@ -374,54 +379,46 @@
 			</div>
 		</div>
 	{{- else -}}
-		<div class="py-2 flex items-center justify-end gap-3">
-			<span id="content-filter-count" class="text-sm font-semibold text-gray-600 whitespace-nowrap" data-role="content-filter-count">
-				0 Einträge
-			</span>
-			<button
-				type="button"
-				class="content-action-button"
-				onclick="window.location.assign('/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')">
-				<i class="ri-add-line"></i>
-				<span>Neuer Beitrag</span>
-			</button>
-		</div>
-		<div class="mt-2">
-			<div class="min-h-[18rem] flex items-center justify-center text-center py-12">
-				<div class="text-lg text-gray-700 font-semibold flex flex-col items-center gap-4">
-					<i class="ri-information-line text-3xl text-gray-600"></i>
-					<span>Keine Beiträge verzeichnet.</span>
+		<div class="mt-2 flex min-h-0 flex-1 flex-col" data-role="contents-empty-state">
+			<div class="flex min-h-0 flex-1 items-center justify-center text-center py-16">
+				<div class="text-2xl text-gray-700 font-semibold flex flex-col items-center gap-6">
+					<i class="ri-file-forbid-line text-5xl text-gray-600"></i>
+					<span>Keine Beiträge verzeichnet</span>
+					<a
+						href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new"
+						class="inline-flex items-center justify-center gap-2 rounded-xs bg-slate-800 px-4 py-2 font-sans text-base font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">
+						<i class="ri-add-line text-lg"></i>
+						<span>Neuer Beitrag</span>
+					</a>
 				</div>
 			</div>
-		</div>
-		{{- if not $activeReservation -}}
-			<div class="border-t border-stone-200 px-4 py-3">
-				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-slate-700">
+			{{- if not $activeReservation -}}
+			<div class="shrink-0 border-t border-stone-200 px-4 py-3">
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
 					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-					<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-						<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
-						<select
-							name="reserved_count"
-							class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-							required>
-							<option value="10">10</option>
-							<option value="25">25</option>
-							<option value="50">50</option>
-							<option value="80">80</option>
-							<option value="100">100</option>
-							<option value="150">150</option>
-							<option value="200">200</option>
-							<option value="300">300</option>
-							<option value="500">500</option>
-						</select>
-					</div>
+					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
+					<select
+						name="reserved_count"
+						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+						required>
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="80">80</option>
+						<option value="100">100</option>
+						<option value="150">150</option>
+						<option value="200">200</option>
+						<option value="300">300</option>
+						<option value="500">500</option>
+					</select>
 					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
 						<i class="ri-bookmark-line"></i>
 						<span>Block reservieren</span>
 					</button>
 				</form>
 			</div>
-		{{- end -}}
+			{{- end -}}
+		</div>
 	{{- end -}}
 </div>
 
@@ -507,6 +504,8 @@
 			.replace(/[\u0300-\u036f]/g, '') // Remove diacritics
 			.trim();
 	};
+
+	const formatContentCount = (count) => `${count} ${count === 1 ? "Eintrag" : "Einträge"}`;
 
 	// Filter functionality
 	const initFilter = () => {
@@ -807,8 +806,8 @@
 
 			if (filterCount) {
 				filterCount.textContent = !hasAnyFilter
-					? `${totalCount} Einträge`
-					: `${visibleCount} von ${totalCount} Einträgen`;
+					? formatContentCount(totalCount)
+					: `${visibleCount} von ${formatContentCount(totalCount)}`;
 			}
 
 			window.__contentsApplyViewState?.();

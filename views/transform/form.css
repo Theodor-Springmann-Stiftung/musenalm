@@ -232,8 +232,13 @@
 		@apply min-w-8 px-2.5 text-base;
 	}
 
+	edit-page,
+	almanach-edit-page {
+		@apply block min-h-full;
+	}
+
 	.simple-entity-page {
-		@apply flex w-full flex-col pb-8;
+		@apply flex min-h-full w-full flex-col pb-0;
 	}
 
 	.simple-entity-header {

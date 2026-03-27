@@ -177,11 +177,15 @@
 	}
 
 	.admin-main {
-		@apply grow;
+		@apply grow min-h-0 flex flex-col;
 	}
 
 	.admin-main-shell {
-		@apply relative min-h-full;
+		@apply relative min-h-full flex flex-1 flex-col;
+	}
+
+	.admin-main-content {
+		@apply flex min-h-full flex-1 flex-col;
 	}
 
 	.admin-main-loading {

@@ -263,9 +263,7 @@
 					</form>
 				</div>
 			</div>
-			<div class="admin-list-count-summary shrink-0 self-start whitespace-nowrap">
-				<span x-text="currentCount"></span><span>&thinsp;/&thinsp;</span><span x-text="totalCount"></span><span>&thinsp;Orte</span>
-			</div>
+			<div class="admin-list-count-summary shrink-0 self-start whitespace-nowrap" x-text="`${currentCount} / ${totalCount} ${totalCount === 1 ? 'Ort' : 'Orte'}`"></div>
 		</div>
 	</header>
 
