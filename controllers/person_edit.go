@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -49,6 +50,8 @@ type PersonEditResult struct {
 	User           *dbmodels.User
 	Prev           *dbmodels.Agent
 	Next           *dbmodels.Agent
+	PrevMusenalm   *dbmodels.Agent
+	NextMusenalm   *dbmodels.Agent
 	Entries        []*dbmodels.Entry
 	EntryTypes     map[string][]string
 	Contents       []*dbmodels.Content
@@ -76,6 +79,10 @@ func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
 	if err != nil {
 		app.Logger().Error("Failed to load agent neighbors", "agent", agent.Id, "error", err)
 	}
+	prevMusenalm, nextMusenalm, err := agentMusenalmNeighbors(app, agent.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load agent Musenalm neighbors", "agent", agent.Id, "error", err)
+	}
 
 	entries, entryTypes, err := agentEntries(app, agent.Id)
 	if err != nil {
@@ -98,6 +105,8 @@ func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
 		User:           user,
 		Prev:           prev,
 		Next:           next,
+		PrevMusenalm:   prevMusenalm,
+		NextMusenalm:   nextMusenalm,
 		Entries:        entries,
 		EntryTypes:     entryTypes,
 		Contents:       contents,
@@ -159,6 +168,34 @@ func agentNeighbors(app core.App, currentID string) (*dbmodels.Agent, *dbmodels.
 		return nil, nil, nil
 	}
 	dbmodels.Sort_Agents_Name(agents)
+	for index, item := range agents {
+		if item.Id != currentID {
+			continue
+		}
+		var prev *dbmodels.Agent
+		var next *dbmodels.Agent
+		if index > 0 {
+			prev = agents[index-1]
+		}
+		if index+1 < len(agents) {
+			next = agents[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
+}
+
+func agentMusenalmNeighbors(app core.App, currentID string) (*dbmodels.Agent, *dbmodels.Agent, error) {
+	agents := []*dbmodels.Agent{}
+	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&agents); err != nil {
+		return nil, nil, err
+	}
+	if len(agents) == 0 {
+		return nil, nil, nil
+	}
+	sort.Slice(agents, func(i, j int) bool {
+		return agents[i].MusenalmID() < agents[j].MusenalmID()
+	})
 	for index, item := range agents {
 		if item.Id != currentID {
 			continue

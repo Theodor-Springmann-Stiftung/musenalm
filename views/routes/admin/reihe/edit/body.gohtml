@@ -1,110 +1,75 @@
 {{ $model := . }}
 {{ $series := $model.result.Series }}
+{{- $seriesTitle := $series.Title -}}
+{{- if $model.is_new -}}
+	{{- $seriesTitle = "Neue Reihe" -}}
+{{- end -}}
+{{- $seriesActions := Arr -}}
+{{- if not $model.is_new -}}
+	{{- $seriesActions = Arr
+		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
+		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" "/admin/reihen/" "icon" "ri-list-check-2" "tooltip" "Liste aller Reihen")
+	-}}
+{{- end -}}
+{{- $seriesPrevHref := "" -}}
+{{- $seriesPrevLabel := "" -}}
+{{- if $model.result.Prev -}}
+	{{- $seriesPrevHref = printf "/admin/reihe/%d/edit" $model.result.Prev.MusenalmID -}}
+	{{- $seriesPrevLabel = $model.result.Prev.Title -}}
+{{- end -}}
+{{- $seriesNextHref := "" -}}
+{{- $seriesNextLabel := "" -}}
+{{- if $model.result.Next -}}
+	{{- $seriesNextHref = printf "/admin/reihe/%d/edit" $model.result.Next.MusenalmID -}}
+	{{- $seriesNextLabel = $model.result.Next.Title -}}
+{{- end -}}
+{{- $seriesPrevMusenalmHref := "" -}}
+{{- $seriesPrevMusenalmLabel := "" -}}
+{{- if $model.result.PrevMusenalm -}}
+	{{- $seriesPrevMusenalmHref = printf "/admin/reihe/%d/edit" $model.result.PrevMusenalm.MusenalmID -}}
+	{{- $seriesPrevMusenalmLabel = printf "%d: %s" $model.result.PrevMusenalm.MusenalmID $model.result.PrevMusenalm.Title -}}
+{{- end -}}
+{{- $seriesNextMusenalmHref := "" -}}
+{{- $seriesNextMusenalmLabel := "" -}}
+{{- if $model.result.NextMusenalm -}}
+	{{- $seriesNextMusenalmHref = printf "/admin/reihe/%d/edit" $model.result.NextMusenalm.MusenalmID -}}
+	{{- $seriesNextMusenalmLabel = printf "%d: %s" $model.result.NextMusenalm.MusenalmID $model.result.NextMusenalm.Title -}}
+{{- end -}}
+{{- $seriesCancelHref := printf "/reihe/%d" $series.MusenalmID -}}
+{{- if $model.is_new -}}
+	{{- $seriesCancelHref = "/reihen/" -}}
+{{- end -}}
+{{- $hasRelatedItems := or (gt (len $model.result.Entries) 0) (gt (len $model.result.Contents) 0) -}}
 
 <edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
-<div class="edit-header-shell">
-	<div class="edit-header-layout">
-		<div class="edit-header-main">
-		<div class="edit-header-overline">
-			<i class="ri-book-shelf-fill"></i> Reihe
-		</div>
-			<h1 class="edit-header-title">
-				{{- if $model.is_new -}}
-					Neue Reihe anlegen
-				{{- else -}}
-					{{- $series.Title -}}
-				{{- end -}}
-			</h1>
-			{{- if not $model.is_new -}}
-				<div class="edit-header-links">
-					<div>
-						<a
-							href="/reihe/{{ $series.MusenalmID }}"
-							class="edit-header-link">
-							<i class="ri-eye-line"></i> Anschauen
-						</a>
-					</div>
-				</div>
-			{{- end -}}
-		</div>
-		{{- if not $model.is_new -}}
-		<div class="edit-header-meta" id="series-header-data">
-			<div class="flex flex-col justify-end gap-y-6 pr-20">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-navigation-line"></i> Navigation
-					</div>
-					<div class="flex items-center gap-2">
-						{{- if $model.result.Prev -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.Prev.Title }}</div>
-								<a
-									href="/admin/reihe/{{ $model.result.Prev.MusenalmID }}/edit"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-left-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-left-s-line"></i>
-							</span>
-						{{- end -}}
-						<span class="text-gray-800 font-bold no-underline">
-						A&thinsp;-&thinsp;Z
-						</span>
-						{{- if $model.result.Next -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.Next.Title }}</div>
-								<a
-									href="/admin/reihe/{{ $model.result.Next.MusenalmID }}/edit"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-right-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-right-s-line"></i>
-							</span>
-						{{- end -}}
-					</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-					</div>
-					<div class="whitespace-nowrap tabular-nums">{{ $series.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
-					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums" id="series-updated-stamp">
-							<span id="series-updated-date">{{ GermanDate $series.Updated }}</span>,
-							<span id="series-updated-time">{{ GermanTime $series.Updated }}</span>h
-						</div>
-						<div
-							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
-							id="series-updated-user">
-							<i class="ri-user-line mr-1"></i>
-							<span id="series-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{{- end -}}
-	</div>
-</div>
+<div class="simple-entity-page">
+	{{ template "_simple_entity_edit_header" (Dict
+		"is_new" $model.is_new
+		"type_label" "Reihe"
+		"type_icon" "ri-book-shelf-fill"
+		"title" $seriesTitle
+		"actions" $seriesActions
+		"db_id" $series.Id
+		"musenalm_id" $series.MusenalmID
+		"updated" $series.Updated
+		"editor_user" $model.result.User
+		"prev_href" $seriesPrevHref
+		"prev_label" $seriesPrevLabel
+		"next_href" $seriesNextHref
+		"next_label" $seriesNextLabel
+		"prev_musenalm_href" $seriesPrevMusenalmHref
+		"prev_musenalm_label" $seriesPrevMusenalmLabel
+		"next_musenalm_href" $seriesNextMusenalmHref
+		"next_musenalm_label" $seriesNextMusenalmLabel
+	) }}
 
-<div class="edit-content-shell">
-	{{/* usermessage moved into action bar */}}
+	<div class="simple-entity-body">
+		{{/* usermessage moved into action bar */}}
 	<form
 		autocomplete="off"
-		class="w-full dbform form-with-action-bar"
+		class="w-full dbform form-with-action-bar simple-entity-form"
 		id="changeseriesform"
 		method="POST"
 		action="{{ if $model.is_new }}/admin/reihen/new/{{ else }}/admin/reihe/{{ $series.MusenalmID }}/edit{{ end }}"
@@ -114,8 +79,8 @@
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $series.Updated }}{{ end }}" />
 
-		<div class="flex gap-8">
-			<div class="flex-1 flex flex-col gap-4">
+		<div class="simple-entity-form-grid">
+			<div class="simple-entity-main-column">
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
@@ -169,65 +134,35 @@
 				{{ template "_annotation_field" (Arr $series.Annotation "Annotation") }}
 			</div>
 
-			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+			<div class="simple-entity-side-column">
 				{{ template "_status_edit" (Arr $series "status" "status" "series") }}
-				<div class="mt-2">
-					{{ template "_linked_items" (Arr $model.result.Entries $model.result.Contents nil $model.result.ContentTypes $model.result.ContentEntries true $model.csrf_token) }}
-				</div>
+				{{- if $hasRelatedItems -}}
+					<div class="mt-2">
+					{{ template "_simple_entity_related_items" (Dict
+						"title" "Verknüpfungen"
+						"entries" $model.result.Entries
+						"contents" $model.result.Contents
+						"entry_types" ""
+						"content_types" $model.result.ContentTypes
+						"content_entries" $model.result.ContentEntries
+						"entry_controls" true
+						"csrf_token" $model.csrf_token
+					) }}
+					</div>
+				{{- end -}}
 			</div>
 		</div>
 
-		<div class="form-action-bar">
-			<div class="form-action-bar-inner">
-				<p
-					id="series-save-feedback"
-					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
-					{{ if $model.success }}data-autohide="true"{{ end }}
-					aria-live="polite">
-					{{- if $model.error -}}
-						{{ $model.error }}
-					{{- else if $model.success -}}
-						{{ $model.success }}
-					{{- end -}}
-				</p>
-				<div class="form-action-bar-actions">
-					<a href="{{ if $model.is_new }}/reihen/{{ else }}/reihe/{{ $series.MusenalmID }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
-						<i class="ri-close-line"></i>
-						<span>Abbrechen</span>
-					</a>
-					{{- if not $model.is_new -}}
-						<button
-							type="button"
-							class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
-							data-role="edit-delete">
-							<i class="ri-delete-bin-line"></i>
-							<span>Reihe löschen</span>
-						</button>
-					{{- end -}}
-					{{- if not $model.is_new -}}
-						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-						<button
-							type="submit"
-							name="save_action"
-							value="view"
-							class="submitbutton flex items-center gap-2 justify-center"
-							>
-							<i class="ri-eye-line"></i>
-							<span>Speichern &amp; Anzeigen</span>
-						</button>
-					{{- end -}}
-					{{- if $model.is_new -}}
-						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-					{{- end -}}
-				</div>
-			</div>
-		</div>
+		{{ template "_simple_entity_action_bar" (Dict
+			"message_id" "series-save-feedback"
+			"error" $model.error
+			"success" $model.success
+			"cancel_href" $seriesCancelHref
+			"cancel_url" $model.cancel_url
+			"show_delete" (not $model.is_new)
+			"delete_label" "Reihe löschen"
+			"show_view_action" (not $model.is_new)
+		) }}
 		{{- if not $model.is_new -}}
 		<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
 			<div class="p-5 w-[22rem]">
@@ -540,5 +475,6 @@
 		</script>
 		{{- end -}}
 	</form>
+	</div>
 </div>
 </edit-page>

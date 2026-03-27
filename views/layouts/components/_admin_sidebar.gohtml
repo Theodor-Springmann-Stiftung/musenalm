@@ -31,6 +31,18 @@
 {{- $isCreateSectionActive := or $isNewBandActive $isNewSeriesActive $isNewPlaceActive $isNewPersonActive -}}
 {{- $isListsSectionActive := or $isBandsActive $isSeriesActive $isPlacesActive $isPersonsActive $isAbbreviationsActive $isPagesActive -}}
 {{- $isAdminSectionActive := or $isSettingsActive $isExportsActive $isUserInviteActive $isUserManagementActive -}}
+{{- $seriesSidebarDetail := "" -}}
+{{- if and (HasPrefix $path "/admin/reihe/") $model.result $model.result.Series (not $model.is_new) -}}
+	{{- $seriesSidebarDetail = $model.result.Series.Title -}}
+{{- end -}}
+{{- $personSidebarDetail := "" -}}
+{{- if and (HasPrefix $path "/admin/person/") $model.result $model.result.Agent (not $model.is_new) -}}
+	{{- $personSidebarDetail = $model.result.Agent.Name -}}
+{{- end -}}
+{{- $placeSidebarDetail := "" -}}
+{{- if and (HasPrefix $path "/admin/ort/") $model.result $model.result.Place (not $model.is_new) -}}
+	{{- $placeSidebarDetail = $model.result.Place.Name -}}
+{{- end -}}
 
 <div id="admin-sidebar" class="admin-sidebar-inner">
 	<div class="admin-sidebar-brand">
@@ -187,10 +199,10 @@
 				<span>Listen</span>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span></a>
+				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span>{{ if $seriesSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span>{{ end }}</a>
 				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span></a>
-				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span></a>
-				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span></a>
+				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span>{{ if $personSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span>{{ end }}</a>
+				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span>{{ if $placeSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span>{{ end }}</a>
 				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
 				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>

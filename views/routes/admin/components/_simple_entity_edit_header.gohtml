@@ -1,0 +1,146 @@
+{{- $isNew := index . "is_new" -}}
+{{- $typeLabel := index . "type_label" -}}
+{{- $typeIcon := index . "type_icon" -}}
+{{- $title := index . "title" -}}
+{{- $actions := index . "actions" -}}
+{{- $dbID := index . "db_id" -}}
+{{- $musenalmID := index . "musenalm_id" -}}
+{{- $updated := index . "updated" -}}
+{{- $editorUser := index . "editor_user" -}}
+{{- $prevHref := index . "prev_href" -}}
+{{- $prevLabel := index . "prev_label" -}}
+{{- $nextHref := index . "next_href" -}}
+{{- $nextLabel := index . "next_label" -}}
+{{- $prevMusenalmHref := index . "prev_musenalm_href" -}}
+{{- $prevMusenalmLabel := index . "prev_musenalm_label" -}}
+{{- $nextMusenalmHref := index . "next_musenalm_href" -}}
+{{- $nextMusenalmLabel := index . "next_musenalm_label" -}}
+{{- $hasActions := gt (len $actions) 0 -}}
+
+<header class="admin-page-header simple-entity-header">
+	<div class="simple-entity-title-row">
+		<tool-tip position="top" class="inline">
+			<span class="simple-entity-title-icon" aria-label="{{ $typeLabel }}">
+				<i class="{{ $typeIcon }}"></i>
+			</span>
+			<div class="data-tip">{{ $typeLabel }}</div>
+		</tool-tip>
+		<h1 class="simple-entity-title">{{ $title }}</h1>
+	</div>
+
+	{{- if or $hasActions (not $isNew) -}}
+		<div class="admin-list-toolbar">
+			<div class="admin-list-toolbar-primary simple-entity-header-actions">
+				{{- range $action := $actions -}}
+					<tool-tip position="top" class="inline">
+						<a
+							href="{{ index $action "href" }}"
+							class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip"
+							{{- if index $action "target_blank" }} target="_blank" rel="noopener"{{- end -}}
+							aria-label="{{ index $action "tooltip" }}">
+							<i class="{{ index $action "icon" }}"></i>
+						</a>
+						<div class="data-tip">{{ index $action "tooltip" }}</div>
+					</tool-tip>
+				{{- end -}}
+				{{- if not $isNew -}}
+					{{- if $prevHref -}}
+						<tool-tip position="top" class="inline">
+							<a href="{{ $prevHref }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
+								<i class="ri-arrow-left-s-line"></i>
+							</a>
+							<div class="data-tip">{{ $prevLabel }}</div>
+						</tool-tip>
+					{{- else -}}
+						<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
+							<i class="ri-arrow-left-s-line"></i>
+						</span>
+					{{- end -}}
+					<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
+					{{- if $nextHref -}}
+						<tool-tip position="top" class="inline">
+							<a href="{{ $nextHref }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
+								<i class="ri-arrow-right-s-line"></i>
+							</a>
+							<div class="data-tip">{{ $nextLabel }}</div>
+						</tool-tip>
+					{{- else -}}
+						<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
+							<i class="ri-arrow-right-s-line"></i>
+						</span>
+					{{- end -}}
+				{{- end -}}
+			</div>
+
+			{{- if not $isNew -}}
+				<div class="admin-list-toolbar-secondary simple-entity-meta-inline">
+					<span class="simple-entity-meta-item">
+						{{- if $prevMusenalmHref -}}
+							<tool-tip position="top" class="inline">
+								<a href="{{ $prevMusenalmHref }}" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
+									<i class="ri-arrow-left-s-line"></i>
+								</a>
+								<div class="data-tip">{{ $prevMusenalmLabel }}</div>
+							</tool-tip>
+						{{- else -}}
+							<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
+								<i class="ri-arrow-left-s-line"></i>
+							</span>
+						{{- end -}}
+						<tool-tip position="top" class="inline">
+							<span class="simple-entity-meta-icon" aria-hidden="true">
+								<i class="ri-fingerprint-line"></i>
+							</span>
+							<div class="data-tip">Musenalm-ID</div>
+						</tool-tip>
+						<span class="simple-entity-meta-item-value tabular-nums">{{ $musenalmID }}</span>
+						{{- if $nextMusenalmHref -}}
+							<tool-tip position="top" class="inline">
+								<a href="{{ $nextMusenalmHref }}" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
+									<i class="ri-arrow-right-s-line"></i>
+								</a>
+								<div class="data-tip">{{ $nextMusenalmLabel }}</div>
+							</tool-tip>
+						{{- else -}}
+							<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
+								<i class="ri-arrow-right-s-line"></i>
+							</span>
+						{{- end -}}
+					</span>
+					<span class="simple-entity-meta-sep">|</span>
+					<span class="simple-entity-meta-item">
+						<tool-tip position="top" class="inline">
+							<span class="simple-entity-meta-icon" aria-hidden="true">
+								<i class="ri-database-2-line"></i>
+							</span>
+							<div class="data-tip">Datenbank-ID</div>
+						</tool-tip>
+						<span class="simple-entity-meta-item-value tabular-nums">{{ $dbID }}</span>
+					</span>
+					<span class="simple-entity-meta-sep">|</span>
+					<span class="simple-entity-meta-item">
+						<tool-tip position="top" class="inline">
+							<span class="simple-entity-meta-icon" aria-hidden="true">
+								<i class="ri-calendar-line"></i>
+							</span>
+							<div class="data-tip">Zuletzt bearbeitet</div>
+						</tool-tip>
+						<span class="simple-entity-meta-item-value tabular-nums">{{ GermanShortDateTime $updated }}</span>
+					</span>
+					{{- if $editorUser -}}
+						<span class="simple-entity-meta-sep">|</span>
+						<span class="simple-entity-meta-item">
+							<tool-tip position="top" class="inline">
+								<span class="simple-entity-meta-icon" aria-hidden="true">
+									<i class="ri-user-line"></i>
+								</span>
+								<div class="data-tip">Zuletzt bearbeitet von</div>
+							</tool-tip>
+							<span class="simple-entity-meta-item-value">{{ $editorUser.Name }}</span>
+						</span>
+					{{- end -}}
+				</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+</header>

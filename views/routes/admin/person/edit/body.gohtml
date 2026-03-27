@@ -1,110 +1,75 @@
 {{ $model := . }}
 {{ $agent := $model.result.Agent }}
+{{- $personTitle := $agent.Name -}}
+{{- if $model.is_new -}}
+	{{- $personTitle = "Neue Person" -}}
+{{- end -}}
+{{- $personActions := Arr -}}
+{{- if not $model.is_new -}}
+	{{- $personActions = Arr
+		(Dict "href" (printf "/person/%s" $agent.Id) "icon" "ri-eye-line" "tooltip" "Anschauen")
+		(Dict "href" (printf "/person/%s" $agent.Id) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" "/admin/personen/" "icon" "ri-list-check-2" "tooltip" "Liste aller Personen")
+	-}}
+{{- end -}}
+{{- $personPrevHref := "" -}}
+{{- $personPrevLabel := "" -}}
+{{- if $model.result.Prev -}}
+	{{- $personPrevHref = printf "/admin/person/%s/edit/" $model.result.Prev.Id -}}
+	{{- $personPrevLabel = $model.result.Prev.Name -}}
+{{- end -}}
+{{- $personNextHref := "" -}}
+{{- $personNextLabel := "" -}}
+{{- if $model.result.Next -}}
+	{{- $personNextHref = printf "/admin/person/%s/edit/" $model.result.Next.Id -}}
+	{{- $personNextLabel = $model.result.Next.Name -}}
+{{- end -}}
+{{- $personPrevMusenalmHref := "" -}}
+{{- $personPrevMusenalmLabel := "" -}}
+{{- if $model.result.PrevMusenalm -}}
+	{{- $personPrevMusenalmHref = printf "/admin/person/%s/edit/" $model.result.PrevMusenalm.Id -}}
+	{{- $personPrevMusenalmLabel = printf "%d: %s" $model.result.PrevMusenalm.MusenalmID $model.result.PrevMusenalm.Name -}}
+{{- end -}}
+{{- $personNextMusenalmHref := "" -}}
+{{- $personNextMusenalmLabel := "" -}}
+{{- if $model.result.NextMusenalm -}}
+	{{- $personNextMusenalmHref = printf "/admin/person/%s/edit/" $model.result.NextMusenalm.Id -}}
+	{{- $personNextMusenalmLabel = printf "%d: %s" $model.result.NextMusenalm.MusenalmID $model.result.NextMusenalm.Name -}}
+{{- end -}}
+{{- $personCancelHref := printf "/person/%s" $agent.Id -}}
+{{- if $model.is_new -}}
+	{{- $personCancelHref = "/personen/" -}}
+{{- end -}}
+{{- $hasPersonRelated := or (gt (len $model.result.Entries) 0) (gt (len $model.result.Contents) 0) -}}
 
 <edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
-<div class="edit-header-shell">
-	<div class="edit-header-layout">
-		<div class="edit-header-main">
-			<div class="edit-header-overline">
-				<i class="ri-user-line"></i> Person
-			</div>
-			<h1 class="edit-header-title">
-				{{- if $model.is_new -}}
-					Neue Person anlegen
-				{{- else -}}
-					{{- $agent.Name -}}
-				{{- end -}}
-			</h1>
-			{{- if not $model.is_new -}}
-				<div class="edit-header-links">
-					<div>
-						<a
-							href="/person/{{ $agent.Id }}"
-							class="edit-header-link">
-							<i class="ri-eye-line"></i> Anschauen
-						</a>
-					</div>
-				</div>
-			{{- end -}}
-		</div>
-		{{- if not $model.is_new -}}
-		<div class="edit-header-meta" id="person-header-data">
-			<div class="flex flex-col justify-end gap-y-6 pr-20">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-navigation-line"></i> Navigation
-					</div>
-					<div class="flex items-center gap-2">
-						{{- if $model.result.Prev -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.Prev.Name }}</div>
-								<a
-									href="/admin/person/{{ $model.result.Prev.Id }}/edit/"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-left-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-left-s-line"></i>
-							</span>
-						{{- end -}}
-						<span class="text-gray-800 font-bold no-underline">
-						A&thinsp;-&thinsp;Z
-						</span>
-						{{- if $model.result.Next -}}
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ $model.result.Next.Name }}</div>
-								<a
-									href="/admin/person/{{ $model.result.Next.Id }}/edit/"
-									class="text-gray-700 hover:text-slate-950 no-underline">
-									<i class="ri-arrow-right-s-line"></i>
-								</a>
-							</tool-tip>
-						{{- else -}}
-							<span class="text-gray-700 opacity-0 pointer-events-none">
-								<i class="ri-arrow-right-s-line"></i>
-							</span>
-						{{- end -}}
-					</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-10 w-40 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm">
-						<i class="ri-database-2-line"></i> Datenbank-ID
-					</div>
-					<div class="whitespace-nowrap tabular-nums">{{ $agent.Id }}</div>
-				</div>
-			</div>
-			<div class="flex flex-col justify-end gap-y-6 pr-4 w-48 shrink-0">
-				<div class="">
-					<div class="font-bold text-sm mb-1"><i class="ri-calendar-line"></i> Zuletzt bearbeitet</div>
-					<div>
-						<div class="px-1.5 py-0.5 rounded-xs bg-gray-200 w-fit whitespace-nowrap tabular-nums" id="person-updated-stamp">
-							<span id="person-updated-date">{{ GermanDate $agent.Updated }}</span>,
-							<span id="person-updated-time">{{ GermanTime $agent.Updated }}</span>h
-						</div>
-						<div
-							class="px-1.5 py-0.5 rounded-xs mt-1.5 bg-gray-200 w-fit {{ if not $model.result.User }}hidden{{ end }}"
-							id="person-updated-user">
-							<i class="ri-user-line mr-1"></i>
-							<span id="person-updated-user-name">{{- if $model.result.User -}}{{ $model.result.User.Name }}{{- end -}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{{- end -}}
-	</div>
-</div>
+<div class="simple-entity-page">
+	{{ template "_simple_entity_edit_header" (Dict
+		"is_new" $model.is_new
+		"type_label" "Person"
+		"type_icon" "ri-user-line"
+		"title" $personTitle
+		"actions" $personActions
+		"db_id" $agent.Id
+		"musenalm_id" $agent.MusenalmID
+		"updated" $agent.Updated
+		"editor_user" $model.result.User
+		"prev_href" $personPrevHref
+		"prev_label" $personPrevLabel
+		"next_href" $personNextHref
+		"next_label" $personNextLabel
+		"prev_musenalm_href" $personPrevMusenalmHref
+		"prev_musenalm_label" $personPrevMusenalmLabel
+		"next_musenalm_href" $personNextMusenalmHref
+		"next_musenalm_label" $personNextMusenalmLabel
+	) }}
 
-<div class="edit-content-shell">
-	{{/* usermessage moved into action bar */}}
+	<div class="simple-entity-body">
+		{{/* usermessage moved into action bar */}}
 	<form
 		autocomplete="off"
-		class="w-full dbform form-with-action-bar"
+		class="w-full dbform form-with-action-bar simple-entity-form"
 		id="changepersonform"
 		method="POST"
 		action="{{ if $model.is_new }}/admin/personen/new/{{ else }}/admin/person/{{ $agent.Id }}/edit/{{ end }}"
@@ -114,31 +79,58 @@
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $agent.Updated }}{{ end }}" />
 
-		<div class="flex gap-8">
-			<div class="flex-1 flex flex-col gap-4">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="name" class="inputlabel">Name</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ help "agents" "name" }}</div>
-								<i class="ri-question-line"></i>
-							</tool-tip>
+		<div class="simple-entity-form-grid">
+			<div class="simple-entity-main-column">
+				<div class="flex flex-row gap-2 items-start">
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
+								<label for="name" class="inputlabel">Name</label>
+								<tool-tip position="top" class="!inline">
+									<div class="data-tip">{{ help "agents" "name" }}</div>
+									<i class="ri-question-line"></i>
+								</tool-tip>
+							</div>
+						</div>
+						<lookup-field
+							id="person-name-field"
+							name="name"
+							data-multiline="true"
+							data-no-enter="true"
+							data-required="true"
+							data-autocomplete="false"
+							data-valid-fn="lookupRequiredText"
+							data-dup-endpoint="/admin/api/agents/search"
+							data-dup-result-key="agents"
+							data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
+							value="{{- $agent.Name -}}">
+						</lookup-field>
+					</div>
+					<div class="inputwrapper shrink-0">
+						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+								<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
+								$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
+								<label class="flex items-center gap-1 text-gray-700" for="corporate_body">
+									<span>Verlag, Druck od. Vertrieb</span>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">{{ help "agents" "corporate_body" }}</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</label>
 						</div>
 					</div>
-					<lookup-field
-						id="person-name-field"
-						name="name"
-						data-multiline="true"
-						data-no-enter="true"
-						data-required="true"
-						data-autocomplete="false"
-						data-valid-fn="lookupRequiredText"
-						data-dup-endpoint="/admin/api/agents/search"
-						data-dup-result-key="agents"
-						data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
-						value="{{- $agent.Name -}}">
-					</lookup-field>
+					<div class="inputwrapper shrink-0">
+						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+								<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
+								<label class="flex items-center gap-1 text-gray-700" for="fictional">
+									<span>Fiktional</span>
+									<tool-tip position="top" class="!inline">
+										<div class="data-tip">{{ help "agents" "fictional" }}</div>
+										<i class="ri-question-line"></i>
+									</tool-tip>
+								</label>
+						</div>
+					</div>
 				</div>
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
@@ -151,33 +143,6 @@
 						</div>
 					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
-				</div>
-				<div class="flex flex-row gap-2">
-					<div class="inputwrapper">
-						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-								<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
-								$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
-								<label class="flex items-center gap-1 text-gray-700" for="corporate_body">
-									<span>Körperschaft (Verlag od. Vertrieb)</span>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "agents" "corporate_body" }}</div>
-										<i class="ri-question-line"></i>
-									</tool-tip>
-								</label>
-						</div>
-					</div>
-					<div class="inputwrapper">
-						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-								<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
-								<label class="flex items-center gap-1 text-gray-700" for="fictional">
-									<span>Fiktional</span>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "agents" "fictional" }}</div>
-										<i class="ri-question-line"></i>
-									</tool-tip>
-								</label>
-						</div>
-					</div>
 				</div>
 				<div class="flex flex-row gap-2 w-full">
 					<div class="inputwrapper w-3/4 grow-0">
@@ -234,65 +199,35 @@
 				{{ template "_annotation_field" (Arr $agent.Annotation "Annotation") }}
 			</div>
 
-			<div class="w-[28rem] shrink-0 flex flex-col gap-3">
+			<div class="simple-entity-side-column">
 				{{ template "_status_edit" (Arr $agent "status" "status" "agents") }}
-				<div class="mt-2">
-					{{ template "_linked_items" (Arr $model.result.Entries $model.result.Contents $model.result.EntryTypes $model.result.ContentTypes $model.result.ContentEntries true $model.csrf_token) }}
-				</div>
+				{{- if $hasPersonRelated -}}
+					<div class="mt-2">
+					{{ template "_simple_entity_related_items" (Dict
+						"title" "Verknüpfungen"
+						"entries" $model.result.Entries
+						"contents" $model.result.Contents
+						"entry_types" $model.result.EntryTypes
+						"content_types" $model.result.ContentTypes
+						"content_entries" $model.result.ContentEntries
+						"entry_controls" true
+						"csrf_token" $model.csrf_token
+					) }}
+					</div>
+				{{- end -}}
 			</div>
 		</div>
 
-		<div class="form-action-bar">
-			<div class="form-action-bar-inner">
-				<p
-					id="person-save-feedback"
-					class="form-action-bar-message save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
-					{{ if $model.success }}data-autohide="true"{{ end }}
-					aria-live="polite">
-					{{- if $model.error -}}
-						{{ $model.error }}
-					{{- else if $model.success -}}
-						{{ $model.success }}
-					{{- end -}}
-				</p>
-				<div class="form-action-bar-actions">
-					<a href="{{ if $model.is_new }}/personen/{{ else }}/person/{{ $agent.Id }}{{ end }}" class="resetbutton w-40 flex items-center gap-2 justify-center" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
-						<i class="ri-close-line"></i>
-						<span>Abbrechen</span>
-					</a>
-					{{- if not $model.is_new -}}
-						<button
-							type="button"
-							class="resetbutton w-40 flex items-center gap-2 justify-center bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900"
-							data-role="edit-delete">
-							<i class="ri-delete-bin-line"></i>
-							<span>Person löschen</span>
-						</button>
-					{{- end -}}
-					{{- if not $model.is_new -}}
-						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-						<button
-							type="submit"
-							name="save_action"
-							value="view"
-							class="submitbutton flex items-center gap-2 justify-center"
-							>
-							<i class="ri-eye-line"></i>
-							<span>Speichern &amp; Anzeigen</span>
-						</button>
-					{{- end -}}
-					{{- if $model.is_new -}}
-						<button type="submit" name="save_action" value="stay" class="submitbutton flex items-center gap-2 justify-center">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-					{{- end -}}
-				</div>
-			</div>
-		</div>
+		{{ template "_simple_entity_action_bar" (Dict
+			"message_id" "person-save-feedback"
+			"error" $model.error
+			"success" $model.success
+			"cancel_href" $personCancelHref
+			"cancel_url" $model.cancel_url
+			"show_delete" (not $model.is_new)
+			"delete_label" "Person löschen"
+			"show_view_action" (not $model.is_new)
+		) }}
 		{{- if not $model.is_new -}}
 		<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
 			<div class="p-5 w-[22rem]">
@@ -588,5 +523,6 @@
 		</script>
 		{{- end -}}
 	</form>
+	</div>
 </div>
 </edit-page>

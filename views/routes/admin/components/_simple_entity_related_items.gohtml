@@ -1,0 +1,20 @@
+{{- $title := index . "title" -}}
+{{- $entries := index . "entries" -}}
+{{- $contents := index . "contents" -}}
+{{- $entryTypes := index . "entry_types" -}}
+{{- $contentTypes := index . "content_types" -}}
+{{- $contentEntries := index . "content_entries" -}}
+{{- $entryControls := index . "entry_controls" -}}
+{{- $csrfToken := index . "csrf_token" -}}
+
+<aside class="simple-entity-side-card">
+	<div class="simple-entity-section-heading simple-entity-section-heading-tight">
+		<div>
+			<h2 class="simple-entity-section-title">{{ $title }}</h2>
+			<p class="simple-entity-section-copy">Verknüpfte Datensätze bleiben im Blick, ohne die Form zu unterbrechen.</p>
+		</div>
+	</div>
+	<div class="simple-entity-related-list">
+		{{ template "_linked_items" (Arr $entries $contents $entryTypes $contentTypes $contentEntries $entryControls $csrfToken) }}
+	</div>
+</aside>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -47,6 +48,8 @@ type ReiheEditResult struct {
 	User             *dbmodels.User
 	Prev             *dbmodels.Series
 	Next             *dbmodels.Series
+	PrevMusenalm     *dbmodels.Series
+	NextMusenalm     *dbmodels.Series
 	Entries          []*dbmodels.Entry
 	Contents         []*dbmodels.Content
 	ContentEntries   map[string]*dbmodels.Entry
@@ -73,6 +76,10 @@ func NewReiheEditResult(app core.App, id string) (*ReiheEditResult, error) {
 	prev, next, err := seriesNeighbors(app, series.Id)
 	if err != nil {
 		app.Logger().Error("Failed to load series neighbors", "series", series.Id, "error", err)
+	}
+	prevMusenalm, nextMusenalm, err := seriesMusenalmNeighbors(app, series.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load series Musenalm neighbors", "series", series.Id, "error", err)
 	}
 
 	entries, _, err := Entries_Series_IDs(app, []any{series.Id})
@@ -104,6 +111,8 @@ func NewReiheEditResult(app core.App, id string) (*ReiheEditResult, error) {
 		User:             user,
 		Prev:             prev,
 		Next:             next,
+		PrevMusenalm:     prevMusenalm,
+		NextMusenalm:     nextMusenalm,
 		Entries:          entries,
 		Contents:         contents,
 		ContentEntries:   contentEntries,
@@ -218,6 +227,34 @@ func seriesNeighbors(app core.App, currentID string) (*dbmodels.Series, *dbmodel
 		return nil, nil, nil
 	}
 	dbmodels.Sort_Series_Title(series)
+	for index, item := range series {
+		if item.Id != currentID {
+			continue
+		}
+		var prev *dbmodels.Series
+		var next *dbmodels.Series
+		if index > 0 {
+			prev = series[index-1]
+		}
+		if index+1 < len(series) {
+			next = series[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
+}
+
+func seriesMusenalmNeighbors(app core.App, currentID string) (*dbmodels.Series, *dbmodels.Series, error) {
+	series := []*dbmodels.Series{}
+	if err := app.RecordQuery(dbmodels.SERIES_TABLE).All(&series); err != nil {
+		return nil, nil, err
+	}
+	if len(series) == 0 {
+		return nil, nil, nil
+	}
+	sort.Slice(series, func(i, j int) bool {
+		return series[i].MusenalmID() < series[j].MusenalmID()
+	})
 	for index, item := range series {
 		if item.Id != currentID {
 			continue

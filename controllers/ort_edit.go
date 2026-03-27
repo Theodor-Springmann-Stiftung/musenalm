@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -44,11 +45,13 @@ func (p *OrtEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemo
 }
 
 type OrtEditResult struct {
-	Place   *dbmodels.Place
-	User    *dbmodels.User
-	Prev    *dbmodels.Place
-	Next    *dbmodels.Place
-	Entries []*dbmodels.Entry
+	Place        *dbmodels.Place
+	User         *dbmodels.User
+	Prev         *dbmodels.Place
+	Next         *dbmodels.Place
+	PrevMusenalm *dbmodels.Place
+	NextMusenalm *dbmodels.Place
+	Entries      []*dbmodels.Entry
 }
 
 func NewOrtEditResult(app core.App, id string) (*OrtEditResult, error) {
@@ -71,6 +74,10 @@ func NewOrtEditResult(app core.App, id string) (*OrtEditResult, error) {
 	if err != nil {
 		app.Logger().Error("Failed to load place neighbors", "place", place.Id, "error", err)
 	}
+	prevMusenalm, nextMusenalm, err := placeMusenalmNeighbors(app, place.Id)
+	if err != nil {
+		app.Logger().Error("Failed to load place Musenalm neighbors", "place", place.Id, "error", err)
+	}
 
 	entries, err := placeEntries(app, place.Id)
 	if err != nil {
@@ -81,11 +88,13 @@ func NewOrtEditResult(app core.App, id string) (*OrtEditResult, error) {
 	}
 
 	return &OrtEditResult{
-		Place:   place,
-		User:    user,
-		Prev:    prev,
-		Next:    next,
-		Entries: entries,
+		Place:        place,
+		User:         user,
+		Prev:         prev,
+		Next:         next,
+		PrevMusenalm: prevMusenalm,
+		NextMusenalm: nextMusenalm,
+		Entries:      entries,
 	}, nil
 }
 
@@ -289,6 +298,34 @@ func placeNeighbors(app core.App, currentID string) (*dbmodels.Place, *dbmodels.
 		return nil, nil, nil
 	}
 	dbmodels.Sort_Places_Name(places)
+	for index, item := range places {
+		if item.Id != currentID {
+			continue
+		}
+		var prev *dbmodels.Place
+		var next *dbmodels.Place
+		if index > 0 {
+			prev = places[index-1]
+		}
+		if index+1 < len(places) {
+			next = places[index+1]
+		}
+		return prev, next, nil
+	}
+	return nil, nil, nil
+}
+
+func placeMusenalmNeighbors(app core.App, currentID string) (*dbmodels.Place, *dbmodels.Place, error) {
+	places := []*dbmodels.Place{}
+	if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
+		return nil, nil, err
+	}
+	if len(places) == 0 {
+		return nil, nil, nil
+	}
+	sort.Slice(places, func(i, j int) bool {
+		return places[i].MusenalmID() < places[j].MusenalmID()
+	})
 	for index, item := range places {
 		if item.Id != currentID {
 			continue

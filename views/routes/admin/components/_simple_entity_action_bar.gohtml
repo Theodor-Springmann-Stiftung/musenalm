@@ -1,0 +1,53 @@
+{{- $messageID := index . "message_id" -}}
+{{- $error := index . "error" -}}
+{{- $success := index . "success" -}}
+{{- $cancelHref := index . "cancel_href" -}}
+{{- $cancelURL := index . "cancel_url" -}}
+{{- $showDelete := index . "show_delete" -}}
+{{- $deleteLabel := index . "delete_label" -}}
+{{- $showViewAction := index . "show_view_action" -}}
+
+<div class="form-action-bar">
+	<div class="form-action-bar-inner simple-entity-action-bar-inner">
+		<p
+			id="{{ $messageID }}"
+			class="form-action-bar-message save-feedback {{ if $error }}save-feedback-error text-red-700{{ else if $success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
+			{{ if $success }}data-autohide="true"{{ end }}
+			aria-live="polite">
+			{{- if $error -}}
+				{{ $error }}
+			{{- else if $success -}}
+				{{ $success }}
+			{{- end -}}
+		</p>
+		<div class="form-action-bar-actions">
+			<a href="{{ $cancelHref }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $cancelURL }}">
+				<i class="ri-close-line"></i>
+				<span>Abbrechen</span>
+			</a>
+			{{- if $showDelete -}}
+				<button
+					type="button"
+					class="simple-entity-button simple-entity-button-secondary simple-entity-button-danger w-40"
+					data-role="edit-delete">
+					<i class="ri-delete-bin-line"></i>
+					<span>{{ $deleteLabel }}</span>
+				</button>
+			{{- end -}}
+			<button type="submit" name="save_action" value="stay" class="simple-entity-button simple-entity-button-primary">
+				<i class="ri-save-line"></i>
+				<span>Speichern</span>
+			</button>
+			{{- if $showViewAction -}}
+				<button
+					type="submit"
+					name="save_action"
+					value="view"
+					class="simple-entity-button simple-entity-button-primary">
+					<i class="ri-eye-line"></i>
+					<span>Speichern &amp; Anzeigen</span>
+				</button>
+			{{- end -}}
+		</div>
+	</div>
+</div>

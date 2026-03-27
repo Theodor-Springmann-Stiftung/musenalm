@@ -145,11 +145,11 @@
 	}
 
 	.dbform .submitbutton {
-		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 active:bg-slate-900 transition-all duration-75;
+		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent font-medium text-white bg-slate-700 hover:bg-slate-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 active:bg-slate-900 transition-all duration-75;
 	}
 
 	.dbform .resetbutton {
-		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium text-gray-800 bg-stone-200 hover:bg-stone-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline;
+		@apply w-full inline-flex justify-center py-2 px-4 border border-transparent font-medium text-gray-800 bg-stone-200 hover:bg-stone-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 no-underline;
 	}
 
 	.form-with-action-bar {
@@ -159,7 +159,6 @@
 
 	.form-action-bar {
 		@apply fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-stone-50;
-		box-shadow: 0 -1px 6px rgba(15, 23, 42, 0.08);
 		padding-bottom: env(safe-area-inset-bottom);
 	}
 
@@ -182,13 +181,12 @@
 		@apply ml-auto flex items-center gap-3 flex-wrap justify-end w-full md:w-auto;
 	}
 
-	.form-action-bar-message {
-		@apply text-left mr-auto w-full md:w-auto;
+	.form-action-bar-actions a {
+		@apply rounded-xs;
 	}
 
-	.form-action-bar .submitbutton,
-	.form-action-bar .resetbutton {
-		@apply !w-auto px-4;
+	.form-action-bar-message {
+		@apply text-left mr-auto w-full md:w-auto;
 	}
 
 	.form-action-bar.is-stuck {
@@ -204,6 +202,155 @@
 
 	.content-action-button {
 		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-base font-semibold text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
+	}
+
+	.simple-entity-button {
+		@apply inline-flex items-center justify-center gap-2 rounded-xs border px-3 py-1.5 text-base no-underline transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500;
+	}
+
+	.simple-entity-button-secondary {
+		@apply border-stone-300 bg-stone-200 text-gray-800 hover:bg-stone-300;
+	}
+
+	.simple-entity-button-primary {
+		@apply border-transparent bg-slate-700 text-white hover:bg-slate-800 active:bg-slate-900;
+	}
+
+	.simple-entity-button-danger {
+		@apply border-red-200 bg-red-50 text-red-800 hover:bg-red-100 hover:text-red-900;
+	}
+
+	.simple-entity-button-icon {
+		@apply min-w-8 px-2 py-1.5 text-base;
+	}
+
+	.simple-entity-header-button {
+		@apply inline-flex items-center justify-center gap-2 select-none rounded-xs bg-gray-100 px-3 py-1.5 text-[0.98rem] font-semibold text-slate-700 no-underline transition-colors duration-100 hover:bg-stone-200 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
+	}
+
+	.simple-entity-header-button-icon {
+		@apply min-w-8 px-2.5 text-base;
+	}
+
+	.simple-entity-page {
+		@apply flex w-full flex-col pb-8;
+	}
+
+	.simple-entity-header {
+		@apply gap-3 px-8 pt-5 pb-2;
+	}
+
+	.simple-entity-title-row {
+		@apply mb-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2;
+	}
+
+	.simple-entity-title-icon {
+		@apply inline-flex items-center justify-center text-3xl leading-none text-stone-600;
+	}
+
+	.simple-entity-title {
+		@apply min-w-0 items-center  relative text-2xl font-bold leading-tight text-slate-950;
+	}
+
+	.simple-entity-header-bottom {
+		@apply flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between;
+	}
+
+	.simple-entity-header-actions {
+		@apply flex flex-wrap items-center gap-1.5;
+	}
+
+	.simple-entity-header-chip {
+		@apply h-8;
+	}
+
+	.simple-entity-header-az {
+		@apply px-1 text-sm font-semibold tracking-[0.08em] text-stone-600 uppercase;
+	}
+
+	.simple-entity-header-chip-disabled {
+		@apply cursor-default opacity-35 pointer-events-none;
+	}
+
+	.simple-entity-meta-inline {
+		@apply flex flex-wrap items-center gap-x-2 gap-y-2 text-[0.95rem] text-stone-700 lg:justify-end;
+	}
+
+	.simple-entity-meta-item {
+		@apply inline-flex items-center gap-1.5;
+	}
+
+	.simple-entity-meta-icon {
+		@apply inline-flex items-center text-base text-stone-500;
+	}
+
+	.simple-entity-meta-item-value {
+		@apply font-semibold text-slate-900;
+	}
+
+	.simple-entity-meta-nav {
+		@apply inline-flex items-center text-base text-stone-500 no-underline transition-colors duration-100 hover:text-slate-900 focus:outline-none focus:ring-0;
+	}
+
+	.simple-entity-meta-nav-disabled {
+		@apply cursor-default opacity-35 pointer-events-none;
+	}
+
+	.simple-entity-meta-sep {
+		@apply text-stone-400;
+	}
+
+	.simple-entity-body {
+		@apply w-full px-8 pt-3;
+	}
+
+	.simple-entity-form {
+		@apply flex flex-col gap-6;
+	}
+
+	.simple-entity-common-card,
+	.simple-entity-side-card {
+		@apply rounded-xs border border-stone-200 bg-stone-50 px-5 py-5;
+	}
+
+	.simple-entity-section-heading {
+		@apply mb-4 flex items-start justify-between gap-3;
+	}
+
+	.simple-entity-section-heading-tight {
+		@apply mb-3;
+	}
+
+	.simple-entity-section-title {
+		@apply text-lg font-semibold text-slate-900;
+	}
+
+	.simple-entity-section-copy {
+		@apply mt-1 text-sm leading-relaxed text-stone-700;
+	}
+
+	.simple-entity-common-fields {
+		@apply max-w-xl;
+	}
+
+	.simple-entity-form-grid {
+		@apply grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)];
+	}
+
+	.simple-entity-main-column {
+		@apply flex min-w-0 flex-col gap-4;
+	}
+
+	.simple-entity-side-column {
+		@apply flex flex-col gap-4;
+	}
+
+	.simple-entity-related-list {
+		@apply min-w-0;
+	}
+
+	.simple-entity-action-bar-inner {
+		@apply px-8;
 	}
 
 	.edit-header-shell {
@@ -251,6 +398,14 @@
 	}
 
 	@media (max-width: 1024px) {
+		.simple-entity-body {
+			@apply px-6;
+		}
+
+		.simple-entity-action-bar-inner {
+			@apply px-6;
+		}
+
 		.edit-header-shell {
 			@apply px-6;
 		}
