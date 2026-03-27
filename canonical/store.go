@@ -413,6 +413,7 @@ func (s *Store) CreateEntry(tx core.App, input EntryInput, effects *MutationEffe
 	}
 	if effects != nil {
 		effects.InvalidateSortedEntries = true
+		effects.ResetBaende = true
 		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
 	}
 

@@ -8250,6 +8250,10 @@ class Kd extends HTMLElement {
         const r = n?.error || `Speichern fehlgeschlagen (${i.status}).`;
         throw new Error(r);
       }
+      if (n?.redirect) {
+        window.location.assign(n.redirect);
+        return;
+      }
       await this._reloadForm(n?.message || "Änderungen gespeichert.");
     } catch (i) {
       this._showStatus(i instanceof Error ? i.message : "Speichern fehlgeschlagen.", "error");
