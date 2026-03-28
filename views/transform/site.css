@@ -847,6 +847,14 @@
 		@apply inline-flex items-center gap-1 rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base font-semibold text-red-700 hover:bg-red-50 hover:text-red-900;
 	}
 
+	.admin-status-chip {
+		@apply inline-flex items-center justify-center rounded-xs border border-stone-300 px-1.5 py-0.5 text-base leading-none shadow-none;
+	}
+
+	.admin-status-chip .status-icon {
+		@apply text-base;
+	}
+
 	.admin-placeholder-grid {
 		@apply grid gap-4 md:grid-cols-12;
 	}

@@ -1,0 +1,34 @@
+{{ $model := . }}
+
+<div class="relative" x-data="{ open: false, loaded: false }" data-role="beitraege-filter">
+	<details class="font-sans text-base list-none"
+		@toggle="
+			open = $el.open;
+			if ($el.open) {
+				closeOtherDropdowns($el);
+				if (!loaded) {
+					loaded = true;
+					htmx.ajax('GET', '{{ $model.endpoint }}', {
+						target: $refs.panel,
+						swap: 'innerHTML',
+						indicator: '#{{ $model.spinner_id }}',
+						source: $el,
+					});
+				}
+			}
+		">
+		<summary class="admin-list-filter-trigger flex items-center gap-2"
+			:class="{{ $model.kind }} ? 'admin-list-filter-trigger-active' : ''">
+			<span x-text="filterSummary('{{ $model.title }}', '{{ $model.kind }}', '{{ $model.title }}')"></span>
+			<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+			<span id="{{ $model.spinner_id }}" class="htmx-indicator text-slate-900">
+				<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+			</span>
+		</summary>
+		<div class="absolute left-0 z-10 mt-2 {{ $model.width_class }} rounded-md border border-gray-200 bg-white shadow-lg">
+			<div x-ref="panel">
+				<div class="p-3 text-sm text-gray-500">Lade {{ $model.title }}…</div>
+			</div>
+		</div>
+	</details>
+</div>

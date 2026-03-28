@@ -561,7 +561,6 @@ func (p *AlmanachContentsEditPage) POSTReserveNumbers(engine *templating.Engine,
 			return p.renderError(engine, app, ia, e, canonicalErrorMessage(err, "Reservierung fehlgeschlagen."))
 		}
 
-		setFlashSuccess(e, "Alm-Nummernblock reserviert.")
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
@@ -595,7 +594,6 @@ func (p *AlmanachContentsEditPage) POSTDeactivateReservation(engine *templating.
 			return p.renderError(engine, app, ia, e, canonicalErrorMessage(err, "Reservierung konnte nicht deaktiviert werden."))
 		}
 
-		setFlashSuccess(e, "Reservierung deaktiviert.")
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}

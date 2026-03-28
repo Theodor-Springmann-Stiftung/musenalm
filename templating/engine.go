@@ -121,6 +121,7 @@ func (e *Engine) funcs() error {
 	e.AddFunc("HasPrefix", strings.HasPrefix)
 	e.AddFunc("Contains", functions.Contains)
 	e.AddFunc("Add", functions.Add)
+	e.AddFunc("GermanInt", functions.GermanInt)
 	e.AddFunc("Len", functions.Length)
 	e.AddFunc("GermanDate", functions.GermanDate)
 	e.AddFunc("GermanTime", functions.GermanTime)

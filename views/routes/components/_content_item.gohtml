@@ -102,9 +102,15 @@
 					{{- end -}}
 				</div>
 			</div>
+			{{- if and $content.TitleStmt $content.IncipitStmt -}}
+				<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700" data-role="content-incipit-line">
+					<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
+					<div class="content-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
+				</div>
+			{{- end -}}
 			{{- if $content.Annotation -}}
 				<div class="col-annotations baende-inline-annotation annotation-content text-base leading-snug text-slate-800 font-sans hyphens-auto" data-role="content-annotation" style="display:none;">
-					<span class="inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 align-middle text-[0.72rem] font-semibold text-slate-700">Anm.</span>
+					<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Anm.</span>
 					<div class="mt-2">{{- Safe (ReplaceSlashParenSlash $content.Annotation) -}}</div>
 				</div>
 			{{- end -}}

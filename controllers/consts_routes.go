@@ -172,6 +172,16 @@ const (
 )
 
 const (
+	URL_BEITRAEGE_ADMIN        = "/admin/beitraege/"
+	URL_BEITRAEGE_RESULTS      = "/admin/beitraege/results/"
+	URL_BEITRAEGE_MORE         = "/admin/beitraege/more/"
+	URL_BEITRAEGE_FILTERS      = "/admin/beitraege/filters/{kind}/"
+	TEMPLATE_BEITRAEGE_ADMIN   = "/admin/beitraege/"
+	TEMPLATE_BEITRAEGE_FILTERS = "/admin/beitraege/filter_options/"
+	TEMPLATE_BEITRAEGE_MORE    = "/admin/beitraege/more/"
+)
+
+const (
 	URL_ORTE           = "/admin/orte/"
 	URL_ORTE_RESULTS   = "/admin/orte/results/"
 	URL_ORTE_MORE      = "/admin/orte/more/"

@@ -1,0 +1,416 @@
+{{ $model := . }}
+
+<div x-data="{
+	search: {{ printf "%q" $model.search }},
+	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+	loading: false,
+	searchOpen: false,
+	entry: {{ printf "%q" $model.entry }},
+	year: {{ printf "%q" $model.year }},
+	person: {{ printf "%q" $model.person }},
+	type: {{ printf "%q" $model.type }},
+	status: {{ printf "%q" $model.status }},
+	scans: {{ printf "%q" $model.scans }},
+	selectedLabels: {
+		entry: {{ printf "%q" (index $model.selected_filter_labels "entry") }},
+		year: {{ printf "%q" (index $model.selected_filter_labels "year") }},
+		person: {{ printf "%q" (index $model.selected_filter_labels "person") }},
+		type: {{ printf "%q" (index $model.selected_filter_labels "type") }},
+		status: {{ printf "%q" (index $model.selected_filter_labels "status") }},
+		scans: {{ printf "%q" (index $model.selected_filter_labels "scans") }},
+	},
+	filterSummary(prefix, key, fallback) {
+		return this[key] ? `${prefix}: ${this.selectedLabels[key] || this[key]}` : fallback;
+	},
+	buildResultsUrl(overrides = {}) {
+		const params = new URLSearchParams();
+		const next = {
+			search: this.search,
+			entry: this.entry,
+			year: this.year,
+			person: this.person,
+			type: this.type,
+			status: this.status,
+			scans: this.scans,
+			offset: 0,
+			...overrides,
+		};
+		Object.entries(next).forEach(([key, value]) => {
+			if (value !== '' && value !== null && value !== undefined) {
+				params.set(key, value);
+			}
+		});
+		return `/admin/beitraege/results/?${params.toString()}`;
+	},
+	buildPageUrl(overrides = {}) {
+		const params = new URLSearchParams();
+		const next = {
+			search: this.search,
+			entry: this.entry,
+			year: this.year,
+			person: this.person,
+			type: this.type,
+			status: this.status,
+			scans: this.scans,
+			offset: this.offset,
+			...overrides,
+		};
+		Object.entries(next).forEach(([key, value]) => {
+			if (value !== '' && value !== null && value !== undefined) {
+				params.set(key, value);
+			}
+		});
+		const query = params.toString();
+		return query ? `/admin/beitraege/?${query}` : '/admin/beitraege/';
+	},
+	applyFilter(overrides = {}, labelOverrides = {}, indicator = 'body', sourceEl = null) {
+		Object.entries(overrides).forEach(([key, value]) => {
+			this[key] = value;
+		});
+		Object.entries(labelOverrides).forEach(([key, value]) => {
+			if (Object.prototype.hasOwnProperty.call(this.selectedLabels, key)) {
+				this.selectedLabels[key] = value;
+			}
+		});
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl(), {
+			target: '#admin-beitraege-results',
+			swap: 'outerHTML',
+			indicator,
+			source: sourceEl || (indicator && document.querySelector(indicator)) || undefined,
+		});
+	},
+	selectNamedFilter(key, value, label, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: value }, { [key]: label }, indicator, sourceEl);
+	},
+	clearNamedFilter(key, indicator = 'body', sourceEl = null) {
+		this.applyFilter({ [key]: '' }, { [key]: '' }, indicator, sourceEl);
+	},
+	clearFilters() {
+		this.year = '';
+		this.person = '';
+		this.type = '';
+		this.status = '';
+		this.scans = '';
+		this.entry = '';
+		this.selectedLabels.entry = '';
+		this.selectedLabels.year = '';
+		this.selectedLabels.person = '';
+		this.selectedLabels.type = '';
+		this.selectedLabels.status = '';
+		this.selectedLabels.scans = '';
+	},
+	clearAllFilters(sourceEl = null) {
+		this.clearFilters();
+		this.search = '';
+		this.searchOpen = false;
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl({
+			search: '',
+			entry: '',
+			year: '',
+			person: '',
+			type: '',
+			status: '',
+			scans: '',
+			offset: 0,
+		}), {
+			target: '#admin-beitraege-results',
+			swap: 'outerHTML',
+			source: sourceEl || undefined,
+		});
+	},
+	openSearch() {
+		this.searchOpen = true;
+		this.$nextTick(() => this.$refs.beitraegeSearchInput?.focus());
+	},
+	closeOtherDropdowns(current) {
+		const scope = current?.closest('.admin-page-shell') || document;
+		scope.querySelectorAll('details').forEach((d) => {
+			if (d !== current) d.open = false;
+		});
+	},
+	updateUrl() {
+		const params = new URLSearchParams();
+		params.set('offset', this.offset);
+		if (this.search) params.set('search', this.search);
+		if (this.entry) params.set('entry', this.entry);
+		if (this.year) params.set('year', this.year);
+		if (this.person) params.set('person', this.person);
+		if (this.type) params.set('type', this.type);
+		if (this.status) params.set('status', this.status);
+		if (this.scans) params.set('scans', this.scans);
+		const query = params.toString();
+		const newUrl = query ? `/admin/beitraege/?${query}` : '/admin/beitraege/';
+		window.history.replaceState(null, '', newUrl);
+	}
+}"
+@htmx:after-swap.window="
+	if ($event.detail.target && $event.detail.target.id === 'admin-beitraege-results') {
+		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
+		const params = new URL(responseUrl).searchParams;
+		search = params.get('search') || '';
+		entry = params.get('entry') || '';
+		year = params.get('year') || '';
+		person = params.get('person') || '';
+		type = params.get('type') || '';
+		status = params.get('status') || '';
+		scans = params.get('scans') || '';
+		updateUrl();
+	}
+"
+class="admin-page-shell font-sans pt-0 pb-8">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div class="flex w-full flex-wrap items-start justify-between gap-x-4 gap-y-3">
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<h1 class="admin-page-title">Beiträge</h1>
+					<button
+						type="button"
+						x-cloak
+						x-show="search || entry || year || person || type || status || scans"
+						@click="clearAllFilters($el)"
+						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
+						<i class="ri-filter-off-line text-sm"></i>
+						<span>Alle anzeigen</span>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="admin-list-toolbar">
+			<div class="admin-list-toolbar-primary flex-wrap" hx-boost="false">
+				{{ template "_beitraege_lazy_filter" (Dict
+					"kind" "entry"
+					"title" "Almanach"
+					"endpoint" "/admin/beitraege/filters/entry/"
+					"spinner_id" "beitraege-entry-spinner"
+					"width_class" "w-80"
+				) }}
+
+				{{ template "_beitraege_lazy_filter" (Dict
+					"kind" "year"
+					"title" "Jahr"
+					"endpoint" "/admin/beitraege/filters/year/"
+					"spinner_id" "beitraege-year-spinner"
+					"width_class" "w-72"
+				) }}
+
+				{{ template "_beitraege_lazy_filter" (Dict
+					"kind" "person"
+					"title" "Person"
+					"endpoint" "/admin/beitraege/filters/person/"
+					"spinner_id" "beitraege-person-spinner"
+					"width_class" "w-80"
+				) }}
+
+				{{ template "_beitraege_lazy_filter" (Dict
+					"kind" "type"
+					"title" "Typ"
+					"endpoint" "/admin/beitraege/filters/type/"
+					"spinner_id" "beitraege-type-spinner"
+					"width_class" "w-72"
+				) }}
+
+				{{ template "_beitraege_lazy_filter" (Dict
+					"kind" "status"
+					"title" "Status"
+					"endpoint" "/admin/beitraege/filters/status/"
+					"spinner_id" "beitraege-status-spinner"
+					"width_class" "w-72"
+				) }}
+
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-filter-trigger flex items-center gap-2"
+							:class="scans ? 'admin-list-filter-trigger-active' : ''">
+							<span x-text="filterSummary('Scans', 'scans', 'Scans')"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							<span id="beitraege-scans-spinner" class="htmx-indicator text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</summary>
+						<div class="absolute left-0 mt-2 w-72 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="p-3">
+								<div class="flex max-h-64 flex-col gap-1 overflow-auto rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
+									<a :href="buildPageUrl({ scans: '', offset: 0 })"
+										hx-indicator="#beitraege-scans-spinner"
+										@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('scans', '#beitraege-scans-spinner', $el)"
+										x-show="scans"
+										class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 no-underline transition-colors hover:bg-orange-200">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									<a :href="buildPageUrl({ scans: 'with', offset: 0 })"
+										hx-indicator="#beitraege-scans-spinner"
+										@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'with', 'Mit Scans', '#beitraege-scans-spinner', $el)"
+										:class="scans === 'with' ? 'bg-stone-100 font-semibold' : ''"
+										class="filter-list-row rounded-sm px-2 py-1 no-underline transition-colors hover:bg-stone-100">
+										Mit Scans
+									</a>
+									<a :href="buildPageUrl({ scans: 'without', offset: 0 })"
+										hx-indicator="#beitraege-scans-spinner"
+										@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'without', 'Ohne Scans', '#beitraege-scans-spinner', $el)"
+										:class="scans === 'without' ? 'bg-stone-100 font-semibold' : ''"
+										class="filter-list-row rounded-sm px-2 py-1 no-underline transition-colors hover:bg-stone-100">
+										Ohne Scans
+									</a>
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" @click.outside="searchOpen = false">
+					<button
+						type="button"
+						x-show="!searchOpen"
+						@click="openSearch()"
+						class="admin-list-filter-trigger flex items-center gap-2"
+						:class="search ? 'admin-list-filter-trigger-active' : ''">
+						<span class="max-w-[18rem] truncate" x-text="search ? `Suche: ${search}` : 'Suche'"></span>
+						<i class="ri-search-line"></i>
+					</button>
+
+						<form
+						x-cloak
+						x-show="searchOpen"
+						method="GET"
+						action="/admin/beitraege/"
+						hx-get="/admin/beitraege/results/"
+						hx-indicator="#beitraege-search-spinner"
+						hx-push-url="false"
+						hx-swap="outerHTML"
+						hx-target="#admin-beitraege-results"
+						role="search"
+						@submit="searchOpen = false; offset = 0; hasMore = true"
+						@keydown.escape.prevent.stop="searchOpen = false"
+						aria-label="Beitragssuche"
+						class="admin-list-search-form">
+						<input type="hidden" name="entry" :value="entry" />
+						<input type="hidden" name="year" :value="year" />
+						<input type="hidden" name="person" :value="person" />
+						<input type="hidden" name="type" :value="type" />
+						<input type="hidden" name="status" :value="status" />
+						<input type="hidden" name="scans" :value="scans" />
+						<div class="relative min-w-0 flex-1">
+							<input
+								x-ref="beitraegeSearchInput"
+								class="search-input-no-native-clear w-full bg-transparent pr-7 font-sans text-base text-slate-900 placeholder:italic focus:outline-none"
+								type="search"
+								name="search"
+								value="{{ $model.search }}"
+								placeholder="Titel oder Suchbegriff"
+								x-model="search"
+								autocomplete="off" />
+							<span id="beitraege-search-spinner" class="htmx-indicator absolute right-0 top-1/2 -translate-y-1/2 text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</div>
+						<button
+							type="button"
+							@click="
+								search = '';
+								searchOpen = false;
+								offset = 0;
+								hasMore = true;
+								htmx.ajax('GET', buildResultsUrl({ search: '' }), {
+									target: '#admin-beitraege-results',
+									swap: 'outerHTML',
+									indicator: '#beitraege-search-spinner',
+									source: $el,
+								});
+							"
+							class="text-gray-500 hover:text-slate-900"
+							aria-label="Suche leeren">
+							<i class="ri-close-line"></i>
+						</button>
+						<button x-show="false">Suchen</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="admin-list-toolbar-secondary justify-end">
+				<span id="admin-beitraege-count" class="whitespace-nowrap text-lg font-semibold font-sans text-gray-600">
+					{{- if $model.current_count -}}
+						{{- GermanInt $model.current_count }}&thinsp;/&thinsp;
+					{{- end -}}
+					{{- GermanInt $model.total_count }} {{- if eq $model.total_count 1 }} Beitrag{{ else }} Beiträge{{ end }}{{ if $model.total_groups }} in {{ GermanInt $model.total_groups }} Bänden{{ end }}
+				</span>
+			</div>
+		</div>
+	</header>
+
+	{{ template "_beitraege_results" $model }}
+</div>
+
+<script>
+	(() => {
+		const bindFilterSearch = (scope = document) => {
+			const roots = scope.matches?.('[data-role="beitraege-filter"]')
+				? [scope]
+				: scope.querySelectorAll?.('[data-role="beitraege-filter"]') || [];
+			roots.forEach((root) => {
+				if (root.dataset.filterSearchBound === 'true') return;
+				const input = root.querySelector('[data-role="filter-search"]');
+				const list = root.querySelector('[data-role="filter-list"]');
+				if (!list || !input) return;
+				root.dataset.filterSearchBound = 'true';
+				input.addEventListener('input', () => {
+					const query = input.value.trim().toLowerCase();
+					list.querySelectorAll('[data-role="filter-item"]').forEach((item) => {
+						const label = (item.getAttribute('data-label') || '').toLowerCase();
+						if (item.getAttribute('data-label') === 'Alle') {
+							return;
+						}
+						item.classList.toggle('hidden', query !== '' && !label.includes(query));
+					});
+				});
+			});
+		};
+
+		bindFilterSearch(document);
+		document.body.addEventListener('htmx:afterSwap', (event) => {
+			const target = event.target?.closest?.('[data-role="beitraege-filter"]') || event.target;
+			bindFilterSearch(target);
+		});
+	})();
+
+	(() => {
+		const applySearchHighlights = () => {
+			if (typeof Mark !== 'function') return;
+			const root = document.getElementById('admin-beitraege-results');
+			if (!root) return;
+			const search = (root.dataset.search || '').trim();
+			const elements = root.querySelectorAll('.beitraege-admin-search-text');
+			if (!elements.length) return;
+			const instance = new Mark(elements);
+			instance.unmark({
+				done: () => {
+					if (!search) return;
+					instance.mark(search, {
+						separateWordSearch: true,
+					});
+				},
+			});
+		};
+
+		const scheduleHighlights = () => {
+			window.requestAnimationFrame(() => {
+				setTimeout(applySearchHighlights, 50);
+			});
+		};
+
+		scheduleHighlights();
+		document.body.addEventListener('htmx:afterSwap', (event) => {
+			const target = event.target;
+			if (!target) return;
+			if (target.id === 'admin-beitraege-results' || target.id === 'admin-beitraege-groups' || target.closest?.('#admin-beitraege-results')) {
+				scheduleHighlights();
+			}
+		});
+	})();
+</script>

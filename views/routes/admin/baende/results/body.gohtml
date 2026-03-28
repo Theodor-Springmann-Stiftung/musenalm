@@ -18,8 +18,10 @@
 
 	<span id="baende-count"
 		  hx-swap-oob="outerHTML"
+		  data-current-count="{{ $model.current_count }}"
+		  data-total-count="{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }}"
 		  class="text-lg font-semibold font-sans text-gray-600 whitespace-nowrap">
-		{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Entries }}{{ end }} Bände
+		{{ if $model.current_count }}{{ GermanInt $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ GermanInt $model.total_count }}{{ else }}{{ GermanInt (len $model.result.Entries) }}{{ end }} Bände
 	</span>
 
 	{{ template "_baende_table" $model }}
@@ -43,7 +45,10 @@
                 const totalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
                 const countEl = document.getElementById('baende-count');
                 if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
-                    countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} Bände`;
+                    const format = (value) => new Intl.NumberFormat('de-DE').format(value);
+                    countEl.dataset.currentCount = String(currentCount);
+                    countEl.dataset.totalCount = String(totalCount);
+                    countEl.innerHTML = `${format(currentCount)}&thinsp;/&thinsp;${format(totalCount)} Bände`;
                 }
             "
 			:disabled="loading">

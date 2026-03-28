@@ -1,0 +1,5 @@
+{{ $model := . }}
+
+{{- range $_, $group := $model.result.Groups -}}
+	{{ template "_beitraege_group" $group }}
+{{- end -}}

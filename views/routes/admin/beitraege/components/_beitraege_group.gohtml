@@ -1,0 +1,165 @@
+{{ $group := . }}
+{{ $entry := $group.Entry }}
+
+<section class="overflow-hidden rounded-b-xs border-x border-b border-stone-200 bg-white shadow-sm">
+	<div class="flex items-center justify-between gap-4 border-b border-stone-200 bg-stone-50 px-4 py-2.5">
+		<div class="min-w-0 flex items-center gap-3">
+			<a
+				href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
+				class="beitraege-admin-search-text min-w-0 truncate no-underline font-serif text-lg font-semibold text-slate-900 hover:text-slate-700">
+				{{- if $entry.PreferredTitle -}}
+					{{- $entry.PreferredTitle -}}
+				{{- else -}}
+					Band {{ $entry.MusenalmID }}
+				{{- end -}}
+			</a>
+		</div>
+		<div class="flex shrink-0 items-center gap-2">
+			<span class="inline-flex items-center rounded-xs border border-stone-300 bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
+				Alm {{ $entry.MusenalmID }}
+			</span>
+			<span class="inline-flex items-center rounded-xs bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
+				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
+			</span>
+			<tool-tip position="top" class="inline">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" class="admin-list-chip" aria-label="Beiträge des Bandes">
+					<i class="ri-article-line"></i>
+				</a>
+				<div class="data-tip">Beiträge des Bandes</div>
+			</tool-tip>
+			<tool-tip position="top" class="inline">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip" aria-label="Band bearbeiten">
+					<i class="ri-book-line"></i>
+				</a>
+				<div class="data-tip">Band bearbeiten</div>
+			</tool-tip>
+		</div>
+	</div>
+
+	<div class="divide-y divide-stone-200">
+		{{- range $_, $row := $group.Rows -}}
+			{{ $content := $row.Content }}
+			<div class="grid grid-cols-[5.5rem_8rem_minmax(0,1fr)_5.5rem_auto] gap-4 px-4 py-2.5 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
+				<div class="min-w-0 text-sm leading-snug text-slate-700">
+					<div class="inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-stone-200 bg-white px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
+						{{ $content.MusenalmID }}
+					</div>
+					{{- if $content.Extent -}}
+						<div class="mt-1 inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-blue-900 bg-blue-900 px-1.5 py-0 text-[0.9rem] font-semibold text-white shadow-sm">
+							S.&thinsp;{{ $content.Extent }}
+						</div>
+					{{- end -}}
+				</div>
+
+				<div class="beitraege-admin-search-text min-w-0 text-sm leading-snug text-slate-700">
+					{{- if $content.MusenalmType -}}
+						<div class="flex flex-wrap items-start gap-1">
+							{{- range $_, $type := $content.MusenalmType -}}
+								<span class="rounded-xs bg-slate-200 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-800">{{ $type }}</span>
+							{{- end -}}
+						</div>
+					{{- end -}}
+				</div>
+
+				<div class="min-w-0">
+					<div class="beitraege-admin-search-text min-w-0 text-[1rem] leading-snug text-slate-900">
+						<a href="/beitrag/{{ $content.MusenalmID }}" class="font-semibold no-underline hover:text-slate-700">
+							{{- if $content.PreferredTitle -}}
+								{{- $content.PreferredTitle -}}
+							{{- else if $content.TitleStmt -}}
+								<span class="italic font-normal">{{ $content.TitleStmt }}</span>
+							{{- else -}}
+								Beitrag {{ $content.MusenalmID }}
+							{{- end -}}
+						</a>
+						{{- if $content.ResponsibilityStmt -}}
+							<span class="text-slate-700 italic">
+								<span class="mx-1.5 font-semibold not-italic">&middot;</span>{{ $content.ResponsibilityStmt }}
+							</span>
+						{{- end -}}
+						{{- if $row.AgentDisplays -}}
+							<span class="text-slate-700">
+								<span class="mx-1.5 font-semibold">&middot;</span>
+								{{- range $i, $agent := $row.AgentDisplays -}}
+									{{- if $i }}, {{ end -}}
+									<a href="/admin/beitraege/?person={{ $agent.ID }}" class="underline decoration-dotted underline-offset-3 hover:text-slate-900 hover:decoration-solid">{{ $agent.Name }}</a>
+								{{- end -}}
+							</span>
+						{{- end -}}
+					</div>
+
+					{{- if $row.AnnotationPreview -}}
+						{{- if and $content.TitleStmt $content.IncipitStmt -}}
+							<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+								<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
+								<div class="beitraege-admin-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
+							</div>
+						{{- end -}}
+						<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+							<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Anm.</span>
+							<div class="beitraege-admin-search-text min-w-0">{{ $row.AnnotationPreview }}</div>
+						</div>
+					{{- else if and $content.TitleStmt $content.IncipitStmt -}}
+						<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+							<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
+							<div class="beitraege-admin-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
+						</div>
+					{{- end -}}
+				</div>
+
+				<div class="self-start mt-0.5 flex min-w-0 items-center justify-end">
+					{{- $scans := $content.ImagePaths -}}
+					{{- if $scans -}}
+						<span class="inline-flex items-center justify-end gap-1">
+							{{- range $i, $scan := $scans -}}
+								{{- if lt $i 3 -}}
+									<popup-image data-image-url="{{- $scan -}}" class="inline-flex items-center">
+										<img
+											src="{{- $scan -}}"
+											alt="Scan Vorschau"
+											class="h-5 w-5 rounded-full border border-slate-500 object-cover shadow-sm" />
+									</popup-image>
+								{{- end -}}
+							{{- end -}}
+						</span>
+					{{- end -}}
+				</div>
+
+				<div class="flex shrink-0 items-start gap-2">
+					<tool-tip position="top" class="inline">
+						<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
+							<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+						</span>
+						<div class="data-tip">
+							{{- if eq $content.EditState "Unknown" -}}
+								Gesucht
+							{{- else if eq $content.EditState "ToDo" -}}
+								Zu erledigen
+							{{- else if eq $content.EditState "Review" -}}
+								Überprüfen
+							{{- else if eq $content.EditState "Seen" -}}
+								Autopsiert
+							{{- else if eq $content.EditState "Edited" -}}
+								Erfasst
+							{{- else -}}
+								{{ $content.EditState }}
+							{{- end -}}
+						</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" aria-label="In neuem Tab öffnen">
+							<i class="ri-external-link-line"></i>
+						</a>
+						<div class="data-tip">In neuem Tab öffnen</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/" class="admin-list-chip" aria-label="Beitrag bearbeiten">
+							<i class="ri-edit-line"></i>
+						</a>
+						<div class="data-tip">Beitrag bearbeiten</div>
+					</tool-tip>
+				</div>
+			</div>
+		{{- end -}}
+	</div>
+</section>

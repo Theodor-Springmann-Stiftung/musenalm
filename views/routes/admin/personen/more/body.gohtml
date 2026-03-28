@@ -3,7 +3,7 @@
 <span id="personen-admin-count"
 	  hx-swap-oob="outerHTML"
 	  class="whitespace-nowrap text-lg font-semibold font-sans text-gray-600">
-	{{ if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ $model.total_count }}{{ else }}{{ len $model.result.Agents }}{{ end }} Personen
+	{{ if $model.current_count }}{{ GermanInt $model.current_count }}&thinsp;/&thinsp;{{ end }}{{ if $model.total_count }}{{ GermanInt $model.total_count }}{{ else }}{{ GermanInt (len $model.result.Agents) }}{{ end }} Personen
 </span>
 
 <table class="hidden">

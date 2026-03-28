@@ -350,11 +350,11 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				<div id="personen-admin-count" class="admin-list-count-summary whitespace-nowrap">
 					{{- $totalCount := len $model.result.Agents -}}
 					{{- if $model.total_count }}{{ $totalCount = $model.total_count }}{{ end -}}
-					{{- if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end -}}
+					{{- if $model.current_count }}{{ GermanInt $model.current_count }}&thinsp;/&thinsp;{{ end -}}
 					{{- if eq $totalCount 1 -}}
-						{{ $totalCount }} Person
+						{{ GermanInt $totalCount }} Person
 					{{- else -}}
-						{{ $totalCount }} Personen
+						{{ GermanInt $totalCount }} Personen
 					{{- end -}}
 				</div>
 			</div>

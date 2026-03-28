@@ -476,14 +476,14 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
-				<div id="baende-count" class="admin-list-count-summary whitespace-nowrap">
-					{{- $totalCount := len $model.result.Entries -}}
-					{{- if $model.total_count }}{{ $totalCount = $model.total_count }}{{ end -}}
-					{{- if $model.current_count }}{{ $model.current_count }}&thinsp;/&thinsp;{{ end -}}
+				{{- $totalCount := len $model.result.Entries -}}
+				{{- if $model.total_count }}{{ $totalCount = $model.total_count }}{{ end -}}
+				<div id="baende-count" class="admin-list-count-summary whitespace-nowrap" data-current-count="{{ $model.current_count }}" data-total-count="{{ $totalCount }}">
+					{{- if $model.current_count }}{{ GermanInt $model.current_count }}&thinsp;/&thinsp;{{ end -}}
 					{{- if eq $totalCount 1 -}}
-						{{ $totalCount }} Band
+						{{ GermanInt $totalCount }} Band
 					{{- else -}}
-						{{ $totalCount }} Bände
+						{{ GermanInt $totalCount }} Bände
 					{{- end -}}
 				</div>
 			</div>
@@ -515,8 +515,11 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						const totalCount = Number($event.detail.xhr.getResponseHeader('X-Total-Count'));
 						const countEl = document.getElementById('baende-count');
 						if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+							const format = (value) => new Intl.NumberFormat('de-DE').format(value);
 							const label = totalCount === 1 ? 'Band' : 'Bände';
-							countEl.innerHTML = `${currentCount}&thinsp;/&thinsp;${totalCount} ${label}`;
+							countEl.dataset.currentCount = String(currentCount);
+							countEl.dataset.totalCount = String(totalCount);
+							countEl.innerHTML = `${format(currentCount)}&thinsp;/&thinsp;${format(totalCount)} ${label}`;
 						}
 						updateUrl();
 					"
@@ -701,21 +704,20 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						rows.forEach((row) => row.remove());
 						const countEl = document.getElementById("baende-count");
 						if (countEl) {
-							const raw = countEl.textContent || "";
-							const hasSlash = raw.includes("/");
-							const nums = raw.match(/\d+/g) || [];
-							if (nums.length > 0) {
-								let current = parseInt(nums[0], 10);
-								let total = nums.length > 1 ? parseInt(nums[1], 10) : null;
-								if (!Number.isNaN(current) && current > 0) current -= 1;
-								if (total !== null && !Number.isNaN(total) && total > 0) total -= 1;
-								if (hasSlash && total !== null) {
-									const label = total === 1 ? "Band" : "Bände";
-									countEl.textContent = `${current} / ${total} ${label}`;
-								} else {
-									const label = current === 1 ? "Band" : "Bände";
-									countEl.textContent = `${current} ${label}`;
-								}
+							const format = (value) => new Intl.NumberFormat('de-DE').format(value);
+							const hasSlash = countEl.textContent?.includes("/") || false;
+							let current = Number(countEl.dataset.currentCount || "0");
+							let total = Number(countEl.dataset.totalCount || "0");
+							if (!Number.isNaN(current) && current > 0) current -= 1;
+							if (!Number.isNaN(total) && total > 0) total -= 1;
+							countEl.dataset.currentCount = String(current);
+							countEl.dataset.totalCount = String(total);
+							if (hasSlash) {
+								const label = total === 1 ? "Band" : "Bände";
+								countEl.innerHTML = `${format(current)}&thinsp;/&thinsp;${format(total)} ${label}`;
+							} else {
+								const label = current === 1 ? "Band" : "Bände";
+								countEl.textContent = `${format(current)} ${label}`;
 							}
 						}
 					}

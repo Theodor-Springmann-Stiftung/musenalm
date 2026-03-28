@@ -1,0 +1,68 @@
+{{ $model := . }}
+
+<div id="admin-beitraege-results"
+	data-search="{{ $model.search }}"
+	x-data="{
+		hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
+		offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
+		loading: false,
+		search: {{ printf "%q" $model.search }},
+		entry: {{ printf "%q" $model.entry }},
+		year: {{ printf "%q" $model.year }},
+		person: {{ printf "%q" $model.person }},
+		type: {{ printf "%q" $model.type }},
+		status: {{ printf "%q" $model.status }},
+		scans: {{ printf "%q" $model.scans }}
+	}">
+
+	{{- if $model.include_count_oob -}}
+		<span id="admin-beitraege-count"
+			hx-swap-oob="outerHTML"
+			class="whitespace-nowrap text-lg font-semibold font-sans text-gray-600">
+			{{- if $model.current_count -}}
+				{{- GermanInt $model.current_count }}&thinsp;/&thinsp;
+			{{- end -}}
+			{{- GermanInt $model.total_count }} {{- if eq $model.total_count 1 }} Beitrag{{ else }} Beiträge{{ end }}{{ if $model.total_groups }} in {{ GermanInt $model.total_groups }} Bänden{{ end }}
+		</span>
+	{{- end -}}
+
+	{{- if $model.result.Groups -}}
+		<div id="admin-beitraege-groups" class="space-y-4">
+			{{ template "_beitraege_groups" $model }}
+		</div>
+	{{- else -}}
+		<div class="rounded-xs border border-dashed border-stone-300 bg-stone-50 px-6 py-12 text-center text-base text-gray-600">
+			Keine Beiträge gefunden.
+		</div>
+	{{- end -}}
+
+	<div class="mt-6 flex justify-center" x-show="hasMore">
+		<button
+			type="button"
+			class="content-action-button"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (entry) params.set('entry', entry); if (year) params.set('year', year); if (person) params.set('person', person); if (type) params.set('type', type); if (status) params.set('status', status); if (scans) params.set('scans', scans); return `/admin/beitraege/more/?${params.toString()}`; })()"
+			hx-select="#admin-beitraege-more > *"
+			hx-target="#admin-beitraege-groups"
+			hx-swap="beforeend"
+			hx-indicator="this"
+			@htmx:before-request="loading = true"
+			@htmx:after-request="
+				loading = false;
+				hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
+				offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
+				const currentCount = parseInt($event.detail.xhr.getResponseHeader('X-Current-Count') || '0');
+				const totalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
+				const countEl = document.getElementById('admin-beitraege-count');
+				if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+					const format = (value) => new Intl.NumberFormat('de-DE').format(value);
+					const totalLabel = totalCount === 1 ? 'Beitrag' : 'Beiträge';
+					countEl.innerHTML = `${format(currentCount)}&thinsp;/&thinsp;${format(totalCount)} ${totalLabel}{{ if $model.total_groups }} in {{ GermanInt $model.total_groups }} Bänden{{ end }}`;
+				}
+			"
+			:disabled="loading">
+			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
+			<span x-text="loading ? 'Lädt...' : 'Weitere 80 Beiträge laden'">Weitere 80 Beiträge laden</span>
+		</button>
+	</div>
+
+</div>
