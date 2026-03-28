@@ -651,7 +651,7 @@
 	}
 
 	.rel-type-select {
-		@apply rounded-xs border border-slate-400 bg-stone-50 px-2 py-1 pr-8 text-sm font-normal text-slate-800 outline-none transition-colors duration-100;
+		@apply rounded-xs border border-slate-400 bg-stone-50 pl-1.5 pr-2 py-1 text-sm font-normal text-slate-800 outline-none transition-colors duration-100;
 		box-shadow: none;
 	}
 
