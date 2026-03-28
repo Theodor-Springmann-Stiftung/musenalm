@@ -53,6 +53,12 @@
 	<div class="admin-list-actions">
 		<div class="admin-list-action-stack">
 			<tool-tip position="top" class="inline">
+				<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+					<i class="ri-eye-line"></i>
+				</a>
+				<div class="data-tip">Anzeigen</div>
+			</tool-tip>
+			<tool-tip position="top" class="inline">
 				<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 					<i class="ri-external-link-line"></i>
 				</a>

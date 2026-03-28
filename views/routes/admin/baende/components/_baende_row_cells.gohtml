@@ -7,6 +7,12 @@
 			{{- end -}}
 			<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
 			<tool-tip position="top" class="inline">
+				<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+					<i class="ri-eye-line"></i>
+				</a>
+				<div class="data-tip">Anzeigen</div>
+			</tool-tip>
+			<tool-tip position="top" class="inline">
 				<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 					<i class="ri-external-link-line"></i>
 				</a>
@@ -45,7 +51,7 @@
 						<i class="ri-file-list-3-line"></i>
 						<span>{{ .contents_count }}</span>
 					</a>
-					<div class="data-tip">Inhalte bearbeiten</div>
+					<div class="data-tip">Beiträge anzeigen</div>
 				</tool-tip>
 			{{- else -}}
 				<tool-tip position="top" class="inline">

@@ -50,6 +50,18 @@
 		<td class="py-2 pr-4">
 			<div class="admin-list-actions">
 				<div class="admin-list-action-stack">
+					<tool-tip position="top" class="inline">
+						<a href="/reihen/?place={{ $place.MusenalmID }}" class="admin-list-chip">
+							<i class="ri-eye-line"></i>
+						</a>
+						<div class="data-tip">Anzeigen</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<a href="/reihen/?place={{ $place.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip">
+							<i class="ri-external-link-line"></i>
+						</a>
+						<div class="data-tip">In neuem Tab öffnen</div>
+					</tool-tip>
 					{{- if (IsAdminOrEditor $model.request.user) -}}
 						<tool-tip position="top" class="inline">
 							<a href="/admin/ort/{{ $place.Id }}/edit" class="admin-list-chip">

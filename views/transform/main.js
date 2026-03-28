@@ -508,6 +508,24 @@ function InitGlobalHtmxNotice() {
 		}
 	};
 
+	const resetBusyState = () => {
+		pending = 0;
+		setBodyBusy(false);
+		document.querySelectorAll("[data-htmx-busy]").forEach((element) => {
+			delete element.dataset.htmxBusy;
+			element.removeAttribute("aria-busy");
+		});
+		document.querySelectorAll("[data-htmx-disabled='true']").forEach((element) => {
+			if (element instanceof HTMLButtonElement) {
+				element.disabled = false;
+			}
+			delete element.dataset.htmxDisabled;
+		});
+		clearLoadingHideTimeout();
+		clearErrorTimeout();
+		hideNotice();
+	};
+
 	const clearErrorTimeout = () => {
 		if (errorTimeout) {
 			clearTimeout(errorTimeout);
@@ -581,6 +599,10 @@ function InitGlobalHtmxNotice() {
 		if (notice && !textEl) {
 			textEl = notice.querySelector("[data-role='global-notice-text']");
 		}
+	});
+
+	window.addEventListener("pageshow", () => {
+		resetBusyState();
 	});
 }
 

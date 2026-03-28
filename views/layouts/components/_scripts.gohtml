@@ -17,6 +17,30 @@
 		});
 	};
 
+	const resetStuckNavigationState = () => {
+		delete document.documentElement.dataset.htmxBusy;
+		if (document.body) {
+			delete document.body.dataset.htmxBusy;
+		}
+
+		document.querySelectorAll("[data-htmx-busy]").forEach((element) => {
+			delete element.dataset.htmxBusy;
+			element.removeAttribute("aria-busy");
+		});
+
+		document.querySelectorAll("[data-htmx-disabled='true']").forEach((element) => {
+			if (element instanceof HTMLButtonElement) {
+				element.disabled = false;
+			}
+			delete element.dataset.htmxDisabled;
+		});
+	};
+
+	resetStuckNavigationState();
 	pruneAdminSidebarDetails();
 	document.body.addEventListener("htmx:afterSwap", pruneAdminSidebarDetails);
+	window.addEventListener("pageshow", () => {
+		resetStuckNavigationState();
+		pruneAdminSidebarDetails();
+	});
 </script>

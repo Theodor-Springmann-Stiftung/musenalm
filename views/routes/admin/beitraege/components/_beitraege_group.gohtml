@@ -153,6 +153,12 @@
 
 				<div class="flex shrink-0 items-start gap-2">
 					<tool-tip position="top" class="inline">
+						<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" aria-label="Anzeigen">
+							<i class="ri-eye-line"></i>
+						</a>
+						<div class="data-tip">Anzeigen</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
 						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" aria-label="In neuem Tab öffnen">
 							<i class="ri-external-link-line"></i>
 						</a>
@@ -163,6 +169,19 @@
 							<i class="ri-edit-line"></i>
 						</a>
 						<div class="data-tip">Beitrag bearbeiten</div>
+					</tool-tip>
+					<tool-tip position="top" class="inline">
+						<button
+							type="button"
+							class="admin-list-chip-danger"
+							data-role="beitraege-delete"
+							data-entry-musenalm-id="{{ $entry.MusenalmID }}"
+							data-content-id="{{ $content.Id }}"
+							data-title="{{ if $content.PreferredTitle }}{{ $content.PreferredTitle }}{{ else if $content.TitleStmt }}{{ $content.TitleStmt }}{{ else }}Beitrag {{ $content.MusenalmID }}{{ end }}"
+							aria-label="Beitrag löschen">
+							<i class="ri-delete-bin-line"></i>
+						</button>
+						<div class="data-tip">Löschen</div>
 					</tool-tip>
 				</div>
 			</div>

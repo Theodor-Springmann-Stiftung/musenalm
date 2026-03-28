@@ -365,8 +365,26 @@ class="admin-page-shell font-sans pt-0 pb-8">
 		</div>
 	</header>
 
+	<div id="admin-beitraege-message" class="hidden mt-3 rounded-xs border px-3 py-2 text-sm font-semibold"></div>
+
 	{{ template "_beitraege_results" $model }}
 </div>
+
+<dialog id="beitraege-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
+	<div class="p-5 w-[22rem]">
+		<div class="text-base font-bold text-gray-900">Beitrag löschen?</div>
+		<div id="beitraege-delete-dialog-title" class="text-sm font-bold text-gray-900 mt-1"></div>
+		<p class="text-sm text-gray-700 mt-2">
+			Der Beitrag wird dauerhaft gelöscht.
+		</p>
+		<div class="flex items-center justify-end gap-3 mt-4">
+			<button type="button" class="resetbutton w-auto px-3 py-1 text-sm" data-role="beitraege-delete-cancel">Abbrechen</button>
+			<button type="button" class="submitbutton w-auto bg-red-700 hover:bg-red-800 px-3 py-1 text-sm" data-role="beitraege-delete-confirm">
+				Löschen
+			</button>
+		</div>
+	</div>
+</dialog>
 
 <script>
 	(() => {
@@ -537,6 +555,121 @@ class="admin-page-shell font-sans pt-0 pb-8">
 			if (!target) return;
 			if (target.id === 'admin-beitraege-results' || target.id === 'admin-beitraege-groups' || target.closest?.('#admin-beitraege-results')) {
 				scheduleHighlights();
+			}
+		});
+	})();
+
+	(() => {
+		const dialog = document.getElementById("beitraege-delete-dialog");
+		const titleEl = document.getElementById("beitraege-delete-dialog-title");
+		const cancelBtn = dialog?.querySelector("[data-role='beitraege-delete-cancel']");
+		const confirmBtn = dialog?.querySelector("[data-role='beitraege-delete-confirm']");
+		const messageEl = document.getElementById("admin-beitraege-message");
+		let pendingDelete = null;
+
+		const setMessage = (text, type = "error") => {
+			if (!messageEl) {
+				return;
+			}
+			const value = (text || "").trim();
+			messageEl.textContent = value;
+			messageEl.className = "mt-3 rounded-xs border px-3 py-2 text-sm font-semibold";
+			if (!value) {
+				messageEl.classList.add("hidden");
+				return;
+			}
+			if (type === "success") {
+				messageEl.classList.add("border-green-300", "bg-green-50", "text-green-800");
+			} else {
+				messageEl.classList.add("border-red-300", "bg-red-50", "text-red-800");
+			}
+		};
+
+		const reloadResults = () => {
+			const params = window.location.search || "";
+			htmx.ajax("GET", `/admin/beitraege/results/${params}`, {
+				target: "#admin-beitraege-results",
+				swap: "outerHTML",
+			});
+		};
+
+		const bindDeleteButtons = (scope = document) => {
+			const buttons = scope.matches?.("[data-role='beitraege-delete']")
+				? [scope]
+				: scope.querySelectorAll?.("[data-role='beitraege-delete']") || [];
+			buttons.forEach((button) => {
+				if (button.dataset.deleteBound === "true") {
+					return;
+				}
+				button.dataset.deleteBound = "true";
+				button.addEventListener("click", () => {
+					pendingDelete = {
+						entryMusenalmID: button.dataset.entryMusenalmId || "",
+						contentID: button.dataset.contentId || "",
+						title: button.dataset.title || "",
+					};
+					if (titleEl) {
+						titleEl.textContent = pendingDelete.title;
+						titleEl.style.display = pendingDelete.title ? "" : "none";
+					}
+					dialog?.showModal();
+				});
+			});
+		};
+
+		cancelBtn?.addEventListener("click", () => {
+			dialog?.close();
+			pendingDelete = null;
+		});
+
+		dialog?.addEventListener("cancel", (event) => {
+			event.preventDefault();
+			dialog.close();
+			pendingDelete = null;
+		});
+
+		confirmBtn?.addEventListener("click", async () => {
+			if (!pendingDelete?.entryMusenalmID || !pendingDelete?.contentID) {
+				dialog?.close();
+				pendingDelete = null;
+				return;
+			}
+
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", {{ printf "%q" $model.csrf_token }});
+			payload.set("content_id", pendingDelete.contentID);
+
+			try {
+				const response = await fetch(`/admin/almanach/${pendingDelete.entryMusenalmID}/contents/delete`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
+						"HX-Request": "true",
+					},
+					body: payload.toString(),
+					credentials: "same-origin",
+				});
+				if (!response.ok) {
+					setMessage("Beitrag konnte nicht gelöscht werden.");
+					return;
+				}
+				setMessage("");
+				reloadResults();
+			} catch {
+				setMessage("Beitrag konnte nicht gelöscht werden.");
+				return;
+			} finally {
+				dialog?.close();
+				pendingDelete = null;
+			}
+		});
+
+		bindDeleteButtons(document);
+		document.body.addEventListener("htmx:afterSwap", (event) => {
+			const target = event.target;
+			if (!target) return;
+			if (target.id === "admin-beitraege-results" || target.closest?.("#admin-beitraege-results")) {
+				bindDeleteButtons(target);
 			}
 		});
 	})();
