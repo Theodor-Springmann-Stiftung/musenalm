@@ -103,9 +103,33 @@
 				</div>
 			</div>
 			{{- if and $content.TitleStmt $content.IncipitStmt -}}
-				<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700" data-role="content-incipit-line">
-					<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
+				<div class="mt-1 flex items-start gap-2 text-base leading-snug text-slate-700" data-role="content-extended-info" style="display:none;">
+					<span class="mt-0.5 inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
 					<div class="content-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
+				</div>
+			{{- end -}}
+			{{- if $content.SubtitleStmt -}}
+				<div class="mt-1 flex items-start gap-2 text-base leading-snug text-slate-700" data-role="content-extended-info" style="display:none;">
+					<span class="mt-0.5 inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Untertitel</span>
+					<div class="content-search-text min-w-0 italic">{{ $content.SubtitleStmt }}</div>
+				</div>
+			{{- end -}}
+			{{- if $content.ParallelTitle -}}
+				<div class="mt-1 flex items-start gap-2 text-base leading-snug text-slate-700" data-role="content-extended-info" style="display:none;">
+					<span class="mt-0.5 inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Paralleltitel</span>
+					<div class="content-search-text min-w-0 italic">{{ $content.ParallelTitle }}</div>
+				</div>
+			{{- end -}}
+			{{- if $content.VariantTitle -}}
+				<div class="mt-1 flex items-start gap-2 text-base leading-snug text-slate-700" data-role="content-extended-info" style="display:none;">
+					<span class="mt-0.5 inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Titelvariante</span>
+					<div class="content-search-text min-w-0 italic">{{ $content.VariantTitle }}</div>
+				</div>
+			{{- end -}}
+			{{- if $content.PlaceStmt -}}
+				<div class="mt-1 flex items-start gap-2 text-base leading-snug text-slate-700" data-role="content-extended-info" style="display:none;">
+					<span class="mt-0.5 inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Ortsangabe</span>
+					<div class="content-search-text min-w-0 italic">{{ $content.PlaceStmt }}</div>
 				</div>
 			{{- end -}}
 			{{- if $content.Annotation -}}

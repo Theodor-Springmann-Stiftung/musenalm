@@ -264,9 +264,9 @@
 							<summary class="admin-list-secondary-trigger flex items-center gap-2">
 								<i class="ri-eye-line"></i>
 								<span>Ansicht</span>
-								<i class="ri-arrow-down-s-line"></i>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" data-role="contents-column-toggle-icon"></i>
 							</summary>
-							<div class="absolute right-0 mt-2 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="absolute right-0 mt-1 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
 								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="move-controls" checked /> Verschieben</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="alm-number" checked /> Alm-Nummer</label>
@@ -274,6 +274,7 @@
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extended-info" /> Erweiterte Informationen</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotation" /> Anmerkungen</label>
 								</div>
 							</div>
@@ -884,6 +885,7 @@
 
 	const initViewOptions = () => {
 		const toggle = document.querySelector("[data-role='contents-column-toggle']");
+		const toggleIcon = document.querySelector("[data-role='contents-column-toggle-icon']");
 		const list = document.querySelector("[data-role='contents-list']");
 		if (!toggle || toggle.dataset.init === "true") {
 			return;
@@ -899,6 +901,7 @@
 			"responsibility": true,
 			"linked-agents": true,
 			"scans": true,
+			"extended-info": false,
 		};
 
 		let state = { ...defaults };
@@ -918,6 +921,7 @@
 			"responsibility": "[data-role='content-responsibility']",
 			"linked-agents": "[data-role='content-linked-agents']",
 			"scans": "[data-role='content-scans']",
+			"extended-info": "[data-role='content-extended-info']",
 		};
 		const columnSelectors = {
 			"move-controls": ["[data-role='content-col-move']", "[data-role='content-cell-move']"],
@@ -955,6 +959,26 @@
 			});
 		});
 
+		const syncToggleIcon = () => {
+			toggleIcon?.classList.toggle("rotate-180", toggle.open);
+		};
+
+		toggle.addEventListener("toggle", () => {
+			syncToggleIcon();
+		});
+
+		if (window.__contentsViewDocClickHandler) {
+			document.removeEventListener("click", window.__contentsViewDocClickHandler, true);
+		}
+		window.__contentsViewDocClickHandler = (event) => {
+			if (toggle.contains(event.target)) {
+				return;
+			}
+			toggle.removeAttribute("open");
+		};
+		document.addEventListener("click", window.__contentsViewDocClickHandler, true);
+
+		syncToggleIcon();
 		applyState();
 	};
 

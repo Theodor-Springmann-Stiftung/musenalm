@@ -432,7 +432,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 			const selectors = {
 				"alm-number": "[data-role='beitraege-ref-number']",
-				"page": "[data-role='beitraege-ref-page']",
+				"page": "[data-role='beitraege-page-pill']",
 				"type": "[data-role='beitraege-type-group']",
 				"responsibility": "[data-role='beitraege-content-responsibility']",
 				"linked-agents": "[data-role='beitraege-content-linked-agents']",
@@ -448,23 +448,23 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					});
 				});
 
-				const showReferenceColumn = state["alm-number"] || state["page"];
-				document.querySelectorAll("[data-role='beitraege-col-reference']").forEach((el) => {
-					el.style.display = showReferenceColumn ? '' : 'none';
-				});
 				document.querySelectorAll("[data-role='beitraege-col-type']").forEach((el) => {
 					el.style.display = state.type ? '' : 'none';
 				});
 				document.querySelectorAll("[data-role='beitraege-col-scans']").forEach((el) => {
 					el.style.display = state.scans ? '' : 'none';
 				});
+				document.querySelectorAll("[data-role='beitraege-col-page']").forEach((el) => {
+					el.style.display = state.page ? '' : 'none';
+				});
 
 				document.querySelectorAll("[data-role='beitraege-row']").forEach((row) => {
-					const columns = [];
-					if (showReferenceColumn) columns.push('5.5rem');
+					const columns = ['5.5rem'];
+					if (state.page) columns.push('3.5rem');
 					if (state.type) columns.push('8rem');
 					columns.push('minmax(0,1fr)');
 					if (state.scans) columns.push('5.5rem');
+					columns.push('auto');
 					columns.push('auto');
 					row.style.gridTemplateColumns = columns.join(' ');
 				});

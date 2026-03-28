@@ -22,6 +22,8 @@
 		<div
 			x-data="{
 				sidebarCollapsed: false,
+				pendingSidebarTitle: '',
+				siteTitle: {{ printf "%q" .site.title }},
 				syncSidebarActive(pathname = window.location.pathname) {
 					const sidebar = document.getElementById('admin-sidebar');
 					if (!sidebar) return;
@@ -69,6 +71,11 @@
 				syncSidebarState() {
 					document.documentElement.classList.toggle('admin-layout-sidebar-collapsed', this.sidebarCollapsed);
 				},
+				applySidebarTitle(title = '') {
+					const resolvedTitle = (title || '').trim();
+					if (!resolvedTitle) return;
+					document.title = `${this.siteTitle} – ${resolvedTitle}`;
+				},
 				init() {
 					this.sidebarCollapsed = document.documentElement.classList.contains('admin-layout-sidebar-collapsed');
 					this.syncSidebarState();
@@ -94,10 +101,20 @@
 					}
 				}
 			}"
+			@htmx:before-request.window="
+				const sourceLink = $event.detail.requestConfig?.elt?.closest?.('[data-admin-main-link]');
+				if (sourceLink) {
+					pendingSidebarTitle = sourceLink.getAttribute('title') || sourceLink.textContent || '';
+				}
+			"
 			@htmx:after-swap.window="
 				if ($event.detail.target && $event.detail.target.id === 'admin-main-content') {
 					const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
 					syncSidebarActive(new URL(responseUrl).pathname);
+					if (pendingSidebarTitle) {
+						applySidebarTitle(pendingSidebarTitle);
+						pendingSidebarTitle = '';
+					}
 				}
 			"
 			@htmx:history-restore.window="syncSidebarActive(window.location.pathname)"
