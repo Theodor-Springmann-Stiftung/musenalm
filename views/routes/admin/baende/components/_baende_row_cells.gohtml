@@ -1,31 +1,21 @@
 {{ $entry := .entry }}
-<td class="pt-2 pb-2 pr-4 pl-4 admin-col-nachweis-baende admin-col-wrap{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
-		<div class="flex flex-col">
-			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Alm {{ $entry.MusenalmID }}</div>
-			{{- if $entry.References -}}
-				<div class="mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $entry.References }}">{{ $entry.References }}</div>
-			{{- end -}}
-			<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
-			<tool-tip position="top" class="inline">
-				<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
-					<i class="ri-eye-line"></i>
-				</a>
-				<div class="data-tip">Anzeigen</div>
-			</tool-tip>
-			<tool-tip position="top" class="inline">
-				<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
-					<i class="ri-external-link-line"></i>
-				</a>
-				<div class="data-tip">In neuem Tab öffnen</div>
-			</tool-tip>
-			{{- if .can_edit -}}
-				<tool-tip position="top" class="inline">
-					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+	<td class="pt-2 pb-2 pr-4 pl-4 admin-col-nachweis-baende admin-col-wrap{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+			<div class="flex flex-col">
+				<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Alm {{ $entry.MusenalmID }}</div>
+				{{- if $entry.References -}}
+					<div class="mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $entry.References }}">{{ $entry.References }}</div>
+				{{- end -}}
+				<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
+					<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+						<i class="ri-eye-line"></i>
+					</a>
+					<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+						<i class="ri-external-link-line"></i>
+					</a>
+				{{- if .can_edit -}}
+					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
 						<i class="ri-edit-line"></i>
 					</a>
-					<div class="data-tip">Bearbeiten</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
 					<button
 						type="button"
 						onclick="event.stopPropagation();"
@@ -33,37 +23,32 @@
 						data-entry-id="{{ $entry.MusenalmID }}"
 						data-entry-title="{{- if $entry.PreferredTitle -}}{{ $entry.PreferredTitle }}{{- else if ne $entry.Year 0 -}}{{ $entry.Year }}{{- else -}}[o.J.]{{- end -}}"
 						data-delete-endpoint="/admin/almanach/{{ $entry.MusenalmID }}/edit/delete"
-						class="admin-list-chip-danger">
+						class="admin-list-chip-danger"
+						title="Löschen"
+						aria-label="Löschen">
 						<i class="ri-delete-bin-line"></i>
 					</button>
-					<div class="data-tip">Löschen</div>
-				</tool-tip>
-				{{- end -}}
-			</div>
-		<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
-			{{- if gt .contents_count 0 -}}
-				<tool-tip position="top" class="inline">
+					{{- end -}}
+				</div>
+			<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
+				{{- if gt .contents_count 0 -}}
 					<a
 						href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
 						onclick="event.stopPropagation();"
 						hx-target="body"
-						class="admin-list-chip">
+						class="admin-list-chip"
+						title="Beiträge anzeigen"
+						aria-label="Beiträge anzeigen">
 						<i class="ri-file-list-3-line"></i>
 						<span>{{ .contents_count }}</span>
 					</a>
-					<div class="data-tip">Beiträge anzeigen</div>
-				</tool-tip>
-			{{- else -}}
-				<tool-tip position="top" class="inline">
-					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+				{{- else -}}
+					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Inhalte" aria-label="Keine Inhalte">
 						<i class="ri-file-list-3-line"></i>
 						<span>0</span>
 					</span>
-					<div class="data-tip">Keine Inhalte</div>
-				</tool-tip>
-			{{- end -}}
-			{{- if gt (len .series_links) 0 -}}
-				<tool-tip position="top" class="inline">
+				{{- end -}}
+				{{- if gt (len .series_links) 0 -}}
 					<a
 						href="/admin/reihen/?entry={{ $entry.Id }}"
 						onclick="event.stopPropagation();"
@@ -72,24 +57,21 @@
 						hx-push-url="true"
 						hx-indicator="#admin-main-loading"
 						hx-headers='{"X-Admin-Main-Nav":"true"}'
-						class="admin-list-chip">
+						class="admin-list-chip"
+						title="Reihen anzeigen"
+						aria-label="Reihen anzeigen">
 						<i class="ri-book-shelf-fill"></i>
 						<span>{{ len .series_links }}</span>
 					</a>
-					<div class="data-tip">Reihen anzeigen</div>
-				</tool-tip>
-			{{- else -}}
-				<tool-tip position="top" class="inline">
-					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+				{{- else -}}
+					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Reihen verknüpft" aria-label="Keine Reihen verknüpft">
 						<i class="ri-book-shelf-fill"></i>
 						<span>0</span>
 					</span>
-					<div class="data-tip">Keine Reihen verknüpft</div>
-				</tool-tip>
-			{{- end -}}
+				{{- end -}}
+			</div>
 		</div>
-	</div>
-</td>
+	</td>
 <td class="pt-2 pb-2 pr-4 col-title">
 	<div class="font-semibold text-slate-900 text-base leading-snug">
 		{{- if $entry.PreferredTitle -}}
@@ -99,24 +81,12 @@
 		{{- else -}}
 			<span class="inline">[o.J.]</span>
 		{{- end -}}
-		<tool-tip position="top" class="inline-block align-middle ml-1">
-			<i class="status-icon align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
-			<div class="data-tip">
-				{{- if eq $entry.EditState "Unknown" -}}
-					Gesucht
-				{{- else if eq $entry.EditState "ToDo" -}}
-					Zu erledigen
-				{{- else if eq $entry.EditState "Review" -}}
-					Überprüfen
-				{{- else if eq $entry.EditState "Seen" -}}
-					Autopsiert
-				{{- else if eq $entry.EditState "Edited" -}}
-					Vollständig Erfasst
-				{{- else -}}
-					{{ $entry.EditState }}
-				{{- end -}}
-			</div>
-		</tool-tip>
+			<span
+				class="inline-block align-middle ml-1"
+				title="{{- if eq $entry.EditState "Unknown" -}}Gesucht{{- else if eq $entry.EditState "ToDo" -}}Zu erledigen{{- else if eq $entry.EditState "Review" -}}Überprüfen{{- else if eq $entry.EditState "Seen" -}}Autopsiert{{- else if eq $entry.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $entry.EditState }}{{- end -}}"
+				aria-label="{{- if eq $entry.EditState "Unknown" -}}Gesucht{{- else if eq $entry.EditState "ToDo" -}}Zu erledigen{{- else if eq $entry.EditState "Review" -}}Überprüfen{{- else if eq $entry.EditState "Seen" -}}Autopsiert{{- else if eq $entry.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $entry.EditState }}{{- end -}}">
+				<i class="status-icon align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+			</span>
 	</div>
 	{{- if $entry.TitleStmt -}}
 		<div class="text-gray-700 text-base mt-1 leading-snug">

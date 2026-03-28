@@ -103,19 +103,38 @@ func (app *App) EnsureDisplayCache() (*DisplayCache, error) {
 		return cache, nil
 	}
 
-	return app.rebuildDisplayCache()
+	app.displayCacheBuildMutex.Lock()
+	defer app.displayCacheBuildMutex.Unlock()
+
+	if cache := app.displayCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextDisplayCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.displayCache.Store(cache)
+	return cache, nil
 }
 
 func (app *App) rebuildDisplayCache() (*DisplayCache, error) {
 	app.displayCacheBuildMutex.Lock()
 	defer app.displayCacheBuildMutex.Unlock()
 
-	cache, err := app.buildDisplayCache()
+	cache, err := app.nextDisplayCacheSnapshot()
 	if err != nil {
 		return nil, err
 	}
 	app.displayCache.Store(cache)
 	return cache, nil
+}
+
+func (app *App) nextDisplayCacheSnapshot() (*DisplayCache, error) {
+	if app.displayCacheBuildFunc != nil {
+		return app.displayCacheBuildFunc()
+	}
+	return app.buildDisplayCache()
 }
 
 func (app *App) buildDisplayCache() (*DisplayCache, error) {

@@ -47,13 +47,18 @@ type App struct {
 	pagesMutex                sync.RWMutex
 	imagesCache               map[string]*dbmodels.Image
 	imagesMutex               sync.RWMutex
-	baendeCache               *BaendeCache
-	baendeCacheMutex          sync.RWMutex
+	baendeCache               atomic.Pointer[BaendeCache]
+	baendeCacheBuildMutex     sync.Mutex
+	baendeCacheRefreshMutex   sync.Mutex
+	baendeCacheRefreshRun     bool
+	baendeCacheRefreshQueued  bool
 	displayCache              atomic.Pointer[DisplayCache]
 	displayCacheBuildMutex    sync.Mutex
 	displayCacheRefreshMutex  sync.Mutex
 	displayCacheRefreshRun    bool
 	displayCacheRefreshQueued bool
+	baendeCacheBuildFunc      func() (*BaendeCache, error)
+	displayCacheBuildFunc     func() (*DisplayCache, error)
 	canonicalStore            *canonical.Store
 }
 
@@ -224,6 +229,11 @@ func (app *App) Serve() error {
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		imports.MarkInterruptedFTS5Rebuild(e.App)
 		exports.CleanupInterrupted(e.App)
+		return e.Next()
+	})
+	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		app.ScheduleBaendeCacheRebuild()
+		app.ScheduleDisplayCacheRebuild()
 		return e.Next()
 	})
 	return app.PB.Start()
@@ -581,30 +591,83 @@ func (app *App) ensureImagesCache() {
 }
 
 func (app *App) ResetBaendeCache() {
-	app.baendeCacheMutex.Lock()
-	defer app.baendeCacheMutex.Unlock()
-	app.baendeCache = nil
+	app.ScheduleBaendeCacheRebuild()
+}
+
+func (app *App) ScheduleBaendeCacheRebuild() {
+	app.baendeCacheRefreshMutex.Lock()
+	app.baendeCacheRefreshQueued = true
+	if app.baendeCacheRefreshRun {
+		app.baendeCacheRefreshMutex.Unlock()
+		return
+	}
+	app.baendeCacheRefreshRun = true
+	app.baendeCacheRefreshMutex.Unlock()
+
+	go app.runBaendeCacheRefreshLoop()
+}
+
+func (app *App) runBaendeCacheRefreshLoop() {
+	for {
+		app.baendeCacheRefreshMutex.Lock()
+		app.baendeCacheRefreshQueued = false
+		app.baendeCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildBaendeCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild baende cache", "error", err)
+		}
+
+		app.baendeCacheRefreshMutex.Lock()
+		if app.baendeCacheRefreshQueued {
+			app.baendeCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.baendeCacheRefreshRun = false
+		app.baendeCacheRefreshMutex.Unlock()
+		return
+	}
 }
 
 func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
-	// Check if cache is valid with read lock
-	app.baendeCacheMutex.RLock()
-	if app.baendeCache != nil && time.Since(app.baendeCache.CachedAt) < time.Hour {
-		cache := app.baendeCache
-		app.baendeCacheMutex.RUnlock()
+	if cache := app.baendeCache.Load(); cache != nil {
 		return cache, nil
 	}
-	app.baendeCacheMutex.RUnlock()
 
-	// Acquire write lock to populate cache
-	app.baendeCacheMutex.Lock()
-	defer app.baendeCacheMutex.Unlock()
+	app.baendeCacheBuildMutex.Lock()
+	defer app.baendeCacheBuildMutex.Unlock()
 
-	// Double-check after acquiring write lock
-	if app.baendeCache != nil && time.Since(app.baendeCache.CachedAt) < time.Hour {
-		return app.baendeCache, nil
+	if cache := app.baendeCache.Load(); cache != nil {
+		return cache, nil
 	}
 
+	cache, err := app.nextBaendeCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.baendeCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildBaendeCache() (*BaendeCache, error) {
+	app.baendeCacheBuildMutex.Lock()
+	defer app.baendeCacheBuildMutex.Unlock()
+
+	cache, err := app.nextBaendeCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.baendeCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextBaendeCacheSnapshot() (*BaendeCache, error) {
+	if app.baendeCacheBuildFunc != nil {
+		return app.baendeCacheBuildFunc()
+	}
+	return app.buildBaendeCache()
+}
+
+func (app *App) buildBaendeCache() (*BaendeCache, error) {
 	// Load all entries sorted by PreferredTitle
 	entries := []*dbmodels.Entry{}
 	if err := app.PB.RecordQuery(dbmodels.ENTRIES_TABLE).
@@ -736,7 +799,7 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 
 	sortedEntries := buildBaendeSortedEntries(entries, itemsMap)
 
-	app.baendeCache = &BaendeCache{
+	return &BaendeCache{
 		Entries:       entries,
 		SortedEntries: sortedEntries,
 		Series:        seriesMap,
@@ -748,9 +811,7 @@ func (app *App) EnsureBaendeCache() (*BaendeCache, error) {
 		Users:         usersMap,
 		ContentsCount: contentsCount,
 		CachedAt:      time.Now(),
-	}
-
-	return app.baendeCache, nil
+	}, nil
 }
 
 func buildBaendeSortedEntries(entries []*dbmodels.Entry, itemsMap map[string][]*dbmodels.Item) map[string][]*dbmodels.Entry {
@@ -808,8 +869,8 @@ func (app *App) setWatchers(engine *templating.Engine) {
 
 func (app *App) bindPages(engine *templating.Engine) ServeFunc {
 	return func(e *core.ServeEvent) error {
-		r := e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
-		r.Bind(apis.Gzip())
+		e.Router.GET("/assets/{path...}", apis.Static(views.StaticFS, true))
+		e.Router.Bind(apis.Gzip())
 		// INFO: Global middleware to get the authenticated user:
 		e.Router.BindFunc(middleware.Authenticated(e.App))
 

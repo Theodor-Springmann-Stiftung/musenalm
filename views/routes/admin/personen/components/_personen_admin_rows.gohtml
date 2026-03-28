@@ -34,10 +34,9 @@
 				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</div>
 			{{- end -}}
 		</td>
-		<td class="col-verweise py-2 pr-4 whitespace-nowrap text-right w-px">
-			<div class="admin-list-count flex items-center justify-end gap-2 whitespace-nowrap">
-				{{- if gt $bandCount 0 -}}
-					<tool-tip position="top" class="inline">
+			<td class="col-verweise py-2 pr-4 whitespace-nowrap text-right w-px">
+				<div class="admin-list-count flex items-center justify-end gap-2 whitespace-nowrap">
+					{{- if gt $bandCount 0 -}}
 						<a
 							href="/admin/baende/?offset=0&sort=title&order=asc&person={{ $agent.Id }}"
 							onclick="event.stopPropagation();"
@@ -46,23 +45,19 @@
 							hx-push-url="true"
 							hx-indicator="#admin-main-loading"
 							hx-headers='{"X-Admin-Main-Nav":"true"}'
-							class="admin-list-chip">
+							class="admin-list-chip"
+							title="Bände anzeigen"
+							aria-label="Bände anzeigen">
 							<i class="ri-book-line"></i>
 							<span>{{ $bandCount }}</span>
 						</a>
-						<div class="data-tip">Bände anzeigen</div>
-					</tool-tip>
-				{{- else -}}
-					<tool-tip position="top" class="inline">
-						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+					{{- else -}}
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Bände verknüpft" aria-label="Keine Bände verknüpft">
 							<i class="ri-book-line"></i>
 							<span>0</span>
 						</span>
-						<div class="data-tip">Keine Bände verknüpft</div>
-					</tool-tip>
-				{{- end -}}
-				{{- if gt $contentCount 0 -}}
-					<tool-tip position="top" class="inline">
+					{{- end -}}
+					{{- if gt $contentCount 0 -}}
 						<a
 							href="/admin/beitraege/?offset=0&person={{ $agent.Id }}"
 							onclick="event.stopPropagation();"
@@ -71,46 +66,33 @@
 							hx-push-url="true"
 							hx-indicator="#admin-main-loading"
 							hx-headers='{"X-Admin-Main-Nav":"true"}'
-							class="admin-list-chip">
+							class="admin-list-chip"
+							title="Beiträge anzeigen"
+							aria-label="Beiträge anzeigen">
 							<i class="ri-article-line"></i>
 							<span>{{ $contentCount }}</span>
 						</a>
-						<div class="data-tip">Beiträge anzeigen</div>
-					</tool-tip>
-				{{- else -}}
-					<tool-tip position="top" class="inline">
-						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+					{{- else -}}
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Beiträge verknüpft" aria-label="Keine Beiträge verknüpft">
 							<i class="ri-article-line"></i>
 							<span>0</span>
 						</span>
-						<div class="data-tip">Keine Beiträge verknüpft</div>
-					</tool-tip>
-				{{- end -}}
-			</div>
-		</td>
-		<td class="py-2 pr-4">
-			<div class="admin-list-actions">
-				<div class="admin-list-action-stack">
-					<tool-tip position="top" class="inline">
-						<a href="/person/{{ $agent.MusenalmID }}" class="admin-list-chip">
+					{{- end -}}
+				</div>
+			</td>
+			<td class="py-2 pr-4">
+				<div class="admin-list-actions">
+					<div class="admin-list-action-stack">
+						<a href="/person/{{ $agent.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
 							<i class="ri-eye-line"></i>
 						</a>
-						<div class="data-tip">Anzeigen</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<a href="/person/{{ $agent.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip">
+						<a href="/person/{{ $agent.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
 							<i class="ri-external-link-line"></i>
 						</a>
-						<div class="data-tip">In neuem Tab öffnen</div>
-					</tool-tip>
-					{{- if (IsAdminOrEditor $model.request.user) -}}
-						<tool-tip position="top" class="inline">
-							<a href="/admin/person/{{ $agent.Id }}/edit/" class="admin-list-chip">
+						{{- if (IsAdminOrEditor $model.request.user) -}}
+							<a href="/admin/person/{{ $agent.Id }}/edit/" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
 								<i class="ri-edit-line"></i>
 							</a>
-							<div class="data-tip">Bearbeiten</div>
-						</tool-tip>
-						<tool-tip position="top" class="inline">
 							<button
 								type="button"
 								data-role="personen-admin-delete"
@@ -118,14 +100,14 @@
 								data-agent-title="{{ $agent.Name }}"
 								data-last-edited="{{ $agent.Updated }}"
 								data-delete-endpoint="/admin/person/{{ $agent.Id }}/edit/delete"
-								class="admin-list-chip-danger">
+								class="admin-list-chip-danger"
+								title="Löschen"
+								aria-label="Löschen">
 								<i class="ri-delete-bin-line"></i>
 							</button>
-							<div class="data-tip">Löschen</div>
-						</tool-tip>
-					{{- end -}}
+						{{- end -}}
+					</div>
 				</div>
-			</div>
-		</td>
+			</td>
 	</tr>
 {{- end -}}

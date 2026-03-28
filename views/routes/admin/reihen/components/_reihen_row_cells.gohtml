@@ -20,10 +20,9 @@
 		"comment" $series.Comment
 	) }}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-verweise whitespace-nowrap text-right w-px">
-	<div class="admin-list-count flex justify-end whitespace-nowrap">
-		{{- if gt (len .band_links) 0 -}}
-			<tool-tip position="top" class="inline">
+	<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-verweise whitespace-nowrap text-right w-px">
+		<div class="admin-list-count flex justify-end whitespace-nowrap">
+			{{- if gt (len .band_links) 0 -}}
 				<a
 					href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.Id }}"
 					onclick="event.stopPropagation();"
@@ -32,46 +31,33 @@
 					hx-push-url="true"
 					hx-indicator="#admin-main-loading"
 					hx-headers='{"X-Admin-Main-Nav":"true"}'
-					class="admin-list-chip">
+					class="admin-list-chip"
+					title="Bände anzeigen"
+					aria-label="Bände anzeigen">
 					<i class="ri-book-line"></i>
 					<span>{{ len .band_links }}</span>
 				</a>
-				<div class="data-tip">Bände anzeigen</div>
-			</tool-tip>
-		{{- else -}}
-			<tool-tip position="top" class="inline">
-				<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+			{{- else -}}
+				<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Bände verknüpft" aria-label="Keine Bände verknüpft">
 					<i class="ri-book-line"></i>
 					<span>0</span>
 				</span>
-				<div class="data-tip">Keine Bände verknüpft</div>
-			</tool-tip>
-		{{- end -}}
-	</div>
-</td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4">
-	<div class="admin-list-actions">
-		<div class="admin-list-action-stack">
-			<tool-tip position="top" class="inline">
-				<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+			{{- end -}}
+		</div>
+	</td>
+	<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4">
+		<div class="admin-list-actions">
+			<div class="admin-list-action-stack">
+				<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
 					<i class="ri-eye-line"></i>
 				</a>
-				<div class="data-tip">Anzeigen</div>
-			</tool-tip>
-			<tool-tip position="top" class="inline">
-				<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+				<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
 					<i class="ri-external-link-line"></i>
 				</a>
-				<div class="data-tip">In neuem Tab öffnen</div>
-			</tool-tip>
-			{{- if .can_edit -}}
-				<tool-tip position="top" class="inline">
-					<a href="/admin/reihe/{{ $series.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
+				{{- if .can_edit -}}
+					<a href="/admin/reihe/{{ $series.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
 						<i class="ri-edit-line"></i>
 					</a>
-					<div class="data-tip">Bearbeiten</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
 					<button
 						type="button"
 						onclick="event.stopPropagation();"
@@ -80,12 +66,12 @@
 						data-series-title="{{ $series.Title }}"
 						data-last-edited="{{ $series.Updated }}"
 						data-delete-endpoint="/admin/reihe/{{ $series.MusenalmID }}/edit/delete"
-						class="admin-list-chip-danger">
+						class="admin-list-chip-danger"
+						title="Löschen"
+						aria-label="Löschen">
 						<i class="ri-delete-bin-line"></i>
 					</button>
-					<div class="data-tip">Löschen</div>
-				</tool-tip>
-			{{- end -}}
+				{{- end -}}
+			</div>
 		</div>
-	</div>
-</td>
+	</td>

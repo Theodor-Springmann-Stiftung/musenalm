@@ -21,18 +21,12 @@
 			<span class="inline-flex items-center rounded-xs bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
 				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
 			</span>
-			<tool-tip position="top" class="inline">
-				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" class="admin-list-chip" aria-label="Beiträge des Bandes">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
 					<i class="ri-article-line"></i>
 				</a>
-				<div class="data-tip">Beiträge des Bandes</div>
-			</tool-tip>
-			<tool-tip position="top" class="inline">
-				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip" aria-label="Band bearbeiten">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip" title="Band bearbeiten" aria-label="Band bearbeiten">
 					<i class="ri-book-line"></i>
 				</a>
-				<div class="data-tip">Band bearbeiten</div>
-			</tool-tip>
 		</div>
 	</div>
 
@@ -132,48 +126,27 @@
 				</div>
 
 				<div data-role="beitraege-col-status" class="flex shrink-0 items-start">
-					<tool-tip data-role="beitraege-status" position="top" class="inline">
-						<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
-							<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+						<span
+							data-role="beitraege-status"
+							class="inline"
+							title="{{- if eq $content.EditState "Unknown" -}}Gesucht{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else if eq $content.EditState "Edited" -}}Erfasst{{- else -}}{{ $content.EditState }}{{- end -}}"
+							aria-label="{{- if eq $content.EditState "Unknown" -}}Gesucht{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "Seen" -}}Autopsiert{{- else if eq $content.EditState "Edited" -}}Erfasst{{- else -}}{{ $content.EditState }}{{- end -}}">
+							<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
+								<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+							</span>
 						</span>
-						<div class="data-tip">
-							{{- if eq $content.EditState "Unknown" -}}
-								Gesucht
-							{{- else if eq $content.EditState "ToDo" -}}
-								Zu erledigen
-							{{- else if eq $content.EditState "Review" -}}
-								Überprüfen
-							{{- else if eq $content.EditState "Seen" -}}
-								Autopsiert
-							{{- else if eq $content.EditState "Edited" -}}
-								Erfasst
-							{{- else -}}
-								{{ $content.EditState }}
-							{{- end -}}
-						</div>
-					</tool-tip>
-				</div>
+					</div>
 
-				<div class="flex shrink-0 items-start gap-2">
-					<tool-tip position="top" class="inline">
-						<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" aria-label="Anzeigen">
+					<div class="flex shrink-0 items-start gap-2">
+						<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
 							<i class="ri-eye-line"></i>
 						</a>
-						<div class="data-tip">Anzeigen</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" aria-label="In neuem Tab öffnen">
+						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
 							<i class="ri-external-link-line"></i>
 						</a>
-						<div class="data-tip">In neuem Tab öffnen</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
-						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/" class="admin-list-chip" aria-label="Beitrag bearbeiten">
+						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/" class="admin-list-chip" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-line"></i>
 						</a>
-						<div class="data-tip">Beitrag bearbeiten</div>
-					</tool-tip>
-					<tool-tip position="top" class="inline">
 						<button
 							type="button"
 							class="admin-list-chip-danger"
@@ -181,13 +154,12 @@
 							data-entry-musenalm-id="{{ $entry.MusenalmID }}"
 							data-content-id="{{ $content.Id }}"
 							data-title="{{ if $content.PreferredTitle }}{{ $content.PreferredTitle }}{{ else if $content.TitleStmt }}{{ $content.TitleStmt }}{{ else }}Beitrag {{ $content.MusenalmID }}{{ end }}"
+							title="Löschen"
 							aria-label="Beitrag löschen">
 							<i class="ri-delete-bin-line"></i>
 						</button>
-						<div class="data-tip">Löschen</div>
-					</tool-tip>
+					</div>
 				</div>
-			</div>
-		{{- end -}}
-	</div>
-</section>
+			{{- end -}}
+		</div>
+	</section>
