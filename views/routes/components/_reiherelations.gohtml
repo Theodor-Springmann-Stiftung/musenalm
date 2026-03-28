@@ -20,43 +20,28 @@
 								[o.J.]
 							{{- end -}}
 
-						{{- if $request.user -}}
-							<tool-tip position="right" class="inline">
-								<i class="status-icon ml-1 align-middle {{- if eq $bd.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $bd.EditState "Seen" }} ri-information-line{{- else if eq $bd.EditState "Review" }} ri-search-line{{- else if eq $bd.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $bd.EditState }}"></i>
-								<div class="data-tip">
-									{{- if eq $bd.EditState "Unknown" -}}
-										Gesucht
-									{{- else if eq $bd.EditState "ToDo" -}}
-										Zu erledigen
-									{{- else if eq $bd.EditState "Review" -}}
-										Überprüfen
-									{{- else if eq $bd.EditState "Seen" -}}
-										Autopsiert
-									{{- else if eq $bd.EditState "Edited" -}}
-										Vollständig Erfasst
-									{{- else -}}
-										{{ $bd.EditState }}
-									{{- end -}}
-								</div>
-							</tool-tip>
-						{{- else -}}
-							{{- if not $bd.TitleStmt -}}
-								<tool-tip position="right" class="inline">
-									<i class="ri-forbid-2-line"></i>
-									<div class="data-tip">Keine nähere Erfassung</div>
-								</tool-tip>
-							{{- else if eq $bd.EditState "Edited" -}}
-								<tool-tip position="right" class="inline">
-									<i class="ri-checkbox-circle-line"></i>
-									<div class="data-tip">Mit erfassten Beiträgen</div>
-								</tool-tip>
+							{{- if $request.user -}}
+								<span
+									class="inline-flex items-center align-middle"
+									title="{{- if eq $bd.EditState "Unknown" -}}Gesucht{{- else if eq $bd.EditState "ToDo" -}}Zu erledigen{{- else if eq $bd.EditState "Review" -}}Überprüfen{{- else if eq $bd.EditState "Seen" -}}Autopsiert{{- else if eq $bd.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $bd.EditState }}{{- end -}}"
+									aria-label="{{- if eq $bd.EditState "Unknown" -}}Gesucht{{- else if eq $bd.EditState "ToDo" -}}Zu erledigen{{- else if eq $bd.EditState "Review" -}}Überprüfen{{- else if eq $bd.EditState "Seen" -}}Autopsiert{{- else if eq $bd.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $bd.EditState }}{{- end -}}">
+									<i class="status-icon relative -top-px ml-1 align-middle {{- if eq $bd.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $bd.EditState "Seen" }} ri-information-line{{- else if eq $bd.EditState "Review" }} ri-search-line{{- else if eq $bd.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $bd.EditState }}"></i>
+								</span>
 							{{- else -}}
-								<tool-tip position="right" class="inline">
-									<i class="ri-information-line"></i>
-									<div class="data-tip">Mit genaueren Titelangaben</div>
-								</tool-tip>
+								{{- if not $bd.TitleStmt -}}
+									<span class="inline-flex items-center align-middle" title="Keine nähere Erfassung" aria-label="Keine nähere Erfassung">
+										<i class="ri-forbid-2-line relative -top-px ml-1 align-middle"></i>
+									</span>
+								{{- else if eq $bd.EditState "Edited" -}}
+									<span class="inline-flex items-center align-middle" title="Mit erfassten Beiträgen" aria-label="Mit erfassten Beiträgen">
+										<i class="ri-checkbox-circle-line relative -top-px ml-1 align-middle"></i>
+									</span>
+								{{- else -}}
+									<span class="inline-flex items-center align-middle" title="Mit genaueren Titelangaben" aria-label="Mit genaueren Titelangaben">
+										<i class="ri-information-line relative -top-px ml-1 align-middle"></i>
+									</span>
+								{{- end -}}
 							{{- end -}}
-						{{- end -}}
 						</div>
 						{{- if not (eq $rel.Type "Bevorzugter Reihentitel") -}}
 							<div class="text-xs whitespace-nowrap">
@@ -77,14 +62,14 @@
 						{{- end -}}
 					</a>
 					<div class="whitespace-nowrap align-top">
-						Alm
-						{{ $bd.MusenalmID }}
-						{{- if (IsAdminOrEditor $request.user) -}}
-						<a href="/admin/almanach/{{ $bd.MusenalmID }}/edit/" class="no-underline rounded bg-stone-100 px-1.5">
-						<i class="ri-edit-line"></i>
-						</a>
-						{{- end -}}
-					</div>
+							Alm
+							{{ $bd.MusenalmID }}
+							{{- if (IsAdminOrEditor $request.user) -}}
+							<a href="/admin/almanach/{{ $bd.MusenalmID }}/edit/" class="inline-flex items-center align-middle no-underline rounded bg-stone-100 px-1.5">
+							<i class="ri-edit-line relative -top-px"></i>
+							</a>
+							{{- end -}}
+						</div>
 
 				</div>
 			{{- end -}}

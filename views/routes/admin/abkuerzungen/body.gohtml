@@ -66,11 +66,15 @@
 										autocomplete="off"
 										required>
 								</td>
-								<td class="px-2 py-2.5 pr-4 text-center" style="width: 8rem;">
+								<td class="px-2 py-2.5 pr-4 text-center" style="">
 									<input type="hidden" name="abkuerzungen[{{ $index }}][_delete]" id="abkuerzungen_delete_{{ $index }}" value="false" class="delete-flag">
-									<button type="button" class="delete-btn inline-flex items-center gap-1 whitespace-nowrap text-sm px-1.5" data-delete-toggle="abkuerzungen_delete_{{ $index }}">
+									<button
+										type="button"
+										class="delete-btn admin-list-chip-danger"
+										data-delete-toggle="abkuerzungen_delete_{{ $index }}"
+										title="Entfernen"
+										aria-label="Entfernen">
 										<i class="ri-delete-bin-line"></i>
-										<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
 									</button>
 								</td>
 							</tr>
@@ -111,39 +115,27 @@
 				const tbody = document.getElementById('abk-tbody');
 				let rowIndex = {{ len $model.result.Entries }};
 
-				const updateDeleteLabel = (button, deleted, hovered) => {
-					const label = button.querySelector('[data-delete-label]');
-					if (label) {
-						let nextLabel;
-						if (deleted && hovered) {
-							nextLabel = label.getAttribute('data-delete-hover') || 'Rückgängig';
-						} else if (deleted) {
-							nextLabel = label.getAttribute('data-delete-active') || 'Wird entfernt';
-						} else {
-							nextLabel = label.getAttribute('data-delete-default') || 'Entfernen';
+					const updateDeleteButton = (button, deleted) => {
+						const icon = button.querySelector('i');
+						if (!icon) {
+							return;
 						}
-						label.textContent = nextLabel;
-					}
-
-					const icon = button.querySelector('i');
-					if (!icon) {
-						return;
-					}
-					if (deleted) {
-						if (hovered) {
-							icon.classList.remove('hidden');
+						if (deleted) {
+							button.classList.remove('admin-list-chip-danger');
+							button.classList.add('admin-list-chip');
+							button.title = 'Rückgängig';
+							button.setAttribute('aria-label', 'Rückgängig');
 							icon.classList.add('ri-arrow-go-back-line');
 							icon.classList.remove('ri-delete-bin-line');
 						} else {
-							icon.classList.add('hidden');
-							icon.classList.remove('ri-delete-bin-line', 'ri-arrow-go-back-line');
+							button.classList.add('admin-list-chip-danger');
+							button.classList.remove('admin-list-chip');
+							button.title = 'Entfernen';
+							button.setAttribute('aria-label', 'Entfernen');
+							icon.classList.add('ri-delete-bin-line');
+							icon.classList.remove('ri-arrow-go-back-line');
 						}
-					} else {
-						icon.classList.remove('hidden');
-						icon.classList.add('ri-delete-bin-line');
-						icon.classList.remove('ri-arrow-go-back-line');
-					}
-				};
+					};
 
 				const setRowDeleted = (row, button, deleted) => {
 					const deleteFlag = row.querySelector('.delete-flag');
@@ -161,8 +153,8 @@
 						control.classList.toggle('opacity-50', deleted);
 						control.classList.toggle('cursor-not-allowed', deleted);
 					});
-					updateDeleteLabel(button, deleted, button.matches(':hover'));
-				};
+						updateDeleteButton(button, deleted);
+					};
 
 				const wireDeleteButton = (button) => {
 					if (!button || button.dataset.abkBound === 'true') {
@@ -181,29 +173,14 @@
 						setRowDeleted(row, button, !isDeleted);
 					});
 
-					button.addEventListener('mouseenter', () => {
 						const row = button.closest('tr');
 						const deleteFlag = row ? row.querySelector('.delete-flag') : null;
-						if (!deleteFlag || deleteFlag.value !== 'true') {
-							return;
+						if (row && deleteFlag && deleteFlag.value === 'true') {
+							setRowDeleted(row, button, true);
+						} else {
+							updateDeleteButton(button, false);
 						}
-						updateDeleteLabel(button, true, true);
-					});
-
-					button.addEventListener('mouseleave', () => {
-						const row = button.closest('tr');
-						const deleteFlag = row ? row.querySelector('.delete-flag') : null;
-						updateDeleteLabel(button, deleteFlag && deleteFlag.value === 'true', false);
-					});
-
-					const row = button.closest('tr');
-					const deleteFlag = row ? row.querySelector('.delete-flag') : null;
-					if (row && deleteFlag && deleteFlag.value === 'true') {
-						setRowDeleted(row, button, true);
-					} else {
-						updateDeleteLabel(button, false, false);
-					}
-				};
+					};
 
 				const addRow = function() {
 					const tr = document.createElement('tr');
@@ -227,14 +204,18 @@
 								autocomplete="off"
 								required>
 						</td>
-						<td class="px-2 py-2.5 pr-4 text-center" style="width: 8rem;">
-							<input type="hidden" name="abkuerzungen[${rowIndex}][_delete]" id="abkuerzungen_delete_${rowIndex}" value="false" class="delete-flag">
-							<button type="button" class="delete-btn inline-flex items-center gap-1 whitespace-nowrap text-sm px-1.5" data-delete-toggle="abkuerzungen_delete_${rowIndex}">
-								<i class="ri-delete-bin-line"></i>
-								<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
-							</button>
-						</td>
-					`;
+							<td class="px-2 py-2.5 pr-4 text-center" style="">
+								<input type="hidden" name="abkuerzungen[${rowIndex}][_delete]" id="abkuerzungen_delete_${rowIndex}" value="false" class="delete-flag">
+								<button
+									type="button"
+									class="delete-btn admin-list-chip-danger"
+									data-delete-toggle="abkuerzungen_delete_${rowIndex}"
+									title="Entfernen"
+									aria-label="Entfernen">
+									<i class="ri-delete-bin-line"></i>
+								</button>
+							</td>
+						`;
 					tbody.appendChild(tr);
 					wireDeleteButton(tr.querySelector('.delete-btn'));
 					rowIndex++;
