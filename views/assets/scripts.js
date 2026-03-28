@@ -5845,7 +5845,7 @@ class Et extends HTMLElement {
     });
   }
   constructor() {
-    super(), this._tooltipBox = null, this._timeout = 200, this._hideTimeout = null, this._hiddenTimeout = null, this._dataTipElem = null, this._observer = null;
+    super(), this._tooltipBox = null, this._timeout = 200, this._showDelay = 500, this._hideTimeout = null, this._hiddenTimeout = null, this._showTimeout = null, this._dataTipElem = null, this._observer = null;
   }
   connectedCallback() {
     Et._ensureDragGuard(), this.classList.add("relative", "block", "leading-none", "[&>*]:leading-normal"), this._dataTipElem = this.querySelector(".data-tip");
@@ -5885,7 +5885,7 @@ class Et extends HTMLElement {
     this._observer && this._observer.disconnect();
   }
   _forceHide() {
-    clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._tooltipBox && (this._tooltipBox.classList.remove("opacity-100"), this._tooltipBox.classList.add("opacity-0"), this._tooltipBox.classList.add("hidden"));
+    clearTimeout(this._showTimeout), clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._tooltipBox && (this._tooltipBox.classList.remove("opacity-100"), this._tooltipBox.classList.add("opacity-0"), this._tooltipBox.classList.add("hidden"));
   }
   _isDragging() {
     return window.__toolTipDragging || document.body?.dataset?.dragging === "true" ? !0 : !!document.querySelector("[data-dragging='true']");
@@ -5895,12 +5895,14 @@ class Et extends HTMLElement {
       this._forceHide();
       return;
     }
-    clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._tooltipBox.classList.remove("hidden"), this._updatePosition(), setTimeout(() => {
-      this._tooltipBox.classList.remove("opacity-0"), this._tooltipBox.classList.add("opacity-100");
-    }, 16);
+    clearTimeout(this._showTimeout), clearTimeout(this._hideTimeout), clearTimeout(this._hiddenTimeout), this._showTimeout = setTimeout(() => {
+      this._tooltipBox.classList.remove("hidden"), this._updatePosition(), setTimeout(() => {
+        this._tooltipBox.classList.remove("opacity-0"), this._tooltipBox.classList.add("opacity-100");
+      }, 16);
+    }, this._showDelay);
   }
   _hideTooltip() {
-    this._hideTimeout = setTimeout(() => {
+    clearTimeout(this._showTimeout), this._hideTimeout = setTimeout(() => {
       this._tooltipBox.classList.remove("opacity-100"), this._tooltipBox.classList.add("opacity-0"), this._hiddenTimeout = setTimeout(() => {
         this._tooltipBox.classList.add("hidden");
       }, this._timeout + 100);

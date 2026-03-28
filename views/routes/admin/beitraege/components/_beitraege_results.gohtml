@@ -6,6 +6,8 @@
 		hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
 		offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
 		loading: false,
+		totalCount: {{ $model.total_count }},
+		totalGroups: {{ $model.total_groups }},
 		search: {{ printf "%q" $model.search }},
 		entry: {{ printf "%q" $model.entry }},
 		year: {{ printf "%q" $model.year }},
@@ -50,13 +52,17 @@
 				loading = false;
 				hasMore = $event.detail.xhr.getResponseHeader('X-Has-More') === 'true';
 				offset = parseInt($event.detail.xhr.getResponseHeader('X-Next-Offset') || '0');
-				const currentCount = parseInt($event.detail.xhr.getResponseHeader('X-Current-Count') || '0');
-				const totalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
+				const nextTotalCount = parseInt($event.detail.xhr.getResponseHeader('X-Total-Count') || '0');
+				if (!Number.isNaN(nextTotalCount)) {
+					totalCount = nextTotalCount;
+				}
 				const countEl = document.getElementById('admin-beitraege-count');
-				if (countEl && !Number.isNaN(currentCount) && !Number.isNaN(totalCount)) {
+				if (countEl) {
+					const currentCount = document.querySelectorAll('[data-role=&quot;beitraege-row&quot;]').length;
 					const format = (value) => new Intl.NumberFormat('de-DE').format(value);
 					const totalLabel = totalCount === 1 ? 'Beitrag' : 'Beiträge';
-					countEl.innerHTML = `${format(currentCount)}&thinsp;/&thinsp;${format(totalCount)} ${totalLabel}{{ if $model.total_groups }} in {{ GermanInt $model.total_groups }} Bänden{{ end }}`;
+					const groupsLabel = totalGroups ? ` in ${format(totalGroups)} Bänden` : '';
+					countEl.innerHTML = `${format(currentCount)}&thinsp;/&thinsp;${format(totalCount)} ${totalLabel}${groupsLabel}`;
 				}
 			"
 			:disabled="loading">

@@ -61,13 +61,31 @@
 						<div class="data-tip">Keine Bände verknüpft</div>
 					</tool-tip>
 				{{- end -}}
-				<tool-tip position="top" class="inline">
-					<span class="admin-list-chip{{ if eq $contentCount 0 }} pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60{{ end }}">
-						<i class="ri-article-line"></i>
-						<span>{{ $contentCount }}</span>
-					</span>
-					<div class="data-tip">Inhalte</div>
-				</tool-tip>
+				{{- if gt $contentCount 0 -}}
+					<tool-tip position="top" class="inline">
+						<a
+							href="/admin/beitraege/?offset=0&person={{ $agent.Id }}"
+							onclick="event.stopPropagation();"
+							hx-target="#admin-main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							hx-indicator="#admin-main-loading"
+							hx-headers='{"X-Admin-Main-Nav":"true"}'
+							class="admin-list-chip">
+							<i class="ri-article-line"></i>
+							<span>{{ $contentCount }}</span>
+						</a>
+						<div class="data-tip">Beiträge anzeigen</div>
+					</tool-tip>
+				{{- else -}}
+					<tool-tip position="top" class="inline">
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+							<i class="ri-article-line"></i>
+							<span>0</span>
+						</span>
+						<div class="data-tip">Keine Beiträge verknüpft</div>
+					</tool-tip>
+				{{- end -}}
 			</div>
 		</td>
 		<td class="py-2 pr-4">

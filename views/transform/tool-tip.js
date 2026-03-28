@@ -59,8 +59,10 @@ export class ToolTip extends HTMLElement {
 		super();
 		this._tooltipBox = null;
 		this._timeout = 200;
+		this._showDelay = 500;
 		this._hideTimeout = null;
 		this._hiddenTimeout = null;
+		this._showTimeout = null;
 		this._dataTipElem = null;
 		this._observer = null;
 	}
@@ -142,6 +144,7 @@ export class ToolTip extends HTMLElement {
 	}
 
 	_forceHide() {
+		clearTimeout(this._showTimeout);
 		clearTimeout(this._hideTimeout);
 		clearTimeout(this._hiddenTimeout);
 		if (!this._tooltipBox) {
@@ -167,17 +170,21 @@ export class ToolTip extends HTMLElement {
 			this._forceHide();
 			return;
 		}
+		clearTimeout(this._showTimeout);
 		clearTimeout(this._hideTimeout);
 		clearTimeout(this._hiddenTimeout);
-		this._tooltipBox.classList.remove("hidden");
-		this._updatePosition();
-		setTimeout(() => {
-			this._tooltipBox.classList.remove("opacity-0");
-			this._tooltipBox.classList.add("opacity-100");
-		}, 16);
+		this._showTimeout = setTimeout(() => {
+			this._tooltipBox.classList.remove("hidden");
+			this._updatePosition();
+			setTimeout(() => {
+				this._tooltipBox.classList.remove("opacity-0");
+				this._tooltipBox.classList.add("opacity-100");
+			}, 16);
+		}, this._showDelay);
 	}
 
 	_hideTooltip() {
+		clearTimeout(this._showTimeout);
 		this._hideTimeout = setTimeout(() => {
 			this._tooltipBox.classList.remove("opacity-100");
 			this._tooltipBox.classList.add("opacity-0");
