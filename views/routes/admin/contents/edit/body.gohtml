@@ -343,6 +343,7 @@
 		panelShell.outerHTML = closedEditorPanelMarkup;
 		syncEditorState();
 	};
+	window.__closeContentsEditorPanel = closeEditorPanel;
 
 	const initEditorPanel = () => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
@@ -1559,7 +1560,42 @@
 			initPage();
 		}
 	});
-	window.addEventListener("beforeunload", () => {
+window.addEventListener("beforeunload", () => {
 		unlockContentsWorkspaceLayout();
 	});
+</script>
+<script>
+	(() => {
+		if (window.__contentsEditorCloseFallbackBound) {
+			return;
+		}
+		window.__contentsEditorCloseFallbackBound = true;
+
+		const fallbackClosedMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+
+		const closePanelFallback = () => {
+			if (typeof window.__closeContentsEditorPanel === "function") {
+				window.__closeContentsEditorPanel();
+				return;
+			}
+			const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+			if (panelShell) {
+				panelShell.outerHTML = fallbackClosedMarkup;
+			}
+			const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+			if (workspace) {
+				delete workspace.dataset.panelOpen;
+			}
+			window.__contentsApplyViewState?.();
+		};
+
+		document.addEventListener("click", (event) => {
+			const button = event.target.closest("[data-role='contents-editor-close']");
+			if (!button) {
+				return;
+			}
+			event.preventDefault();
+			closePanelFallback();
+		}, true);
+	})();
 </script>
