@@ -583,7 +583,7 @@
 	}
 
 	.admin-page-header {
-		@apply sticky top-0 z-20 w-full border-b border-stone-300 bg-stone-50 px-8 pt-8 pb-3;
+		@apply sticky top-0 z-20 w-full border-b border-stone-400 bg-stone-50 px-8 pt-8 pb-3;
 	}
 
 	.admin-page-kicker {
