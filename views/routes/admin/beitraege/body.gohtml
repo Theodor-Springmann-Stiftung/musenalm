@@ -334,6 +334,27 @@ class="admin-page-shell font-sans pt-0 pb-8">
 			</div>
 
 			<div class="admin-list-toolbar-secondary justify-end">
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" data-role="beitraege-view-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-secondary-trigger flex items-center gap-2">
+							<i class="ri-eye-line"></i>
+							<span>Anzeige</span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute right-0 mt-2 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="page" checked /> Seiten</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="type" checked /> Typ</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="incipit" checked /> Incipit</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotation" checked /> Anmerkungen</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
+							</div>
+						</div>
+					</details>
+				</div>
+
 				<span id="admin-beitraege-count" class="whitespace-nowrap text-lg font-semibold font-sans text-gray-600">
 					{{- if $model.current_count -}}
 						{{- GermanInt $model.current_count }}&thinsp;/&thinsp;
@@ -376,6 +397,112 @@ class="admin-page-shell font-sans pt-0 pb-8">
 		document.body.addEventListener('htmx:afterSwap', (event) => {
 			const target = event.target?.closest?.('[data-role="beitraege-filter"]') || event.target;
 			bindFilterSearch(target);
+		});
+	})();
+
+	(() => {
+		const initViewOptions = () => {
+			const toggleRoot = document.querySelector('[data-role="beitraege-view-toggle"]');
+			if (!toggleRoot) {
+				return;
+			}
+
+			const storageKey = 'admin-beitraege-view-options';
+			const defaults = {
+				"alm-number": true,
+				"page": true,
+				"type": true,
+				"responsibility": true,
+				"linked-agents": true,
+				"incipit": true,
+				"annotation": true,
+				"scans": true,
+				"status": true,
+			};
+
+			let state = { ...defaults };
+			try {
+				const raw = window.localStorage.getItem(storageKey);
+				if (raw) {
+					state = { ...defaults, ...JSON.parse(raw) };
+				}
+			} catch {}
+			state["alm-number"] = true;
+			state["status"] = true;
+
+			const selectors = {
+				"alm-number": "[data-role='beitraege-ref-number']",
+				"page": "[data-role='beitraege-ref-page']",
+				"type": "[data-role='beitraege-type-group']",
+				"responsibility": "[data-role='beitraege-content-responsibility']",
+				"linked-agents": "[data-role='beitraege-content-linked-agents']",
+				"incipit": "[data-role='beitraege-content-incipit']",
+				"annotation": "[data-role='beitraege-content-annotation']",
+				"status": "[data-role='beitraege-status']",
+			};
+
+			const applyState = () => {
+				Object.entries(selectors).forEach(([key, selector]) => {
+					document.querySelectorAll(selector).forEach((el) => {
+						el.style.display = state[key] ? '' : 'none';
+					});
+				});
+
+				const showReferenceColumn = state["alm-number"] || state["page"];
+				document.querySelectorAll("[data-role='beitraege-col-reference']").forEach((el) => {
+					el.style.display = showReferenceColumn ? '' : 'none';
+				});
+				document.querySelectorAll("[data-role='beitraege-col-type']").forEach((el) => {
+					el.style.display = state.type ? '' : 'none';
+				});
+				document.querySelectorAll("[data-role='beitraege-col-scans']").forEach((el) => {
+					el.style.display = state.scans ? '' : 'none';
+				});
+
+				document.querySelectorAll("[data-role='beitraege-row']").forEach((row) => {
+					const columns = [];
+					if (showReferenceColumn) columns.push('5.5rem');
+					if (state.type) columns.push('8rem');
+					columns.push('minmax(0,1fr)');
+					if (state.scans) columns.push('5.5rem');
+					columns.push('auto');
+					row.style.gridTemplateColumns = columns.join(' ');
+				});
+			};
+
+			if (toggleRoot.dataset.viewToggleBound !== 'true') {
+				toggleRoot.querySelectorAll('input[data-col]').forEach((input) => {
+					const key = input.dataset.col;
+					input.checked = !!state[key];
+					input.addEventListener('change', () => {
+						state[key] = input.checked;
+						state["alm-number"] = true;
+						state["status"] = true;
+						applyState();
+						try {
+							window.localStorage.setItem(storageKey, JSON.stringify(state));
+						} catch {}
+					});
+				});
+				toggleRoot.dataset.viewToggleBound = 'true';
+			} else {
+				toggleRoot.querySelectorAll('input[data-col]').forEach((input) => {
+					input.checked = !!state[input.dataset.col];
+				});
+			}
+
+			window.__applyBeitraegeViewState = applyState;
+			applyState();
+		};
+
+		initViewOptions();
+		document.body.addEventListener('htmx:afterSwap', (event) => {
+			const target = event.target;
+			if (!target) return;
+			if (target.id === 'admin-beitraege-results' || target.id === 'admin-beitraege-groups' || target.closest?.('#admin-beitraege-results')) {
+				initViewOptions();
+				window.__applyBeitraegeViewState?.();
+			}
 		});
 	})();
 

@@ -39,21 +39,21 @@
 	<div class="divide-y divide-stone-200">
 		{{- range $_, $row := $group.Rows -}}
 			{{ $content := $row.Content }}
-			<div class="grid grid-cols-[5.5rem_8rem_minmax(0,1fr)_5.5rem_auto] gap-4 px-4 py-2.5 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
-				<div class="min-w-0 text-sm leading-snug text-slate-700">
-					<div class="inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-stone-200 bg-white px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
+			<div data-role="beitraege-row" class="grid grid-cols-[5.5rem_8rem_minmax(0,1fr)_5.5rem_auto] gap-4 px-4 py-2.5 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
+				<div data-role="beitraege-col-reference" class="min-w-0 text-sm leading-snug text-slate-700">
+					<div data-role="beitraege-ref-number" class="inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-stone-200 bg-white px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
 						{{ $content.MusenalmID }}
 					</div>
 					{{- if $content.Extent -}}
-						<div class="mt-1 inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-blue-900 bg-blue-900 px-1.5 py-0 text-[0.9rem] font-semibold text-white shadow-sm">
+						<div data-role="beitraege-ref-page" class="mt-1 inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-blue-900 bg-blue-900 px-1.5 py-0 text-[0.9rem] font-semibold text-white shadow-sm">
 							S.&thinsp;{{ $content.Extent }}
 						</div>
 					{{- end -}}
 				</div>
 
-				<div class="beitraege-admin-search-text min-w-0 text-sm leading-snug text-slate-700">
+				<div data-role="beitraege-col-type" class="beitraege-admin-search-text min-w-0 text-sm leading-snug text-slate-700">
 					{{- if $content.MusenalmType -}}
-						<div class="flex flex-wrap items-start gap-1">
+						<div data-role="beitraege-type-group" class="flex flex-wrap items-start gap-1">
 							{{- range $_, $type := $content.MusenalmType -}}
 								<span class="rounded-xs bg-slate-200 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-800">{{ $type }}</span>
 							{{- end -}}
@@ -73,12 +73,12 @@
 							{{- end -}}
 						</a>
 						{{- if $content.ResponsibilityStmt -}}
-							<span class="text-slate-700 italic">
+							<span data-role="beitraege-content-responsibility" class="text-slate-700 italic">
 								<span class="mx-1.5 font-semibold not-italic">&middot;</span>{{ $content.ResponsibilityStmt }}
 							</span>
 						{{- end -}}
 						{{- if $row.AgentDisplays -}}
-							<span class="text-slate-700">
+							<span data-role="beitraege-content-linked-agents" class="text-slate-700">
 								<span class="mx-1.5 font-semibold">&middot;</span>
 								{{- range $i, $agent := $row.AgentDisplays -}}
 									{{- if $i }}, {{ end -}}
@@ -90,24 +90,24 @@
 
 					{{- if $row.AnnotationPreview -}}
 						{{- if and $content.TitleStmt $content.IncipitStmt -}}
-							<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+							<div data-role="beitraege-content-incipit" class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
 								<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
 								<div class="beitraege-admin-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
 							</div>
 						{{- end -}}
-						<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+						<div data-role="beitraege-content-annotation" class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
 							<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Anm.</span>
 							<div class="beitraege-admin-search-text min-w-0">{{ $row.AnnotationPreview }}</div>
 						</div>
 					{{- else if and $content.TitleStmt $content.IncipitStmt -}}
-						<div class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
+						<div data-role="beitraege-content-incipit" class="mt-1 flex items-start gap-2 text-sm leading-snug text-slate-700">
 							<span class="inline-flex shrink-0 items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-slate-700">Incipit</span>
 							<div class="beitraege-admin-search-text min-w-0 italic">{{ $content.IncipitStmt }}</div>
 						</div>
 					{{- end -}}
 				</div>
 
-				<div class="self-start mt-0.5 flex min-w-0 items-center justify-end">
+				<div data-role="beitraege-col-scans" class="self-start mt-0.5 flex min-w-0 items-center justify-end">
 					{{- $scans := $content.ImagePaths -}}
 					{{- if $scans -}}
 						<span class="inline-flex items-center justify-end gap-1">
@@ -126,7 +126,7 @@
 				</div>
 
 				<div class="flex shrink-0 items-start gap-2">
-					<tool-tip position="top" class="inline">
+					<tool-tip data-role="beitraege-status" position="top" class="inline">
 						<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
 							<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						</span>
