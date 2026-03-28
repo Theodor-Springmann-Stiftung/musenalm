@@ -1,0 +1,10 @@
+{{- $contentID := index . "content_id" -}}
+{{- $selected := index . "selected" -}}
+{{- $options := index . "options" -}}
+
+<content-type-select
+	name="content_{{ $contentID }}_musenalm_type[]"
+	data-placeholder="Beitragstyp(en)"
+	data-options='[{{- range $i, $type := $options -}}{{- if $i }},{{ end -}}{{ printf "%q" $type }}{{- end -}}]'
+	data-selected='[{{- range $i, $type := $selected -}}{{- if $i }},{{ end -}}{{ printf "%q" $type }}{{- end -}}]'>
+</content-type-select>

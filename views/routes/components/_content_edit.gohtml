@@ -19,11 +19,14 @@
 {{- $agentsPrefix := printf "content_%s_agents" $contentID -}}
 {{- $agentsAddToggleID := printf "content-%s-agents-add-toggle" $contentID -}}
 {{- $agentsSectionID := printf "content-%s-agents-section" $contentID -}}
+{{- $hideExtentRow := index . "hide_extent_row" -}}
+{{- $relationsAfterAuthor := index . "relations_after_author" -}}
 
 <div class="bg-white" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
 	<input type="hidden" name="{{ $prefix }}numbering" class="content-numbering" value="{{- $content.Numbering -}}" />
 	<input type="hidden" name="{{ $prefix }}entries" value="{{ $entry.Id }}" />
 	<div class="flex flex-col gap-3">
+		{{- if not $hideExtentRow -}}
 		<div class="inputwrapper">
 			<div class="inputlabelrow">
 				<label for="{{ $baseID }}-extent" class="inputlabel">Seite &amp; Paginierung</label>
@@ -38,6 +41,7 @@
 				</select>
 			</div>
 		</div>
+		{{- end -}}
 
 		<div class="inputwrapper">
 			<div class="inputlabelrow">
@@ -71,8 +75,21 @@
 			</div>
 		</div>
 
+		{{- if $relationsAfterAuthor -}}
+			{{- template "_content_relations_editor" (Dict
+				"agents" $agents
+				"content_agents" $contentAgents
+				"content_agents_render" $contentAgentsRender
+				"content_agents_new" $contentAgentsNew
+				"agent_relations" $agentRelations
+				"agents_prefix" $agentsPrefix
+				"agents_add_toggle_id" $agentsAddToggleID
+				"agents_section_id" $agentsSectionID
+			) -}}
+		{{- end -}}
+
 		<div id="{{ $baseID }}-edit-fields" class="mt-2 flex flex-col gap-2"></div>
-		<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end mt-1">
+		<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end">
 			<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
 				Felder hinzufügen</button>
 
@@ -127,242 +144,22 @@
 			</div>
 
 		</div-manager>
-		{{ template "_annotation_field" (Arr $content.Annotation "Anmerkung" $annotationID) }}
+		{{- $annotationEditorClass := "" -}}
+		{{- if index . "compact_annotation" -}}
+			{{- $annotationEditorClass = "content-editor-annotation-compact" -}}
+		{{- end -}}
+		{{ template "_annotation_field" (Arr $content.Annotation "Anmerkung" $annotationID $annotationEditorClass) }}
 	</div>
-	<div class="mt-3">
-		<relations-editor data-prefix="{{ $agentsPrefix }}" data-link-base="/person/" data-new-label="(Neu)" data-add-toggle-id="{{ $agentsAddToggleID }}">
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<div class="flex items-center gap-1">
-						<label class="inputlabel" for="{{ $agentsSectionID }}">Personen &amp; Körperschaften</label>
-						<tool-tip position="top" class="!inline">
-							<div class="data-tip">{{ helpOr "contents" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
-							<i class="ri-question-line"></i>
-						</tool-tip>
-					</div>
-					<div class="flex items-center gap-3">
-						<a href="/admin/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-							<i class="ri-add-line"></i> Neue Person/Körperschaft anlegen
-						</a>
-						<button type="button" id="{{ $agentsAddToggleID }}" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
-							<i class="ri-link"></i> Person verlinken
-						</button>
-					</div>
-				</div>
-				<div id="{{ $agentsSectionID }}" class="rel-section-container">
-						{{- if and $contentAgentsRender (gt (len $contentAgentsRender) 0) -}}
-							{{- range $i, $r := $contentAgentsRender -}}
-								{{- $a := index $agents $r.Agent -}}
-								<div data-rel-row class="contents-agent-row rel-row">
-									<div class="rel-grid">
-										<div data-rel-strike class="relation-strike rel-name-col">
-											{{- if $a -}}
-												<a data-rel-link href="/person/{{ $a.MusenalmID }}" class="rel-link" target="_blank" rel="noreferrer">
-													<span data-rel-name>{{- $a.Name -}}</span>
-												</a>
-												{{- if $a.BiographicalData -}}
-													<div data-rel-detail-container class="rel-detail"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
-												{{- end -}}
-											{{- else -}}
-												<div class="text-base text-gray-800">Unbekannte Person</div>
-											{{- end -}}
-										</div>
-										<div data-rel-strike class="relation-strike">
-											<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="inputselect font-bold w-full">
-												{{- range $t := $agentRelations -}}
-													<option value="{{- $t -}}" {{ if eq $r.Type $t }}selected{{ end }}>{{- $t -}}</option>
-												{{- end -}}
-											</select>
-										</div>
-										<div data-rel-strike class="relation-strike rel-uncertain-container">
-											<input
-												type="checkbox"
-												name="{{ $agentsPrefix }}_uncertain[{{ $r.Id }}]"
-												id="{{ $agentsPrefix }}_uncertain_{{ $r.Id }}"
-												{{ if $r.Uncertain }}checked{{ end }} />
-											<label for="{{ $agentsPrefix }}_uncertain_{{ $r.Id }}" class="rel-uncertain-label">Unsicher</label>
-										</div>
-										<div class="rel-button-container">
-											<button
-												type="button"
-												class="text-sm"
-												data-delete-toggle="{{ $agentsPrefix }}_delete_{{ $r.Id }}">
-												<i class="ri-delete-bin-line mr-1"></i>
-												<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
-											</button>
-											<input type="checkbox" class="hidden" name="{{ $agentsPrefix }}_delete[{{ $r.Id }}]" id="{{ $agentsPrefix }}_delete_{{ $r.Id }}" />
-										</div>
-									</div>
-									<input type="hidden" name="{{ $agentsPrefix }}_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
-									<input type="hidden" name="{{ $agentsPrefix }}_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
-								</div>
-							{{- end -}}
-						{{- else if $contentAgents -}}
-							{{- range $i, $r := $contentAgents -}}
-								{{- $a := index $agents $r.Agent -}}
-								<div data-rel-row class="contents-agent-row rel-row">
-									<div class="rel-grid">
-										<div data-rel-strike class="relation-strike rel-name-col">
-											{{- if $a -}}
-												<a data-rel-link href="/person/{{ $a.MusenalmID }}" class="rel-link" target="_blank" rel="noreferrer">
-													<span data-rel-name>{{- $a.Name -}}</span>
-												</a>
-												{{- if $a.BiographicalData -}}
-													<div data-rel-detail-container class="rel-detail"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
-												{{- end -}}
-											{{- else -}}
-												<div class="text-base text-gray-800">Unbekannte Person</div>
-											{{- end -}}
-										</div>
-										<div data-rel-strike class="relation-strike">
-											<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="inputselect font-bold w-full">
-												{{- range $t := $agentRelations -}}
-													<option value="{{- $t -}}" {{ if eq $r.Type $t }}selected{{ end }}>{{- $t -}}</option>
-												{{- end -}}
-											</select>
-										</div>
-										<div data-rel-strike class="relation-strike rel-uncertain-container">
-											<input
-												type="checkbox"
-												name="{{ $agentsPrefix }}_uncertain[{{ $r.Id }}]"
-												id="{{ $agentsPrefix }}_uncertain_{{ $r.Id }}"
-												{{ if $r.Uncertain }}checked{{ end }} />
-											<label for="{{ $agentsPrefix }}_uncertain_{{ $r.Id }}" class="rel-uncertain-label">Unsicher</label>
-										</div>
-										<div class="rel-button-container">
-											<button
-												type="button"
-												class="text-sm"
-												data-delete-toggle="{{ $agentsPrefix }}_delete_{{ $r.Id }}">
-												<i class="ri-delete-bin-line mr-1"></i>
-												<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
-											</button>
-											<input type="checkbox" class="hidden" name="{{ $agentsPrefix }}_delete[{{ $r.Id }}]" id="{{ $agentsPrefix }}_delete_{{ $r.Id }}" />
-										</div>
-									</div>
-									<input type="hidden" name="{{ $agentsPrefix }}_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
-									<input type="hidden" name="{{ $agentsPrefix }}_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
-								</div>
-							{{- end -}}
-						{{- else -}}
-							<div class="rel-empty-text">Keine Personen verknüpft.</div>
-						{{- end -}}
-				</div>
-
-				<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2">
-						{{- if and $contentAgentsNew (gt (len $contentAgentsNew) 0) -}}
-							{{- range $i, $r := $contentAgentsNew -}}
-								{{- $a := index $agents $r.Agent -}}
-								<div data-rel-row class="rel-row">
-									<div class="rel-grid">
-										<div data-rel-strike class="relation-strike rel-name-col">
-											<div class="text-base text-gray-800 truncate">
-												<a data-rel-link class="no-underline hover:text-slate-900" href="{{ if $a }}/person/{{ $a.MusenalmID }}{{ end }}" target="_blank" rel="noreferrer">
-													<span data-rel-name>{{- if $a -}}{{ $a.Name }}{{- end -}}</span>
-												</a>
-												<em data-rel-new class="rel-new-badge">(Neu)</em>
-											</div>
-											{{- if $a -}}
-												{{- if $a.BiographicalData -}}
-													<div data-rel-detail-container class="rel-detail"><span data-rel-detail>{{- $a.BiographicalData -}}</span></div>
-												{{- end -}}
-											{{- end -}}
-										</div>
-										<div data-rel-strike class="relation-strike">
-											<select name="{{ $agentsPrefix }}_new_type" class="inputselect font-bold w-full">
-												{{- range $t := $agentRelations -}}
-													<option value="{{- $t -}}" {{ if or (eq $r.Type $t) (and (eq $r.Type "") (eq $t "Autor:in")) }}selected{{ end }}>{{- $t -}}</option>
-												{{- end -}}
-											</select>
-										</div>
-										<div data-rel-strike class="relation-strike rel-uncertain-container">
-											<input data-rel-input="uncertain" type="checkbox" name="{{ $agentsPrefix }}_new_uncertain" value="{{ $r.Agent }}" {{ if $r.Uncertain }}checked{{ end }} />
-											<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
-										</div>
-										<div class="rel-button-container">
-											<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
-												<i class="ri-delete-bin-line mr-1"></i> Entfernen
-											</button>
-										</div>
-									</div>
-									<input type="hidden" data-rel-input="id" name="{{ $agentsPrefix }}_new_id" value="{{ $r.Agent }}" />
-								</div>
-							{{- end -}}
-						{{- end -}}
-				</div>
-
-				<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
-							<div class="rel-row">
-								<div class="rel-grid">
-									<div class="min-w-0">
-										<label for="{{ $agentsAddToggleID }}-select" class="sr-only">Akteur suchen</label>
-										<single-select-remote
-											id="{{ $agentsAddToggleID }}-select"
-											data-role="relation-add-select"
-											name="{{ $agentsPrefix }}_new_id"
-											placeholder="Akteur suchen..."
-											data-endpoint="/admin/api/agents/search"
-											data-result-key="agents"
-											data-minchars="1"
-											data-limit="15">
-										</single-select-remote>
-									</div>
-									<div>
-										<label for="{{ $agentsPrefix }}_new_type" class="sr-only">Beziehung</label>
-										<select data-role="relation-type-select" name="{{ $agentsPrefix }}_new_type" id="{{ $agentsPrefix }}_new_type" autocomplete="off" class="inputselect font-bold w-full">
-											{{- range $t := $agentRelations -}}
-												<option value="{{- $t -}}" {{ if eq $t "Autor:in" }}selected{{ end }}>{{- $t -}}</option>
-											{{- end -}}
-										</select>
-									</div>
-									<div class="rel-uncertain-container">
-										<input data-role="relation-uncertain" type="checkbox" name="{{ $agentsPrefix }}_new_uncertain" id="{{ $agentsPrefix }}_new_uncertain" />
-										<label for="{{ $agentsPrefix }}_new_uncertain" class="rel-uncertain-label">Unsicher</label>
-									</div>
-									<div class="rel-button-container">
-										<div class="flex items-center gap-3 text-lg">
-											<button type="button" data-role="relation-add-apply" class="text-gray-700 hover:text-gray-900" aria-label="Person hinzufügen">
-												<i class="ri-check-line"></i>
-											</button>
-											<button type="button" data-role="relation-add-close" class="text-gray-700 hover:text-gray-900" aria-label="Ausblenden">
-												<i class="ri-close-line"></i>
-											</button>
-										</div>
-									</div>
-								</div>
-								<div data-role="relation-add-error" class="text-xs text-red-700 mt-2 hidden" data-error-empty="Bitte Akteur auswählen.">Bitte Akteur auswählen.</div>
-							</div>
-				</div>
-
-				<template data-role="relation-new-template">
-							<div data-rel-row class="rel-row">
-								<div class="rel-grid">
-									<div data-rel-strike class="relation-strike rel-name-col">
-										<div class="text-base text-gray-800 truncate">
-											<a data-rel-link class="no-underline hover:text-slate-900">
-												<span data-rel-name></span>
-											</a>
-											<em data-rel-new class="rel-new-badge"></em>
-										</div>
-										<div data-rel-detail-container class="rel-detail"><span data-rel-detail></span></div>
-									</div>
-									<div data-rel-strike class="relation-strike">
-										<select data-rel-input="type" class="inputselect font-bold w-full"></select>
-									</div>
-									<div data-rel-strike class="relation-strike rel-uncertain-container">
-										<input data-rel-input="uncertain" type="checkbox" />
-										<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
-									</div>
-									<div class="rel-button-container">
-										<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
-											<i class="ri-delete-bin-line mr-1"></i> Entfernen
-										</button>
-									</div>
-								</div>
-								<input type="hidden" data-rel-input="id" />
-							</div>
-				</template>
-			</div>
-		</relations-editor>
-	</div>
+	{{- if not $relationsAfterAuthor -}}
+		{{- template "_content_relations_editor" (Dict
+			"agents" $agents
+			"content_agents" $contentAgents
+			"content_agents_render" $contentAgentsRender
+			"content_agents_new" $contentAgentsNew
+			"agent_relations" $agentRelations
+			"agents_prefix" $agentsPrefix
+			"agents_add_toggle_id" $agentsAddToggleID
+			"agents_section_id" $agentsSectionID
+		) -}}
+	{{- end -}}
 </div>

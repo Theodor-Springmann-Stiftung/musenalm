@@ -302,7 +302,7 @@ export class SingleSelectRemote extends HTMLElement {
 			option.setAttribute("data-index", String(this._options.indexOf(item)));
 			option.className = [
 				SSR_OPTION_CLASS,
-				"w-full text-left px-3 py-2 hover:bg-slate-100 transition-colors",
+				"w-full text-left px-3 py-1.5 hover:bg-slate-100 transition-colors",
 			].join(" ");
 			const optionIndex = this._options.indexOf(item);
 			const isHighlighted = optionIndex === this._highlightedIndex;
@@ -310,17 +310,22 @@ export class SingleSelectRemote extends HTMLElement {
 			option.classList.toggle("text-gray-900", isHighlighted);
 			option.setAttribute("aria-selected", isHighlighted ? "true" : "false");
 
-			const nameEl = document.createElement("div");
-			nameEl.className = [SSR_OPTION_NAME_CLASS, "text-sm font-semibold text-gray-800"].join(" ");
+			const lineEl = document.createElement("div");
+			lineEl.className = "flex min-w-0 items-baseline gap-1.5";
+
+			const nameEl = document.createElement("span");
+			nameEl.className = [SSR_OPTION_NAME_CLASS, "min-w-0 truncate text-sm font-semibold text-gray-800"].join(" ");
 			nameEl.textContent = item.name;
-			option.appendChild(nameEl);
+			lineEl.appendChild(nameEl);
 
 			if (item.detail) {
-				const detailEl = document.createElement("div");
-				detailEl.className = [SSR_OPTION_DETAIL_CLASS, "text-xs text-gray-600"].join(" ");
+				const detailEl = document.createElement("span");
+				detailEl.className = [SSR_OPTION_DETAIL_CLASS, "shrink-0 whitespace-nowrap text-xs text-gray-600"].join(" ");
 				detailEl.textContent = item.detail;
-				option.appendChild(detailEl);
+				lineEl.appendChild(detailEl);
 			}
+
+			option.appendChild(lineEl);
 
 			if (item.bio) {
 				const bioEl = document.createElement("div");

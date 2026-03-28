@@ -149,6 +149,8 @@ const (
 	URL_ALMANACH_CONTENTS_DELETE_SCAN       = "contents/scan/delete"
 	TEMPLATE_ALMANACH_CONTENTS_EDIT         = "/admin/contents/edit/"
 	TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT    = "/admin/contents/edit_item/"
+	TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL   = "/admin/contents/edit_panel/"
+	TEMPLATE_ALMANACH_CONTENTS_WORKSPACE    = "/admin/contents/edit_workspace/"
 	TEMPLATE_ALMANACH_CONTENTS_IMAGES_PANEL = "/admin/contents/images_panel/"
 	URL_BEITRAG_VIEW_FORMAT                 = "/beitrag/%d"
 	URL_ALMANACH_CONTENT_ITEM_EDIT_FORMAT   = "/admin/almanach/%s/contents/%d/edit/"

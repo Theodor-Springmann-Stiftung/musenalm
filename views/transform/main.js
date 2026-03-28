@@ -31,6 +31,7 @@ import { DuplicateWarningChecker } from "./duplicate-warning.js";
 import { ContentImages } from "./content-images.js";
 import { LookupField } from "./lookup-field.js";
 import { ExportManager } from "./export-manager.js";
+import { ContentTypeSelect } from "./content-type-select.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const FAB_MENU_ELEMENT = "fab-menu";
@@ -55,6 +56,7 @@ const DUPLICATE_WARNING_ELEMENT = "duplicate-warning-checker";
 const CONTENT_IMAGES_ELEMENT = "content-images";
 const LOOKUP_FIELD_ELEMENT = "lookup-field";
 const EXPORT_MANAGER_ELEMENT = "export-manager";
+const CONTENT_TYPE_SELECT_ELEMENT = "content-type-select";
 
 window.lookupSeriesValue = ({ item }) => item?.id || "";
 window.lookupSeriesLink = ({ item }) => (item?.musenalm_id ? `/reihe/${item.musenalm_id}` : "");
@@ -84,6 +86,7 @@ customElements.define(DUPLICATE_WARNING_ELEMENT, DuplicateWarningChecker);
 customElements.define(CONTENT_IMAGES_ELEMENT, ContentImages);
 customElements.define(LOOKUP_FIELD_ELEMENT, LookupField);
 customElements.define(EXPORT_MANAGER_ELEMENT, ExportManager);
+customElements.define(CONTENT_TYPE_SELECT_ELEMENT, ContentTypeSelect);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;

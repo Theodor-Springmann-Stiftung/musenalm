@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"html"
 	"maps"
 	"net/http"
 	"net/url"
@@ -37,6 +38,98 @@ type AlmanachContentsEditPage struct {
 	pagemodels.StaticPage
 }
 
+func (p *AlmanachContentsEditPage) buildContentsEditData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, id string) (map[string]any, error) {
+	req := templating.NewRequest(e)
+	data := make(map[string]any)
+	displayApp, _ := ma.(*musapp.App)
+	result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
+	if err != nil {
+		return nil, err
+	}
+
+	data["result"] = result
+	data["csrf_token"] = req.Session().Token
+	data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
+	data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
+	data["pagination_values"] = paginationValuesSorted()
+	data["agent_relations"] = dbmodels.AGENT_RELATIONS
+	data["cancel_url"] = cancelURLFromHeader(e)
+	data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
+	data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
+	return data, nil
+}
+
+func (p *AlmanachContentsEditPage) buildContentPanelData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, id string, content *dbmodels.Content) (map[string]any, error) {
+	data, err := p.buildContentsEditData(app, ma, e, id)
+	if err != nil {
+		return nil, err
+	}
+	result, _ := data["result"].(*AlmanachEditResult)
+	if result == nil {
+		return nil, fmt.Errorf("bearbeitungsdaten konnten nicht geladen werden")
+	}
+	if content == nil {
+		return nil, fmt.Errorf("beitrag nicht gefunden")
+	}
+	if content.Entry() != result.Entry.Id {
+		return nil, fmt.Errorf("beitrag gehört zu einem anderen band")
+	}
+
+	contents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
+	if err == nil && len(contents) > 1 {
+		sort.Slice(contents, func(i, j int) bool {
+			if contents[i].Numbering() == contents[j].Numbering() {
+				return contents[i].Id < contents[j].Id
+			}
+			return contents[i].Numbering() < contents[j].Numbering()
+		})
+	}
+	var prevContent *dbmodels.Content
+	var nextContent *dbmodels.Content
+	contentIndex := 0
+	contentTotal := 0
+	if len(contents) > 0 {
+		contentTotal = len(contents)
+		for i, c := range contents {
+			if c.Id != content.Id {
+				continue
+			}
+			contentIndex = i + 1
+			if i > 0 {
+				prevContent = contents[i-1]
+			}
+			if i < len(contents)-1 {
+				nextContent = contents[i+1]
+			}
+			break
+		}
+	}
+
+	agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
+	if err != nil {
+		agentsMap = map[string]*dbmodels.Agent{}
+		contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
+	}
+
+	data["content"] = content
+	data["content_id"] = content.Id
+	data["agents"] = agentsMap
+	data["content_agents"] = contentAgentsMap[content.Id]
+	data["prev_content"] = prevContent
+	data["next_content"] = nextContent
+	data["content_index"] = contentIndex
+	data["content_total"] = contentTotal
+	return data, nil
+}
+
+func (p *AlmanachContentsEditPage) renderTemplateToString(engine *templating.Engine, template string, data map[string]any) (string, error) {
+	var builder strings.Builder
+	if err := engine.Render(&builder, template, data, pagemodels.LAYOUT_FRAGMENT); err != nil {
+		return "", err
+	}
+	return builder.String(), nil
+}
+
 func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	store := ia.GetCanonicalStore()
@@ -61,26 +154,14 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
-		req := templating.NewRequest(e)
-		data := make(map[string]any)
-		displayApp, _ := ma.(*musapp.App)
-		result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
+		data, err := p.buildContentsEditData(app, ma, e, id)
 		if err != nil {
-			engine.Response404(e, err, nil)
+			return engine.Response404(e, err, nil)
 		}
-		data["result"] = result
-		data["csrf_token"] = req.Session().Token
-		data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
-		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
-		data["pagination_values"] = paginationValuesSorted()
-		data["agent_relations"] = dbmodels.AGENT_RELATIONS
-		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
 		}
-		data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
-		data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
 
 		return engine.Response200(e, p.Template, data, p.Layout)
 	}
@@ -94,76 +175,22 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 			return e.String(http.StatusBadRequest, "")
 		}
 
-		req := templating.NewRequest(e)
-		data := make(map[string]any)
-		displayApp, _ := ma.(*musapp.App)
-		result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
-		if err != nil {
-			engine.Response404(e, err, nil)
-		}
-
 		content, err := dbmodels.Contents_MusenalmID(app, contentMusenalmID)
 		if err != nil || content == nil {
 			return e.String(http.StatusNotFound, "")
 		}
-		if content.Entry() != result.Entry.Id {
-			return e.String(http.StatusNotFound, "")
-		}
-
-		contents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
-		if err == nil && len(contents) > 1 {
-			sort.Slice(contents, func(i, j int) bool {
-				if contents[i].Numbering() == contents[j].Numbering() {
-					return contents[i].Id < contents[j].Id
-				}
-				return contents[i].Numbering() < contents[j].Numbering()
-			})
-		}
-		var prevContent *dbmodels.Content
-		var nextContent *dbmodels.Content
-		contentIndex := 0
-		contentTotal := 0
-		if len(contents) > 0 {
-			contentTotal = len(contents)
-			for i, c := range contents {
-				if c.Id != content.Id {
-					continue
-				}
-				contentIndex = i + 1
-				if i > 0 {
-					prevContent = contents[i-1]
-				}
-				if i < len(contents)-1 {
-					nextContent = contents[i+1]
-				}
-				break
-			}
-		}
-
-		agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
+		data, err := p.buildContentPanelData(app, ma, e, id, content)
 		if err != nil {
-			agentsMap = map[string]*dbmodels.Agent{}
-			contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
+			return engine.Response404(e, err, nil)
 		}
-
-		data["result"] = result
-		data["csrf_token"] = req.Session().Token
-		data["content"] = content
-		data["content_id"] = content.Id
-		data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
-		data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
-		data["pagination_values"] = paginationValuesSorted()
-		data["agent_relations"] = dbmodels.AGENT_RELATIONS
-		data["agents"] = agentsMap
-		data["content_agents"] = contentAgentsMap[content.Id]
-		data["cancel_url"] = cancelURLFromHeader(e)
-		data["prev_content"] = prevContent
-		data["next_content"] = nextContent
-		data["content_index"] = contentIndex
-		data["content_total"] = contentTotal
+		data["open"] = true
 
 		if msg := popFlashSuccess(e); msg != "" {
 			data["success"] = msg
+		}
+
+		if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+			return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
 		}
 
 		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
@@ -205,117 +232,67 @@ func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.Ap
 		data["is_new"] = true
 		data["cancel_url"] = cancelURLFromHeader(e)
 
+		if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+			data["open"] = true
+			return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
+		}
+
 		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
 	}
 }
 
 func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app core.App, ma pagemodels.IApp, e *core.RequestEvent, message string) error {
 	id := e.Request.PathValue("id")
-	req := templating.NewRequest(e)
-	data := make(map[string]any)
-	displayApp, _ := ma.(*musapp.App)
-	result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
+	data, err := p.buildContentsEditData(app, ma, e, id)
 	if err != nil {
 		return engine.Response404(e, err, nil)
 	}
-	data["result"] = result
-	data["csrf_token"] = req.Session().Token
-	data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
-	data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
-	data["pagination_values"] = paginationValuesSorted()
-	data["agent_relations"] = dbmodels.AGENT_RELATIONS
 	data["error"] = message
-	data["cancel_url"] = cancelURLFromHeader(e)
-	data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
-	data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
 	return engine.Response200(e, p.Template, data, p.Layout)
 }
 
 func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, app core.App, ma pagemodels.IApp, e *core.RequestEvent, contentID string, message string) error {
 	id := e.Request.PathValue("id")
-	req := templating.NewRequest(e)
-	data := make(map[string]any)
-	displayApp, _ := ma.(*musapp.App)
-	result, err := NewAlmanachEditResult(app, displayApp, id, BeitraegeFilterParameters{})
-	if err != nil {
-		return engine.Response404(e, err, nil)
-	}
-
 	contents, err := dbmodels.Contents_IDs(app, []any{contentID})
 	if err != nil || len(contents) == 0 {
 		return p.renderError(engine, app, ma, e, message)
 	}
 	content := contents[0]
-	if content.Entry() != result.Entry.Id {
+	data, err := p.buildContentPanelData(app, ma, e, id, content)
+	if err != nil {
 		return p.renderError(engine, app, ma, e, message)
 	}
-
-	entryContents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
-	if err == nil && len(entryContents) > 1 {
-		sort.Slice(entryContents, func(i, j int) bool {
-			if entryContents[i].Numbering() == entryContents[j].Numbering() {
-				return entryContents[i].Id < entryContents[j].Id
-			}
-			return entryContents[i].Numbering() < entryContents[j].Numbering()
-		})
-	}
-	var prevContent *dbmodels.Content
-	var nextContent *dbmodels.Content
-	contentIndex := 0
-	contentTotal := 0
-	if len(entryContents) > 0 {
-		contentTotal = len(entryContents)
-		for i, c := range entryContents {
-			if c.Id != content.Id {
-				continue
-			}
-			contentIndex = i + 1
-			if i > 0 {
-				prevContent = entryContents[i-1]
-			}
-			if i < len(entryContents)-1 {
-				nextContent = entryContents[i+1]
-			}
-			break
-		}
-	}
-
-	agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
-	if err != nil {
-		agentsMap = map[string]*dbmodels.Agent{}
-		contentAgentsMap = map[string][]*dbmodels.RContentsAgents{}
-	}
-
-	data["result"] = result
-	data["csrf_token"] = req.Session().Token
-	data["content"] = content
-	data["content_id"] = content.Id
-	data["content_types"] = dbmodels.CONTENT_TYPE_VALUES
-	data["musenalm_types"] = dbmodels.MUSENALM_TYPE_VALUES
-	data["pagination_values"] = paginationValuesSorted()
-	data["agent_relations"] = dbmodels.AGENT_RELATIONS
-	data["agents"] = agentsMap
-	data["content_agents"] = contentAgentsMap[content.Id]
-	data["prev_content"] = prevContent
-	data["next_content"] = nextContent
-	data["content_index"] = contentIndex
-	data["content_total"] = contentTotal
+	data["open"] = true
 	data["error"] = message
-	data["cancel_url"] = cancelURLFromHeader(e)
+
+	if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
+	}
 
 	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+}
+
+func renderContentsPanelHTMXError(e *core.RequestEvent, message string) error {
+	return e.HTML(http.StatusUnprocessableEntity, `<div data-role="contents-editor-error-message">`+html.EscapeString(message)+`</div>`)
 }
 
 func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		req := templating.NewRequest(e)
+		isHTMX := strings.EqualFold(e.Request.Header.Get("HX-Request"), "true")
+		renderPanelError := func(message string) error {
+			if isHTMX {
+				return renderContentsPanelHTMXError(e, message)
+			}
+			return p.renderError(engine, app, ia, e, message)
+		}
 
 		if e.Request.MultipartForm == nil {
 			if err := e.Request.ParseMultipartForm(router.DefaultMaxMemory); err != nil {
 				if e.Request.MultipartForm == nil {
 					if err := e.Request.ParseForm(); err != nil {
-						return p.renderError(engine, app, ia, e, err.Error())
+						return renderPanelError(err.Error())
 					}
 				}
 			}
@@ -323,6 +300,9 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		contentID := strings.TrimSpace(e.Request.FormValue("content_id"))
 		renderError := func(message string) error {
+			if isHTMX {
+				return renderContentsPanelHTMXError(e, message)
+			}
 			if contentID != "" {
 				return p.renderItemError(engine, app, ia, e, contentID, message)
 			}
@@ -340,7 +320,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 
 		contents, err := dbmodels.Contents_Entry(app, entry.Id)
 		if err != nil {
-			return p.renderError(engine, app, ia, e, "Beiträge konnten nicht geladen werden.")
+			return renderPanelError("Beiträge konnten nicht geladen werden.")
 		}
 
 		contentInputs := parseContentsForm(e.Request.PostForm)
@@ -476,6 +456,28 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		}
 		saveAction := strings.TrimSpace(e.Request.FormValue("save_action"))
 		savedMessage := "Änderungen gespeichert."
+		if isHTMX {
+			workspaceData, err := p.buildContentsEditData(app, ia, e, id)
+			if err != nil {
+				return engine.Response404(e, err, nil)
+			}
+			workspaceData["oob"] = true
+			workspaceHTML, err := p.renderTemplateToString(engine, TEMPLATE_ALMANACH_CONTENTS_WORKSPACE, workspaceData)
+			if err != nil {
+				app.Logger().Error("Failed to render contents workspace", "entry_id", entry.Id, "error", err)
+				return e.String(http.StatusInternalServerError, "")
+			}
+			panelHTML, err := p.renderTemplateToString(engine, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, map[string]any{
+				"open": false,
+				"oob":  false,
+			})
+			if err != nil {
+				app.Logger().Error("Failed to render closed contents panel", "entry_id", entry.Id, "error", err)
+				return e.String(http.StatusInternalServerError, "")
+			}
+			return e.HTML(http.StatusOK, panelHTML+workspaceHTML+`<div id="user-message" hx-swap-oob="outerHTML"></div>`)
+		}
+
 		if contentID != "" {
 			effectiveContentID := contentID
 			if mappedID, ok := tempToCreated[effectiveContentID]; ok {
@@ -691,8 +693,18 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 		}
 
 		if isHTMX {
-			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag geloescht.</div></div>`
-			return e.HTML(http.StatusOK, success)
+			workspaceData, err := p.buildContentsEditData(app, ia, e, id)
+			if err != nil {
+				return engine.Response404(e, err, nil)
+			}
+			workspaceData["oob"] = true
+			workspaceHTML, err := p.renderTemplateToString(engine, TEMPLATE_ALMANACH_CONTENTS_WORKSPACE, workspaceData)
+			if err != nil {
+				app.Logger().Error("Failed to render contents workspace after delete", "entry_id", entry.Id, "content_id", contentID, "error", err)
+				return e.String(http.StatusInternalServerError, "")
+			}
+			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag gelöscht.</div></div>`
+			return e.HTML(http.StatusOK, workspaceHTML+success)
 		}
 
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)

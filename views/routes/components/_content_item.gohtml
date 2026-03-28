@@ -143,8 +143,8 @@
 	</td>
 	<td class="px-2 py-2 align-top whitespace-nowrap w-px">
 		<tool-tip position="top" class="inline">
-			<span class="status-badge text-xs shadow-sm" data-status="{{ $content.EditState }}">
-				<i class="status-icon text-xs {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+			<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
+				<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 			</span>
 			<div class="data-tip">
 				{{- if eq $content.EditState "Unknown" -}}
@@ -163,7 +163,7 @@
 			</div>
 		</tool-tip>
 	</td>
-	<td class="px-2 py-2 align-top whitespace-nowrap w-px">
+	<td class="px-2 py-2 align-top whitespace-nowrap w-px" data-role="content-cell-actions">
 		<div class="flex items-center justify-end gap-1.5">
 			<tool-tip position="top" class="inline">
 				<a
@@ -179,6 +179,11 @@
 			<tool-tip position="top" class="inline">
 				<a
 					href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+					hx-get="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/"
+					hx-target="#contents-editor-panel-shell"
+					hx-swap="outerHTML"
+					hx-push-url="false"
+					hx-indicator="#admin-main-loading"
 					class="admin-list-chip"
 					aria-label="Beitrag bearbeiten">
 					<i class="ri-edit-line"></i>

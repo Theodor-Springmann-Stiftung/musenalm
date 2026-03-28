@@ -1,0 +1,171 @@
+{{- $open := index . "open" -}}
+{{- $oob := index . "oob" -}}
+{{- if not $open -}}
+<div
+	id="contents-editor-panel-shell"
+	data-role="contents-editor-panel-shell"
+	data-open="false"
+	{{- if $oob }} hx-swap-oob="outerHTML"{{- end -}}
+	class="hidden">
+</div>
+{{- else -}}
+{{- $model := . -}}
+{{- $contentTitle := printf "Beitrag %s" $model.content.MusenalmID -}}
+{{- if $model.is_new -}}
+	{{- $contentTitle = "Neuer Eintrag" -}}
+{{- else if $model.content.PreferredTitle -}}
+	{{- $contentTitle = $model.content.PreferredTitle -}}
+{{- else if $model.content.TitleStmt -}}
+	{{- $contentTitle = $model.content.TitleStmt -}}
+{{- end -}}
+{{- $statusLabel := "Unbekannt" -}}
+{{- $statusIcon := "ri-forbid-2-line" -}}
+{{- if eq $model.content.EditState "ToDo" -}}
+	{{- $statusLabel = "Zu erledigen" -}}
+	{{- $statusIcon = "ri-list-check" -}}
+{{- else if eq $model.content.EditState "Review" -}}
+	{{- $statusLabel = "Überprüfen" -}}
+	{{- $statusIcon = "ri-search-line" -}}
+{{- else if eq $model.content.EditState "Edited" -}}
+	{{- $statusLabel = "Erfasst" -}}
+	{{- $statusIcon = "ri-checkbox-circle-line" -}}
+{{- end -}}
+<div
+	id="contents-editor-panel-shell"
+	data-role="contents-editor-panel-shell"
+	data-open="true"
+	{{- if $oob }} hx-swap-oob="outerHTML"{{- end -}}
+	class="flex min-h-0 w-full flex-col overflow-hidden rounded-xs border border-stone-200 bg-white shadow-sm lg:h-full lg:max-h-full lg:w-[42rem] lg:shrink-0">
+	<div class="flex shrink-0 items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
+		<div class="min-w-0 flex items-center gap-3 text-base font-normal text-slate-900">
+			{{- if not $model.is_new -}}
+			<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700 tabular-nums shrink-0">
+				{{ $model.content.MusenalmID }}
+			</span>
+			{{- end -}}
+			<span class="truncate">{{ $contentTitle }}</span>
+		</div>
+		<div class="relative flex items-center gap-2">
+			<div class="relative" data-role="contents-editor-state-picker">
+				<button
+					type="button"
+					class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip shrink-0 contents-editor-state-button"
+					data-role="contents-editor-state-toggle"
+					data-status="{{ $model.content.EditState }}"
+					aria-label="Status: {{ $statusLabel }}"
+					title="Status: {{ $statusLabel }}">
+					<i class="{{ $statusIcon }}"></i>
+				</button>
+				<div class="contents-editor-state-menu hidden" data-role="contents-editor-state-menu">
+					<button type="button" class="contents-editor-state-option" data-role="contents-editor-state-option" data-status="Unknown" data-label="Unbekannt" data-icon="ri-forbid-2-line">
+						<i class="ri-forbid-2-line"></i><span>Unbekannt</span>
+					</button>
+					<button type="button" class="contents-editor-state-option" data-role="contents-editor-state-option" data-status="ToDo" data-label="Zu erledigen" data-icon="ri-list-check">
+						<i class="ri-list-check"></i><span>Zu erledigen</span>
+					</button>
+					<button type="button" class="contents-editor-state-option" data-role="contents-editor-state-option" data-status="Review" data-label="Überprüfen" data-icon="ri-search-line">
+						<i class="ri-search-line"></i><span>Überprüfen</span>
+					</button>
+					<button type="button" class="contents-editor-state-option" data-role="contents-editor-state-option" data-status="Edited" data-label="Erfasst" data-icon="ri-checkbox-circle-line">
+						<i class="ri-checkbox-circle-line"></i><span>Erfasst</span>
+					</button>
+				</div>
+			</div>
+			<button
+				type="button"
+				class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip shrink-0"
+				data-role="contents-editor-close"
+				aria-label="Bearbeitung schließen">
+				<i class="ri-close-line"></i>
+			</button>
+		</div>
+	</div>
+
+	<form
+		autocomplete="off"
+		class="dbform flex min-h-0 flex-1 flex-col overflow-hidden"
+		method="POST"
+		enctype="multipart/form-data"
+		hx-boost="false"
+		hx-encoding="multipart/form-data"
+		hx-post="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit"
+		hx-target="#contents-editor-panel-shell"
+		hx-swap="outerHTML"
+		action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+		<input type="hidden" name="content_id" value="{{ $model.content_id }}" />
+
+		<div
+			data-role="contents-editor-scroll"
+			class="min-h-0 flex-1 basis-0 overflow-y-auto overscroll-contain">
+			<div class="px-4 py-4">
+				<div
+					data-role="contents-editor-error"
+					class="mb-3 rounded-xs border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800 {{ if not $model.error }}hidden{{ end }}">
+					{{- if $model.error -}}{{ $model.error }}{{- end -}}
+				</div>
+
+				<div class="flex flex-col gap-4">
+					{{- template "_editor_meta_row" $model -}}
+
+					{{- template "_content_edit" (Dict
+						"content" $model.content
+						"content_id" $model.content_id
+						"entry" $model.result.Entry
+						"content_types" $model.content_types
+						"musenalm_types" $model.musenalm_types
+						"pagination_values" $model.pagination_values
+						"agents" $model.agents
+						"content_agents" $model.content_agents
+						"agent_relations" $model.agent_relations
+						"hide_extent_row" true
+						"relations_after_author" true
+						"compact_annotation" true
+					) -}}
+
+					<input type="hidden" name="content_{{ $model.content_id }}_edit_comment" value="{{ $model.content.Comment }}" />
+					{{- range $_, $lang := $model.content.Language -}}
+						<input type="hidden" name="content_{{ $model.content_id }}_language[]" value="{{ $lang }}" />
+					{{- end -}}
+
+					{{- template "_content_images_panel" (Dict
+						"content" $model.content
+						"entry" $model.result.Entry
+						"csrf_token" $model.csrf_token
+						"is_new" false
+					) -}}
+				</div>
+			</div>
+		</div>
+
+		<div class="shrink-0 border-t border-stone-200 px-4 py-3">
+			<div class="flex items-center justify-between gap-3">
+				<div class="relative min-w-0">
+					<select
+						name="content_{{ $model.content_id }}_edit_state"
+						autocomplete="off"
+						class="contents-editor-footer-state status-select"
+						data-role="contents-editor-footer-state"
+						data-status="{{ $model.content.EditState }}">
+						<option value="Unknown" {{ if eq $model.content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>
+						<option value="ToDo" {{ if eq $model.content.EditState "ToDo" }}selected{{ end }}>Zu erledigen</option>
+						<option value="Review" {{ if eq $model.content.EditState "Review" }}selected{{ end }}>Überprüfen</option>
+						<option value="Edited" {{ if eq $model.content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
+					</select>
+					<i class="status-icon absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none {{- if eq $model.content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $model.content.EditState "Review" }} ri-search-line{{- else if eq $model.content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-role="contents-editor-footer-state-icon"></i>
+				</div>
+				<div class="flex items-center justify-end gap-3">
+				<button type="button" class="simple-entity-button simple-entity-button-secondary !w-auto !px-4" data-role="contents-editor-close">
+					<i class="ri-close-line"></i>
+					<span>Abbrechen</span>
+				</button>
+				<button type="submit" name="save_action" value="stay" class="simple-entity-button simple-entity-button-primary !w-auto !px-4">
+					<i class="ri-save-line"></i>
+					<span>Speichern</span>
+				</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+{{- end -}}

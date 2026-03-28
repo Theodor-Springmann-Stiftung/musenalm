@@ -8026,18 +8026,20 @@ class zd extends HTMLElement {
       const e = document.createElement("button");
       e.type = "button", e.setAttribute("data-index", String(this._options.indexOf(t))), e.className = [
         $d,
-        "w-full text-left px-3 py-2 hover:bg-slate-100 transition-colors"
+        "w-full text-left px-3 py-1.5 hover:bg-slate-100 transition-colors"
       ].join(" ");
       const n = this._options.indexOf(t) === this._highlightedIndex;
       e.classList.toggle("bg-slate-100", n), e.classList.toggle("text-gray-900", n), e.setAttribute("aria-selected", n ? "true" : "false");
       const r = document.createElement("div");
-      if (r.className = [Ud, "text-sm font-semibold text-gray-800"].join(" "), r.textContent = t.name, e.appendChild(r), t.detail) {
-        const a = document.createElement("div");
-        a.className = [Vd, "text-xs text-gray-600"].join(" "), a.textContent = t.detail, e.appendChild(a);
+      r.className = "flex min-w-0 items-baseline gap-1.5";
+      const a = document.createElement("span");
+      if (a.className = [Ud, "min-w-0 truncate text-sm font-semibold text-gray-800"].join(" "), a.textContent = t.name, r.appendChild(a), t.detail) {
+        const o = document.createElement("span");
+        o.className = [Vd, "shrink-0 whitespace-nowrap text-xs text-gray-600"].join(" "), o.textContent = t.detail, r.appendChild(o);
       }
-      if (t.bio) {
-        const a = document.createElement("div");
-        a.className = [jd, "text-xs text-gray-500"].join(" "), a.textContent = t.bio, e.appendChild(a);
+      if (e.appendChild(r), t.bio) {
+        const o = document.createElement("div");
+        o.className = [jd, "text-xs text-gray-500"].join(" "), o.textContent = t.bio, e.appendChild(o);
       }
       e.addEventListener("click", () => {
         this._selectOption(t);
@@ -8590,7 +8592,7 @@ class sc extends HTMLElement {
     if (!this._emptyText)
       return;
     const t = this._prefix === "entries_series" ? "series" : "agent", e = this.querySelectorAll(`input[name^="${this._prefix}_${t}["]`).length > 0, i = this._addRow && this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).length > 0;
-    this._addPanel && !this._addPanel.classList.contains("hidden") || e || i ? this._emptyText.classList.add("hidden") : this._emptyText.classList.remove("hidden");
+    this._addRow && this._addRow.classList.toggle("hidden", !i), this._addPanel && !this._addPanel.classList.contains("hidden") || e || i ? this._emptyText.classList.add("hidden") : this._emptyText.classList.remove("hidden");
   }
   _setupAddPanel() {
     if (this._addToggle = this.querySelector(Gd), this._addToggleId) {
@@ -10061,42 +10063,155 @@ class bc extends HTMLElement {
     return e.length >= 2 && e.startsWith('"') && e.endsWith('"') && (e = e.slice(1, -1)), e;
   }
 }
+class _c extends HTMLElement {
+  constructor() {
+    super(), this.handleDocumentClick = this.handleDocumentClick.bind(this), this.handleDocumentKeydown = this.handleDocumentKeydown.bind(this), this.handleTriggerClick = this.handleTriggerClick.bind(this), this.handleOptionChange = this.handleOptionChange.bind(this), this._bound = !1;
+  }
+  static get observedAttributes() {
+    return ["data-options", "data-selected", "data-placeholder", "name"];
+  }
+  connectedCallback() {
+    this.render(), this.bindEvents(), this.syncSummary(), this.close();
+  }
+  disconnectedCallback() {
+    this.unbindEvents(), document.removeEventListener("click", this.handleDocumentClick, !0), document.removeEventListener("keydown", this.handleDocumentKeydown);
+  }
+  attributeChangedCallback() {
+    this.isConnected && (this.render(), this.bindEvents(), this.syncSummary(), this.close());
+  }
+  parseJsonAttribute(t) {
+    const e = this.getAttribute(t) || "[]";
+    try {
+      const i = JSON.parse(e);
+      return Array.isArray(i) ? i : [];
+    } catch {
+      return [];
+    }
+  }
+  get options() {
+    return this.parseJsonAttribute("data-options").map((t) => String(t));
+  }
+  get selected() {
+    return new Set(this.parseJsonAttribute("data-selected").map((t) => String(t)));
+  }
+  get placeholder() {
+    return this.getAttribute("data-placeholder") || "Auswählen";
+  }
+  render() {
+    const t = this.options, e = this.selected, i = this.getAttribute("name") || "content_type[]";
+    this.innerHTML = `
+			<div class="relative" data-role="content-type-select-root">
+				<button
+					type="button"
+					class="content-editor-meta-trigger"
+					data-role="content-type-select-trigger"
+					aria-haspopup="true"
+					aria-expanded="false">
+					<span class="min-w-0 truncate" data-role="content-type-select-summary">${this.placeholder}</span>
+					<i class="ri-arrow-down-s-line shrink-0 text-base transition-transform" data-role="content-type-select-icon"></i>
+				</button>
+				<div class="content-editor-meta-dropdown hidden" data-role="content-type-select-menu">
+					<div class="max-h-64 overflow-y-auto py-1">
+						${t.map((n) => `
+							<label class="content-editor-meta-option">
+								<input
+									type="checkbox"
+									name="${i}"
+									value="${this.escapeAttribute(n)}"
+									${e.has(n) ? "checked" : ""} />
+								<span class="truncate">${this.escapeHtml(n)}</span>
+							</label>
+						`).join("")}
+					</div>
+				</div>
+			</div>
+		`;
+  }
+  bindEvents() {
+    this.unbindEvents(), this.trigger = this.querySelector("[data-role='content-type-select-trigger']"), this.menu = this.querySelector("[data-role='content-type-select-menu']"), this.summary = this.querySelector("[data-role='content-type-select-summary']"), this.icon = this.querySelector("[data-role='content-type-select-icon']"), this.checkboxes = Array.from(this.querySelectorAll("input[type='checkbox']")), this.trigger?.addEventListener("click", this.handleTriggerClick), this.checkboxes.forEach((t) => {
+      t.addEventListener("change", this.handleOptionChange);
+    }), document.addEventListener("click", this.handleDocumentClick, !0), document.addEventListener("keydown", this.handleDocumentKeydown), this._bound = !0;
+  }
+  unbindEvents() {
+    this._bound && (this.trigger?.removeEventListener("click", this.handleTriggerClick), this.checkboxes?.forEach((t) => {
+      t.removeEventListener("change", this.handleOptionChange);
+    }), document.removeEventListener("click", this.handleDocumentClick, !0), document.removeEventListener("keydown", this.handleDocumentKeydown), this._bound = !1);
+  }
+  handleTriggerClick(t) {
+    if (t.preventDefault(), t.stopPropagation(), this.isOpen()) {
+      this.close();
+      return;
+    }
+    this.open();
+  }
+  handleOptionChange() {
+    this.syncSummary();
+  }
+  handleDocumentClick(t) {
+    this.contains(t.target) || this.close();
+  }
+  handleDocumentKeydown(t) {
+    t.key === "Escape" && this.close();
+  }
+  isOpen() {
+    return this.dataset.open === "true";
+  }
+  open() {
+    this.dataset.open = "true", this.trigger?.setAttribute("data-open", "true"), this.trigger?.setAttribute("aria-expanded", "true"), this.menu?.classList.remove("hidden"), this.icon?.classList.add("rotate-180");
+  }
+  close() {
+    this.dataset.open = "false", this.trigger?.setAttribute("data-open", "false"), this.trigger?.setAttribute("aria-expanded", "false"), this.menu?.classList.add("hidden"), this.icon?.classList.remove("rotate-180");
+  }
+  syncSummary() {
+    if (!this.summary)
+      return;
+    const t = this.checkboxes.filter((e) => e.checked).map((e) => e.value);
+    this.summary.textContent = t.length ? t.join(", ") : this.placeholder;
+  }
+  escapeHtml(t) {
+    return String(t).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  }
+  escapeAttribute(t) {
+    return this.escapeHtml(t);
+  }
+}
 document.addEventListener("trix-file-accept", (s) => {
   s.preventDefault();
 });
-const _c = "filter-list", vc = "fab-menu", yc = "scroll-button", Ac = "tool-tip", xc = "abbrev-tooltips", Ec = "int-link", Sc = "popup-image", Lc = "tab-list", Cc = "filter-pill", wc = "image-reel", Tc = "multi-select-places", kc = "multi-select-simple", Ic = "single-select-remote", Ta = "reset-button", Rc = "div-manager", Dc = "items-editor", Oc = "almanach-edit-page", Bc = "relations-editor", Mc = "edit-page", Nc = "duplicate-warning-checker", Pc = "content-images", Fc = "lookup-field", Hc = "export-manager";
+const vc = "filter-list", yc = "fab-menu", Ac = "scroll-button", xc = "tool-tip", Ec = "abbrev-tooltips", Sc = "int-link", Lc = "popup-image", Cc = "tab-list", wc = "filter-pill", Tc = "image-reel", kc = "multi-select-places", Ic = "multi-select-simple", Rc = "single-select-remote", Ta = "reset-button", Dc = "div-manager", Oc = "items-editor", Bc = "almanach-edit-page", Mc = "relations-editor", Nc = "edit-page", Pc = "duplicate-warning-checker", Fc = "content-images", Hc = "lookup-field", qc = "export-manager", $c = "content-type-select";
 window.lookupSeriesValue = ({ item: s }) => s?.id || "";
 window.lookupSeriesLink = ({ item: s }) => s?.musenalm_id ? `/reihe/${s.musenalm_id}` : "";
 window.lookupRequiredText = ({ displayValue: s }) => !!(s || "").trim();
 window.lookupRequiredId = ({ hiddenValue: s }) => !!(s || "").trim();
-customElements.define(Ec, zl);
-customElements.define(xc, Se);
-customElements.define(_c, Ul);
-customElements.define(yc, Vl);
-customElements.define(Ac, Et);
-customElements.define(Sc, jl);
-customElements.define(Lc, Wl);
-customElements.define(Cc, Hl);
-customElements.define(wc, Kl);
-customElements.define(Tc, dd);
-customElements.define(kc, Ed);
-customElements.define(Ic, zd);
+customElements.define(Sc, zl);
+customElements.define(Ec, Se);
+customElements.define(vc, Ul);
+customElements.define(Ac, Vl);
+customElements.define(xc, Et);
+customElements.define(Lc, jl);
+customElements.define(Cc, Wl);
+customElements.define(wc, Hl);
+customElements.define(Tc, Kl);
+customElements.define(kc, dd);
+customElements.define(Ic, Ed);
+customElements.define(Rc, zd);
 customElements.define(Ta, Cd);
-customElements.define(Rc, Id);
-customElements.define(Dc, Hd);
-customElements.define(Oc, Kd);
-customElements.define(Bc, sc);
-customElements.define(Mc, rc);
-customElements.define(vc, ac);
-customElements.define(Nc, lc);
-customElements.define(Pc, mc);
-customElements.define(Fc, fc);
-customElements.define(Hc, bc);
-function qc() {
+customElements.define(Dc, Id);
+customElements.define(Oc, Hd);
+customElements.define(Bc, Kd);
+customElements.define(Mc, sc);
+customElements.define(Nc, rc);
+customElements.define(yc, ac);
+customElements.define(Pc, lc);
+customElements.define(Fc, mc);
+customElements.define(Hc, fc);
+customElements.define(qc, bc);
+customElements.define($c, _c);
+function Uc() {
   const s = window.location.pathname, t = window.location.search, e = s + t;
   return encodeURIComponent(e);
 }
-function $c(s = 5e3, t = 100) {
+function Vc(s = 5e3, t = 100) {
   return new Promise((e, i) => {
     let n = 0;
     const r = setInterval(() => {
@@ -10104,8 +10219,8 @@ function $c(s = 5e3, t = 100) {
     }, t);
   });
 }
-async function Uc(s) {
-  const t = await $c(), e = document.getElementById("qr");
+async function jc(s) {
+  const t = await Vc(), e = document.getElementById("qr");
   e && (e.innerHTML = "", e.classList.add("hidden"), new t(e, {
     text: s,
     width: 1280,
@@ -10117,7 +10232,7 @@ async function Uc(s) {
     e.classList.remove("hidden");
   }, 20));
 }
-function Vc(s) {
+function Wc(s) {
   s && (s.addEventListener("focus", (t) => {
     t.preventDefault(), s.select();
   }), s.addEventListener("mousedown", (t) => {
@@ -10130,7 +10245,7 @@ function Vc(s) {
     s.select();
   }));
 }
-function jc() {
+function zc() {
   document.body.addEventListener("htmx:responseError", function(s) {
     const t = s.detail.requestConfig;
     if (t.boosted) {
@@ -10155,7 +10270,7 @@ function ka(s = document) {
     });
   });
 }
-function Wc(s, t) {
+function Kc(s, t) {
   if (!(s instanceof HTMLElement)) {
     console.warn("Target must be an HTMLElement.");
     return;
@@ -10185,7 +10300,7 @@ document.addEventListener("htmx:afterSwap", (s) => {
   const t = s.detail?.target || document;
   ka(t);
 });
-function zc(s, t) {
+function Gc(s, t) {
   const e = t.lineHeight;
   if (e && e !== "normal") {
     const a = parseFloat(e);
@@ -10212,7 +10327,7 @@ function Nt(s) {
     return;
   }
   s.removeAttribute("rows"), s.style.overflow = "auto";
-  const t = s.name === "annotation", e = getComputedStyle(s), i = t ? 2 : 1, n = zc(s, e), r = parseFloat(e.paddingTop) + parseFloat(e.paddingBottom), a = parseFloat(e.borderTopWidth) + parseFloat(e.borderBottomWidth), o = n * i + r, l = e.boxSizing === "border-box" ? o + a : o;
+  const t = s.name === "annotation", e = getComputedStyle(s), i = t ? 2 : 1, n = Gc(s, e), r = parseFloat(e.paddingTop) + parseFloat(e.paddingBottom), a = parseFloat(e.borderTopWidth) + parseFloat(e.borderBottomWidth), o = n * i + r, l = e.boxSizing === "border-box" ? o + a : o;
   if (s.value.trim() === "") {
     s.style.height = l + "px", console.log("Empty textarea, setting height to:", l + "px");
     return;
@@ -10224,7 +10339,7 @@ function Nt(s) {
 function Ra(s) {
   s.key === "Enter" && s.preventDefault();
 }
-function Kc(s) {
+function Jc(s) {
   if (!(s instanceof HTMLTextAreaElement)) {
     console.warn("HookupTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -10233,7 +10348,7 @@ function Kc(s) {
     Nt(s);
   });
 }
-function Gc(s) {
+function Yc(s) {
   if (!(s instanceof HTMLTextAreaElement)) {
     console.warn("DisconnectTextareaAutoResize: Provided element is not a textarea.");
     return;
@@ -10242,13 +10357,13 @@ function Gc(s) {
     Nt(s);
   });
 }
-function Jc(s) {
+function Xc(s) {
   !(s instanceof HTMLTextAreaElement) && s.classList.contains("no-enter") || s.addEventListener("keydown", Ra);
 }
-function Yc(s) {
+function Qc(s) {
   !(s instanceof HTMLTextAreaElement) && s.classList.contains("no-enter") || s.removeEventListener("keydown", Ra);
 }
-function Xc() {
+function Zc() {
   if (!window.htmx)
     return;
   const s = () => {
@@ -10295,17 +10410,17 @@ function Xc() {
     t = s(), t && !e && (e = t.querySelector("[data-role='global-notice-text']"));
   });
 }
-function Qc(s, t) {
+function th(s, t) {
   const e = !Ia();
   for (const i of s)
     if (i.type === "childList") {
       for (const n of i.addedNodes)
-        n.nodeType === Node.ELEMENT_NODE && n.matches("textarea") && e && (Kc(n), Nt(n));
+        n.nodeType === Node.ELEMENT_NODE && n.matches("textarea") && e && (Jc(n), Nt(n));
       for (const n of i.removedNodes)
-        n.nodeType === Node.ELEMENT_NODE && n.matches("textarea") && (Yc(n), e && Gc(n));
+        n.nodeType === Node.ELEMENT_NODE && n.matches("textarea") && (Qc(n), e && Yc(n));
     }
 }
-function Zc(s) {
+function eh(s) {
   if (console.log("=== FormLoad CALLED ==="), !(s instanceof HTMLFormElement)) {
     console.warn("FormLoad: Provided element is not a form.");
     return;
@@ -10323,8 +10438,8 @@ function Zc(s) {
   }, 200);
   const e = document.querySelectorAll("textarea.no-enter");
   for (const a of e)
-    Jc(a);
-  new MutationObserver(Qc).observe(s, {
+    Xc(a);
+  new MutationObserver(th).observe(s, {
     childList: !0,
     subtree: !0
   }), new MutationObserver((a) => {
@@ -10395,15 +10510,15 @@ document.addEventListener("keydown", (s) => {
   const t = s.target;
   t instanceof HTMLElement && t.matches("textarea.no-enter") && s.preventDefault();
 });
-window.ShowBoostedErrors = jc;
-window.GenQRCode = Uc;
-window.SelectableInput = Vc;
-window.PathPlusQuery = qc;
-window.HookupRBChange = Wc;
-window.FormLoad = Zc;
+window.ShowBoostedErrors = zc;
+window.GenQRCode = jc;
+window.SelectableInput = Wc;
+window.PathPlusQuery = Uc;
+window.HookupRBChange = Kc;
+window.FormLoad = eh;
 window.TextareaAutoResize = Nt;
 window.InitTimedMessages = Da;
-Xc();
+Zc();
 Sn();
 Da();
 export {

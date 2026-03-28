@@ -232,13 +232,77 @@
 		@apply min-w-8 px-2.5 text-base;
 	}
 
+	.contents-editor-state-button[data-status="Edited"] {
+		@apply border-green-200 bg-green-100 text-green-900 hover:bg-green-200;
+	}
+
+	.contents-editor-state-button[data-status="Review"] {
+		@apply border-orange-200 bg-orange-100 text-orange-900 hover:bg-orange-200;
+	}
+
+	.contents-editor-state-button[data-status="ToDo"] {
+		@apply border-red-200 bg-red-100 text-red-900 hover:bg-red-200;
+	}
+
+	.contents-editor-state-button[data-status="Unknown"] {
+		@apply border-stone-300 bg-stone-200 text-stone-700 hover:bg-stone-300;
+	}
+
+	.contents-editor-state-menu {
+		@apply absolute right-0 z-20 mt-1 flex min-w-44 flex-col overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg;
+	}
+
+	.contents-editor-state-option {
+		@apply inline-flex items-center gap-2 px-3 py-2 text-left text-sm font-normal text-slate-800 hover:bg-stone-100;
+	}
+
+	.contents-editor-footer-state {
+		@apply block min-w-[12rem] rounded-xs border px-3 py-1.5 pl-9 pr-8 text-base font-medium focus:outline-none;
+	}
+
+	.contents-editor-footer-state[data-status="Edited"] {
+		@apply border-green-200 bg-green-100 text-green-900;
+	}
+
+	.contents-editor-footer-state[data-status="Review"] {
+		@apply border-orange-200 bg-orange-100 text-orange-900;
+	}
+
+	.contents-editor-footer-state[data-status="ToDo"] {
+		@apply border-red-200 bg-red-100 text-red-900;
+	}
+
+	.contents-editor-footer-state[data-status="Unknown"] {
+		@apply border-stone-300 bg-stone-200 text-stone-700;
+	}
+
+	.contents-editor-footer-state:focus {
+		box-shadow: none;
+	}
+
+	.contents-editor-footer-state[data-status="Edited"]:focus {
+		@apply border-green-300 bg-green-100;
+	}
+
+	.contents-editor-footer-state[data-status="Review"]:focus {
+		@apply border-orange-300 bg-orange-100;
+	}
+
+	.contents-editor-footer-state[data-status="ToDo"]:focus {
+		@apply border-red-300 bg-red-100;
+	}
+
+	.contents-editor-footer-state[data-status="Unknown"]:focus {
+		@apply border-stone-400 bg-stone-200;
+	}
+
 	edit-page,
 	almanach-edit-page {
-		@apply block min-h-full;
+		@apply block h-full min-h-0;
 	}
 
 	.simple-entity-page {
-		@apply flex min-h-full w-full flex-col pb-0;
+		@apply flex h-full min-h-0 w-full flex-col pb-0;
 	}
 
 	.simple-entity-header {
@@ -543,7 +607,7 @@
 	}
 
 	.rel-row {
-		@apply border border-stone-200 rounded-xs bg-stone-50 px-3 py-2;
+		@apply mb-1 border border-stone-200 rounded-xs bg-stone-50 px-2 py-0;
 	}
 
 	.rel-grid {
@@ -554,12 +618,16 @@
 		@apply flex flex-col min-w-0;
 	}
 
+	.rel-name-line {
+		@apply flex min-w-0 items-baseline gap-1.5 truncate;
+	}
+
 	.rel-link {
-		@apply text-base text-gray-800 no-underline hover:text-slate-900 truncate;
+		@apply min-w-0 truncate text-base text-gray-800 no-underline hover:text-slate-900;
 	}
 
 	.rel-detail {
-		@apply text-xs text-gray-600 truncate;
+		@apply shrink-0 whitespace-nowrap text-xs text-gray-600;
 	}
 
 	.rel-new-badge {
@@ -580,6 +648,14 @@
 
 	.rel-empty-text {
 		@apply px-1.5 italic text-gray-600;
+	}
+
+	.rel-add-select .ssr-input {
+		@apply py-0.5;
+	}
+
+	.rel-add-select .ssr-wrapper > .flex {
+		@apply gap-1.5;
 	}
 
 	/* Reset global list indentation inside tab panels */
@@ -998,7 +1074,7 @@
 
 	/* Trix Custom Toolbar Styles */
 	.trix-toolbar-container {
-		@apply flex flex-wrap gap-1 px-2 py-1.5 bg-stone-200 border-b border-stone-300;
+		@apply flex flex-wrap items-center gap-1 px-2 py-0.5 bg-stone-200 border-b border-stone-300;
 	}
 
 	.trix-toolbar-group {
@@ -1006,11 +1082,11 @@
 	}
 
 	.trix-toolbar-group:not(:last-child) {
-		@apply mr-2 pr-2 border-r border-stone-400;
+		@apply mr-1.5 pr-1.5 border-r border-stone-400;
 	}
 
 	.trix-toolbar-button {
-		@apply w-7 h-7 inline-flex items-center justify-center
+		@apply w-6 h-6 inline-flex items-center justify-center
 		       text-gray-700 hover:text-slate-900 hover:bg-stone-300
 		       rounded transition-all duration-100
 		       focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1;
@@ -1037,6 +1113,52 @@
 	/* Trix editor content area */
 	trix-editor {
 		@apply block w-full focus:border-none focus:outline-none px-3 py-2 min-h-[9rem];
+	}
+
+	.content-editor-meta-input,
+	.content-editor-meta-select,
+	.content-editor-meta-trigger {
+		@apply block w-full rounded-xs border border-slate-400 bg-stone-50 px-2 py-1 text-[0.98rem] font-normal text-slate-800 transition-colors duration-100 outline-none;
+	}
+
+	content-type-select {
+		@apply block w-full;
+	}
+
+	.content-editor-meta-input {
+		@apply text-left tabular-nums;
+	}
+
+	.content-editor-meta-select {
+		@apply pr-8;
+	}
+
+	.content-editor-meta-trigger {
+		@apply flex min-h-[2rem] select-none items-center justify-between gap-2 text-left;
+	}
+
+	.content-editor-meta-input:focus,
+	.content-editor-meta-select:focus,
+	.content-editor-meta-trigger:focus,
+	.content-editor-meta-trigger[data-open="true"] {
+		@apply border-slate-700;
+		box-shadow: none;
+	}
+
+	.content-editor-meta-dropdown {
+		@apply absolute left-0 right-0 z-20 mt-1 rounded-xs border border-slate-300 bg-white shadow-lg;
+	}
+
+	.content-editor-meta-option {
+		@apply flex cursor-pointer select-none items-center gap-2 px-3 py-1.5 text-sm font-normal text-slate-800 hover:bg-stone-100;
+	}
+
+	.content-editor-meta-option input {
+		@apply shrink-0;
+	}
+
+	.content-editor-annotation-compact {
+		@apply min-h-[4.75rem];
 	}
 
 	/* Trix content formatting styles */

@@ -1,0 +1,271 @@
+{{ $model := . }}
+{{- $activeReservation := $model.result.ActiveContentNumberReservation -}}
+{{- $hasContents := gt (len $model.result.Contents) 0 -}}
+<div
+	id="contents-workspace-left"
+	data-role="contents-workspace-left"
+	{{- if $model.oob }} hx-swap-oob="outerHTML"{{- end -}}
+	class="flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden">
+	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
+		<i class="ri-loader-4-line spinning mr-2"></i>
+		Reihenfolge wird gespeichert
+	</div>
+	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
+	<div
+		data-role="contents-workspace-scroll"
+		class="min-h-0 flex-1 basis-0 overflow-y-auto overscroll-contain">
+	{{- if $activeReservation -}}
+		<div class="border-t border-b border-orange-300 bg-orange-50 px-4 py-3">
+			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-orange-900">
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<span class="inline-flex items-center gap-2 font-semibold text-orange-900">
+						<i class="ri-bookmark-line"></i>
+						<span>Nummernblock reserviert!</span>
+					</span>
+					<span class="font-semibold tabular-nums">{{ $activeReservation.StartMusenalmID }}-{{ $activeReservation.EndMusenalmID }}</span>
+					<span>(<span class="tabular-nums">{{ $activeReservation.RemainingCount }}</span> verbleibend)</span>
+				</div>
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation/deactivate" class="flex items-center gap-2">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<button type="submit" class="simple-entity-button !w-auto !border-orange-700 !bg-orange-600 !px-3 !py-1.5 text-sm !text-orange-50 hover:!bg-orange-700 hover:!text-white">
+						<i class="ri-close-circle-line"></i>
+						<span>Reservierung deaktivieren</span>
+					</button>
+				</form>
+			</div>
+		</div>
+	{{- end -}}
+	{{- if $hasContents -}}
+		<div class="admin-list-toolbar !mt-1 border-b border-stone-200 pt-1 pb-3">
+			<div class="grid w-full grid-cols-[minmax(0,1fr)_max-content] items-center gap-x-6 gap-y-3 px-4">
+				<div class="admin-list-toolbar-primary" data-role="content-filter-toolbar">
+					<div class="relative">
+						<details class="font-sans text-base list-none" data-role="content-type-toggle">
+							<summary class="admin-list-filter-trigger flex items-center gap-2" data-role="content-type-trigger">
+								<span data-role="content-type-label">Typen</span>
+								<i class="ri-arrow-down-s-line"></i>
+							</summary>
+							<div class="absolute left-0 mt-2 z-10 w-72 rounded-md border border-gray-200 bg-white shadow-lg">
+								<div class="p-3">
+									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="content-filter-type-list"></div>
+									<select
+										id="content-filter-type"
+										class="hidden"
+										data-role="content-filter-type">
+										<option value="">Alle Typen</option>
+									</select>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<div class="admin-list-filter-trigger min-w-0 max-w-none w-40 flex items-center gap-1.5" data-role="content-page-shell">
+						<input
+							id="content-filter-page"
+							type="text"
+							autocomplete="off"
+							class="w-full bg-transparent font-sans text-[0.98rem] font-semibold text-slate-700 placeholder:font-sans placeholder:text-[0.98rem] placeholder:font-semibold placeholder:text-slate-700 placeholder:opacity-100 focus:outline-none"
+							placeholder="Seite"
+							data-role="content-filter-page"
+						/>
+						<button
+							type="button"
+							class="hidden text-gray-500 hover:text-slate-900"
+							aria-label="Seitenfilter leeren"
+							data-role="content-page-clear">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+
+					<div class="admin-list-filter-trigger min-w-0 max-w-none w-[30rem] flex items-center gap-1.5" data-role="content-search-shell">
+						<i class="ri-search-line text-[0.98rem] font-semibold text-slate-700" aria-hidden="true"></i>
+						<input
+							id="content-filter"
+							type="search"
+							autocomplete="off"
+							class="search-input-no-native-clear w-full bg-transparent font-sans text-[0.98rem] font-semibold text-slate-700 placeholder:font-sans placeholder:text-[0.98rem] placeholder:font-semibold placeholder:text-slate-700 placeholder:opacity-100 focus:outline-none"
+							placeholder="Suche"
+							data-role="content-filter-input"
+						/>
+						<button
+							type="button"
+							class="hidden text-gray-500 hover:text-slate-900"
+							aria-label="Suche leeren"
+							data-role="content-search-clear">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+
+				<div class="admin-list-toolbar-secondary justify-end">
+					<div class="relative">
+						<details class="font-sans text-base list-none" data-role="contents-column-toggle">
+							<summary class="admin-list-secondary-trigger flex items-center gap-2">
+								<i class="ri-eye-line"></i>
+								<span>Ansicht</span>
+								<i class="ri-arrow-down-s-line transform origin-center transition-transform" data-role="contents-column-toggle-icon"></i>
+							</summary>
+							<div class="absolute right-0 mt-1 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="move-controls" checked /> Verschieben</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="alm-number" checked /> Alm-Nummer</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="type" checked /> Typ</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extended-info" /> Erweiterte Informationen</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotation" /> Anmerkungen</label>
+								</div>
+							</div>
+						</details>
+					</div>
+					<span id="content-filter-count" class="admin-list-count-summary whitespace-nowrap" data-role="content-filter-count">
+						{{- if eq (len $model.result.Contents) 1 -}}
+							1 Eintrag
+						{{- else -}}
+							{{ len $model.result.Contents }} Einträge
+						{{- end -}}
+					</span>
+					<tool-tip position="top" class="inline">
+						<button
+							type="button"
+							class="inline-flex h-8 w-8 items-center justify-center rounded-xs bg-slate-800 font-sans text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white"
+							hx-get="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new"
+							hx-target="#contents-editor-panel-shell"
+							hx-swap="outerHTML"
+							hx-push-url="false"
+							aria-label="Neuer Beitrag">
+							<i class="ri-add-line text-lg"></i>
+						</button>
+						<div class="data-tip">Neuer Beitrag</div>
+					</tool-tip>
+				</div>
+			</div>
+		</div>
+		<div class="mt-2 flex shrink-0 flex-col" data-role="contents-panel">
+			<table class="w-full border-collapse table-auto"
+				data-role="contents-list"
+				data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+				<colgroup>
+					<col class="w-[4.5rem]" data-role="content-col-move">
+					<col data-role="content-col-alm">
+					<col>
+					<col>
+					<col>
+				</colgroup>
+				{{- range $_, $content := $model.result.Contents -}}
+					{{- template "_content_item" (Dict
+						"content" $content
+						"entry" $model.result.Entry
+						"csrf_token" $model.csrf_token
+						"content_types" $model.content_types
+						"musenalm_types" $model.musenalm_types
+						"pagination_values" $model.pagination_values
+						"agents" $model.result.Agents
+						"content_agents" (index $model.result.ContentsAgents $content.Id)
+						"content_agent_displays" (index $model.result.ContentAgentDisplays $content.Id)
+						"agent_relations" $model.agent_relations
+						"open_edit" false
+						"is_new" false
+					) -}}
+				{{- end -}}
+			</table>
+		</div>
+		<div class="grow"></div>
+		<div class="border-t border-stone-200 px-4 py-3">
+			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+				{{- if not $activeReservation -}}
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
+					<select
+						name="reserved_count"
+						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+						required>
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="80">80</option>
+						<option value="100">100</option>
+						<option value="150">150</option>
+						<option value="200">200</option>
+						<option value="300">300</option>
+						<option value="500">500</option>
+					</select>
+					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
+						<i class="ri-bookmark-line"></i>
+						<span>Block reservieren</span>
+					</button>
+				</form>
+				{{- else -}}
+				<div></div>
+				{{- end -}}
+				<div class="flex flex-wrap items-center justify-end gap-3">
+					<button
+						type="button"
+						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950"
+						data-role="content-renumber-open"
+						data-renumber-mode="preserve">
+						<i class="ri-sort-number-asc"></i>
+						<span>Nummern neu zuordnen</span>
+					</button>
+					<button
+						type="button"
+						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950 disabled:cursor-not-allowed disabled:opacity-50"
+						data-role="content-renumber-open"
+						data-renumber-mode="new"
+						{{- if $activeReservation }} disabled title="Nur ohne aktiven Reservierungsblock möglich."{{- end -}}>
+						<i class="ri-hashtag"></i>
+						<span>Neue Nummern vergeben</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	{{- else -}}
+		<div class="mt-2 flex min-h-0 flex-1 flex-col" data-role="contents-empty-state">
+			<div class="flex min-h-0 flex-1 items-center justify-center text-center py-16">
+				<div class="text-2xl text-gray-700 font-semibold flex flex-col items-center gap-6">
+					<i class="ri-file-forbid-line text-5xl text-gray-600"></i>
+					<span>Keine Beiträge verzeichnet</span>
+					<a
+						href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new"
+						hx-get="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new"
+						hx-target="#contents-editor-panel-shell"
+						hx-swap="outerHTML"
+						hx-push-url="false"
+						class="inline-flex items-center justify-center gap-2 rounded-xs bg-slate-800 px-4 py-2 font-sans text-base font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">
+						<i class="ri-add-line text-lg"></i>
+						<span>Neuer Beitrag</span>
+					</a>
+				</div>
+			</div>
+			{{- if not $activeReservation -}}
+			<div class="shrink-0 border-t border-stone-200 px-4 py-3">
+				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
+					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
+					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
+					<select
+						name="reserved_count"
+						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
+						required>
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="80">80</option>
+						<option value="100">100</option>
+						<option value="150">150</option>
+						<option value="200">200</option>
+						<option value="300">300</option>
+						<option value="500">500</option>
+					</select>
+					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
+						<i class="ri-bookmark-line"></i>
+						<span>Block reservieren</span>
+					</button>
+				</form>
+			</div>
+			{{- end -}}
+		</div>
+	{{- end -}}
+	</div>
+</div>

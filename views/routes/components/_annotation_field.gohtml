@@ -11,6 +11,12 @@
 		{{- $fieldID = index . 2 -}}
 	{{- end -}}
 {{- end -}}
+{{- $editorClass := "" -}}
+{{- if gt (len .) 3 -}}
+	{{- if index . 3 -}}
+		{{- $editorClass = index . 3 -}}
+	{{- end -}}
+{{- end -}}
 {{- $toolbarID := printf "%s-toolbar" $fieldID -}}
 
 <div class="inputwrapper">
@@ -95,5 +101,5 @@
 	</trix-toolbar>
 
 	<textarea hidden id="{{ $fieldID }}" name="{{ $fieldID }}" autocomplete="off">{{- $annotation -}}</textarea>
-	<trix-editor input="{{ $fieldID }}" toolbar="{{ $toolbarID }}"></trix-editor>
+	<trix-editor input="{{ $fieldID }}" toolbar="{{ $toolbarID }}"{{ if $editorClass }} class="{{ $editorClass }}"{{ end }}></trix-editor>
 </div>

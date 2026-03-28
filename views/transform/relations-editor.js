@@ -71,6 +71,10 @@ export class RelationsEditor extends HTMLElement {
 		// Check if there are any new relations in the add row
 		const hasNew = this._addRow && this._addRow.querySelectorAll(`input[name="${this._prefix}_new_id"]`).length > 0;
 
+		if (this._addRow) {
+			this._addRow.classList.toggle("hidden", !hasNew);
+		}
+
 		// Check if add panel is visible
 		const isPanelVisible = this._addPanel && !this._addPanel.classList.contains("hidden");
 

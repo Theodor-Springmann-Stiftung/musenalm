@@ -181,11 +181,18 @@
 	}
 
 	.admin-main-shell {
-		@apply relative min-h-full flex flex-1 flex-col;
+		@apply relative h-full min-h-0 flex flex-1 flex-col;
 	}
 
 	.admin-main-content {
-		@apply flex min-h-full flex-1 flex-col;
+		@apply flex h-full min-h-0 flex-1 flex-col;
+	}
+
+	body:has([data-role="contents-edit-workspace"]) .admin-layout-main,
+	body:has([data-role="contents-edit-workspace"]) .admin-main,
+	body:has([data-role="contents-edit-workspace"]) .admin-main-shell,
+	body:has([data-role="contents-edit-workspace"]) .admin-main-content {
+		overflow: hidden;
 	}
 
 	.admin-main-loading {

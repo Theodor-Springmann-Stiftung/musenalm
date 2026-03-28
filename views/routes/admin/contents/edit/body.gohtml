@@ -10,6 +10,8 @@
 
 <edit-page>
 <div class="simple-entity-page">
+<div class="flex h-full min-h-0 flex-1 overflow-hidden" data-role="contents-edit-layout">
+<div class="flex h-full min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden">
 <header class="admin-page-header simple-entity-header">
 	<div class="simple-entity-title-row">
 		<tool-tip position="top" class="inline">
@@ -147,13 +149,8 @@
 	{{- end -}}
 </header>
 
-<div class="admin-page-body admin-page-body-wide admin-page-body-flush admin-page-body-tight-top flex min-h-0 flex-1 flex-col">
+<div class="admin-page-body admin-page-body-wide admin-page-body-flush admin-page-body-tight-top flex h-full min-h-0 flex-1 flex-col overflow-hidden">
 	{{ template "_usermessage" $model }}
-	<div id="contents-sync-indicator" class="fixed right-6 bottom-6 z-50 hidden rounded-full bg-stone-200 px-3 py-2 text-sm text-stone-700 shadow-md">
-		<i class="ri-loader-4-line spinning mr-2"></i>
-		Reihenfolge wird gespeichert
-	</div>
-	<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" data-role="csrf-token" />
 	<div class="flex items-center gap-3 hidden">
 		<form
 			method="POST"
@@ -173,254 +170,12 @@
 			</button>
 		</form>
 	</div>
-	{{- $activeReservation := $model.result.ActiveContentNumberReservation -}}
-	{{- $hasContents := gt (len $model.result.Contents) 0 -}}
-	{{- if $activeReservation -}}
-		<div class="border-t border-b border-orange-300 bg-orange-50 px-4 py-3">
-			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-orange-900">
-				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-					<span class="inline-flex items-center gap-2 font-semibold text-orange-900">
-						<i class="ri-bookmark-line"></i>
-						<span>Nummernblock reserviert!</span>
-					</span>
-					<span class="font-semibold tabular-nums">{{ $activeReservation.StartMusenalmID }}-{{ $activeReservation.EndMusenalmID }}</span>
-					<span>(<span class="tabular-nums">{{ $activeReservation.RemainingCount }}</span> verbleibend)</span>
-				</div>
-				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation/deactivate" class="flex items-center gap-2">
-					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-					<button type="submit" class="simple-entity-button !w-auto !border-orange-700 !bg-orange-600 !px-3 !py-1.5 text-sm !text-orange-50 hover:!bg-orange-700 hover:!text-white">
-						<i class="ri-close-circle-line"></i>
-						<span>Reservierung deaktivieren</span>
-					</button>
-				</form>
-			</div>
-		</div>
-	{{- end -}}
-	{{- if $hasContents -}}
-		<div class="admin-list-toolbar !mt-1 border-b border-stone-200 pt-1 pb-3">
-			<div class="grid w-full grid-cols-[minmax(0,1fr)_max-content] items-center gap-x-6 gap-y-3 px-4">
-				<div class="admin-list-toolbar-primary" data-role="content-filter-toolbar">
-					<div class="relative">
-						<details class="font-sans text-base list-none" data-role="content-type-toggle">
-							<summary class="admin-list-filter-trigger flex items-center gap-2" data-role="content-type-trigger">
-								<span data-role="content-type-label">Typen</span>
-								<i class="ri-arrow-down-s-line"></i>
-							</summary>
-							<div class="absolute left-0 mt-2 z-10 w-72 rounded-md border border-gray-200 bg-white shadow-lg">
-								<div class="p-3">
-									<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="content-filter-type-list"></div>
-									<select
-										id="content-filter-type"
-										class="hidden"
-										data-role="content-filter-type">
-										<option value="">Alle Typen</option>
-									</select>
-								</div>
-							</div>
-						</details>
-					</div>
-
-					<div class="admin-list-filter-trigger min-w-0 max-w-none w-40 flex items-center gap-1.5" data-role="content-page-shell">
-						<input
-							id="content-filter-page"
-							type="text"
-							autocomplete="off"
-							class="w-full bg-transparent font-sans text-[0.98rem] font-semibold text-slate-700 placeholder:font-sans placeholder:text-[0.98rem] placeholder:font-semibold placeholder:text-slate-700 placeholder:opacity-100 focus:outline-none"
-							placeholder="Seite"
-							data-role="content-filter-page"
-						/>
-						<button
-							type="button"
-							class="hidden text-gray-500 hover:text-slate-900"
-							aria-label="Seitenfilter leeren"
-							data-role="content-page-clear">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-
-					<div class="admin-list-filter-trigger min-w-0 max-w-none w-[30rem] flex items-center gap-1.5" data-role="content-search-shell">
-						<i class="ri-search-line text-[0.98rem] font-semibold text-slate-700" aria-hidden="true"></i>
-						<input
-							id="content-filter"
-							type="search"
-							autocomplete="off"
-							class="search-input-no-native-clear w-full bg-transparent font-sans text-[0.98rem] font-semibold text-slate-700 placeholder:font-sans placeholder:text-[0.98rem] placeholder:font-semibold placeholder:text-slate-700 placeholder:opacity-100 focus:outline-none"
-							placeholder="Suche"
-							data-role="content-filter-input"
-						/>
-						<button
-							type="button"
-							class="hidden text-gray-500 hover:text-slate-900"
-							aria-label="Suche leeren"
-							data-role="content-search-clear">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-
-				<div class="admin-list-toolbar-secondary justify-end">
-					<div class="relative">
-						<details class="font-sans text-base list-none" data-role="contents-column-toggle">
-							<summary class="admin-list-secondary-trigger flex items-center gap-2">
-								<i class="ri-eye-line"></i>
-								<span>Ansicht</span>
-								<i class="ri-arrow-down-s-line transform origin-center transition-transform" data-role="contents-column-toggle-icon"></i>
-							</summary>
-							<div class="absolute right-0 mt-1 z-10 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
-								<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="move-controls" checked /> Verschieben</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="alm-number" checked /> Alm-Nummer</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="type" checked /> Typ</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="responsibility" checked /> Autorangabe</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-agents" checked /> Verlinkte Personen</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="scans" checked /> Scans</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extended-info" /> Erweiterte Informationen</label>
-									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotation" /> Anmerkungen</label>
-								</div>
-							</div>
-						</details>
-					</div>
-					<span id="content-filter-count" class="admin-list-count-summary whitespace-nowrap" data-role="content-filter-count">
-						{{- if eq (len $model.result.Contents) 1 -}}
-							1 Eintrag
-						{{- else -}}
-							{{ len $model.result.Contents }} Einträge
-						{{- end -}}
-					</span>
-					<tool-tip position="top" class="inline">
-						<button
-							type="button"
-							class="inline-flex h-8 w-8 items-center justify-center rounded-xs bg-slate-800 font-sans text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white"
-							onclick="window.location.assign('/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new')"
-							aria-label="Neuer Beitrag">
-							<i class="ri-add-line text-lg"></i>
-						</button>
-						<div class="data-tip">Neuer Beitrag</div>
-					</tool-tip>
-				</div>
-			</div>
-		</div>
-		<div class="mt-2 flex shrink-0 flex-col" data-role="contents-panel">
-			<table class="w-full border-collapse table-auto"
-				data-role="contents-list"
-				data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
-				<colgroup>
-					<col class="w-[4.5rem]" data-role="content-col-move">
-					<col data-role="content-col-alm">
-					<col>
-					<col>
-					<col>
-				</colgroup>
-				{{- range $_, $content := $model.result.Contents -}}
-					{{- template "_content_item" (Dict
-						"content" $content
-						"entry" $model.result.Entry
-						"csrf_token" $model.csrf_token
-						"content_types" $model.content_types
-						"musenalm_types" $model.musenalm_types
-						"pagination_values" $model.pagination_values
-						"agents" $model.result.Agents
-						"content_agents" (index $model.result.ContentsAgents $content.Id)
-						"content_agent_displays" (index $model.result.ContentAgentDisplays $content.Id)
-						"agent_relations" $model.agent_relations
-						"open_edit" false
-						"is_new" false
-					) -}}
-				{{- end -}}
-			</table>
-		</div>
-		<div class="grow"></div>
-		<div class="border-t border-stone-200 px-4 py-3">
-			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-				{{- if not $activeReservation -}}
-				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
-					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
-					<select
-						name="reserved_count"
-						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-						required>
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-						<option value="80">80</option>
-						<option value="100">100</option>
-						<option value="150">150</option>
-						<option value="200">200</option>
-						<option value="300">300</option>
-						<option value="500">500</option>
-					</select>
-					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
-						<i class="ri-bookmark-line"></i>
-						<span>Block reservieren</span>
-					</button>
-				</form>
-				{{- else -}}
-				<div></div>
-				{{- end -}}
-				<div class="flex flex-wrap items-center justify-end gap-3">
-					<button
-						type="button"
-						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950"
-						data-role="content-renumber-open"
-						data-renumber-mode="preserve">
-						<i class="ri-sort-number-asc"></i>
-						<span>Nummern neu zuordnen</span>
-					</button>
-					<button
-						type="button"
-						class="simple-entity-button !w-auto !border-orange-300 !bg-orange-100 !px-3 !py-1.5 text-sm !text-orange-900 hover:!bg-orange-200 hover:!text-orange-950 disabled:cursor-not-allowed disabled:opacity-50"
-						data-role="content-renumber-open"
-						data-renumber-mode="new"
-						{{- if $activeReservation }} disabled title="Nur ohne aktiven Reservierungsblock möglich."{{- end -}}>
-						<i class="ri-hashtag"></i>
-						<span>Neue Nummern vergeben</span>
-					</button>
-				</div>
-			</div>
-		</div>
-	{{- else -}}
-		<div class="mt-2 flex min-h-0 flex-1 flex-col" data-role="contents-empty-state">
-			<div class="flex min-h-0 flex-1 items-center justify-center text-center py-16">
-				<div class="text-2xl text-gray-700 font-semibold flex flex-col items-center gap-6">
-					<i class="ri-file-forbid-line text-5xl text-gray-600"></i>
-					<span>Keine Beiträge verzeichnet</span>
-					<a
-						href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/new"
-						class="inline-flex items-center justify-center gap-2 rounded-xs bg-slate-800 px-4 py-2 font-sans text-base font-semibold text-stone-50 no-underline transition-colors hover:bg-slate-900 hover:text-white">
-						<i class="ri-add-line text-lg"></i>
-						<span>Neuer Beitrag</span>
-					</a>
-				</div>
-			</div>
-			{{- if not $activeReservation -}}
-			<div class="shrink-0 border-t border-stone-200 px-4 py-3">
-				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">
-					<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-					<span class="font-semibold text-slate-900">Alm-Nummernblock reservieren</span>
-					<select
-						name="reserved_count"
-						class="rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/30"
-						required>
-						<option value="10">10</option>
-						<option value="25">25</option>
-						<option value="50">50</option>
-						<option value="80">80</option>
-						<option value="100">100</option>
-						<option value="150">150</option>
-						<option value="200">200</option>
-						<option value="300">300</option>
-						<option value="500">500</option>
-					</select>
-					<button type="submit" class="simple-entity-header-button !w-auto !px-3 !py-1.5 text-sm">
-						<i class="ri-bookmark-line"></i>
-						<span>Block reservieren</span>
-					</button>
-				</form>
-			</div>
-			{{- end -}}
-		</div>
-	{{- end -}}
+	<div class="flex h-full min-h-0 flex-1 basis-0 flex-col overflow-hidden" data-role="contents-edit-workspace">
+		{{ template "_workspace" $model }}
+	</div>
+</div>
+	</div>
+	{{ template "_editor_panel" (Dict "open" false) }}
 </div>
 
 <dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
@@ -494,6 +249,369 @@
 
 <script type="module">
 	let list = null;
+	const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+	const scrollLockCache = new Map();
+
+	const rememberAndSetStyles = (el, styles) => {
+		if (!el) return;
+		if (!scrollLockCache.has(el)) {
+			scrollLockCache.set(el, el.getAttribute("style"));
+		}
+		Object.entries(styles).forEach(([key, value]) => {
+			el.style[key] = value;
+		});
+	};
+
+	const lockContentsWorkspaceLayout = () => {
+		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+		if (!workspace) return;
+		[
+			document.documentElement,
+			document.body,
+			document.querySelector(".admin-layout-main"),
+			document.querySelector(".admin-main"),
+			document.querySelector(".admin-main-shell"),
+			document.querySelector(".admin-main-content"),
+		].forEach((el) => rememberAndSetStyles(el, {
+			height: "100%",
+			minHeight: "0",
+			overflow: "hidden",
+		}));
+	};
+
+	const unlockContentsWorkspaceLayout = () => {
+		scrollLockCache.forEach((previousStyle, el) => {
+			if (previousStyle === null) {
+				el.removeAttribute("style");
+			} else {
+				el.setAttribute("style", previousStyle);
+			}
+		});
+		scrollLockCache.clear();
+	};
+
+	const applyMultiSelectInit = (el) => {
+		if (!el) return;
+		const optionsRaw = el.getAttribute("data-initial-options") || "[]";
+		const valuesRaw = el.getAttribute("data-initial-values") || "[]";
+		let options = [];
+		let values = [];
+		try {
+			options = JSON.parse(optionsRaw);
+			values = JSON.parse(valuesRaw);
+		} catch {
+			return;
+		}
+		if (options.length && typeof el.setOptions === "function") {
+			el.setOptions(options);
+		}
+		if (values.length) {
+			el.value = values;
+			if (typeof el.captureInitialSelection === "function") {
+				el.captureInitialSelection();
+			}
+		}
+	};
+
+	const isEditorOpen = () => {
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		return panelShell?.dataset.open === "true";
+	};
+
+	const syncEditorState = () => {
+		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+		if (!workspace) {
+			return;
+		}
+		if (isEditorOpen()) {
+			workspace.dataset.panelOpen = "true";
+		} else {
+			delete workspace.dataset.panelOpen;
+		}
+		window.__contentsApplyViewState?.();
+	};
+
+	const closeEditorPanel = () => {
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		if (!panelShell) {
+			return;
+		}
+		if (window.__contentsEditorPanelController) {
+			window.__contentsEditorPanelController.abort();
+			window.__contentsEditorPanelController = null;
+		}
+		panelShell.outerHTML = closedEditorPanelMarkup;
+		syncEditorState();
+	};
+
+	const initEditorPanel = () => {
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		if (!panelShell || panelShell.dataset.open !== "true") {
+			if (window.__contentsEditorPanelController) {
+				window.__contentsEditorPanelController.abort();
+				window.__contentsEditorPanelController = null;
+			}
+			syncEditorState();
+			return;
+		}
+
+		if (window.__contentsEditorPanelController) {
+			window.__contentsEditorPanelController.abort();
+		}
+		const panelController = new AbortController();
+		window.__contentsEditorPanelController = panelController;
+
+		panelShell.querySelectorAll("[data-role='contents-editor-close']").forEach((button) => {
+			if (button.dataset.init === "true") {
+				return;
+			}
+			button.dataset.init = "true";
+			button.addEventListener("click", (event) => {
+				event.preventDefault();
+				closeEditorPanel();
+			}, { signal: panelController.signal });
+		});
+
+		const initMultiSelects = () => {
+			panelShell.querySelectorAll("multi-select-simple[data-initial-options], multi-select-simple[data-initial-values]").forEach((el) => {
+				applyMultiSelectInit(el);
+			});
+			panelShell.querySelectorAll("[data-role='contents-editor-page-input']").forEach((el) => {
+				if (el.dataset.init === "true") {
+					return;
+				}
+				el.dataset.init = "true";
+				el.addEventListener("input", () => {
+					el.value = el.value.replace(/[^0-9]/g, "");
+				});
+			});
+		};
+
+		const appendPendingScansToPayload = (form, payload) => {
+			if (!form || !payload) {
+				return;
+			}
+			if (payload.has("scans")) {
+				payload.delete("scans");
+			}
+			const imagesComponent = form.querySelector("content-images");
+			if (!imagesComponent || typeof imagesComponent.getPendingFiles !== "function") {
+				return;
+			}
+			const pendingFiles = imagesComponent.getPendingFiles();
+			const pendingIds = typeof imagesComponent.getPendingIds === "function" ? imagesComponent.getPendingIds() : [];
+			const scanOrder = typeof imagesComponent.getScanOrder === "function" ? imagesComponent.getScanOrder() : [];
+			const pendingDeletes = typeof imagesComponent.getPendingDeletes === "function" ? imagesComponent.getPendingDeletes() : [];
+
+			pendingFiles.forEach((file, index) => {
+				payload.append("scans", file);
+				if (pendingIds[index]) {
+					payload.append("scans_pending_ids[]", pendingIds[index]);
+				}
+			});
+			if (Array.isArray(scanOrder) && scanOrder.length > 0) {
+				scanOrder.forEach((token) => {
+					payload.append("scans_order[]", token);
+				});
+			}
+			if (Array.isArray(pendingDeletes) && pendingDeletes.length > 0) {
+				pendingDeletes.forEach((fileName) => {
+					payload.append("scans_delete[]", fileName);
+				});
+			}
+		};
+
+		const errorBox = panelShell.querySelector("[data-role='contents-editor-error']");
+
+		const setEditorError = (message) => {
+			if (!errorBox) {
+				return;
+			}
+			const text = (message || "").trim();
+			errorBox.textContent = text;
+			errorBox.classList.toggle("hidden", !text);
+		};
+
+		const setEditorSaving = (saving) => {
+			if (!form) {
+				return;
+			}
+			form.querySelectorAll("button[type='submit'], button[data-role='contents-editor-close']").forEach((el) => {
+				el.disabled = !!saving;
+			});
+		};
+
+		const applyOobNode = (node) => {
+			const swapRaw = node.getAttribute("hx-swap-oob") || "";
+			const [swapTypeRaw, selector] = swapRaw.split(":");
+			const swapType = swapTypeRaw || "outerHTML";
+			const target = selector ? document.querySelector(selector) : (node.id ? document.getElementById(node.id) : null);
+			if (!target) {
+				return;
+			}
+			if (swapType === "innerHTML") {
+				target.innerHTML = node.innerHTML;
+			} else {
+				target.outerHTML = node.outerHTML;
+			}
+		};
+
+		const applySaveSuccessResponse = (html) => {
+			const template = document.createElement("template");
+			template.innerHTML = (html || "").trim();
+			const nextPanel = template.content.querySelector("#contents-editor-panel-shell");
+			const oobNodes = Array.from(template.content.querySelectorAll("[hx-swap-oob]"));
+			oobNodes.forEach((node) => {
+				applyOobNode(node);
+				node.remove();
+			});
+			if (nextPanel) {
+				panelShell.outerHTML = nextPanel.outerHTML;
+			}
+			if (window.htmx?.process) {
+				window.htmx.process(document.body);
+			}
+			initFilter();
+			initViewOptions();
+			initEditorPanel();
+			initPage();
+		};
+
+		const form = panelShell.querySelector("form.dbform");
+		if (form) {
+			form.addEventListener("submit", async (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.stopImmediatePropagation();
+
+				const submitter = event.submitter || document.activeElement;
+				const payload = new FormData(form);
+				if (submitter?.name) {
+					payload.set(submitter.name, submitter.value || "");
+				}
+				appendPendingScansToPayload(form, payload);
+				setEditorError("");
+				setEditorSaving(true);
+
+				try {
+					const response = await fetch(form.action, {
+						method: form.method || "POST",
+						body: payload,
+						credentials: "same-origin",
+						headers: {
+							"HX-Request": "true",
+						},
+					});
+					const html = await response.text();
+					if (!response.ok) {
+						const template = document.createElement("template");
+						template.innerHTML = (html || "").trim();
+						const message = template.content.querySelector("[data-role='contents-editor-error-message']")?.textContent || "Speichern fehlgeschlagen.";
+						setEditorError(message);
+						return;
+					}
+					applySaveSuccessResponse(html);
+				} catch {
+					setEditorError("Speichern fehlgeschlagen.");
+				} finally {
+					setEditorSaving(false);
+				}
+			}, { signal: panelController.signal, capture: true });
+		}
+
+		const statePicker = panelShell.querySelector("[data-role='contents-editor-state-picker']");
+		const stateToggle = panelShell.querySelector("[data-role='contents-editor-state-toggle']");
+		const stateMenu = panelShell.querySelector("[data-role='contents-editor-state-menu']");
+		const footerStateSelect = panelShell.querySelector("[data-role='contents-editor-footer-state']");
+		const footerStateIcon = panelShell.querySelector("[data-role='contents-editor-footer-state-icon']");
+
+		const statusMeta = {
+			Unknown: { label: "Unbekannt", icon: "ri-forbid-2-line" },
+			ToDo: { label: "Zu erledigen", icon: "ri-list-check" },
+			Review: { label: "Überprüfen", icon: "ri-search-line" },
+			Edited: { label: "Erfasst", icon: "ri-checkbox-circle-line" },
+		};
+
+		const updateStatusIcon = (iconEl, iconClass) => {
+			if (!iconEl) {
+				return;
+			}
+			iconEl.classList.remove(
+				"ri-checkbox-circle-line",
+				"ri-information-line",
+				"ri-search-line",
+				"ri-list-check",
+				"ri-forbid-2-line",
+			);
+			iconEl.classList.add(iconClass);
+		};
+
+		const applyStatus = (status) => {
+			const next = statusMeta[status] ? status : "Unknown";
+			const meta = statusMeta[next];
+
+			if (footerStateSelect) {
+				footerStateSelect.value = next;
+				footerStateSelect.setAttribute("data-status", next);
+			}
+			updateStatusIcon(footerStateIcon, meta.icon);
+
+			if (stateToggle) {
+				stateToggle.dataset.status = next;
+				stateToggle.setAttribute("aria-label", `Status: ${meta.label}`);
+				stateToggle.setAttribute("title", `Status: ${meta.label}`);
+				stateToggle.innerHTML = `<i class="${meta.icon}"></i>`;
+			}
+		};
+
+		const closeStateMenu = () => {
+			stateMenu?.classList.add("hidden");
+		};
+
+		if (stateToggle && stateMenu && footerStateSelect) {
+			stateToggle.addEventListener("click", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				stateMenu.classList.toggle("hidden");
+			}, { signal: panelController.signal });
+
+			stateMenu.querySelectorAll("[data-role='contents-editor-state-option']").forEach((option) => {
+				option.addEventListener("click", (event) => {
+					event.preventDefault();
+					applyStatus(option.getAttribute("data-status") || "Unknown");
+					closeStateMenu();
+				}, { signal: panelController.signal });
+			});
+
+			footerStateSelect.addEventListener("change", () => {
+				applyStatus(footerStateSelect.value || "Unknown");
+			}, { signal: panelController.signal });
+
+			document.addEventListener("click", (event) => {
+				if (!statePicker?.contains(event.target)) {
+					closeStateMenu();
+				}
+			}, { signal: panelController.signal });
+
+			document.addEventListener("keydown", (event) => {
+				if (event.key === "Escape") {
+					closeStateMenu();
+				}
+			}, { signal: panelController.signal });
+
+			applyStatus(footerStateSelect.value || "Unknown");
+		}
+
+		if (window.customElements?.whenDefined) {
+			window.customElements.whenDefined("multi-select-simple").then(() => {
+				requestAnimationFrame(initMultiSelects);
+			});
+		} else {
+			initMultiSelects();
+		}
+
+		syncEditorState();
+	};
 
 	// Normalize function for accent-insensitive matching
 	const normalizeText = (text) => {
@@ -930,19 +1048,23 @@
 
 		const applyState = () => {
 			const filtering = !!list?.hasAttribute("data-filtering");
+			const editorOpen = isEditorOpen();
 			Object.entries(selectors).forEach(([key, selector]) => {
-				const isVisible = key === "move-controls" ? state[key] && !filtering : state[key];
+				const isVisible = key === "move-controls" ? state[key] && !filtering && !editorOpen : state[key];
 				document.querySelectorAll(selector).forEach((el) => {
 					el.style.display = isVisible ? "" : "none";
 				});
 			});
 			Object.entries(columnSelectors).forEach(([key, selectorList]) => {
-				const isVisible = key === "move-controls" ? state[key] && !filtering : state[key];
+				const isVisible = key === "move-controls" ? state[key] && !filtering && !editorOpen : state[key];
 				selectorList.forEach((selector) => {
 					document.querySelectorAll(selector).forEach((el) => {
 						el.style.display = isVisible ? "" : "none";
 					});
 				});
+			});
+			document.querySelectorAll("[data-role='content-cell-actions']").forEach((el) => {
+				el.style.display = editorOpen ? "none" : "";
 			});
 		};
 		window.__contentsApplyViewState = applyState;
@@ -983,7 +1105,9 @@
 	};
 
 	const initPage = () => {
+		lockContentsWorkspaceLayout();
 		list = document.querySelector("[data-role='contents-list']");
+		syncEditorState();
 		if (!list) {
 			return;
 		}
@@ -1044,18 +1168,6 @@
 			if (!contentId || !csrfToken) {
 				return;
 			}
-			if (window.htmx?.ajax) {
-				window.htmx.ajax("POST", deleteEndpoint, {
-					target: item,
-					swap: "outerHTML",
-					values: {
-						csrf_token: csrfToken,
-						content_id: contentId,
-					},
-				});
-				deleteDialog?.close();
-				return;
-			}
 			const payload = new URLSearchParams();
 			payload.set("csrf_token", csrfToken);
 			payload.set("content_id", contentId);
@@ -1067,7 +1179,37 @@
 				},
 				body: payload.toString(),
 			})
-				.then(() => {
+				.then(async (response) => {
+					const html = await response.text();
+					if (!response.ok) {
+						return;
+					}
+					if (html) {
+						const template = document.createElement("template");
+						template.innerHTML = html.trim();
+						Array.from(template.content.querySelectorAll("[hx-swap-oob]")).forEach((node) => {
+							const swapRaw = node.getAttribute("hx-swap-oob") || "";
+							const [swapTypeRaw, selector] = swapRaw.split(":");
+							const swapType = swapTypeRaw || "outerHTML";
+							const target = selector ? document.querySelector(selector) : (node.id ? document.getElementById(node.id) : null);
+							if (!target) {
+								return;
+							}
+							if (swapType === "innerHTML") {
+								target.innerHTML = node.innerHTML;
+							} else {
+								target.outerHTML = node.outerHTML;
+							}
+						});
+						if (window.htmx?.process) {
+							window.htmx.process(document.body);
+						}
+						initFilter();
+						initViewOptions();
+						initEditorPanel();
+						initPage();
+						return;
+					}
 					removeItem(item);
 				})
 				.catch(() => null)
@@ -1229,6 +1371,9 @@
 		let lastDragOverTime = 0;
 		const DRAG_THROTTLE_MS = 100;
 		const startPointerDrag = (event) => {
+			if (isEditorOpen()) {
+				return;
+			}
 			const handle = event.target.closest("[data-role='content-drag-handle']");
 			if (!handle || event.button !== 0) {
 				return;
@@ -1251,6 +1396,9 @@
 		};
 
 		const movePointerDrag = (event) => {
+			if (isEditorOpen()) {
+				return;
+			}
 			if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
 				return;
 			}
@@ -1284,6 +1432,9 @@
 			syncOrder();
 		};
 		list.addEventListener("click", (event) => {
+			if (isEditorOpen()) {
+				return;
+			}
 			const moveUp = event.target.closest("[data-role='content-move-up']");
 			const moveDown = event.target.closest("[data-role='content-move-down']");
 			if (!moveUp && !moveDown) {
@@ -1315,6 +1466,10 @@
 		}, { signal: dragSignal });
 
 		list.addEventListener("dragstart", (event) => {
+			if (isEditorOpen()) {
+				event.preventDefault();
+				return;
+			}
 			if (pointerDrag) {
 				event.preventDefault();
 				return;
@@ -1343,6 +1498,9 @@
 		}, { signal: dragSignal });
 
 		list.addEventListener("dragover", (event) => {
+			if (isEditorOpen()) {
+				return;
+			}
 			if (!draggedItem) {
 				return;
 			}
@@ -1378,12 +1536,30 @@
 
 	initFilter();
 	initViewOptions();
+	initEditorPanel();
 	initPage();
+	document.body.addEventListener("htmx:beforeSwap", (event) => {
+		if (event.detail.target?.id === "admin-main-content") {
+			unlockContentsWorkspaceLayout();
+		}
+	});
+	document.body.addEventListener("htmx:afterSwap", (event) => {
+		if (event.target?.closest?.("[data-role='contents-edit-workspace']") || event.target?.id === "contents-editor-panel-shell" || event.target?.id === "contents-workspace-left") {
+			initFilter();
+			initViewOptions();
+			initEditorPanel();
+			initPage();
+		}
+	});
 	window.addEventListener("pageshow", (event) => {
 		if (event.persisted) {
 			initFilter();
 			initViewOptions();
+			initEditorPanel();
 			initPage();
 		}
+	});
+	window.addEventListener("beforeunload", () => {
+		unlockContentsWorkspaceLayout();
 	});
 </script>

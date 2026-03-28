@@ -1,0 +1,40 @@
+{{- $model := . -}}
+
+<div class="inputwrapper">
+	<div class="inputlabelrow">
+		<div class="flex items-center gap-1">
+			<label for="content-{{ $model.content_id }}-extent" class="inputlabel">Seite, Paginierung &amp; Beitragstyp(en)</label>
+			<tool-tip position="top" class="!inline">
+				<div class="data-tip">{{ helpOr "contents" "musenalm_type" "Seite, Paginierung und Musenalm-Typen des Beitrags." }}</div>
+				<i class="ri-question-line"></i>
+			</tool-tip>
+		</div>
+	</div>
+	<div class="grid grid-cols-[5.5rem_12rem_minmax(0,1fr)] items-stretch gap-2 px-2 py-1">
+		<input
+			type="text"
+			name="content_{{ $model.content_id }}_extent"
+			id="content-{{ $model.content_id }}-extent"
+			class="content-editor-meta-input"
+			autocomplete="off"
+			inputmode="numeric"
+			pattern="[0-9]*"
+			placeholder="Seite"
+			data-role="contents-editor-page-input"
+			value="{{- $model.content.Extent -}}" />
+		<select
+			name="content_{{ $model.content_id }}_musenalm_pagination"
+			id="content-{{ $model.content_id }}-pagination"
+			class="content-editor-meta-select">
+			<option value="" disabled {{ if eq $model.content.MusenalmPagination "" }}selected{{ end }}>Paginierung</option>
+			{{- range $_, $p := $model.pagination_values -}}
+				<option value="{{- $p -}}" {{ if eq $model.content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
+			{{- end -}}
+		</select>
+		{{- template "_type_dropdown" (Dict
+			"content_id" $model.content_id
+			"selected" $model.content.MusenalmType
+			"options" $model.musenalm_types
+		) -}}
+	</div>
+</div>
