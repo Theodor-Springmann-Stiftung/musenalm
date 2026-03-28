@@ -47,6 +47,8 @@
 	{{- $entrySubView = index . 5 -}}
 {{- end -}}
 
+{{- $showExtendedInfo := $entrySubView -}}
+
 {{ $isAlm := false }}
 {{ $isTitle := false }}
 {{ $isYear := false }}
@@ -133,7 +135,7 @@
 					{{- $content.TitleStmt -}}
 				</div>
 			{{- end -}}
-			{{- if $content.IncipitStmt -}}
+			{{- if and $content.IncipitStmt (not $showExtendedInfo) -}}
 				<div class="fieldlabel">Incipit</div>
 				<div class="italic fieldvalue {{ if $isIncipit }}search-text{{ end }}">
 					{{ $content.IncipitStmt }}…
@@ -165,6 +167,38 @@
 						{{- end -}}
 					</div>
 				</div>
+			{{- end -}}
+			{{- if $showExtendedInfo -}}
+				{{- if $content.IncipitStmt -}}
+					<div class="fieldlabel">Incipit</div>
+					<div class="italic fieldvalue {{ if $isIncipit }}search-text{{ end }}">
+						{{- $content.IncipitStmt -}}
+					</div>
+				{{- end -}}
+				{{- if $content.SubtitleStmt -}}
+					<div class="fieldlabel">Untertitel</div>
+					<div class="italic fieldvalue {{ if $isTitle }}search-text{{ end }}">
+						{{- $content.SubtitleStmt -}}
+					</div>
+				{{- end -}}
+				{{- if $content.ParallelTitle -}}
+					<div class="fieldlabel">Paralleltitel</div>
+					<div class="italic fieldvalue {{ if $isTitle }}search-text{{ end }}">
+						{{- $content.ParallelTitle -}}
+					</div>
+				{{- end -}}
+				{{- if $content.VariantTitle -}}
+					<div class="fieldlabel">Titelvariante</div>
+					<div class="italic fieldvalue {{ if $isTitle }}search-text{{ end }}">
+						{{- $content.VariantTitle -}}
+					</div>
+				{{- end -}}
+				{{- if $content.PlaceStmt -}}
+					<div class="fieldlabel">Ortsangabe</div>
+					<div class="fieldvalue">
+						{{- $content.PlaceStmt -}}
+					</div>
+				{{- end -}}
 			{{- end -}}
 			{{- if $content.Annotation -}}
 				{{- $link := printf "%s%s" "/almanach/" $entry.MusenalmIDString -}}
