@@ -366,14 +366,15 @@ type AlmanachResult struct {
 							<div class="rel-empty-text">Keine Reihen verknüpft.</div>
 						{{- end -}}
 						</div>
-						<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2"></div>
+						<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2 hidden"></div>
 						<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 						<div class="rel-row">
-							<div class="rel-grid">
-								<div class="min-w-0">
+							<div class="rel-grid-add">
+								<div class="min-w-0 flex-1">
 									<label for="series-add-select" class="sr-only">Reihe suchen</label>
 									<single-select-remote
 										id="series-add-select"
+										class="rel-add-select rel-add-select-narrow"
 										data-role="relation-add-select"
 										name="entries_series_new_id"
 										placeholder="Reihe suchen..."
@@ -383,7 +384,7 @@ type AlmanachResult struct {
 										data-limit="15">
 									</single-select-remote>
 								</div>
-								<div>
+								<div class="w-40 shrink-0">
 									<label for="entries_series_new_type" class="sr-only">Beziehung</label>
 									<select data-role="relation-type-select" name="entries_series_new_type" id="entries_series_new_type" autocomplete="off" class="rel-type-select w-full">
 										{{- range $t := $model.series_relations -}}
@@ -398,7 +399,7 @@ type AlmanachResult struct {
 									<label for="entries_series_new_uncertain" class="rel-uncertain-label">Unsicher</label>
 								</div>
 								<div class="rel-button-container">
-									<div class="flex items-center gap-3 text-lg">
+									<div class="flex items-center gap-2 text-lg">
 										<button type="button" data-role="relation-add-apply" class="text-gray-700 hover:text-gray-900" id="series-add-apply" aria-label="Reihe hinzufügen">
 											<i class="ri-check-line"></i>
 										</button>
@@ -653,14 +654,15 @@ type AlmanachResult struct {
 											<div class="rel-empty-text">Keine Personen verknüpft.</div>
 										{{- end -}}
 										</div>
-										<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2"></div>
+										<div data-role="relation-add-row" class="flex flex-col gap-2 mt-2 px-2 hidden"></div>
 										<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 										<div class="rel-row">
-											<div class="rel-grid">
-												<div class="min-w-0">
+											<div class="rel-grid-add">
+												<div class="min-w-0 flex-1">
 													<label for="agents-add-select" class="sr-only">Akteur suchen</label>
 													<single-select-remote
 														id="agents-add-select"
+														class="rel-add-select rel-add-select-narrow"
 														data-role="relation-add-select"
 														name="entries_agents_new_id"
 														placeholder="Akteur suchen..."
@@ -670,7 +672,7 @@ type AlmanachResult struct {
 														data-limit="15">
 													</single-select-remote>
 												</div>
-												<div>
+												<div class="w-40 shrink-0">
 													<label for="entries_agents_new_type" class="sr-only">Beziehung</label>
 													<select data-role="relation-type-select" name="entries_agents_new_type" id="entries_agents_new_type" autocomplete="off" class="rel-type-select w-full">
 														{{- range $t := $model.agent_relations -}}
@@ -683,7 +685,7 @@ type AlmanachResult struct {
 													<label for="entries_agents_new_uncertain" class="rel-uncertain-label">Unsicher</label>
 												</div>
 												<div class="rel-button-container">
-													<div class="flex items-center gap-3 text-lg">
+													<div class="flex items-center gap-2 text-lg">
 														<button type="button" data-role="relation-add-apply" class="text-gray-700
 														hover:text-gray-900" id="agents-add-apply" aria-label="Person hinzufügen">
 															<i class="ri-check-line"></i>

@@ -603,7 +603,7 @@
 
 	/* Relations editor abstracted classes */
 	.rel-section-container {
-		@apply flex flex-col gap-2 mt-1 px-2;
+		@apply flex flex-col gap-2 px-2;
 	}
 
 	.rel-row {
@@ -611,7 +611,11 @@
 	}
 
 	.rel-grid {
-		@apply grid grid-cols-[1fr_10rem_3.5rem_2.5rem] gap-2 items-center;
+		@apply grid grid-cols-[1fr_9rem_3rem_3rem] gap-2 items-center;
+	}
+
+	.rel-grid-add {
+		@apply flex items-center gap-2;
 	}
 
 	.rel-name-col {
@@ -656,8 +660,12 @@
 		box-shadow: none;
 	}
 
+	.rel-type-select-narrow {
+		@apply max-w-[8rem];
+	}
+
 	.rel-empty-text {
-		@apply px-1.5 italic text-gray-600;
+		@apply w-full;
 	}
 
 	.rel-add-select .ssr-input {
@@ -666,6 +674,10 @@
 
 	.rel-add-select .ssr-wrapper > .flex {
 		@apply gap-1.5;
+	}
+
+	.rel-add-select-narrow {
+		@apply flex-1;
 	}
 
 	/* Reset global list indentation inside tab panels */
@@ -943,7 +955,7 @@
 	}
 
 	.mss-selected-items-container {
-		@apply py-1 rounded;
+		@apply min-h-10 py-1 rounded;
 		/* Tailwind classes from component: flex flex-wrap gap-1 mb-1 min-h-[38px] */
 	}
 

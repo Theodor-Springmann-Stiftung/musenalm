@@ -26,10 +26,32 @@ export class RelationsEditor extends HTMLElement {
 		this._addToggleId = this.getAttribute("data-add-toggle-id") || "";
 		this._preferredLabel = (this.getAttribute("data-preferred-label") || "").trim();
 		this._emptyText = this.querySelector(".rel-empty-text");
+		this._hydrateEmptyState();
 		this._setupAddPanel();
 		this._setupDeleteToggles();
 		this._setupNewRowDeletes();
 		this._setupPreferredOptionHandling();
+	}
+
+	_hydrateEmptyState() {
+		if (!this._emptyText) {
+			return;
+		}
+
+		if (this._emptyText.dataset.emptyHydrated === "true") {
+			return;
+		}
+
+		const text = this._emptyText.textContent.trim();
+		this._emptyText.dataset.emptyHydrated = "true";
+		this._emptyText.classList.add("mss-component-wrapper", "relative");
+		this._emptyText.innerHTML = `
+			<div class="mss-inline-row flex flex-wrap items-center gap-2">
+				<div class="mss-selected-items-container flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1">
+					<span class="mss-no-items-text">${text}</span>
+				</div>
+			</div>
+		`;
 	}
 
 	_getExistingIds() {

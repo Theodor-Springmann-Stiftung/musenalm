@@ -8578,7 +8578,19 @@ class sc extends HTMLElement {
     super(), this._pendingItem = null, this._pendingApply = !1;
   }
   connectedCallback() {
-    this._prefix = this.getAttribute("data-prefix") || "", this._linkBase = this.getAttribute("data-link-base") || "", this._newLabel = this.getAttribute("data-new-label") || "(Neu)", this._addToggleId = this.getAttribute("data-add-toggle-id") || "", this._preferredLabel = (this.getAttribute("data-preferred-label") || "").trim(), this._emptyText = this.querySelector(".rel-empty-text"), this._setupAddPanel(), this._setupDeleteToggles(), this._setupNewRowDeletes(), this._setupPreferredOptionHandling();
+    this._prefix = this.getAttribute("data-prefix") || "", this._linkBase = this.getAttribute("data-link-base") || "", this._newLabel = this.getAttribute("data-new-label") || "(Neu)", this._addToggleId = this.getAttribute("data-add-toggle-id") || "", this._preferredLabel = (this.getAttribute("data-preferred-label") || "").trim(), this._emptyText = this.querySelector(".rel-empty-text"), this._hydrateEmptyState(), this._setupAddPanel(), this._setupDeleteToggles(), this._setupNewRowDeletes(), this._setupPreferredOptionHandling();
+  }
+  _hydrateEmptyState() {
+    if (!this._emptyText || this._emptyText.dataset.emptyHydrated === "true")
+      return;
+    const t = this._emptyText.textContent.trim();
+    this._emptyText.dataset.emptyHydrated = "true", this._emptyText.classList.add("mss-component-wrapper", "relative"), this._emptyText.innerHTML = `
+			<div class="mss-inline-row flex flex-wrap items-center gap-2">
+				<div class="mss-selected-items-container flex flex-wrap items-center gap-1 min-h-[30px]" aria-live="polite" tabindex="-1">
+					<span class="mss-no-items-text">${t}</span>
+				</div>
+			</div>
+		`;
   }
   _getExistingIds() {
     const t = /* @__PURE__ */ new Set(), e = this._prefix === "entries_series" ? "series" : "agent";
