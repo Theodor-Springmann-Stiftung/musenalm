@@ -38,6 +38,10 @@ type AlmanachContentsEditPage struct {
 	pagemodels.StaticPage
 }
 
+func isContentsPanelFragmentRequest(e *core.RequestEvent) bool {
+	return strings.EqualFold(strings.TrimSpace(e.Request.Header.Get("HX-Target")), "contents-editor-panel-shell")
+}
+
 func (p *AlmanachContentsEditPage) buildContentsEditData(app core.App, ma pagemodels.IApp, e *core.RequestEvent, id string) (map[string]any, error) {
 	req := templating.NewRequest(e)
 	data := make(map[string]any)
@@ -54,8 +58,6 @@ func (p *AlmanachContentsEditPage) buildContentsEditData(app core.App, ma pagemo
 	data["pagination_values"] = paginationValuesSorted()
 	data["agent_relations"] = dbmodels.AGENT_RELATIONS
 	data["cancel_url"] = cancelURLFromHeader(e)
-	data["edit_content_id"] = strings.TrimSpace(e.Request.URL.Query().Get("edit_content"))
-	data["new_content"] = strings.TrimSpace(e.Request.URL.Query().Get("new_content"))
 	return data, nil
 }
 
@@ -75,36 +77,6 @@ func (p *AlmanachContentsEditPage) buildContentPanelData(app core.App, ma pagemo
 		return nil, fmt.Errorf("beitrag gehört zu einem anderen band")
 	}
 
-	contents, err := dbmodels.Contents_Entry(app, result.Entry.Id)
-	if err == nil && len(contents) > 1 {
-		sort.Slice(contents, func(i, j int) bool {
-			if contents[i].Numbering() == contents[j].Numbering() {
-				return contents[i].Id < contents[j].Id
-			}
-			return contents[i].Numbering() < contents[j].Numbering()
-		})
-	}
-	var prevContent *dbmodels.Content
-	var nextContent *dbmodels.Content
-	contentIndex := 0
-	contentTotal := 0
-	if len(contents) > 0 {
-		contentTotal = len(contents)
-		for i, c := range contents {
-			if c.Id != content.Id {
-				continue
-			}
-			contentIndex = i + 1
-			if i > 0 {
-				prevContent = contents[i-1]
-			}
-			if i < len(contents)-1 {
-				nextContent = contents[i+1]
-			}
-			break
-		}
-	}
-
 	agentsMap, contentAgentsMap, err := dbmodels.AgentsForContents(app, []*dbmodels.Content{content})
 	if err != nil {
 		agentsMap = map[string]*dbmodels.Agent{}
@@ -115,10 +87,6 @@ func (p *AlmanachContentsEditPage) buildContentPanelData(app core.App, ma pagemo
 	data["content_id"] = content.Id
 	data["agents"] = agentsMap
 	data["content_agents"] = contentAgentsMap[content.Id]
-	data["prev_content"] = prevContent
-	data["next_content"] = nextContent
-	data["content_index"] = contentIndex
-	data["content_total"] = contentTotal
 	return data, nil
 }
 
@@ -137,8 +105,8 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_CONTENTS_EDIT, p.GET(engine, app, ia))
 	rg.GET(URL_ALMANACH_CONTENTS_NEW, p.GETNew(engine, app, ia))
-	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT, p.GETItemEdit(engine, app, ia))
-	rg.GET(URL_ALMANACH_CONTENTS_ITEM_EDIT_SLASH, p.GETItemEdit(engine, app, ia))
+	rg.GET(URL_ALMANACH_CONTENTS_PANEL_EDIT, p.GETPanelEdit(engine, app, ia))
+	rg.GET(URL_ALMANACH_CONTENTS_PANEL_EDIT_SLASH, p.GETPanelEdit(engine, app, ia))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_RESERVATION, p.POSTReserveNumbers(engine, app, ia, store))
@@ -163,11 +131,11 @@ func (p *AlmanachContentsEditPage) GET(engine *templating.Engine, app core.App, 
 			data["success"] = msg
 		}
 
-		return engine.Response200(e, p.Template, data, p.Layout)
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
-func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
+func (p *AlmanachContentsEditPage) GETPanelEdit(engine *templating.Engine, app core.App, ma pagemodels.IApp) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		contentMusenalmID := strings.TrimSpace(e.Request.PathValue("contentMusenalmId"))
@@ -189,11 +157,11 @@ func (p *AlmanachContentsEditPage) GETItemEdit(engine *templating.Engine, app co
 			data["success"] = msg
 		}
 
-		if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+		if isContentsPanelFragmentRequest(e) {
 			return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
 		}
 
-		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
@@ -232,12 +200,13 @@ func (p *AlmanachContentsEditPage) GETNew(engine *templating.Engine, app core.Ap
 		data["is_new"] = true
 		data["cancel_url"] = cancelURLFromHeader(e)
 
-		if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+		if isContentsPanelFragmentRequest(e) {
 			data["open"] = true
 			return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
 		}
 
-		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+		data["open"] = true
+		return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 	}
 }
 
@@ -248,7 +217,7 @@ func (p *AlmanachContentsEditPage) renderError(engine *templating.Engine, app co
 		return engine.Response404(e, err, nil)
 	}
 	data["error"] = message
-	return engine.Response200(e, p.Template, data, p.Layout)
+	return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 }
 
 func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, app core.App, ma pagemodels.IApp, e *core.RequestEvent, contentID string, message string) error {
@@ -265,11 +234,11 @@ func (p *AlmanachContentsEditPage) renderItemError(engine *templating.Engine, ap
 	data["open"] = true
 	data["error"] = message
 
-	if strings.EqualFold(e.Request.Header.Get("HX-Request"), "true") {
+	if isContentsPanelFragmentRequest(e) {
 		return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 
-	return engine.Response200(e, TEMPLATE_ALMANACH_CONTENTS_ITEM_EDIT, data, p.Layout)
+	return engine.Response200(e, p.Template, data, adminPageLayout(e, p.Layout))
 }
 
 func renderContentsPanelHTMXError(e *core.RequestEvent, message string) error {
@@ -490,7 +459,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 						return e.Redirect(http.StatusSeeOther, redirect)
 					}
 					setFlashSuccess(e, savedMessage)
-					redirect := fmt.Sprintf(URL_ALMANACH_CONTENT_ITEM_EDIT_FORMAT, id, resolved[0].MusenalmID())
+					redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_PANEL_EDIT_FORMAT, id, resolved[0].MusenalmID())
 					return e.Redirect(http.StatusSeeOther, redirect)
 				}
 			}

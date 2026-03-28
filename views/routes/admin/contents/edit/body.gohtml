@@ -175,7 +175,11 @@
 	</div>
 </div>
 	</div>
-	{{ template "_editor_panel" (Dict "open" false) }}
+	{{- if $model.open -}}
+		{{ template "_editor_panel" $model }}
+	{{- else -}}
+		{{ template "_editor_panel" (Dict "open" false) }}
+	{{- end -}}
 </div>
 
 <dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
@@ -249,9 +253,38 @@
 
 <script type="module">
 	let list = null;
+	const contentsBasePath = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit";
 	const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
 	const contentsEditorSidebarLockId = "contents-editor-panel";
 	const scrollLockCache = new Map();
+	const trimTrailingSlash = (value) => {
+		if (!value) {
+			return "/";
+		}
+		const trimmed = value.replace(/\/+$/, "");
+		return trimmed || "/";
+	};
+	const buildContentsPanelPath = (contentMusenalmId) => `${contentsBasePath}/${contentMusenalmId}`;
+	const getPanelMusenalmIdFromPath = (path = window.location.pathname) => {
+		const normalizedPath = trimTrailingSlash(path);
+		const normalizedBase = trimTrailingSlash(contentsBasePath);
+		if (!normalizedPath.startsWith(normalizedBase + "/")) {
+			return "";
+		}
+		return normalizedPath.slice(normalizedBase.length + 1).split("/")[0] || "";
+	};
+	const setContentsHistoryPath = (path, replace = true) => {
+		const normalizedTarget = trimTrailingSlash(path);
+		const normalizedCurrent = trimTrailingSlash(window.location.pathname);
+		if (normalizedTarget === normalizedCurrent) {
+			return;
+		}
+		window.history[replace ? "replaceState" : "pushState"](null, "", normalizedTarget);
+	};
+	const getOpenPanelMusenalmId = () => {
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		return panelShell?.dataset.contentMusenalmId || "";
+	};
 	const lockAdminSidebarForEditor = () => {
 		window.__adminSidebarController?.lock?.(contentsEditorSidebarLockId);
 	};
@@ -344,7 +377,37 @@
 		window.__contentsApplyViewState?.();
 	};
 
-	const closeEditorPanel = () => {
+	const replacePanelShell = (html) => {
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		if (!panelShell) {
+			return;
+		}
+		const markup = (html || "").trim();
+		panelShell.outerHTML = markup || closedEditorPanelMarkup;
+		if (window.htmx?.process) {
+			window.htmx.process(document.body);
+		}
+		initFilter();
+		initViewOptions();
+		initEditorPanel();
+		initPage();
+	};
+
+	const loadEditorPanelForPath = async (path) => {
+		const response = await fetch(path, {
+			credentials: "same-origin",
+			headers: {
+				"HX-Request": "true",
+			},
+		});
+		if (!response.ok) {
+			return false;
+		}
+		replacePanelShell(await response.text());
+		return true;
+	};
+
+	const closeEditorPanel = ({ syncUrl = true, replaceUrl = true } = {}) => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
 		if (!panelShell) {
 			return;
@@ -354,6 +417,9 @@
 			window.__contentsEditorPanelController = null;
 		}
 		panelShell.outerHTML = closedEditorPanelMarkup;
+		if (syncUrl) {
+			setContentsHistoryPath(contentsBasePath, replaceUrl);
+		}
 		syncEditorState();
 	};
 	window.__closeContentsEditorPanel = closeEditorPanel;
@@ -489,6 +555,7 @@
 			initViewOptions();
 			initEditorPanel();
 			initPage();
+			setContentsHistoryPath(contentsBasePath, true);
 		};
 
 		const form = panelShell.querySelector("form.dbform");
@@ -1077,7 +1144,17 @@
 					});
 				});
 			});
+			document.querySelectorAll("[data-role='content-col-actions']").forEach((el) => {
+				el.style.width = editorOpen ? "0.5rem" : "";
+				el.style.minWidth = editorOpen ? "0.5rem" : "";
+			});
 			document.querySelectorAll("[data-role='content-cell-actions']").forEach((el) => {
+				el.style.width = editorOpen ? "0.5rem" : "";
+				el.style.minWidth = editorOpen ? "0.5rem" : "";
+				el.style.paddingLeft = editorOpen ? "0" : "";
+				el.style.paddingRight = editorOpen ? "0" : "";
+			});
+			document.querySelectorAll("[data-role='content-cell-actions-inner']").forEach((el) => {
 				el.style.display = editorOpen ? "none" : "";
 			});
 		};
@@ -1132,7 +1209,7 @@
 		}
 
 		const orderEndpoint = list.dataset.orderEndpoint || getItems()[0]?.querySelector("form")?.getAttribute("action") || "";
-		const deleteEndpoint = window.location.pathname.replace(/\/contents\/edit\/?$/, "/contents/delete");
+		const deleteEndpoint = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/delete";
 		const csrfToken = document.querySelector("input[name='csrf_token']")?.value || "";
 		const syncIndicator = document.querySelector("#contents-sync-indicator");
 		let orderSyncTimer = null;
@@ -1222,6 +1299,7 @@
 						initViewOptions();
 						initEditorPanel();
 						initPage();
+						setContentsHistoryPath(contentsBasePath, true);
 						return;
 					}
 					removeItem(item);
@@ -1587,6 +1665,17 @@
 			initEditorPanel();
 			initPage();
 		}
+	});
+	window.addEventListener("popstate", () => {
+		const contentMusenalmId = getPanelMusenalmIdFromPath();
+		if (!contentMusenalmId) {
+			closeEditorPanel({ syncUrl: false });
+			return;
+		}
+		if (isEditorOpen() && getOpenPanelMusenalmId() === contentMusenalmId) {
+			return;
+		}
+		loadEditorPanelForPath(buildContentsPanelPath(contentMusenalmId)).catch(() => null);
 	});
 	window.addEventListener("admin-sidebar-controller-ready", () => {
 		syncEditorState();

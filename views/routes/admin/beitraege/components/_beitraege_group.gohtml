@@ -6,6 +6,12 @@
 		<div class="min-w-0 flex items-center gap-3">
 			<a
 				href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
+				hx-target="#admin-main-content"
+				hx-swap="innerHTML"
+				hx-push-url="true"
+				hx-indicator="#admin-main-loading"
+				hx-headers='{"X-Admin-Main-Nav":"true"}'
+				data-admin-main-link
 				class="beitraege-admin-search-text min-w-0 truncate no-underline font-serif text-lg font-semibold text-slate-900 hover:text-slate-700">
 				{{- if $entry.PreferredTitle -}}
 					{{- $entry.PreferredTitle -}}
@@ -21,7 +27,7 @@
 			<span class="inline-flex items-center rounded-xs bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
 				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
 			</span>
-				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
 					<i class="ri-article-line"></i>
 				</a>
 				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip" title="Band bearbeiten" aria-label="Band bearbeiten">
@@ -144,7 +150,7 @@
 						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
 							<i class="ri-external-link-line"></i>
 						</a>
-						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/{{ $content.MusenalmID }}/edit/" class="admin-list-chip" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
+						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-line"></i>
 						</a>
 						<button

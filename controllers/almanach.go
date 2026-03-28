@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"net/http"
 	"sort"
 	"strings"
 
@@ -46,11 +45,6 @@ func (p *AlmanachPage) Setup(router *router.Router[*core.RequestEvent], ia pagem
 
 func (p *AlmanachPage) GET(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
-		path := e.Request.URL.Path
-		if strings.Contains(path, "/contents/") && strings.HasSuffix(path, "/edit/") {
-			return e.Redirect(http.StatusTemporaryRedirect, strings.TrimSuffix(path, "/"))
-		}
-
 		id := e.Request.PathValue("id")
 		data := make(map[string]any)
 		filters := NewBeitraegeFilterParameters(e)
