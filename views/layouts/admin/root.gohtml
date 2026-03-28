@@ -22,8 +22,24 @@
 		<div
 			x-data="{
 				sidebarCollapsed: false,
+				sidebarLockStates: {},
 				pendingSidebarTitle: '',
 				siteTitle: {{ printf "%q" .site.title }},
+				expandCollapsedSidebarSections() {
+					this.$nextTick(() => {
+						document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
+							el.open = true;
+						});
+					});
+				},
+				publishSidebarController() {
+					window.__adminSidebarController = {
+						lock: (lockId) => this.lockSidebar(lockId),
+						unlock: (lockId) => this.unlockSidebar(lockId),
+						isLocked: () => Object.keys(this.sidebarLockStates).length > 0,
+					};
+					window.dispatchEvent(new CustomEvent('admin-sidebar-controller-ready'));
+				},
 				syncSidebarActive(pathname = window.location.pathname) {
 					const sidebar = document.getElementById('admin-sidebar');
 					if (!sidebar) return;
@@ -71,6 +87,30 @@
 				syncSidebarState() {
 					document.documentElement.classList.toggle('admin-layout-sidebar-collapsed', this.sidebarCollapsed);
 				},
+				lockSidebar(lockId) {
+					const key = (lockId || '').trim();
+					if (!key) return;
+					if (!Object.prototype.hasOwnProperty.call(this.sidebarLockStates, key)) {
+						this.sidebarLockStates[key] = this.sidebarCollapsed;
+					}
+					this.sidebarCollapsed = true;
+					this.syncSidebarState();
+					this.expandCollapsedSidebarSections();
+				},
+				unlockSidebar(lockId) {
+					const key = (lockId || '').trim();
+					if (!key || !Object.prototype.hasOwnProperty.call(this.sidebarLockStates, key)) return;
+					const previousState = this.sidebarLockStates[key];
+					delete this.sidebarLockStates[key];
+					if (Object.keys(this.sidebarLockStates).length > 0) {
+						return;
+					}
+					this.sidebarCollapsed = previousState;
+					this.syncSidebarState();
+					if (this.sidebarCollapsed) {
+						this.expandCollapsedSidebarSections();
+					}
+				},
 				applySidebarTitle(title = '') {
 					const resolvedTitle = (title || '').trim();
 					if (!resolvedTitle) return;
@@ -80,24 +120,19 @@
 					this.sidebarCollapsed = document.documentElement.classList.contains('admin-layout-sidebar-collapsed');
 					this.syncSidebarState();
 					this.syncSidebarActive();
+					this.publishSidebarController();
 					if (this.sidebarCollapsed) {
-						this.$nextTick(() => {
-							document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
-								el.open = true;
-							});
-						});
+						this.expandCollapsedSidebarSections();
 					}
 				},
 				toggleSidebar() {
 					this.sidebarCollapsed = !this.sidebarCollapsed;
-					window.localStorage.setItem('admin-sidebar-collapsed', String(this.sidebarCollapsed));
+					try {
+						window.localStorage.setItem('admin-sidebar-collapsed', String(this.sidebarCollapsed));
+					} catch {}
 					this.syncSidebarState();
 					if (this.sidebarCollapsed) {
-						this.$nextTick(() => {
-							document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
-								el.open = true;
-							});
-						});
+						this.expandCollapsedSidebarSections();
 					}
 				}
 			}"

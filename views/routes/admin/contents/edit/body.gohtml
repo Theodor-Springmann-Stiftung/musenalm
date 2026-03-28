@@ -250,7 +250,14 @@
 <script type="module">
 	let list = null;
 	const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+	const contentsEditorSidebarLockId = "contents-editor-panel";
 	const scrollLockCache = new Map();
+	const lockAdminSidebarForEditor = () => {
+		window.__adminSidebarController?.lock?.(contentsEditorSidebarLockId);
+	};
+	const unlockAdminSidebarForEditor = () => {
+		window.__adminSidebarController?.unlock?.(contentsEditorSidebarLockId);
+	};
 
 	const rememberAndSetStyles = (el, styles) => {
 		if (!el) return;
@@ -320,13 +327,19 @@
 
 	const syncEditorState = () => {
 		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+		const editorOpen = isEditorOpen();
 		if (!workspace) {
+			if (!editorOpen) {
+				unlockAdminSidebarForEditor();
+			}
 			return;
 		}
-		if (isEditorOpen()) {
+		if (editorOpen) {
 			workspace.dataset.panelOpen = "true";
+			lockAdminSidebarForEditor();
 		} else {
 			delete workspace.dataset.panelOpen;
+			unlockAdminSidebarForEditor();
 		}
 		window.__contentsApplyViewState?.();
 	};
@@ -1539,9 +1552,24 @@
 	initViewOptions();
 	initEditorPanel();
 	initPage();
+	document.body.addEventListener("htmx:beforeRequest", (event) => {
+		if (!isEditorOpen()) {
+			return;
+		}
+		const target = event.detail?.target;
+		const staysInsideContentsWorkspace =
+			target?.id === "contents-editor-panel-shell" ||
+			target?.id === "contents-workspace-left" ||
+			!!target?.closest?.("[data-role='contents-edit-workspace']") ||
+			!!target?.closest?.("[data-role='contents-editor-panel-shell']");
+		if (!staysInsideContentsWorkspace) {
+			unlockAdminSidebarForEditor();
+		}
+	});
 	document.body.addEventListener("htmx:beforeSwap", (event) => {
 		if (event.detail.target?.id === "admin-main-content") {
 			unlockContentsWorkspaceLayout();
+			unlockAdminSidebarForEditor();
 		}
 	});
 	document.body.addEventListener("htmx:afterSwap", (event) => {
@@ -1560,8 +1588,12 @@
 			initPage();
 		}
 	});
+	window.addEventListener("admin-sidebar-controller-ready", () => {
+		syncEditorState();
+	});
 window.addEventListener("beforeunload", () => {
 		unlockContentsWorkspaceLayout();
+		unlockAdminSidebarForEditor();
 	});
 </script>
 <script>

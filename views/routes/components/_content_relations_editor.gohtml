@@ -47,7 +47,7 @@
 									{{- end -}}
 								</div>
 								<div data-rel-strike class="relation-strike">
-									<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="inputselect font-bold w-full">
+									<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="rel-type-select w-full">
 										{{- range $t := $agentRelations -}}
 											<option value="{{- $t -}}" {{ if eq $r.Type $t }}selected{{ end }}>{{- $t -}}</option>
 										{{- end -}}
@@ -65,9 +65,9 @@
 									<button
 										type="button"
 										class="text-sm"
+										aria-label="Entfernen"
 										data-delete-toggle="{{ $agentsPrefix }}_delete_{{ $r.Id }}">
-										<i class="ri-delete-bin-line mr-1"></i>
-										<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
+										<i class="ri-delete-bin-line"></i>
 									</button>
 									<input type="checkbox" class="hidden" name="{{ $agentsPrefix }}_delete[{{ $r.Id }}]" id="{{ $agentsPrefix }}_delete_{{ $r.Id }}" />
 								</div>
@@ -96,7 +96,7 @@
 									{{- end -}}
 								</div>
 								<div data-rel-strike class="relation-strike">
-									<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="inputselect font-bold w-full">
+									<select name="{{ $agentsPrefix }}_type[{{ $r.Id }}]" id="{{ $agentsPrefix }}_type_{{ $r.Id }}" autocomplete="off" class="rel-type-select w-full">
 										{{- range $t := $agentRelations -}}
 											<option value="{{- $t -}}" {{ if eq $r.Type $t }}selected{{ end }}>{{- $t -}}</option>
 										{{- end -}}
@@ -114,9 +114,9 @@
 									<button
 										type="button"
 										class="text-sm"
+										aria-label="Entfernen"
 										data-delete-toggle="{{ $agentsPrefix }}_delete_{{ $r.Id }}">
-										<i class="ri-delete-bin-line mr-1"></i>
-										<span class="no-underline" data-delete-label data-delete-default="Entfernen" data-delete-active="Wird entfernt" data-delete-hover="Rückgängig">Entfernen</span>
+										<i class="ri-delete-bin-line"></i>
 									</button>
 									<input type="checkbox" class="hidden" name="{{ $agentsPrefix }}_delete[{{ $r.Id }}]" id="{{ $agentsPrefix }}_delete_{{ $r.Id }}" />
 								</div>
@@ -130,7 +130,7 @@
 				{{- end -}}
 			</div>
 
-			<div data-role="relation-add-row" class="flex flex-col gap-2 mt-1 {{ if not (and $contentAgentsNew (gt (len $contentAgentsNew) 0)) }}hidden{{ end }}">
+			<div data-role="relation-add-row" class="mt-2 flex flex-col gap-2 px-2 {{ if not (and $contentAgentsNew (gt (len $contentAgentsNew) 0)) }}hidden{{ end }}">
 				{{- if and $contentAgentsNew (gt (len $contentAgentsNew) 0) -}}
 					{{- range $i, $r := $contentAgentsNew -}}
 						{{- $a := index $agents $r.Agent -}}
@@ -150,7 +150,7 @@
 									</div>
 								</div>
 								<div data-rel-strike class="relation-strike">
-									<select name="{{ $agentsPrefix }}_new_type" class="inputselect font-bold w-full">
+									<select name="{{ $agentsPrefix }}_new_type" class="rel-type-select w-full">
 										{{- range $t := $agentRelations -}}
 											<option value="{{- $t -}}" {{ if or (eq $r.Type $t) (and (eq $r.Type "") (eq $t "Autor:in")) }}selected{{ end }}>{{- $t -}}</option>
 										{{- end -}}
@@ -161,8 +161,8 @@
 									<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
 								</div>
 								<div class="rel-button-container">
-									<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
-										<i class="ri-delete-bin-line mr-1"></i> Entfernen
+									<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete" aria-label="Entfernen">
+										<i class="ri-delete-bin-line"></i>
 									</button>
 								</div>
 							</div>
@@ -172,14 +172,14 @@
 				{{- end -}}
 			</div>
 
-			<div data-role="relation-add-panel" class="mt-1 px-1.5 hidden">
+			<div data-role="relation-add-panel" class="mt-2 px-2 hidden">
 				<div class="rel-row">
-					<div class="rel-grid">
-						<div class="min-w-0">
+					<div class="rel-grid-add">
+						<div class="min-w-0 flex-1">
 							<label for="{{ $agentsAddToggleID }}-select" class="sr-only">Akteur suchen</label>
 							<single-select-remote
 								id="{{ $agentsAddToggleID }}-select"
-								class="rel-add-select"
+								class="rel-add-select rel-add-select-narrow"
 								data-role="relation-add-select"
 								name="{{ $agentsPrefix }}_new_id"
 								placeholder="Akteur suchen..."
@@ -189,9 +189,9 @@
 								data-limit="15">
 							</single-select-remote>
 						</div>
-						<div>
+						<div class="w-40 shrink-0">
 							<label for="{{ $agentsPrefix }}_new_type" class="sr-only">Beziehung</label>
-							<select data-role="relation-type-select" name="{{ $agentsPrefix }}_new_type" id="{{ $agentsPrefix }}_new_type" autocomplete="off" class="inputselect font-bold w-full">
+							<select data-role="relation-type-select" name="{{ $agentsPrefix }}_new_type" id="{{ $agentsPrefix }}_new_type" autocomplete="off" class="rel-type-select w-full">
 								{{- range $t := $agentRelations -}}
 									<option value="{{- $t -}}" {{ if eq $t "Autor:in" }}selected{{ end }}>{{- $t -}}</option>
 								{{- end -}}
@@ -202,7 +202,7 @@
 							<label for="{{ $agentsPrefix }}_new_uncertain" class="rel-uncertain-label">Unsicher</label>
 						</div>
 						<div class="rel-button-container">
-							<div class="flex items-center gap-3 text-lg">
+							<div class="flex items-center gap-2 text-lg">
 								<button type="button" data-role="relation-add-apply" class="text-gray-700 hover:text-gray-900" aria-label="Person hinzufügen">
 									<i class="ri-check-line"></i>
 								</button>
@@ -229,15 +229,15 @@
 							</div>
 						</div>
 						<div data-rel-strike class="relation-strike">
-							<select data-rel-input="type" class="inputselect font-bold w-full"></select>
+							<select data-rel-input="type" class="rel-type-select w-full"></select>
 						</div>
 						<div data-rel-strike class="relation-strike rel-uncertain-container">
 							<input data-rel-input="uncertain" type="checkbox" />
 							<label data-rel-uncertain-label class="rel-uncertain-label">Unsicher</label>
 						</div>
 						<div class="rel-button-container">
-							<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete">
-								<i class="ri-delete-bin-line mr-1"></i> Entfernen
+							<button type="button" class="text-sm text-red-700 hover:text-red-900" data-role="relation-new-delete" aria-label="Entfernen">
+								<i class="ri-delete-bin-line"></i>
 							</button>
 						</div>
 					</div>
