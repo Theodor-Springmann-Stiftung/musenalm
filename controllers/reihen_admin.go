@@ -269,6 +269,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	person := strings.TrimSpace(e.Request.URL.Query().Get("person"))
 	place := strings.TrimSpace(e.Request.URL.Query().Get("place"))
 	yearStr := strings.TrimSpace(e.Request.URL.Query().Get("year"))
+	entry := strings.TrimSpace(e.Request.URL.Query().Get("entry"))
 	sortField := strings.ToLower(strings.TrimSpace(e.Request.URL.Query().Get("sort")))
 	sortOrder := strings.ToLower(strings.TrimSpace(e.Request.URL.Query().Get("order")))
 
@@ -331,6 +332,13 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 			allowedIDs = append(allowedIDs, yearIDs)
 		}
 	}
+	if entry != "" {
+		entryIDs, err := seriesIDsForEntrySet(app, map[string]struct{}{entry: {}})
+		if err != nil {
+			return data, err
+		}
+		allowedIDs = append(allowedIDs, entryIDs)
+	}
 	timer.Mark("allowed_ids")
 
 	filteredIDs := applyAllowedIDs(allowedIDs...)
@@ -356,6 +364,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		data["person"] = person
 		data["place"] = place
 		data["year"] = yearStr
+		data["entry"] = entry
 		data["sort_field"] = sortField
 		data["sort_order"] = sortOrder
 		data["letters"] = letters
@@ -415,6 +424,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	data["person"] = person
 	data["place"] = place
 	data["year"] = yearStr
+	data["entry"] = entry
 	data["sort_field"] = sortField
 	data["sort_order"] = sortOrder
 	data["letters"] = letters

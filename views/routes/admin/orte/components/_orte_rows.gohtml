@@ -1,26 +1,26 @@
 {{ $model := . }}
 
 {{- range $place := $model.result.Places -}}
-	<tr
-		data-role="orte-row"
-		data-place-id="{{ $place.Id }}"
-		class="admin-list-row">
-		<td class="py-2 pr-4 pl-4">
-			<div class="flex flex-col">
-				<span class="orte-search-text text-lg font-semibold leading-snug text-slate-900">{{ $place.Name }}</span>
-				{{- if $place.Pseudonyms -}}
-					<span class="orte-search-text mt-1 text-base leading-snug text-gray-700 italic">{{ $place.Pseudonyms }}</span>
-				{{- end -}}
-			</div>
-		</td>
-		<td class="py-2 pr-4 text-base text-gray-700">
-			{{- if $place.Fictional -}}
-				<span class="admin-list-badge italic">fiktional</span>
-			{{- end -}}
-		</td>
-		<td class="py-2 pr-4">
-			{{- if (index $model.bcount $place.Id) -}}
-				<div class="admin-list-count">
+		<tr
+			data-role="orte-row"
+			data-place-id="{{ $place.Id }}"
+			class="admin-list-row">
+			<td class="py-2 pr-4 pl-4">
+				<div class="flex flex-col">
+					<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+						<span class="orte-search-text text-lg font-semibold leading-snug text-slate-900">{{ $place.Name }}</span>
+						{{- if $place.Fictional -}}
+							<span class="admin-list-badge italic">fiktional</span>
+						{{- end -}}
+					</div>
+					{{- if $place.Pseudonyms -}}
+						<span class="orte-search-text mt-1 text-base leading-snug text-gray-700 italic">{{ $place.Pseudonyms }}</span>
+					{{- end -}}
+				</div>
+			</td>
+			<td class="py-2 pr-4 col-verweise whitespace-nowrap text-right w-px">
+				<div class="admin-list-count flex justify-end whitespace-nowrap">
+					{{- if gt (index $model.bcount $place.Id) 0 -}}
 					<tool-tip position="top" class="inline">
 						<a
 							href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.Id }}"
@@ -36,10 +36,18 @@
 						</a>
 						<div class="data-tip">Bände anzeigen</div>
 					</tool-tip>
-				</div>
-			{{- end -}}
+				{{- else -}}
+					<tool-tip position="top" class="inline">
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+							<i class="ri-book-line"></i>
+							<span>0</span>
+						</span>
+						<div class="data-tip">Keine Bände verknüpft</div>
+					</tool-tip>
+				{{- end -}}
+			</div>
 		</td>
-		<td class="py-2 pr-8">
+		<td class="py-2 pr-4">
 			<div class="admin-list-actions">
 				<div class="admin-list-action-stack">
 					{{- if (IsAdminOrEditor $model.request.user) -}}

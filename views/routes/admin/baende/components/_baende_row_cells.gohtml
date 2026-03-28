@@ -1,11 +1,11 @@
 {{ $entry := .entry }}
-<td class="pt-2 pb-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem]{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
-	<div class="flex flex-col gap-1">
-		<span class="inline-flex w-full items-center px-2.5 py-0 text-base font-semibold text-black">Alm {{ $entry.MusenalmID }}</span>
-		{{- if $entry.References -}}
-			<span class="admin-list-reference" title="{{ $entry.References }}">{{ $entry.References }}</span>
-		{{- end -}}
-		<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
+<td class="pt-2 pb-2 pr-4 pl-4 admin-col-nachweis-baende admin-col-wrap{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+		<div class="flex flex-col">
+			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Alm {{ $entry.MusenalmID }}</div>
+			{{- if $entry.References -}}
+				<div class="mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $entry.References }}">{{ $entry.References }}</div>
+			{{- end -}}
+			<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
 			<tool-tip position="top" class="inline">
 				<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
 					<i class="ri-external-link-line"></i>
@@ -20,13 +20,6 @@
 					<div class="data-tip">Bearbeiten</div>
 				</tool-tip>
 				<tool-tip position="top" class="inline">
-					<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip">
-						<i class="ri-file-list-3-line"></i>
-						<span>{{ if .contents_count }}{{ .contents_count }}{{ else }}0{{ end }}</span>
-					</a>
-					<div class="data-tip">Beiträge bearbeiten</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
 					<button
 						type="button"
 						onclick="event.stopPropagation();"
@@ -38,6 +31,54 @@
 						<i class="ri-delete-bin-line"></i>
 					</button>
 					<div class="data-tip">Löschen</div>
+				</tool-tip>
+				{{- end -}}
+			</div>
+		<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
+			{{- if gt .contents_count 0 -}}
+				<tool-tip position="top" class="inline">
+					<a
+						href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
+						onclick="event.stopPropagation();"
+						hx-target="body"
+						class="admin-list-chip">
+						<i class="ri-file-list-3-line"></i>
+						<span>{{ .contents_count }}</span>
+					</a>
+					<div class="data-tip">Inhalte bearbeiten</div>
+				</tool-tip>
+			{{- else -}}
+				<tool-tip position="top" class="inline">
+					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+						<i class="ri-file-list-3-line"></i>
+						<span>0</span>
+					</span>
+					<div class="data-tip">Keine Inhalte</div>
+				</tool-tip>
+			{{- end -}}
+			{{- if gt (len .series_links) 0 -}}
+				<tool-tip position="top" class="inline">
+					<a
+						href="/admin/reihen/?entry={{ $entry.Id }}"
+						onclick="event.stopPropagation();"
+						hx-target="#admin-main-content"
+						hx-swap="innerHTML"
+						hx-push-url="true"
+						hx-indicator="#admin-main-loading"
+						hx-headers='{"X-Admin-Main-Nav":"true"}'
+						class="admin-list-chip">
+						<i class="ri-book-shelf-fill"></i>
+						<span>{{ len .series_links }}</span>
+					</a>
+					<div class="data-tip">Reihen anzeigen</div>
+				</tool-tip>
+			{{- else -}}
+				<tool-tip position="top" class="inline">
+					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+						<i class="ri-book-shelf-fill"></i>
+						<span>0</span>
+					</span>
+					<div class="data-tip">Keine Reihen verknüpft</div>
 				</tool-tip>
 			{{- end -}}
 		</div>
@@ -100,7 +141,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 whitespace-nowrap col-year hidden w-[5.5rem]">
+<td class="pt-2 pb-2 pr-4 whitespace-nowrap col-year hidden admin-col-year">
 	{{- if ne $entry.Year 0 -}}
 		<a
 			href="/admin/baende/?offset=0&sort=title&order=asc&year={{ $entry.Year }}"
@@ -115,7 +156,7 @@
 		</a>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-appearance">
+<td class="pt-2 pb-2 pr-4 col-appearance admin-col-appearance">
 	{{- if or $entry.ResponsibilityStmt $entry.PublicationStmt $entry.PlaceStmt -}}
 		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- if and $entry.ResponsibilityStmt (not (eq $entry.ResponsibilityStmt "unbezeichnet")) -}}
@@ -144,7 +185,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-extent">
+<td class="pt-2 pb-2 pr-4 col-extent admin-col-extent">
 	{{- if or $entry.Extent $entry.Dimensions $entry.Language -}}
 		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- if $entry.Extent -}}
@@ -172,7 +213,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-signatures w-[7.5rem]">
+<td class="pt-2 pb-2 pr-4 col-signatures admin-col-signatures">
 	{{- if .items -}}
 		<div class="flex flex-col gap-2 text-base text-gray-700">
 			{{- range $_, $item := .items -}}
@@ -190,7 +231,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-series hidden w-[18rem]">
+<td class="pt-2 pb-2 pr-4 col-series hidden admin-col-series-wide">
 	{{- if .series_links -}}
 		<div class="flex flex-col gap-1.5 text-base text-gray-700">
 			{{- range $_, $link := .series_links -}}
@@ -212,7 +253,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-linked-places hidden w-[16rem]">
+<td class="pt-2 pb-2 pr-4 col-linked-places hidden admin-col-linked">
 	{{- if $entry.Places -}}
 		<div class="flex flex-col gap-1.5 text-base text-gray-700">
 			{{- range $_, $placeID := $entry.Places -}}
@@ -234,7 +275,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-4 col-linked-persons hidden w-[16rem]">
+<td class="pt-2 pb-2 pr-4 col-linked-persons hidden admin-col-linked">
 	{{- if .agent_rels -}}
 		<div class="flex flex-col gap-1.5 text-base text-gray-700">
 			{{- range $_, $rel := .agent_rels -}}
@@ -256,7 +297,7 @@
 		</div>
 	{{- end -}}
 </td>
-<td class="pt-2 pb-2 pr-8 col-modified w-[11.25rem]">
+<td class="pt-2 pb-2 pr-4 col-modified admin-col-modified-baende">
 	{{ template "_modified_notes_cell" (Dict
 		"updated" $entry.Updated
 		"editor_user" .editor_user

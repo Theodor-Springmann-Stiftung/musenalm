@@ -11,6 +11,7 @@
 	person: '{{ $model.person }}',
 	place: '{{ $model.place }}',
 	year: '{{ $model.year }}',
+	entry: '{{ $model.entry }}',
 	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
 	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
 	selectedLabels: {
@@ -25,6 +26,7 @@
 		if (this.person) params.set('person', this.person);
 		if (this.place) params.set('place', this.place);
 		if (this.year) params.set('year', this.year);
+		if (this.entry) params.set('entry', this.entry);
 	},
 	buildResultsUrl(overrides = {}) {
 		const params = new URLSearchParams();
@@ -54,6 +56,7 @@
 			person: this.person,
 			place: this.place,
 			year: this.year,
+			entry: this.entry,
 			sort: this.sortField,
 			order: this.sortOrder,
 			offset: this.offset,
@@ -95,6 +98,7 @@
 		this.person = '';
 		this.place = '';
 		this.year = '';
+		this.entry = '';
 		this.selectedLabels.person = '';
 		this.selectedLabels.place = '';
 		this.selectedLabels.year = '';
@@ -112,6 +116,7 @@
 			person: '',
 			place: '',
 			year: '',
+			entry: '',
 			offset: 0,
 		}), {
 			target: '#reihenresults',
@@ -176,6 +181,7 @@
 		person = params.get('person') || '';
 		place = params.get('place') || '';
 		year = params.get('year') || '';
+		entry = params.get('entry') || '';
 		search = params.get('search') || '';
 		selectedLetter = params.get('letter') || '';
 		updateUrl();
@@ -190,7 +196,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<button
 						type="button"
 						x-cloak
-						x-show="search || selectedLetter || person || place || year"
+						x-show="search || selectedLetter || person || place || year || entry"
 						@click="clearAllFilters($el)"
 						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
 						<i class="ri-filter-off-line text-sm"></i>
@@ -353,9 +359,9 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						</summary>
 						<div class="absolute right-0 mt-2 w-56 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
 							<div class="flex flex-col gap-2 p-4 text-sm text-gray-700">
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="reference" checked /> Nr / Nachweis</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="title" checked /> Titel</label>
-								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="band-count" checked /> Bände</label>
-								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" checked /> Bearbeitet / Von</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" checked /> Bearbeitet / Vermerk</label>
 							</div>
 						</div>
 					</details>

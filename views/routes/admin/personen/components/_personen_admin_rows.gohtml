@@ -6,7 +6,7 @@
 	<tr
 		data-agent-id="{{ $agent.Id }}"
 		class="admin-list-row{{ if eq $agent.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $agent.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
-		<td class="w-[9rem] whitespace-nowrap py-2 pr-4 pl-4">
+		<td class="col-reference admin-col-nachweis-personen admin-col-wrap py-2 pr-4 pl-4">
 			<div class="flex flex-col gap-1">
 				{{- if $agent.References -}}
 					<span class="agent-admin-search-text admin-list-reference" title="{{ $agent.References }}">{{ $agent.References }}</span>
@@ -24,40 +24,53 @@
 				<div class="agent-admin-search-text annotation-content mt-1 font-sans text-base leading-snug text-gray-700">{{- Safe (ReplaceSlashParen $agent.Annotation) -}}</div>
 			{{- end -}}
 		</td>
-		<td class="col-profession py-2 pr-4 text-base text-gray-700">
-			{{- if $agent.Profession -}}
-				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</div>
-			{{- end -}}
-		</td>
-		<td class="col-life py-2 pr-4 text-base leading-snug text-gray-700">
+		<td class="col-life admin-col-life py-2 pr-4 text-base leading-snug text-gray-700">
 			{{- if $agent.BiographicalData -}}
 				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.BiographicalData }}</div>
 			{{- end -}}
 		</td>
-		<td class="col-counts py-2 pr-4">
-			<div class="admin-list-count flex items-center gap-2">
+		<td class="col-profession admin-col-profession py-2 pr-4 text-base text-gray-700">
+			{{- if $agent.Profession -}}
+				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</div>
+			{{- end -}}
+		</td>
+		<td class="col-verweise py-2 pr-4 whitespace-nowrap text-right w-px">
+			<div class="admin-list-count flex items-center justify-end gap-2 whitespace-nowrap">
+				{{- if gt $bandCount 0 -}}
+					<tool-tip position="top" class="inline">
+						<a
+							href="/admin/baende/?offset=0&sort=title&order=asc&person={{ $agent.Id }}"
+							onclick="event.stopPropagation();"
+							hx-target="#admin-main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							hx-indicator="#admin-main-loading"
+							hx-headers='{"X-Admin-Main-Nav":"true"}'
+							class="admin-list-chip">
+							<i class="ri-book-line"></i>
+							<span>{{ $bandCount }}</span>
+						</a>
+						<div class="data-tip">Bände anzeigen</div>
+					</tool-tip>
+				{{- else -}}
+					<tool-tip position="top" class="inline">
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+							<i class="ri-book-line"></i>
+							<span>0</span>
+						</span>
+						<div class="data-tip">Keine Bände verknüpft</div>
+					</tool-tip>
+				{{- end -}}
 				<tool-tip position="top" class="inline">
-					<a
-						href="/admin/baende/?offset=0&sort=title&order=asc&person={{ $agent.Id }}"
-						onclick="event.stopPropagation();"
-						hx-target="#admin-main-content"
-						hx-swap="innerHTML"
-						hx-push-url="true"
-						hx-indicator="#admin-main-loading"
-						hx-headers='{"X-Admin-Main-Nav":"true"}'
-						class="admin-list-chip">
-						<i class="ri-book-line"></i>
-						<span>{{ $bandCount }}</span>
-					</a>
-					<div class="data-tip">Bände anzeigen</div>
+					<span class="admin-list-chip{{ if eq $contentCount 0 }} pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60{{ end }}">
+						<i class="ri-article-line"></i>
+						<span>{{ $contentCount }}</span>
+					</span>
+					<div class="data-tip">Inhalte</div>
 				</tool-tip>
-				<div class="admin-list-inline-stat">
-					<i class="ri-article-line"></i>
-					<span>{{ $contentCount }}</span>
-				</div>
 			</div>
 		</td>
-		<td class="py-2 pr-8">
+		<td class="py-2 pr-4">
 			<div class="admin-list-actions">
 				<div class="admin-list-action-stack">
 					<tool-tip position="top" class="inline">

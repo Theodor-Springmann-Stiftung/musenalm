@@ -1,10 +1,22 @@
 {{ $model := . }}
 
 <div class="admin-list-table-shell">
-	<table id="baende-table" class="admin-list-table baende-text">
+	<table id="baende-table" class="admin-list-table admin-table-fixed baende-text">
+		<colgroup>
+			<col class="admin-col-nachweis-baende" />
+			<col class="admin-col-stretch" />
+			<col class="col-year hidden admin-col-year" />
+			<col class="col-appearance admin-col-appearance" />
+			<col class="col-extent admin-col-extent" />
+			<col class="col-signatures admin-col-signatures" />
+			<col class="col-series hidden admin-col-series-wide" />
+			<col class="col-linked-places hidden admin-col-linked" />
+			<col class="col-linked-persons hidden admin-col-linked" />
+			<col class="col-modified admin-col-modified-baende" />
+		</colgroup>
 		<thead class="admin-list-head">
 			<tr>
-				<th class="py-2 pr-4 pl-4 whitespace-nowrap w-[12.5rem] align-bottom"
+				<th class="py-2 pr-4 pl-4 whitespace-nowrap admin-col-nachweis-baende align-bottom"
 					:aria-sort="sortField === 'alm' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"
@@ -22,22 +34,25 @@
 						<span class="font-semibold tracking-wide">Nachweis</span>
 					</div>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap w-[38rem] align-bottom col-title"
+				<th class="py-2 pr-4 align-bottom col-title"
 					:aria-sort="sortField === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
-					<button type="button"
-						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
-						@click="changeSort('title', $event)">
-						<span class="font-semibold tracking-wide">Titel</span>
-						<i class="text-xs opacity-70 transition-colors"
-						   :class="{
-								'ri-arrow-up-line text-blue-600': sortField === 'title' && sortOrder === 'asc',
-								'ri-arrow-down-line text-blue-600': sortField === 'title' && sortOrder === 'desc',
-								'ri-arrow-up-down-line text-gray-400': sortField !== 'title'
-						   }"
-						   aria-hidden="true"></i>
-					</button>
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<button type="button"
+							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
+							@click="changeSort('title', $event)">
+							<span class="font-semibold tracking-wide">Titel</span>
+							<i class="text-xs opacity-70 transition-colors"
+							   :class="{
+									'ri-arrow-up-line text-blue-600': sortField === 'title' && sortOrder === 'asc',
+									'ri-arrow-down-line text-blue-600': sortField === 'title' && sortOrder === 'desc',
+									'ri-arrow-up-down-line text-gray-400': sortField !== 'title'
+							   }"
+							   aria-hidden="true"></i>
+						</button>
+						<span class="col-annotations hidden font-semibold tracking-wide">Anmerkungen</span>
+					</div>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-year hidden align-bottom w-[5.5rem]"
+				<th class="py-2 pr-4 whitespace-nowrap col-year hidden admin-col-year align-bottom"
 					:aria-sort="sortField === 'year' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
@@ -52,7 +67,7 @@
 						   aria-hidden="true"></i>
 					</button>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-appearance w-[18rem] align-bottom">
+				<th class="py-2 pr-4 whitespace-nowrap col-appearance admin-col-appearance align-bottom">
 					<div class="flex flex-col items-start gap-0.5 h-full justify-end">
 						<button type="button"
 							class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base leading-tight"
@@ -80,13 +95,13 @@
 						</button>
 					</div>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-extent w-[18rem] align-bottom">
+				<th class="py-2 pr-4 whitespace-nowrap col-extent admin-col-extent align-bottom">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<span class="font-semibold tracking-wide">Struktur&thinsp;/&thinsp;Maße</span>
 						<span class="font-semibold tracking-wide">Sprache</span>
 					</div>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-signatures align-bottom w-[7.5rem]"
+				<th class="py-2 pr-4 whitespace-nowrap col-signatures admin-col-signatures align-bottom"
 					:aria-sort="sortField === 'signatur' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
@@ -101,10 +116,10 @@
 						   aria-hidden="true"></i>
 					</button>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-series hidden align-bottom w-[18rem]">
+				<th class="py-2 pr-4 whitespace-nowrap col-series hidden admin-col-series-wide align-bottom">
 					<span class="font-semibold tracking-wide">Reihen</span>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-linked-places hidden align-bottom w-[16rem]"
+				<th class="py-2 pr-4 whitespace-nowrap col-linked-places hidden admin-col-linked align-bottom"
 					:aria-sort="sortField === 'linked_places' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
@@ -119,7 +134,7 @@
 						   aria-hidden="true"></i>
 					</button>
 				</th>
-				<th class="py-2 pr-4 whitespace-nowrap col-linked-persons hidden align-bottom w-[16rem]"
+				<th class="py-2 pr-4 whitespace-nowrap col-linked-persons hidden admin-col-linked align-bottom"
 					:aria-sort="sortField === 'linked_persons' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
@@ -134,7 +149,7 @@
 						   aria-hidden="true"></i>
 					</button>
 				</th>
-				<th class="py-2 pr-8 whitespace-nowrap col-modified align-bottom w-[11.25rem]"
+				<th class="py-2 pr-4 whitespace-nowrap col-modified admin-col-modified-baende align-bottom"
 					:aria-sort="sortField === 'updated' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<button type="button"

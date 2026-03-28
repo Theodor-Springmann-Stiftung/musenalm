@@ -620,7 +620,7 @@
 	}
 
 	.admin-page-body-tight-top {
-		@apply pt-2;
+		@apply pt-0;
 	}
 
 	.admin-page-link {
@@ -681,6 +681,102 @@
 
 	.admin-list-table {
 		@apply min-w-full font-sans text-base;
+	}
+
+	.admin-table-fixed {
+		table-layout: fixed;
+	}
+
+	.admin-col-stretch {
+		width: 100%;
+	}
+
+	.admin-col-tight {
+		width: 1%;
+	}
+
+	.admin-col-nachweis-reihen {
+		width: 16rem;
+		min-width: 16rem;
+		max-width: 16rem;
+	}
+
+	.admin-col-nachweis-baende {
+		width: 16rem;
+		min-width: 16rem;
+		max-width: 16rem;
+	}
+
+	.admin-col-nachweis-personen {
+		width: 14rem;
+		min-width: 14rem;
+		max-width: 14rem;
+	}
+
+	.admin-col-modified-reihen {
+		width: 16.8rem;
+		min-width: 16.8rem;
+		max-width: 16.8rem;
+	}
+
+	.admin-col-year {
+		width: 5.5rem;
+		min-width: 5.5rem;
+		max-width: 5.5rem;
+	}
+
+	.admin-col-appearance {
+		width: 16.8rem;
+		min-width: 16.8rem;
+		max-width: 16.8rem;
+	}
+
+	.admin-col-extent {
+		width: 16.8rem;
+		min-width: 16.8rem;
+		max-width: 16.8rem;
+	}
+
+	.admin-col-signatures {
+		width: 7.5rem;
+		min-width: 7.5rem;
+		max-width: 7.5rem;
+	}
+
+	.admin-col-series-wide {
+		width: 18rem;
+		min-width: 18rem;
+		max-width: 18rem;
+	}
+
+	.admin-col-linked {
+		width: 16rem;
+		min-width: 16rem;
+		max-width: 16rem;
+	}
+
+	.admin-col-modified-baende {
+		width: 16.8rem;
+		min-width: 16.8rem;
+		max-width: 16.8rem;
+	}
+
+	.admin-col-life {
+		width: 12rem;
+		min-width: 12rem;
+		max-width: 12rem;
+	}
+
+	.admin-col-profession {
+		width: 24rem;
+		min-width: 24rem;
+		max-width: 24rem;
+	}
+
+	.admin-col-wrap {
+		white-space: normal;
+		overflow-wrap: anywhere;
+		word-break: break-word;
 	}
 
 	.admin-list-head {

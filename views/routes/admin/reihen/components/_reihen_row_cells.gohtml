@@ -1,45 +1,55 @@
 {{ $series := .series }}
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 whitespace-nowrap w-[6.5rem]{{ if eq $series.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $series.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
-	<div class="flex flex-col gap-1">
-		<span class="inline-flex w-full items-center px-2.5 py-0 text-base font-semibold text-black">Nr {{ $series.MusenalmID }}</span>
-		{{- if $series.References -}}
-			<span class="reihen-admin-text admin-list-reference" title="{{ $series.References }}">{{ $series.References }}</span>
-		{{- end -}}
-	</div>
+<td class="col-reference pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 admin-col-nachweis-reihen admin-col-wrap{{ if eq $series.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $series.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+		<div class="flex flex-col">
+			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Nr {{ $series.MusenalmID }}</div>
+			{{- if $series.References -}}
+				<div class="reihen-admin-text mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $series.References }}">{{ $series.References }}</div>
+			{{- end -}}
+		</div>
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-title w-[28rem]">
+<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-title">
 	<div class="reihen-admin-text text-base font-semibold leading-snug text-slate-900">{{ $series.Title }}</div>
 	{{- if $series.Annotation -}}
 		<div class="reihen-admin-text annotation-content mt-1 font-sans text-base leading-snug text-gray-700">{{- Safe (ReplaceSlashParen $series.Annotation) -}}</div>
 	{{- end -}}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-band-count whitespace-nowrap">
-	<div class="admin-list-count">
-		<tool-tip position="top" class="inline">
-			<a
-				href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.Id }}"
-				onclick="event.stopPropagation();"
-				hx-target="#admin-main-content"
-				hx-swap="innerHTML"
-				hx-push-url="true"
-				hx-indicator="#admin-main-loading"
-				hx-headers='{"X-Admin-Main-Nav":"true"}'
-				class="admin-list-chip">
-				<i class="ri-book-line"></i>
-				<span>{{ len .band_links }}</span>
-			</a>
-			<div class="data-tip">Bände anzeigen</div>
-		</tool-tip>
-	</div>
-</td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-8 col-modified w-[11.5rem]">
+<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-modified admin-col-modified-reihen">
 	{{ template "_modified_notes_cell" (Dict
 		"updated" $series.Updated
 		"editor_user" .editor_user
 		"comment" $series.Comment
 	) }}
 </td>
-<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-8">
+<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-verweise whitespace-nowrap text-right w-px">
+	<div class="admin-list-count flex justify-end whitespace-nowrap">
+		{{- if gt (len .band_links) 0 -}}
+			<tool-tip position="top" class="inline">
+				<a
+					href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.Id }}"
+					onclick="event.stopPropagation();"
+					hx-target="#admin-main-content"
+					hx-swap="innerHTML"
+					hx-push-url="true"
+					hx-indicator="#admin-main-loading"
+					hx-headers='{"X-Admin-Main-Nav":"true"}'
+					class="admin-list-chip">
+					<i class="ri-book-line"></i>
+					<span>{{ len .band_links }}</span>
+				</a>
+				<div class="data-tip">Bände anzeigen</div>
+			</tool-tip>
+		{{- else -}}
+			<tool-tip position="top" class="inline">
+				<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60">
+					<i class="ri-book-line"></i>
+					<span>0</span>
+				</span>
+				<div class="data-tip">Keine Bände verknüpft</div>
+			</tool-tip>
+		{{- end -}}
+	</div>
+</td>
+<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4">
 	<div class="admin-list-actions">
 		<div class="admin-list-action-stack">
 			<tool-tip position="top" class="inline">
