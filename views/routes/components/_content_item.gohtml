@@ -53,6 +53,9 @@
 						{{- if $content.ResponsibilityStmt -}}
 							<span class="content-search-text inline text-lg font-normal italic leading-snug text-slate-700" data-role="content-responsibility">
 								<span class="mx-1.5 font-semibold not-italic">&middot;</span><span>{{ $content.ResponsibilityStmt }}</span>
+								{{- if $content.Pseudonym -}}
+									{{- template "_pseudonym_pill" . -}}
+								{{- end -}}
 							</span>
 						{{- end -}}
 						{{- if $contentAgentDisplays -}}
