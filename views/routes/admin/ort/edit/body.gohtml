@@ -7,8 +7,8 @@
 {{- $placeActions := Arr -}}
 {{- if not $model.is_new -}}
 	{{- $placeActions = Arr
-		(Dict "href" (printf "/reihen/?place=%s" $place.Id) "icon" "ri-eye-line" "tooltip" "Anschauen")
-		(Dict "href" (printf "/reihen/?place=%s" $place.Id) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
+		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
 		(Dict "href" "/admin/orte/" "icon" "ri-list-check-2" "tooltip" "Liste aller Orte")
 	-}}
 {{- end -}}

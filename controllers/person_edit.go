@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -360,7 +361,7 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, ia pagemo
 		}
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf(URL_PERSON_VIEW_FORMAT, id)
+			redirect := fmt.Sprintf(URL_PERSON_VIEW_FORMAT, strconv.Itoa(agent.MusenalmID()))
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
@@ -124,7 +125,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemod
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
 
-		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, createdAgent.Id)
+		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, strconv.Itoa(createdAgent.MusenalmID()))
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

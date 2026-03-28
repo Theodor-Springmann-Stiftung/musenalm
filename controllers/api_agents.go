@@ -89,10 +89,11 @@ func (p *AgentsAPI) searchHandler(app core.App) HandleFunc {
 			}
 			seen[agent.Id] = true
 			response = append(response, map[string]string{
-				"id":     agent.Id,
-				"name":   agent.Name(),
-				"detail": agent.Pseudonyms(),
-				"bio":    agent.BiographicalData(),
+				"id":          agent.Id,
+				"name":        agent.Name(),
+				"detail":      agent.Pseudonyms(),
+				"bio":         agent.BiographicalData(),
+				"musenalm_id": strconv.Itoa(agent.MusenalmID()),
 			})
 			if limit > 0 && len(response) >= limit {
 				break

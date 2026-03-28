@@ -7,8 +7,8 @@
 {{- $personActions := Arr -}}
 {{- if not $model.is_new -}}
 	{{- $personActions = Arr
-		(Dict "href" (printf "/person/%s" $agent.Id) "icon" "ri-eye-line" "tooltip" "Anschauen")
-		(Dict "href" (printf "/person/%s" $agent.Id) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
+		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
 		(Dict "href" "/admin/personen/" "icon" "ri-list-check-2" "tooltip" "Liste aller Personen")
 	-}}
 {{- end -}}
@@ -36,7 +36,7 @@
 	{{- $personNextMusenalmHref = printf "/admin/person/%s/edit/" $model.result.NextMusenalm.Id -}}
 	{{- $personNextMusenalmLabel = printf "%d: %s" $model.result.NextMusenalm.MusenalmID $model.result.NextMusenalm.Name -}}
 {{- end -}}
-{{- $personCancelHref := printf "/person/%s" $agent.Id -}}
+{{- $personCancelHref := printf "/person/%d" $agent.MusenalmID -}}
 {{- if $model.is_new -}}
 	{{- $personCancelHref = "/personen/" -}}
 {{- end -}}

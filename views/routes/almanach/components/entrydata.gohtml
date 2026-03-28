@@ -218,7 +218,7 @@
 							{{- range $i, $placeID := $model.result.Entry.Places -}}
 								{{- $p := placeDisplay $placeID -}}
 								<div>
-									<a href="/reihen?place={{ $p.Id }}&hidden=true">{{ $p.Name }}</a>
+									<a href="/reihen?place={{ $p.MusenalmID }}&hidden=true">{{ $p.Name }}</a>
 								</div>
 							{{- end -}}
 						</div>
@@ -232,7 +232,7 @@
 								{{- $a := agentDisplay $r.Agent -}}
 								{{- if $a -}}
 									<div>
-										<a href="/person/{{ $a.Id }}">
+										<a href="/person/{{ $a.MusenalmID }}">
 											{{ $a.Name }}
 										</a>
 										<span

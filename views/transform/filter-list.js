@@ -154,10 +154,10 @@ export class FilterList extends HTMLElement {
 	getHREF(item) {
 		if (!item) {
 			return "";
-		} else if (!item.id) {
+		} else if (item.id == null) {
 			return "";
 		}
-		return item.id;
+		return String(item.id);
 	}
 
 	getHREFEncoded(item) {

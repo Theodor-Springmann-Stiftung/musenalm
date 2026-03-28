@@ -70,7 +70,7 @@
 						{{- $agent := index $agents $rel.Agent -}}
 						{{- if $agent -}}
 							<div class="font-sans w-max">
-								<a href="/person/{{- $agent.Id -}}" class="no-underline hover:text-slate-900">
+								<a href="/person/{{- $agent.MusenalmID -}}" class="no-underline hover:text-slate-900">
 									{{- $agent.Name -}}
 								</a>
 								{{- if $agent.BiographicalData -}}

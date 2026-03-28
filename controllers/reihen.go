@@ -277,7 +277,7 @@ func NewSeriesListResult_Letter(musenalmApp *app.App, letter string) (*SeriesLis
 
 func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResult, error) {
 	pbApp := musenalmApp.Core()
-	agent, err := dbmodels.Agents_ID(pbApp, person)
+	agent, err := dbmodels.Agents_MusenalmID(pbApp, person)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +370,7 @@ func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, er
 
 func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResult, error) {
 	pbApp := musenalmApp.Core()
-	p, err := dbmodels.Places_ID(pbApp, place)
+	p, err := dbmodels.Places_MusenalmID(pbApp, place)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +378,7 @@ func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResul
 	entries := []*core.Record{}
 	err = pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
 		Select(dbmodels.ID_FIELD).
-		Where(dbx.Like(dbmodels.PLACES_TABLE, place).Match(true, true)).
+		Where(dbx.Like(dbmodels.PLACES_TABLE, p.Id).Match(true, true)).
 		All(&entries)
 	if err != nil {
 		return nil, err

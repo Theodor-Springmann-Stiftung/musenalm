@@ -20,6 +20,9 @@
 		let agentList = document.getElementById("agent-list");
 		if (agentList) {
 			agentList.items = {{ $model.common.Agents }};
+			agentList.setHREFFunc((item) => {
+				return String(item.musenalm_id ?? item.MusenalmID ?? item.id ?? "");
+			});
 
 			agentList.setSearchTextFunc((item) => {
 				return item.name;
@@ -48,7 +51,12 @@
 		</div>
 	<script type="module">
 		let placeList = document.getElementById("place-list");
-		if (placeList) placeList.items = {{ $model.common.Places }};
+		if (placeList) {
+			placeList.items = {{ $model.common.Places }};
+			placeList.setHREFFunc((item) => {
+				return String(item.musenalm_id ?? item.MusenalmID ?? item.id ?? "");
+			});
+		}
 	</script>
 	{{ end }}
 

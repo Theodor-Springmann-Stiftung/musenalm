@@ -157,7 +157,7 @@
 									<div class="rel-grid">
 										<div data-rel-strike class="relation-strike rel-name-col">
 											{{- if $a -}}
-												<a data-rel-link href="/person/{{ $a.Id }}" class="rel-link" target="_blank" rel="noreferrer">
+												<a data-rel-link href="/person/{{ $a.MusenalmID }}" class="rel-link" target="_blank" rel="noreferrer">
 													<span data-rel-name>{{- $a.Name -}}</span>
 												</a>
 												{{- if $a.BiographicalData -}}
@@ -204,7 +204,7 @@
 									<div class="rel-grid">
 										<div data-rel-strike class="relation-strike rel-name-col">
 											{{- if $a -}}
-												<a data-rel-link href="/person/{{ $a.Id }}" class="rel-link" target="_blank" rel="noreferrer">
+												<a data-rel-link href="/person/{{ $a.MusenalmID }}" class="rel-link" target="_blank" rel="noreferrer">
 													<span data-rel-name>{{- $a.Name -}}</span>
 												</a>
 												{{- if $a.BiographicalData -}}
@@ -257,7 +257,7 @@
 									<div class="rel-grid">
 										<div data-rel-strike class="relation-strike rel-name-col">
 											<div class="text-base text-gray-800 truncate">
-												<a data-rel-link class="no-underline hover:text-slate-900" href="/person/{{ $r.Agent }}" target="_blank" rel="noreferrer">
+												<a data-rel-link class="no-underline hover:text-slate-900" href="{{ if $a }}/person/{{ $a.MusenalmID }}{{ end }}" target="_blank" rel="noreferrer">
 													<span data-rel-name>{{- if $a -}}{{ $a.Name }}{{- end -}}</span>
 												</a>
 												<em data-rel-new class="rel-new-badge">(Neu)</em>

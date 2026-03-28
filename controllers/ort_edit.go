@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -212,11 +213,7 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, ia pagemodel
 		}
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf(URL_REIHEN_PLACE_FILTER, id)
-			return e.Redirect(http.StatusSeeOther, redirect)
-		}
-		if strings.TrimSpace(formdata.SaveAction) == "view" {
-			redirect := fmt.Sprintf(URL_ORT_VIEW_FORMAT, id)
+			redirect := fmt.Sprintf(URL_REIHEN_PLACE_FILTER, strconv.Itoa(place.MusenalmID()))
 			return e.Redirect(http.StatusSeeOther, redirect)
 		}
 		setFlashSuccess(e, "Änderungen gespeichert.")

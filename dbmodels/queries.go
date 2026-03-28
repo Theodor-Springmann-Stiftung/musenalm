@@ -106,6 +106,11 @@ func Agents_ID(app core.App, id string) (*Agent, error) {
 	return &r, err
 }
 
+func Agents_MusenalmID(app core.App, id string) (*Agent, error) {
+	ret, err := TableByField[Agent](app, AGENTS_TABLE, MUSENALMID_FIELD, id)
+	return &ret, err
+}
+
 func Agents_IDs(app core.App, ids []any) ([]*Agent, error) {
 	return TableByIDs[*Agent](app, AGENTS_TABLE, ids)
 }
@@ -358,5 +363,10 @@ func Contents_MusenalmID(app core.App, id string) (*Content, error) {
 
 func Places_ID(app core.App, id string) (*Place, error) {
 	ret, err := TableByField[Place](app, PLACES_TABLE, ID_FIELD, id)
+	return &ret, err
+}
+
+func Places_MusenalmID(app core.App, id string) (*Place, error) {
+	ret, err := TableByField[Place](app, PLACES_TABLE, MUSENALMID_FIELD, id)
 	return &ret, err
 }

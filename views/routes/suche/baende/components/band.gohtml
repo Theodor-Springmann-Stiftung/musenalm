@@ -126,7 +126,7 @@
 				{{- range $_, $placeid := $entry.Places -}}
 					{{- $place := placeDisplay $placeid -}}
 					<div class="inline pr-1 {{ if $isPlaces -}}search-text{{- end -}}">
-						<a href="/reihen?place={{ $place.Id }}&hidden=true">{{ $place.Name }}</a>,
+						<a href="/reihen?place={{ $place.MusenalmID }}&hidden=true">{{ $place.Name }}</a>,
 					</div>
 				{{- end -}}
 			{{- end -}}
@@ -166,7 +166,7 @@
 					<div class="inline-block text-base font-sans bg-slate-100 rounded mr-2">
 						<span class="border-r px-2 border-gray-300"> {{- $arel.Type -}} </span
 						><a
-							href="/person/{{ $agent.Id }}"
+							href="/person/{{ $agent.MusenalmID }}"
 							class="no-underline px-1.5 {{ if
 								$isPersons
 							-}}

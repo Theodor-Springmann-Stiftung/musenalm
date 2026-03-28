@@ -68,7 +68,7 @@ type AgentResult struct {
 
 func NewAgentResult(musenalmApp *app.App, id string) (*AgentResult, error) {
 	pbApp := musenalmApp.Core()
-	agent, err := dbmodels.Agents_ID(pbApp, id)
+	agent, err := dbmodels.Agents_MusenalmID(pbApp, id)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +77,12 @@ func NewAgentResult(musenalmApp *app.App, id string) (*AgentResult, error) {
 		Agent: agent,
 	}
 
-	err = res.FilterEntriesByPerson(musenalmApp, id, res)
+	err = res.FilterEntriesByPerson(musenalmApp, agent.Id, res)
 	if err != nil {
 		return nil, err
 	}
 
-	err = res.FilterContentsByEntry(pbApp, id, res)
+	err = res.FilterContentsByEntry(pbApp, agent.Id, res)
 	if err != nil {
 		return nil, err
 	}

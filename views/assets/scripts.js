@@ -5692,10 +5692,10 @@ class Ul extends HTMLElement {
   }
   getHREF(t) {
     if (t) {
-      if (!t.id)
+      if (t.id == null)
         return "";
     } else return "";
-    return t.id;
+    return String(t.id);
   }
   getHREFEncoded(t) {
     return encodeURIComponent(this.getHREF(t));
@@ -8638,7 +8638,10 @@ class sc extends HTMLElement {
     if (!e)
       return;
     const i = t.querySelector("[data-rel-link]");
-    i && i.setAttribute("href", `${this._linkBase}${this._pendingItem.id}`);
+    if (i) {
+      const h = this._pendingItem.musenalm_id ?? this._pendingItem.id;
+      i.setAttribute("href", `${this._linkBase}${h}`);
+    }
     const n = t.querySelector("[data-rel-name]");
     n && (n.textContent = this._pendingItem.name || "");
     const r = t.querySelector("[data-rel-detail]"), a = t.querySelector("[data-rel-detail-container]"), o = this._pendingItem.detail || this._pendingItem.bio || "";

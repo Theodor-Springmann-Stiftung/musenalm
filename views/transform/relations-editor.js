@@ -215,7 +215,8 @@ export class RelationsEditor extends HTMLElement {
 
 		const link = fragment.querySelector("[data-rel-link]");
 		if (link) {
-			link.setAttribute("href", `${this._linkBase}${this._pendingItem.id}`);
+			const linkID = this._pendingItem.musenalm_id ?? this._pendingItem.id;
+			link.setAttribute("href", `${this._linkBase}${linkID}`);
 		}
 
 		const nameEl = fragment.querySelector("[data-rel-name]");
