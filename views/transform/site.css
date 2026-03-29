@@ -1799,4 +1799,16 @@
 	[data-role="contents-list"][data-filtering] tool-tip:has([data-role="content-move-down"]) {
 		display: none;
 	}
+
+	[data-role="content-item"][data-editor-active="true"] > td {
+		@apply bg-blue-50/80;
+	}
+
+	[data-role="content-item"][data-editor-active="true"]:hover > td {
+		@apply bg-blue-100/80;
+	}
+
+	[data-role="content-item"][data-editor-active="true"] > td:first-child {
+		@apply border-l-2 border-blue-600;
+	}
 }

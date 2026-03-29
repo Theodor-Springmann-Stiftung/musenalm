@@ -470,8 +470,50 @@
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
 		return panelShell?.dataset.open === "true";
 	};
+	const scrollActiveContentRowIntoView = (contentMusenalmId, { behavior = "smooth", force = false } = {}) => {
+		if (!contentMusenalmId) {
+			window.__contentsCenteredRowId = "";
+			return;
+		}
+		const scrollShell = document.querySelector("[data-role='contents-workspace-scroll']");
+		const activeRow = document.querySelector(`[data-role='content-item'][data-content-musenalm-id='${contentMusenalmId}']`);
+		if (!scrollShell || !activeRow || activeRow.style.display === "none") {
+			return;
+		}
+		if (!force && window.__contentsCenteredRowId === contentMusenalmId) {
+			return;
+		}
+		const shellRect = scrollShell.getBoundingClientRect();
+		const rowRect = activeRow.getBoundingClientRect();
+		const targetScrollTop = scrollShell.scrollTop + (rowRect.top - shellRect.top) - ((shellRect.height - rowRect.height) / 2);
+		scrollShell.scrollTo({
+			top: Math.max(0, targetScrollTop),
+			behavior,
+		});
+		window.__contentsCenteredRowId = contentMusenalmId;
+	};
+	const syncActiveContentRow = ({ scrollIntoView = false, forceScroll = false } = {}) => {
+		const openContentMusenalmId = getOpenPanelMusenalmId();
+		getOrderedContentItems().forEach((item) => {
+			const isActive = !!openContentMusenalmId && item.dataset.contentMusenalmId === openContentMusenalmId;
+			if (isActive) {
+				item.setAttribute("data-editor-active", "true");
+			} else {
+				item.removeAttribute("data-editor-active");
+			}
+		});
+		if (!openContentMusenalmId) {
+			window.__contentsCenteredRowId = "";
+			return;
+		}
+		if (scrollIntoView) {
+			requestAnimationFrame(() => {
+				scrollActiveContentRowIntoView(openContentMusenalmId, { behavior: "smooth", force: forceScroll });
+			});
+		}
+	};
 
-	const syncEditorState = () => {
+	const syncEditorState = ({ scrollActive = false, forceScroll = false } = {}) => {
 		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
 		const editorOpen = isEditorOpen();
 		if (!workspace) {
@@ -487,6 +529,7 @@
 			delete workspace.dataset.panelOpen;
 			unlockAdminSidebarForEditor();
 		}
+		syncActiveContentRow({ scrollIntoView: scrollActive, forceScroll });
 		window.__contentsApplyViewState?.();
 	};
 
@@ -534,7 +577,7 @@
 		if (syncUrl) {
 			setContentsHistoryPath(contentsBasePath, replaceUrl);
 		}
-		syncEditorState();
+		syncEditorState({ scrollActive: true, forceScroll: true });
 	};
 	window.__closeContentsEditorPanel = closeEditorPanel;
 
@@ -777,7 +820,7 @@
 			initMultiSelects();
 		}
 
-		syncEditorState();
+		syncEditorState({ scrollActive: true, forceScroll: true });
 	};
 
 	// Normalize function for accent-insensitive matching
@@ -1865,7 +1908,7 @@
 		openEditorPanelForContent(contentMusenalmId, { replaceUrl: true }).catch(() => null);
 	});
 	window.addEventListener("admin-sidebar-controller-ready", () => {
-		syncEditorState();
+		syncEditorState({ scrollActive: true, forceScroll: true });
 	});
 window.addEventListener("beforeunload", () => {
 		unlockContentsWorkspaceLayout();
