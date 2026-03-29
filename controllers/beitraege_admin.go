@@ -467,6 +467,14 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	data["total_groups"] = len(orderedEntryIDs)
 	data["selected_filter_labels"] = buildBeitraegeSelectedFilterLabels(app, entryFilter, year, person, contentType, status, scans)
 	data["csrf_token"] = req.Session().Token
+
+	filterData, err := loadBeitraegeFilterData(app, ia)
+	if err != nil {
+		return data, err
+	}
+	data["filter_types"] = filterData.Types
+	data["filter_statuses"] = filterData.Statuses
+	data["filter_status_labels"] = filterData.StatusLabels
 	timer.Mark("result")
 
 	return data, nil
@@ -610,12 +618,11 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 		YearLabels:  buildYearLabelMap(allEntries),
 		Types:       types,
 		TypeLabels:  typeLabels,
-		Statuses:    []string{"Unknown", "ToDo", "Review", "Seen", "Edited"},
+		Statuses:    []string{"Unknown", "ToDo", "Review", "Edited"},
 		StatusLabels: map[string]string{
-			"Unknown": "Gesucht",
+			"Unknown": "Unbekannt",
 			"ToDo":    "Zu erledigen",
 			"Review":  "Überprüfen",
-			"Seen":    "Autopsiert",
 			"Edited":  "Erfasst",
 		},
 		ScansLabels: map[string]string{"with": "Mit Scans", "without": "Ohne Scans"},
@@ -965,13 +972,13 @@ func adminBeitraegeContentIDsByStatus(app core.App, status string) (map[string]s
 func adminBeitraegeStatusLabel(status string) string {
 	switch strings.TrimSpace(status) {
 	case "Unknown":
-		return "Gesucht"
+		return "Unbekannt"
 	case "ToDo":
 		return "Zu erledigen"
 	case "Review":
 		return "Überprüfen"
 	case "Seen":
-		return "Autopsiert"
+		return "Gesichtet"
 	case "Edited":
 		return "Erfasst"
 	default:

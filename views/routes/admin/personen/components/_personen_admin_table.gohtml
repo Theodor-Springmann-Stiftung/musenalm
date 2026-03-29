@@ -8,7 +8,6 @@
 				<col class="col-life admin-col-life" />
 				<col class="col-profession admin-col-profession" />
 				<col class="admin-col-tight" />
-				<col class="admin-col-tight" />
 			</colgroup>
 		<thead class="admin-list-head">
 			<tr>
@@ -33,23 +32,14 @@
 						<span class="font-semibold tracking-wide">Beruf</span>
 					</div>
 				</th>
-				<th class="col-verweise whitespace-nowrap py-2 pr-4 align-bottom text-right w-px">
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						<span class="font-semibold tracking-wide">Verweise</span>
-					</div>
-				</th>
-				<th class="whitespace-nowrap py-2 pr-4 text-right align-bottom">
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						<span class="font-semibold tracking-wide">Aktionen</span>
-					</div>
-				</th>
+				<th class="whitespace-nowrap py-2 pr-4 text-right align-bottom"></th>
 			</tr>
 		</thead>
 		<tbody id="personen-admin-table-body">
 			{{ template "_personen_admin_rows" $model }}
 			{{- if not (len $model.result.Agents) -}}
 				<tr>
-					<td colspan="6" class="py-6 text-center text-base text-gray-500">
+					<td colspan="5" class="py-6 text-center text-base text-gray-500">
 						Keine Personen gefunden.
 					</td>
 				</tr>

@@ -263,7 +263,23 @@
 					</form>
 				</div>
 			</div>
-			<div class="admin-list-count-summary shrink-0 self-start whitespace-nowrap" x-text="`${currentCount} / ${totalCount} ${totalCount === 1 ? 'Ort' : 'Orte'}`"></div>
+			<div class="admin-list-toolbar-secondary">
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" data-role="orte-column-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-secondary-trigger flex items-center gap-2">
+							<i class="ri-eye-line"></i>
+							<span>Anzeige</span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+						</summary>
+						<div class="absolute right-0 z-10 mt-2 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="flex flex-col gap-2 p-4 text-sm text-gray-700">
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="status" checked /> Status</label>
+							</div>
+						</div>
+					</details>
+				</div>
+				<div class="admin-list-count-summary shrink-0 self-start whitespace-nowrap" x-text="`${currentCount} / ${totalCount} ${totalCount === 1 ? 'Ort' : 'Orte'}`"></div>
+			</div>
 		</div>
 	</header>
 

@@ -329,7 +329,12 @@ class="admin-page-shell font-sans pt-0 pb-8">
 										   @click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('status', {{ printf "%q" $s.value }}, {{ printf "%q" $s.label }}, '#baende-status-spinner', $el)"
 										   :class="status === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
 										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
-											{{ $s.label }}
+											<span class="inline-flex items-center gap-2">
+												<span data-status="{{ $s.value }}" class="{{- if eq $s.value "Edited" }} text-green-700{{- else if eq $s.value "Seen" }} text-blue-700{{- else if eq $s.value "Review" }} text-orange-700{{- else if eq $s.value "ToDo" }} text-red-700{{- else }} text-gray-500{{- end }}">
+													<i class="status-icon{{- if eq $s.value "Edited" }} ri-checkbox-circle-line{{- else if eq $s.value "Seen" }} ri-information-line{{- else if eq $s.value "Review" }} ri-search-line{{- else if eq $s.value "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+												</span>
+												<span class="filter-list-searchable">{{ $s.label }}</span>
+											</span>
 										</a>
 									{{- end -}}
 								</div>

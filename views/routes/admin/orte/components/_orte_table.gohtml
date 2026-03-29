@@ -5,13 +5,11 @@
 			<colgroup>
 				<col style="width: 100%;" />
 				<col style="width: 1%;" />
-				<col style="width: 1%;" />
 			</colgroup>
 		<thead class="admin-list-head">
 			<tr>
 				<th class="py-2 pr-4 pl-4 align-bottom text-base font-semibold tracking-wide">Ort</th>
-				<th class="py-2 pr-4 align-bottom text-base font-semibold tracking-wide col-verweise whitespace-nowrap text-right w-px">Verweise</th>
-				<th class="py-2 pr-4 text-right align-bottom text-base font-semibold tracking-wide">Aktionen</th>
+				<th class="py-2 pr-4 text-right align-bottom text-base font-semibold tracking-wide"></th>
 			</tr>
 		</thead>
 		<tbody id="orte-table-body">
@@ -19,3 +17,51 @@
 		</tbody>
 	</table>
 </div>
+
+<script>
+	(() => {
+		const toggleRoot = document.querySelector('[data-role="orte-column-toggle"]');
+		if (!toggleRoot) return;
+		const storageKey = "orte-columns-v1";
+		let saved = null;
+		try {
+			saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+		} catch {
+			saved = null;
+		}
+		const checkboxes = toggleRoot.querySelectorAll('input[type="checkbox"][data-col]');
+		const applyColumnVisibility = () => {
+			checkboxes.forEach((checkbox) => {
+				const col = checkbox.getAttribute("data-col");
+				const visible = checkbox.checked;
+				document.querySelectorAll(`.col-${col}`).forEach((el) => {
+					el.classList.toggle("hidden", !visible);
+				});
+			});
+		};
+		window.applyOrteColumnVisibility = applyColumnVisibility;
+
+		checkboxes.forEach((checkbox) => {
+			const col = checkbox.getAttribute("data-col");
+			if (saved && typeof saved[col] === "boolean") {
+				checkbox.checked = saved[col];
+			}
+			checkbox.addEventListener("change", () => {
+				const nextState = {};
+				checkboxes.forEach((cb) => {
+					const key = cb.getAttribute("data-col");
+					nextState[key] = cb.checked;
+				});
+				localStorage.setItem(storageKey, JSON.stringify(nextState));
+				applyColumnVisibility();
+			});
+		});
+		applyColumnVisibility();
+		if (!document.body.dataset.orteColumnsBound) {
+			document.body.dataset.orteColumnsBound = "true";
+			document.body.addEventListener("htmx:afterSwap", () => {
+				window.applyOrteColumnVisibility?.();
+			});
+		}
+	})();
+</script>

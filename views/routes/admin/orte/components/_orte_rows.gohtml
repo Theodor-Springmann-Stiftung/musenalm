@@ -18,33 +18,39 @@
 					{{- end -}}
 				</div>
 			</td>
-				<td class="py-2 pr-4 col-verweise whitespace-nowrap text-right w-px">
+			<td class="py-2 pr-4 whitespace-nowrap text-right w-px">
+				<div class="admin-list-actions items-center gap-3">
 					<div class="admin-list-count flex justify-end whitespace-nowrap">
-						{{- if gt (index $model.bcount $place.Id) 0 -}}
-							<a
-								href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.Id }}"
-								onclick="event.stopPropagation();"
-								hx-target="#admin-main-content"
-								hx-swap="innerHTML"
-								hx-push-url="true"
-								hx-indicator="#admin-main-loading"
-								hx-headers='{"X-Admin-Main-Nav":"true"}'
-								class="admin-list-chip"
-								title="Bände anzeigen"
-								aria-label="Bände anzeigen">
+							{{- if gt (index $model.bcount $place.Id) 0 -}}
+								<a
+									href="/admin/baende/?offset=0&sort=title&order=asc&place={{ $place.Id }}"
+									onclick="event.stopPropagation();"
+									hx-target="#admin-main-content"
+									hx-swap="innerHTML"
+									hx-push-url="true"
+									hx-indicator="#admin-main-loading"
+									hx-headers='{"X-Admin-Main-Nav":"true"}'
+									class="admin-list-chip"
+									title="Bände anzeigen"
+									aria-label="Bände anzeigen">
+									<i class="ri-book-line"></i>
+									<span>{{ index $model.bcount $place.Id }}</span>
+								</a>
+						{{- else -}}
+							<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Bände verknüpft" aria-label="Keine Bände verknüpft">
 								<i class="ri-book-line"></i>
-								<span>{{ index $model.bcount $place.Id }}</span>
-							</a>
-					{{- else -}}
-						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Bände verknüpft" aria-label="Keine Bände verknüpft">
-							<i class="ri-book-line"></i>
-							<span>0</span>
+								<span>0</span>
+							</span>
+						{{- end -}}
+					</div>
+					<span
+						class="col-status inline-flex"
+						title="{{- if eq $place.EditState "Unknown" -}}Unbekannt{{- else if eq $place.EditState "ToDo" -}}Zu erledigen{{- else if eq $place.EditState "Review" -}}Überprüfen{{- else if eq $place.EditState "Seen" -}}Gesichtet{{- else if eq $place.EditState "Edited" -}}Erfasst{{- else -}}{{ $place.EditState }}{{- end -}}"
+						aria-label="{{- if eq $place.EditState "Unknown" -}}Unbekannt{{- else if eq $place.EditState "ToDo" -}}Zu erledigen{{- else if eq $place.EditState "Review" -}}Überprüfen{{- else if eq $place.EditState "Seen" -}}Gesichtet{{- else if eq $place.EditState "Edited" -}}Erfasst{{- else -}}{{ $place.EditState }}{{- end -}}">
+						<span class="status-badge admin-status-chip" data-status="{{ $place.EditState }}">
+							<i class="status-icon {{- if eq $place.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $place.EditState "Seen" }} ri-information-line{{- else if eq $place.EditState "Review" }} ri-search-line{{- else if eq $place.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
 						</span>
-					{{- end -}}
-				</div>
-			</td>
-			<td class="py-2 pr-4">
-				<div class="admin-list-actions">
+					</span>
 					<div class="admin-list-action-stack">
 						<div class="admin-list-chip-pair">
 							<a href="/reihen/?place={{ $place.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">

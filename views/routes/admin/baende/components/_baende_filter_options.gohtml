@@ -17,9 +17,11 @@
 		<i class="ri-filter-off-line text-base"></i>
 		<span>Alle</span>
 	</a>
-	<div class="relative">
-		<input data-role="filter-search" type="search" autocomplete="off" placeholder="{{ $model.Placeholder }}" class="w-full rounded border border-stone-200 px-2 py-1 text-sm" />
-	</div>
+	{{- if ne $model.Kind "status" -}}
+		<div class="relative">
+			<input data-role="filter-search" type="search" autocomplete="off" placeholder="{{ $model.Placeholder }}" class="w-full rounded border border-stone-200 px-2 py-1 text-sm" />
+		</div>
+	{{- end -}}
 	<div class="mt-2 flex max-h-80 flex-col gap-0.5 overflow-auto rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
 		{{- range $_, $option := $model.Options -}}
 			<a data-role="filter-item"
@@ -35,7 +37,16 @@
 				"
 				:class="{{ $model.Kind }} === {{ printf "%q" $option.Value }} ? 'bg-stone-100 font-semibold' : ''"
 				class="filter-list-row rounded-sm px-2 py-1 no-underline transition-colors hover:bg-stone-100">
-				<span class="filter-list-searchable mr-1">{{ $option.Label }}</span>
+				{{- if eq $model.Kind "status" -}}
+					<span class="mr-1 inline-flex items-center gap-2">
+						<span data-status="{{ $option.Value }}" class="{{- if eq $option.Value "Edited" }} text-green-700{{- else if eq $option.Value "Seen" }} text-blue-700{{- else if eq $option.Value "Review" }} text-orange-700{{- else if eq $option.Value "ToDo" }} text-red-700{{- else }} text-gray-500{{- end }}">
+							<i class="status-icon{{- if eq $option.Value "Edited" }} ri-checkbox-circle-line{{- else if eq $option.Value "Seen" }} ri-information-line{{- else if eq $option.Value "Review" }} ri-search-line{{- else if eq $option.Value "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+						</span>
+						<span class="filter-list-searchable">{{ $option.Label }}</span>
+					</span>
+				{{- else -}}
+					<span class="filter-list-searchable mr-1">{{ $option.Label }}</span>
+				{{- end -}}
 				{{- if $option.Meta -}}
 					{{- if $option.MetaIsBadge -}}
 						<span class="inline-flex items-center rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.7rem] font-semibold text-slate-600">{{ $option.Meta }}</span>
