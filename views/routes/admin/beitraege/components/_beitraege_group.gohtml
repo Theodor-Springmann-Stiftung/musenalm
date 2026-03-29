@@ -7,7 +7,7 @@
 	data-band-id="{{ $entry.MusenalmID }}"
 	data-collapsed="false">
 	<div
-		class="flex items-center justify-between gap-4 border-b border-stone-200 bg-stone-50 px-4 py-2.5"
+		class="flex items-center justify-between gap-4 border-b border-stone-200 bg-stone-100 px-4 py-2.5"
 		data-role="beitraege-group-header">
 		<div class="min-w-0 flex items-center gap-3">
 				<button
@@ -36,10 +36,10 @@
 			</a>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<span class="inline-flex items-center rounded-xs border border-stone-300 bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
+			<span class="inline-flex h-8 items-center rounded-xs border border-stone-300 bg-white px-2.5 py-0 text-sm font-semibold text-slate-700">
 				Alm {{ $entry.MusenalmID }}
 			</span>
-			<span class="inline-flex items-center rounded-xs bg-stone-200 px-2 py-0.5 text-sm font-semibold text-slate-700">
+			<span class="inline-flex h-8 items-center rounded-xs border border-stone-300 bg-white px-2.5 py-0 text-sm font-semibold text-slate-700">
 				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
 			</span>
 				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
@@ -159,13 +159,15 @@
 					</div>
 
 					<div class="flex shrink-0 items-start gap-2">
-						<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-							<i class="ri-eye-line"></i>
-						</a>
-						<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-							<i class="ri-external-link-line"></i>
-						</a>
-						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
+						<div class="admin-list-chip-pair">
+							<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+								<i class="ri-eye-line"></i>
+							</a>
+							<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+								<i class="ri-external-link-line"></i>
+							</a>
+						</div>
+						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip admin-list-chip-edit" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-line"></i>
 						</a>
 						<button

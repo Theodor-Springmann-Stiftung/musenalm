@@ -156,22 +156,24 @@
 	</td>
 	<td class="px-2 py-2 align-top whitespace-nowrap w-px" data-role="content-cell-actions">
 		<div class="flex items-center justify-end gap-1.5" data-role="content-cell-actions-inner">
-			<a
-				href="/beitrag/{{ $content.MusenalmID }}"
-				class="admin-list-chip"
-				title="Anzeigen"
-				aria-label="Anzeigen">
-				<i class="ri-eye-line"></i>
-			</a>
-			<a
-				href="/beitrag/{{ $content.MusenalmID }}"
-				target="_blank"
-				rel="noopener"
-				class="admin-list-chip"
-				title="In neuem Tab öffnen"
-				aria-label="In neuem Tab öffnen">
-				<i class="ri-external-link-line"></i>
-			</a>
+			<div class="admin-list-chip-pair">
+				<a
+					href="/beitrag/{{ $content.MusenalmID }}"
+					class="admin-list-chip"
+					title="Anzeigen"
+					aria-label="Anzeigen">
+					<i class="ri-eye-line"></i>
+				</a>
+				<a
+					href="/beitrag/{{ $content.MusenalmID }}"
+					target="_blank"
+					rel="noopener"
+					class="admin-list-chip"
+					title="In neuem Tab öffnen"
+					aria-label="In neuem Tab öffnen">
+					<i class="ri-external-link-line"></i>
+				</a>
+			</div>
 			<a
 				href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}"
 				hx-get="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}"
@@ -179,7 +181,7 @@
 				hx-swap="outerHTML"
 				hx-push-url="true"
 				hx-indicator="#admin-main-loading"
-				class="admin-list-chip"
+				class="admin-list-chip admin-list-chip-edit"
 				title="Bearbeiten"
 				aria-label="Beitrag bearbeiten">
 				<i class="ri-edit-line"></i>

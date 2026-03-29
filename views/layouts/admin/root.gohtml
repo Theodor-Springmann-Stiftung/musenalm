@@ -48,6 +48,7 @@
 						return value.length > 1 ? value.replace(/\/+$/, '') : value;
 					};
 					const currentPath = normalizePath(pathname);
+						const isBandContentsPath = currentPath.startsWith('/admin/almanach/') && currentPath.includes('/contents/edit');
 
 					sidebar.querySelectorAll('.admin-sidebar-link').forEach((link) => {
 						const datasetPrefixes = (link.dataset.adminActivePrefixes || '')
@@ -68,6 +69,19 @@
 							const normalizedHrefPath = normalizePath(hrefPath);
 							isActive = !!normalizedHrefPath && normalizedHrefPath !== '/logout' && currentPath === normalizedHrefPath;
 						}
+
+						let hrefPath = '';
+						try {
+							hrefPath = new URL(link.href, window.location.origin).pathname;
+						} catch {}
+						const normalizedHrefPath = normalizePath(hrefPath);
+							if (normalizedHrefPath === '/admin/baende' && isBandContentsPath) {
+								isActive = false;
+							}
+							if (normalizedHrefPath === '/admin/beitraege' && isBandContentsPath) {
+								isActive = true;
+							}
+
 						if (isActive) {
 							link.setAttribute('aria-current', 'page');
 						} else {
@@ -81,6 +95,25 @@
 							section.setAttribute('data-section-current', 'true');
 						} else {
 							section.removeAttribute('data-section-current');
+						}
+					});
+
+					const heading = document.querySelector('#admin-main-content .simple-entity-title, #admin-main-content .admin-page-title');
+					const currentHeading = heading?.textContent?.trim() || '';
+							sidebar.querySelectorAll('.admin-sidebar-link').forEach((link) => {
+								const detail = link.querySelector('[data-role=admin-sidebar-link-detail]');
+						if (!detail) return;
+						let hrefPath = '';
+						try {
+							hrefPath = new URL(link.href, window.location.origin).pathname;
+						} catch {}
+						const normalizedHrefPath = normalizePath(hrefPath);
+						const showDetail = link.getAttribute('aria-current') === 'page' && currentPath !== normalizedHrefPath;
+						if (showDetail && currentHeading) {
+							detail.textContent = currentHeading;
+							detail.style.display = 'block';
+						} else {
+							detail.style.display = 'none';
 						}
 					});
 				},

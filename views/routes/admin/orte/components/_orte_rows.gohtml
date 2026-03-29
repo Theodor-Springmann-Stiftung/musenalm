@@ -46,14 +46,16 @@
 			<td class="py-2 pr-4">
 				<div class="admin-list-actions">
 					<div class="admin-list-action-stack">
-						<a href="/reihen/?place={{ $place.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-							<i class="ri-eye-line"></i>
-						</a>
-						<a href="/reihen/?place={{ $place.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-							<i class="ri-external-link-line"></i>
-						</a>
+						<div class="admin-list-chip-pair">
+							<a href="/reihen/?place={{ $place.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+								<i class="ri-eye-line"></i>
+							</a>
+							<a href="/reihen/?place={{ $place.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+								<i class="ri-external-link-line"></i>
+							</a>
+						</div>
 						{{- if (IsAdminOrEditor $model.request.user) -}}
-							<a href="/admin/ort/{{ $place.Id }}/edit" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
+							<a href="/admin/ort/{{ $place.Id }}/edit" class="admin-list-chip admin-list-chip-edit" title="Bearbeiten" aria-label="Bearbeiten">
 								<i class="ri-edit-line"></i>
 							</a>
 							<button

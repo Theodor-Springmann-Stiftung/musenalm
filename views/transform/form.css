@@ -233,19 +233,19 @@
 	}
 
 	.contents-editor-state-button[data-status="Edited"] {
-		@apply border-green-200 bg-green-100 text-green-900 hover:bg-green-200;
+		@apply border-green-400 bg-green-100 text-green-900 hover:bg-green-200;
 	}
 
 	.contents-editor-state-button[data-status="Review"] {
-		@apply border-orange-200 bg-orange-100 text-orange-900 hover:bg-orange-200;
+		@apply border-orange-400 bg-orange-100 text-orange-900 hover:bg-orange-200;
 	}
 
 	.contents-editor-state-button[data-status="ToDo"] {
-		@apply border-red-200 bg-red-100 text-red-900 hover:bg-red-200;
+		@apply border-red-400 bg-red-100 text-red-900 hover:bg-red-200;
 	}
 
 	.contents-editor-state-button[data-status="Unknown"] {
-		@apply border-stone-300 bg-stone-200 text-stone-700 hover:bg-stone-300;
+		@apply border-stone-400 bg-stone-200 text-stone-700 hover:bg-stone-300;
 	}
 
 	.contents-editor-state-menu {
@@ -261,19 +261,19 @@
 	}
 
 	.contents-editor-footer-state[data-status="Edited"] {
-		@apply border-green-200 bg-green-100 text-green-900;
+		@apply border-green-400 bg-green-100 text-green-900;
 	}
 
 	.contents-editor-footer-state[data-status="Review"] {
-		@apply border-orange-200 bg-orange-100 text-orange-900;
+		@apply border-orange-400 bg-orange-100 text-orange-900;
 	}
 
 	.contents-editor-footer-state[data-status="ToDo"] {
-		@apply border-red-200 bg-red-100 text-red-900;
+		@apply border-red-400 bg-red-100 text-red-900;
 	}
 
 	.contents-editor-footer-state[data-status="Unknown"] {
-		@apply border-stone-300 bg-stone-200 text-stone-700;
+		@apply border-stone-400 bg-stone-200 text-stone-700;
 	}
 
 	.contents-editor-footer-state:focus {
@@ -281,19 +281,19 @@
 	}
 
 	.contents-editor-footer-state[data-status="Edited"]:focus {
-		@apply border-green-300 bg-green-100;
+		@apply border-green-500 bg-green-100;
 	}
 
 	.contents-editor-footer-state[data-status="Review"]:focus {
-		@apply border-orange-300 bg-orange-100;
+		@apply border-orange-500 bg-orange-100;
 	}
 
 	.contents-editor-footer-state[data-status="ToDo"]:focus {
-		@apply border-red-300 bg-red-100;
+		@apply border-red-500 bg-red-100;
 	}
 
 	.contents-editor-footer-state[data-status="Unknown"]:focus {
-		@apply border-stone-400 bg-stone-200;
+		@apply border-stone-500 bg-stone-200;
 	}
 
 	edit-page,

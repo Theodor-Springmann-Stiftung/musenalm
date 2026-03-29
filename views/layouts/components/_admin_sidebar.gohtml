@@ -13,8 +13,13 @@
 	{{- $path = $model.request.path -}}
 {{- end -}}
 {{- $isNewBandActive := HasPrefix $path "/admin/almanach-new/" -}}
-{{- $isBandsActive := or (HasPrefix $path "/admin/baende/") (HasPrefix $path "/admin/almanach/") -}}
-{{- $isContentsActive := HasPrefix $path "/admin/beitraege/" -}}
+{{- $bandContentsPathPrefix := "" -}}
+{{- if and (HasPrefix $path "/admin/almanach/") $model.result $model.result.Entry -}}
+	{{- $bandContentsPathPrefix = printf "/admin/almanach/%v/contents/edit" $model.result.Entry.MusenalmID -}}
+{{- end -}}
+{{- $isBandContentsActive := and $bandContentsPathPrefix (HasPrefix $path $bandContentsPathPrefix) -}}
+{{- $isBandsActive := or (HasPrefix $path "/admin/baende/") (and (HasPrefix $path "/admin/almanach/") (not $isBandContentsActive)) -}}
+{{- $isContentsActive := or (HasPrefix $path "/admin/beitraege/") $isBandContentsActive -}}
 {{- $isNewSeriesActive := HasPrefix $path "/admin/reihen/new/" -}}
 {{- $isSeriesActive := or (HasPrefix $path "/admin/reihen/") (eq $path "/reihen") (HasPrefix $path "/reihen/") (HasPrefix $path "/reihe/") (HasPrefix $path "/admin/reihe/") -}}
 {{- $isNewPlaceActive := HasPrefix $path "/admin/orte/new/" -}}
@@ -45,8 +50,12 @@
 	{{- $placeSidebarDetail = $model.result.Place.Name -}}
 {{- end -}}
 {{- $bandSidebarDetail := "" -}}
-{{- if and (HasPrefix $path "/admin/almanach/") $model.result $model.result.Entry (not $model.is_new) -}}
+{{- if and (HasPrefix $path "/admin/almanach/") $model.result $model.result.Entry (not $model.is_new) (not $isBandContentsActive) -}}
 	{{- $bandSidebarDetail = $model.result.Entry.PreferredTitle -}}
+{{- end -}}
+{{- $contentsSidebarDetail := "" -}}
+{{- if and $isBandContentsActive $model.result $model.result.Entry (not $model.is_new) -}}
+	{{- $contentsSidebarDetail = $model.result.Entry.PreferredTitle -}}
 {{- end -}}
 
 <div id="admin-sidebar" class="admin-sidebar-inner">
@@ -201,14 +210,14 @@
 
 		<details class="admin-sidebar-section" open {{ if $isListsSectionActive }}data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
-				<span>Listen</span>
+				<span>Entitäten</span>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span>{{ if $seriesSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span>{{ end }}</a>
-				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span>{{ if $bandSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span>{{ end }}</a>
-				<a href="/admin/beitraege/" title="Beiträge" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span></a>
-				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span>{{ if $personSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span>{{ end }}</a>
-				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span>{{ if $placeSidebarDetail }}<span class="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span>{{ end }}</a>
+				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span></a>
+				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span></a>
+				<a href="/admin/beitraege/" title="Beiträge" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
+				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
+				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
 				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
 				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>

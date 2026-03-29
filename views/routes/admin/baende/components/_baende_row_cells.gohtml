@@ -6,14 +6,16 @@
 					<div class="mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $entry.References }}">{{ $entry.References }}</div>
 				{{- end -}}
 				<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
-					<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-						<i class="ri-eye-line"></i>
-					</a>
-					<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-						<i class="ri-external-link-line"></i>
-					</a>
+					<div class="admin-list-chip-pair">
+						<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+							<i class="ri-eye-line"></i>
+						</a>
+						<a href="/almanach/{{ $entry.MusenalmID }}" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+							<i class="ri-external-link-line"></i>
+						</a>
+					</div>
 				{{- if .can_edit -}}
-					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
+					<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip admin-list-chip-edit" title="Bearbeiten" aria-label="Bearbeiten">
 						<i class="ri-edit-line"></i>
 					</a>
 					<button
@@ -39,12 +41,12 @@
 						class="admin-list-chip"
 						title="Beiträge anzeigen"
 						aria-label="Beiträge anzeigen">
-						<i class="ri-file-list-3-line"></i>
+						<i class="ri-article-line"></i>
 						<span>{{ .contents_count }}</span>
 					</a>
 				{{- else -}}
 					<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Inhalte" aria-label="Keine Inhalte">
-						<i class="ri-file-list-3-line"></i>
+						<i class="ri-article-line"></i>
 						<span>0</span>
 					</span>
 				{{- end -}}

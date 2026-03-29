@@ -48,14 +48,16 @@
 	<td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4">
 		<div class="admin-list-actions">
 			<div class="admin-list-action-stack">
-				<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-					<i class="ri-eye-line"></i>
-				</a>
-				<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-					<i class="ri-external-link-line"></i>
-				</a>
+				<div class="admin-list-chip-pair">
+					<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+						<i class="ri-eye-line"></i>
+					</a>
+					<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+						<i class="ri-external-link-line"></i>
+					</a>
+				</div>
 				{{- if .can_edit -}}
-					<a href="/admin/reihe/{{ $series.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Bearbeiten" aria-label="Bearbeiten">
+					<a href="/admin/reihe/{{ $series.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip admin-list-chip-edit" title="Bearbeiten" aria-label="Bearbeiten">
 						<i class="ri-edit-line"></i>
 					</a>
 					<button

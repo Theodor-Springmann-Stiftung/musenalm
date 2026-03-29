@@ -168,7 +168,7 @@
 	}
 
 	.admin-sidebar-frame {
-		@apply relative z-40 h-screen w-[17rem] shrink-0 overflow-visible border-r border-stone-400 bg-stone-50 transition-[width] duration-200;
+		@apply relative z-40 h-screen w-[17rem] shrink-0 overflow-visible border-r border-stone-400 bg-stone-100 transition-[width] duration-200;
 		box-shadow: 1px 0 0 rgba(68, 64, 60, 0.14);
 	}
 
@@ -670,12 +670,20 @@
 		@apply border-slate-400 font-semibold text-slate-900 ring-1 ring-slate-300;
 	}
 
+	.contents-workspace-filter-trigger {
+		@apply bg-white hover:bg-stone-50;
+	}
+
 	.admin-list-search-form {
 		@apply flex min-w-[18rem] max-w-[24rem] items-center gap-2 rounded-xs border border-stone-200 bg-gray-100 px-3 py-1.5;
 	}
 
 	.admin-list-secondary-trigger {
-		@apply cursor-pointer select-none rounded-xs border border-stone-200 bg-gray-100 px-2 py-1 text-lg font-semibold text-gray-600 transition-colors duration-100 hover:text-slate-950;
+		@apply cursor-pointer select-none rounded-xs border border-stone-200 bg-gray-100 px-2 py-1 text-[0.98rem] font-semibold text-gray-600 transition-colors duration-100 hover:text-slate-950;
+	}
+
+	.admin-list-secondary-trigger.contents-workspace-filter-trigger {
+		@apply bg-white hover:bg-stone-50;
 	}
 
 	.admin-list-count-summary {
@@ -683,7 +691,7 @@
 	}
 
 	.admin-list-table-shell {
-		@apply mt-2 overflow-x-auto overflow-y-visible;
+		@apply overflow-x-auto overflow-y-visible;
 	}
 
 	.admin-list-table {
@@ -787,7 +795,7 @@
 	}
 
 	.admin-list-head {
-		@apply border-b border-stone-200 bg-stone-50/90 text-left text-stone-600;
+		@apply border-b border-stone-300 bg-stone-100 text-left text-stone-600;
 	}
 
 	.admin-list-row {
@@ -847,15 +855,59 @@
 	}
 
 	.admin-list-chip {
-		@apply no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-50 px-1.5 py-0.5 text-base hover:bg-stone-100 hover:text-slate-900;
+		@apply shrink-0 no-underline inline-flex items-center gap-1 rounded-xs border border-stone-300 bg-stone-50 px-1.5 py-0.5 text-base hover:bg-stone-100 hover:text-slate-900;
+	}
+
+	.admin-list-chip-edit {
+		@apply border-stone-300 bg-slate-50/70 text-slate-700 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-800;
+	}
+
+	.admin-list-chip-pair {
+		@apply shrink-0 inline-flex items-stretch overflow-hidden rounded-xs;
+	}
+
+	.admin-list-chip-pair > .admin-list-chip {
+		@apply rounded-none;
+	}
+
+	.admin-list-chip-pair > .admin-list-chip + .admin-list-chip {
+		@apply border-l-0;
+	}
+
+	.admin-list-chip-pair > .admin-list-chip:first-child {
+		@apply rounded-l-xs;
+	}
+
+	.admin-list-chip-pair > .admin-list-chip:last-child {
+		@apply rounded-r-xs;
 	}
 
 	.admin-list-chip-danger {
-		@apply inline-flex items-center gap-1 rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base font-semibold text-red-700 hover:bg-red-50 hover:text-red-900;
+		@apply shrink-0 inline-flex items-center gap-1 rounded-xs border border-red-300 bg-transparent px-1.5 py-0.5 text-base font-semibold text-red-700 hover:bg-red-50 hover:text-red-900;
 	}
 
 	.admin-status-chip {
 		@apply inline-flex items-center justify-center rounded-xs border border-stone-300 px-1.5 py-0.5 text-base leading-none shadow-none;
+	}
+
+	.admin-status-chip[data-status="Edited"] {
+		@apply border-green-400;
+	}
+
+	.admin-status-chip[data-status="Seen"] {
+		@apply border-blue-400;
+	}
+
+	.admin-status-chip[data-status="Review"] {
+		@apply border-orange-400;
+	}
+
+	.admin-status-chip[data-status="ToDo"] {
+		@apply border-red-400;
+	}
+
+	.admin-status-chip[data-status="Unknown"] {
+		@apply border-gray-400;
 	}
 
 	.admin-status-chip .status-icon {
