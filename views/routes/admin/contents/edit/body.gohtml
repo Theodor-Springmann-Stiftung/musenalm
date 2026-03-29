@@ -470,7 +470,12 @@
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
 		return panelShell?.dataset.open === "true";
 	};
-	const scrollActiveContentRowIntoView = (contentMusenalmId, { behavior = "smooth", force = false } = {}) => {
+	const consumeActiveContentScrollBehavior = () => {
+		const nextBehavior = window.__contentsPendingActiveScrollBehavior || "auto";
+		window.__contentsPendingActiveScrollBehavior = "auto";
+		return nextBehavior;
+	};
+	const scrollActiveContentRowIntoView = (contentMusenalmId, { behavior = "auto", force = false } = {}) => {
 		if (!contentMusenalmId) {
 			window.__contentsCenteredRowId = "";
 			return;
@@ -492,7 +497,7 @@
 		});
 		window.__contentsCenteredRowId = contentMusenalmId;
 	};
-	const syncActiveContentRow = ({ scrollIntoView = false, forceScroll = false } = {}) => {
+	const syncActiveContentRow = ({ scrollIntoView = false, forceScroll = false, scrollBehavior = "auto" } = {}) => {
 		const openContentMusenalmId = getOpenPanelMusenalmId();
 		getOrderedContentItems().forEach((item) => {
 			const isActive = !!openContentMusenalmId && item.dataset.contentMusenalmId === openContentMusenalmId;
@@ -508,12 +513,12 @@
 		}
 		if (scrollIntoView) {
 			requestAnimationFrame(() => {
-				scrollActiveContentRowIntoView(openContentMusenalmId, { behavior: "smooth", force: forceScroll });
+				scrollActiveContentRowIntoView(openContentMusenalmId, { behavior: scrollBehavior, force: forceScroll });
 			});
 		}
 	};
 
-	const syncEditorState = ({ scrollActive = false, forceScroll = false } = {}) => {
+	const syncEditorState = ({ scrollActive = false, forceScroll = false, scrollBehavior = "auto" } = {}) => {
 		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
 		const editorOpen = isEditorOpen();
 		if (!workspace) {
@@ -529,7 +534,7 @@
 			delete workspace.dataset.panelOpen;
 			unlockAdminSidebarForEditor();
 		}
-		syncActiveContentRow({ scrollIntoView: scrollActive, forceScroll });
+		syncActiveContentRow({ scrollIntoView: scrollActive, forceScroll, scrollBehavior });
 		window.__contentsApplyViewState?.();
 	};
 
@@ -630,6 +635,7 @@
 			button.addEventListener("click", async (event) => {
 				event.preventDefault();
 				button.disabled = true;
+				window.__contentsPendingActiveScrollBehavior = "smooth";
 				try {
 					await openEditorPanelForContent(targetContentMusenalmId, { replaceUrl: false });
 				} finally {
@@ -820,7 +826,11 @@
 			initMultiSelects();
 		}
 
-		syncEditorState({ scrollActive: true, forceScroll: true });
+		syncEditorState({
+			scrollActive: true,
+			forceScroll: true,
+			scrollBehavior: consumeActiveContentScrollBehavior(),
+		});
 	};
 
 	// Normalize function for accent-insensitive matching
