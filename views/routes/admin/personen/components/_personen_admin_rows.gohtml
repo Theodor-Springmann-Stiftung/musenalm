@@ -5,7 +5,7 @@
 	{{- $contentCount := index $model.result.ContentCounts $agent.Id -}}
 	<tr
 		data-agent-id="{{ $agent.Id }}"
-		class="admin-list-row{{ if eq $agent.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $agent.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+		class="admin-list-row">
 		<td class="col-reference admin-col-nachweis-personen admin-col-wrap py-2 pr-4 pl-4">
 			<div class="flex flex-col gap-1">
 				{{- if $agent.References -}}

@@ -846,7 +846,7 @@
 	}
 
 	.admin-list-row {
-		@apply border-b border-stone-200 align-top transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80;
+		@apply border-b border-stone-200 align-top transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50;
 	}
 
 	.admin-list-row-static {
