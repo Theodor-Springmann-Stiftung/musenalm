@@ -1,0 +1,69 @@
+{{- $status := .status -}}
+{{- $toggleClass := .toggle_class -}}
+{{- $pickerClass := .picker_class -}}
+{{- $scope := .scope -}}
+{{- $endpoint := .endpoint -}}
+{{- $csrfToken := .csrf_token -}}
+{{- $lastEdited := .last_edited -}}
+{{- $label := "Unbekannt" -}}
+{{- $icon := "ri-forbid-2-line" -}}
+{{- if and (eq $scope "entry") (eq $status "Unknown") -}}
+	{{- $label = "Gesucht" -}}
+{{- end -}}
+{{- if eq $status "ToDo" -}}
+	{{- $label = "Zu erledigen" -}}
+	{{- $icon = "ri-list-check" -}}
+{{- else if eq $status "Review" -}}
+	{{- $label = "Überprüfen" -}}
+	{{- $icon = "ri-search-line" -}}
+{{- else if eq $status "Seen" -}}
+	{{- if eq $scope "entry" -}}
+		{{- $label = "Autopsiert" -}}
+	{{- else -}}
+		{{- $label = "Gesichtet" -}}
+	{{- end -}}
+	{{- $icon = "ri-information-line" -}}
+{{- else if eq $status "Edited" -}}
+	{{- if eq $scope "entry" -}}
+		{{- $label = "Vollständig Erfasst" -}}
+	{{- else -}}
+		{{- $label = "Erfasst" -}}
+	{{- end -}}
+	{{- $icon = "ri-checkbox-circle-line" -}}
+{{- end -}}
+<div
+	class="relative{{ if $pickerClass }} {{ $pickerClass }}{{ end }}"
+	data-role="content-status-picker"
+	{{- if $scope }} data-status-scope="{{ $scope }}"{{ end -}}
+	{{- if $endpoint }} data-status-endpoint="{{ $endpoint }}"{{ end -}}
+	{{- if $csrfToken }} data-status-csrf-token="{{ $csrfToken }}"{{ end -}}
+	{{- if $lastEdited }} data-last-edited="{{ $lastEdited }}"{{ end -}}>
+	<button
+		type="button"
+		class="{{ $toggleClass }}"
+		data-role="content-status-toggle"
+		data-status="{{ $status }}"
+		aria-label="Status: {{ $label }}"
+		title="Status: {{ $label }}">
+		<i class="{{ $icon }}"></i>
+	</button>
+	<div class="contents-editor-state-menu hidden" data-role="content-status-menu">
+		<button type="button" class="contents-editor-state-option" data-role="content-status-option" data-status="Unknown" data-label="{{ if eq $scope "entry" }}Gesucht{{ else }}Unbekannt{{ end }}" data-icon="ri-forbid-2-line">
+			<i class="ri-forbid-2-line"></i><span>{{ if eq $scope "entry" }}Gesucht{{ else }}Unbekannt{{ end }}</span>
+		</button>
+		<button type="button" class="contents-editor-state-option" data-role="content-status-option" data-status="ToDo" data-label="Zu erledigen" data-icon="ri-list-check">
+			<i class="ri-list-check"></i><span>Zu erledigen</span>
+		</button>
+		<button type="button" class="contents-editor-state-option" data-role="content-status-option" data-status="Review" data-label="Überprüfen" data-icon="ri-search-line">
+			<i class="ri-search-line"></i><span>Überprüfen</span>
+		</button>
+		{{- if eq $scope "entry" -}}
+			<button type="button" class="contents-editor-state-option" data-role="content-status-option" data-status="Seen" data-label="Autopsiert" data-icon="ri-information-line">
+				<i class="ri-information-line"></i><span>Autopsiert</span>
+			</button>
+		{{- end -}}
+		<button type="button" class="contents-editor-state-option" data-role="content-status-option" data-status="Edited" data-label="{{ if eq $scope "entry" }}Vollständig Erfasst{{ else }}Erfasst{{ end }}" data-icon="ri-checkbox-circle-line">
+			<i class="ri-checkbox-circle-line"></i><span>{{ if eq $scope "entry" }}Vollständig Erfasst{{ else }}Erfasst{{ end }}</span>
+		</button>
+	</div>
+</div>

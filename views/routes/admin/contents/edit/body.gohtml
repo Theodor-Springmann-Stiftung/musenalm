@@ -281,6 +281,35 @@
 		}
 		window.history[replace ? "replaceState" : "pushState"](null, "", normalizedTarget);
 	};
+	const getOrderedContentItems = () => {
+		const currentList = list || document.querySelector("[data-role='contents-list']");
+		if (!currentList) {
+			return [];
+		}
+		return Array.from(currentList.querySelectorAll("[data-role='content-item'][data-content-musenalm-id]"));
+	};
+	const getAdjacentContentMusenalmIds = (contentMusenalmId) => {
+		const items = getOrderedContentItems();
+		const currentIndex = items.findIndex((item) => item.dataset.contentMusenalmId === contentMusenalmId);
+		if (currentIndex === -1) {
+			return { prev: "", next: "" };
+		}
+		return {
+			prev: items[currentIndex - 1]?.dataset.contentMusenalmId || "",
+			next: items[currentIndex + 1]?.dataset.contentMusenalmId || "",
+		};
+	};
+	const openEditorPanelForContent = async (contentMusenalmId, { replaceUrl = false } = {}) => {
+		if (!contentMusenalmId) {
+			return false;
+		}
+		const path = buildContentsPanelPath(contentMusenalmId);
+		const loaded = await loadEditorPanelForPath(path);
+		if (loaded) {
+			setContentsHistoryPath(path, replaceUrl);
+		}
+		return loaded;
+	};
 	const getOpenPanelMusenalmId = () => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
 		return panelShell?.dataset.contentMusenalmId || "";
@@ -290,6 +319,90 @@
 	};
 	const unlockAdminSidebarForEditor = () => {
 		window.__adminSidebarController?.unlock?.(contentsEditorSidebarLockId);
+	};
+	const contentStatusMeta = {
+		Unknown: { label: "Unbekannt", icon: "ri-forbid-2-line" },
+		ToDo: { label: "Zu erledigen", icon: "ri-list-check" },
+		Review: { label: "Überprüfen", icon: "ri-search-line" },
+		Edited: { label: "Erfasst", icon: "ri-checkbox-circle-line" },
+	};
+
+	const updateContentStatusIcon = (iconEl, iconClass) => {
+		if (!iconEl) {
+			return;
+		}
+		iconEl.classList.remove(
+			"ri-checkbox-circle-line",
+			"ri-information-line",
+			"ri-search-line",
+			"ri-list-check",
+			"ri-forbid-2-line",
+		);
+		iconEl.classList.add(iconClass);
+	};
+
+	const applyContentStatusPickerState = (picker, status) => {
+		if (!picker) {
+			return;
+		}
+		const next = contentStatusMeta[status] ? status : "Unknown";
+		const meta = contentStatusMeta[next];
+		const toggle = picker.querySelector("[data-role='content-status-toggle']");
+		const icon = toggle?.querySelector("i");
+		if (toggle) {
+			toggle.dataset.status = next;
+			toggle.setAttribute("aria-label", `Status: ${meta.label}`);
+			toggle.setAttribute("title", `Status: ${meta.label}`);
+		}
+		updateContentStatusIcon(icon, meta.icon);
+	};
+
+	const initContentStatusPicker = (picker, onChange) => {
+		if (!picker || picker.dataset.init === "true") {
+			return;
+		}
+		const toggle = picker.querySelector("[data-role='content-status-toggle']");
+		const menu = picker.querySelector("[data-role='content-status-menu']");
+		if (!toggle || !menu) {
+			return;
+		}
+		picker.dataset.init = "true";
+
+		const closeMenu = () => {
+			menu.classList.add("hidden");
+		};
+
+		toggle.addEventListener("click", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			menu.classList.toggle("hidden");
+		});
+
+		menu.querySelectorAll("[data-role='content-status-option']").forEach((option) => {
+			option.addEventListener("click", async (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				const status = option.getAttribute("data-status") || "Unknown";
+				if (typeof onChange === "function") {
+					await onChange(status, picker);
+				} else {
+					applyContentStatusPickerState(picker, status);
+				}
+				closeMenu();
+			});
+		});
+
+		document.addEventListener("click", (event) => {
+			if (!picker.contains(event.target)) {
+				closeMenu();
+			}
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "Escape") {
+				closeMenu();
+			}
+		});
 	};
 
 	const rememberAndSetStyles = (el, styles) => {
@@ -398,6 +511,7 @@
 			credentials: "same-origin",
 			headers: {
 				"HX-Request": "true",
+				"HX-Target": "contents-editor-panel-shell",
 			},
 		});
 		if (!response.ok) {
@@ -449,6 +563,35 @@
 			button.addEventListener("click", (event) => {
 				event.preventDefault();
 				closeEditorPanel();
+			}, { signal: panelController.signal });
+		});
+
+		const currentContentMusenalmId = panelShell.dataset.contentMusenalmId || "";
+		const adjacentIds = getAdjacentContentMusenalmIds(currentContentMusenalmId);
+		panelShell.querySelectorAll("[data-role='contents-editor-prev'], [data-role='contents-editor-next']").forEach((button) => {
+			if (button.dataset.init === "true") {
+				return;
+			}
+			button.dataset.init = "true";
+			const isPrev = button.dataset.role === "contents-editor-prev";
+			const targetContentMusenalmId = isPrev ? adjacentIds.prev : adjacentIds.next;
+			if (!targetContentMusenalmId) {
+				button.disabled = true;
+				button.classList.add("simple-entity-header-chip-disabled");
+				button.setAttribute("aria-disabled", "true");
+				return;
+			}
+			button.disabled = false;
+			button.classList.remove("simple-entity-header-chip-disabled");
+			button.removeAttribute("aria-disabled");
+			button.addEventListener("click", async (event) => {
+				event.preventDefault();
+				button.disabled = true;
+				try {
+					await openEditorPanelForContent(targetContentMusenalmId, { replaceUrl: false });
+				} finally {
+					button.disabled = false;
+				}
 			}, { signal: panelController.signal });
 		});
 
@@ -600,86 +743,29 @@
 			}, { signal: panelController.signal, capture: true });
 		}
 
-		const statePicker = panelShell.querySelector("[data-role='contents-editor-state-picker']");
-		const stateToggle = panelShell.querySelector("[data-role='contents-editor-state-toggle']");
-		const stateMenu = panelShell.querySelector("[data-role='contents-editor-state-menu']");
+		const statePicker = panelShell.querySelector("[data-role='content-status-picker']");
 		const footerStateSelect = panelShell.querySelector("[data-role='contents-editor-footer-state']");
 		const footerStateIcon = panelShell.querySelector("[data-role='contents-editor-footer-state-icon']");
 
-		const statusMeta = {
-			Unknown: { label: "Unbekannt", icon: "ri-forbid-2-line" },
-			ToDo: { label: "Zu erledigen", icon: "ri-list-check" },
-			Review: { label: "Überprüfen", icon: "ri-search-line" },
-			Edited: { label: "Erfasst", icon: "ri-checkbox-circle-line" },
-		};
-
-		const updateStatusIcon = (iconEl, iconClass) => {
-			if (!iconEl) {
-				return;
-			}
-			iconEl.classList.remove(
-				"ri-checkbox-circle-line",
-				"ri-information-line",
-				"ri-search-line",
-				"ri-list-check",
-				"ri-forbid-2-line",
-			);
-			iconEl.classList.add(iconClass);
-		};
-
 		const applyStatus = (status) => {
-			const next = statusMeta[status] ? status : "Unknown";
-			const meta = statusMeta[next];
+			const next = contentStatusMeta[status] ? status : "Unknown";
+			const meta = contentStatusMeta[next];
 
 			if (footerStateSelect) {
 				footerStateSelect.value = next;
 				footerStateSelect.setAttribute("data-status", next);
 			}
-			updateStatusIcon(footerStateIcon, meta.icon);
-
-			if (stateToggle) {
-				stateToggle.dataset.status = next;
-				stateToggle.setAttribute("aria-label", `Status: ${meta.label}`);
-				stateToggle.setAttribute("title", `Status: ${meta.label}`);
-				stateToggle.innerHTML = `<i class="${meta.icon}"></i>`;
-			}
+			updateContentStatusIcon(footerStateIcon, meta.icon);
+			applyContentStatusPickerState(statePicker, next);
 		};
 
-		const closeStateMenu = () => {
-			stateMenu?.classList.add("hidden");
-		};
-
-		if (stateToggle && stateMenu && footerStateSelect) {
-			stateToggle.addEventListener("click", (event) => {
-				event.preventDefault();
-				event.stopPropagation();
-				stateMenu.classList.toggle("hidden");
-			}, { signal: panelController.signal });
-
-			stateMenu.querySelectorAll("[data-role='contents-editor-state-option']").forEach((option) => {
-				option.addEventListener("click", (event) => {
-					event.preventDefault();
-					applyStatus(option.getAttribute("data-status") || "Unknown");
-					closeStateMenu();
-				}, { signal: panelController.signal });
+		if (statePicker && footerStateSelect) {
+			initContentStatusPicker(statePicker, (status) => {
+				applyStatus(status);
 			});
-
 			footerStateSelect.addEventListener("change", () => {
 				applyStatus(footerStateSelect.value || "Unknown");
 			}, { signal: panelController.signal });
-
-			document.addEventListener("click", (event) => {
-				if (!statePicker?.contains(event.target)) {
-					closeStateMenu();
-				}
-			}, { signal: panelController.signal });
-
-			document.addEventListener("keydown", (event) => {
-				if (event.key === "Escape") {
-					closeStateMenu();
-				}
-			}, { signal: panelController.signal });
-
 			applyStatus(footerStateSelect.value || "Unknown");
 		}
 
@@ -1126,23 +1212,41 @@
 			"move-controls": ["[data-role='content-col-move']", "[data-role='content-cell-move']"],
 			"alm-number": ["[data-role='content-col-alm']", "[data-role='content-cell-alm']"],
 		};
+		const temporaryFilterHiddenColumns = new Set(["move-controls", "annotation", "extended-info"]);
+		const getColumnVisibility = (key, filtering, editorOpen) => {
+			if (!state[key]) {
+				return false;
+			}
+			if (temporaryFilterHiddenColumns.has(key) && filtering) {
+				return false;
+			}
+			if (key === "move-controls" && editorOpen) {
+				return false;
+			}
+			return true;
+		};
 
 		const applyState = () => {
 			const filtering = !!list?.hasAttribute("data-filtering");
 			const editorOpen = isEditorOpen();
 			Object.entries(selectors).forEach(([key, selector]) => {
-				const isVisible = key === "move-controls" ? state[key] && !filtering && !editorOpen : state[key];
+				const isVisible = getColumnVisibility(key, filtering, editorOpen);
 				document.querySelectorAll(selector).forEach((el) => {
 					el.style.display = isVisible ? "" : "none";
 				});
 			});
 			Object.entries(columnSelectors).forEach(([key, selectorList]) => {
-				const isVisible = key === "move-controls" ? state[key] && !filtering && !editorOpen : state[key];
+				const isVisible = getColumnVisibility(key, filtering, editorOpen);
 				selectorList.forEach((selector) => {
 					document.querySelectorAll(selector).forEach((el) => {
 						el.style.display = isVisible ? "" : "none";
 					});
 				});
+			});
+			document.querySelectorAll("[data-role='contents-view-option'][data-col-option]").forEach((el) => {
+				const key = el.dataset.colOption;
+				const hideWhileFiltering = temporaryFilterHiddenColumns.has(key);
+				el.style.display = filtering && hideWhileFiltering ? "none" : "";
 			});
 			document.querySelectorAll("[data-role='content-col-actions']").forEach((el) => {
 				el.style.width = editorOpen ? "0.5rem" : "";
@@ -1403,6 +1507,84 @@
 			item.remove();
 		};
 
+		const replaceWorkspaceFromResponse = (html) => {
+			if (!html) {
+				return false;
+			}
+			const template = document.createElement("template");
+			template.innerHTML = html.trim();
+			const nextWorkspace = template.content.querySelector("#contents-workspace-left");
+			const currentWorkspace = document.querySelector("#contents-workspace-left");
+			if (!nextWorkspace || !currentWorkspace) {
+				return false;
+			}
+			currentWorkspace.outerHTML = nextWorkspace.outerHTML;
+			const nextMessage = template.content.querySelector("#user-message");
+			const currentMessage = document.querySelector("#user-message");
+			if (nextMessage && currentMessage) {
+				currentMessage.outerHTML = nextMessage.outerHTML;
+			}
+			if (window.htmx?.process) {
+				window.htmx.process(document.body);
+			}
+			initFilter();
+			initViewOptions();
+			initEditorPanel();
+			initPage();
+			window.initAdminStatusPickers?.(document);
+			return true;
+		};
+
+		const saveItemStatus = async (item, status, picker) => {
+			const endpoint = picker?.dataset.statusEndpoint || "";
+			const lastEdited = picker?.dataset.lastEdited || item?.dataset.lastEdited || "";
+			if (!endpoint || !csrfToken) {
+				return;
+			}
+			const toggle = picker?.querySelector("[data-role='content-status-toggle']");
+			const previousStatus = toggle?.dataset.status || "Unknown";
+			applyContentStatusPickerState(picker, status);
+			if (toggle) {
+				toggle.disabled = true;
+				toggle.classList.add("opacity-70", "pointer-events-none");
+			}
+
+			const payload = new URLSearchParams();
+			payload.set("csrf_token", csrfToken);
+			payload.set("last_edited", lastEdited);
+			payload.set("status", status);
+
+			try {
+				const response = await fetch(endpoint, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+					body: payload.toString(),
+				});
+				const result = await response.json().catch(() => null);
+				if (!response.ok || !result?.success) {
+					throw new Error("status save failed");
+				}
+				if (result.last_edited) {
+					picker.dataset.lastEdited = result.last_edited;
+					if (item) {
+						item.dataset.lastEdited = result.last_edited;
+					}
+				}
+				if (result.status) {
+					applyContentStatusPickerState(picker, result.status);
+				}
+			} catch {
+				applyContentStatusPickerState(picker, previousStatus);
+			} finally {
+				if (toggle) {
+					toggle.disabled = false;
+					toggle.classList.remove("opacity-70", "pointer-events-none");
+				}
+			}
+		};
+
 		const setupItem = (item) => {
 			if (!item || item.dataset.init === "true") {
 				return;
@@ -1424,6 +1606,11 @@
 					}
 					deleteDialog.showModal();
 				});
+			}
+
+			const statusPicker = item.querySelector("[data-role='content-status-picker']");
+			if (statusPicker && !statusPicker.dataset.statusEndpoint) {
+				initContentStatusPicker(statusPicker, (status, picker) => saveItemStatus(item, status, picker));
 			}
 		};
 
@@ -1569,7 +1756,7 @@
 			if (event.target.closest("[data-role='content-move-up']") || event.target.closest("[data-role='content-move-down']")) {
 				return;
 			}
-			if (event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
+			if (event.target.closest("[data-role='content-status-picker']") || event.target.closest(".status-badge") || event.target.closest("multi-select-simple") || event.target.closest("select")) {
 				return;
 			}
 			const handle = event.target.closest("[data-role='content-drag-handle']");
@@ -1675,7 +1862,7 @@
 		if (isEditorOpen() && getOpenPanelMusenalmId() === contentMusenalmId) {
 			return;
 		}
-		loadEditorPanelForPath(buildContentsPanelPath(contentMusenalmId)).catch(() => null);
+		openEditorPanelForContent(contentMusenalmId, { replaceUrl: true }).catch(() => null);
 	});
 	window.addEventListener("admin-sidebar-controller-ready", () => {
 		syncEditorState();

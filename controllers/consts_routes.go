@@ -80,6 +80,7 @@ const (
 
 	URL_REIHE_ADMIN_BASE  = "/admin/reihe/{id}/"
 	URL_REIHE_EDIT        = "edit"
+	URL_REIHE_STATUS      = "edit/status"
 	URL_REIHE_DELETE      = "edit/delete"
 	TEMPLATE_REIHE_EDIT   = "/admin/reihe/edit/"
 	URL_REIHEN_REDIRECT   = "/reihen"
@@ -106,6 +107,7 @@ const (
 	URL_PERSON_EDIT_BASE   = "/admin/person/{id}/"
 	URL_PERSON_EDIT        = "edit"
 	URL_PERSON_EDIT_SLASH  = "edit/"
+	URL_PERSON_STATUS      = "edit/status"
 	URL_PERSON_DELETE      = "edit/delete"
 	TEMPLATE_PERSON_EDIT   = "/admin/person/edit/"
 	URL_PERSON_VIEW_FORMAT = "/person/%s"
@@ -130,6 +132,7 @@ const (
 
 	URL_ALMANACH_ADMIN_BASE      = "/admin/almanach/{id}/"
 	URL_ALMANACH_EDIT            = "edit/"
+	URL_ALMANACH_STATUS          = "edit/status"
 	TEMPLATE_ALMANACH_EDIT       = "/admin/almanach/edit/"
 	URL_ALMANACH_VIEW_FORMAT     = "/almanach/%s/"
 	URL_ALMANACH_REIHEN_REDIRECT = "/reihen"
@@ -137,6 +140,7 @@ const (
 	URL_ALMANACH_CONTENTS_ADMIN_BASE        = "/admin/almanach/{id}/"
 	URL_ALMANACH_CONTENTS_EDIT              = "contents/edit"
 	URL_ALMANACH_CONTENTS_NEW               = "contents/new"
+	URL_ALMANACH_CONTENTS_STATUS            = "contents/status/{contentMusenalmId}"
 	URL_ALMANACH_CONTENTS_PANEL_EDIT        = "contents/edit/{contentMusenalmId}"
 	URL_ALMANACH_CONTENTS_PANEL_EDIT_SLASH  = "contents/edit/{contentMusenalmId}/"
 	URL_ALMANACH_CONTENTS_DELETE            = "contents/delete"
@@ -191,6 +195,7 @@ const (
 
 	URL_ORT                 = "/admin/ort/{id}/"
 	URL_ORT_EDIT            = "edit"
+	URL_ORT_STATUS          = "edit/status"
 	URL_ORT_DELETE          = "edit/delete"
 	TEMPLATE_ORT_EDIT       = "/admin/ort/edit/"
 	URL_REIHEN_PLACE_FILTER = "/reihen/?place=%s"

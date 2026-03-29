@@ -43,6 +43,7 @@ func (p *AlmanachEditPage) Setup(router *router.Router[*core.RequestEvent], ia p
 	rg := router.Group(URL_ALMANACH_ADMIN_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ALMANACH_EDIT, p.GET(engine, app, ia))
+	rg.POST(URL_ALMANACH_STATUS, p.POSTStatus(app, ia, store))
 	rg.POST(URL_ALMANACH_EDIT+"save", p.POSTSave(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_EDIT+"delete", p.POSTDelete(engine, app, ia, store))
 	return nil
@@ -254,6 +255,59 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			"message":  "Änderungen gespeichert.",
 			"updated":  updatedInfo,
 			"redirect": fmt.Sprintf(URL_ALMANACH_VIEW_FORMAT, id),
+		})
+	}
+}
+
+func (p *AlmanachEditPage) POSTStatus(app core.App, ma pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		payload := statusUpdatePayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Band wurde nicht gefunden.",
+			})
+		}
+
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
+		}
+
+		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.UpdateEntryStatus(tx, entry, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+		}); err != nil {
+			app.Logger().Error("Failed to update almanach status", "entry_id", entry.Id, "error", err)
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Status konnte nicht gespeichert werden."),
+			})
+		}
+
+		freshEntry, freshErr := dbmodels.Entries_MusenalmID(app, id)
+		if freshErr == nil && freshEntry != nil {
+			entry = freshEntry
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":     true,
+			"status":      entry.EditState(),
+			"last_edited": entry.Updated().Time().Format(time.RFC3339Nano),
 		})
 	}
 }

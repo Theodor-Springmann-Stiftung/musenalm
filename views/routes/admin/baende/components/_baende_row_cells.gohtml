@@ -1,5 +1,5 @@
 {{ $entry := .entry }}
-	<td class="pt-2 pb-2 pr-4 pl-4 admin-col-nachweis-baende admin-col-wrap{{ if eq $entry.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $entry.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+	<td data-role="baende-status-reference-cell" class="pt-2 pb-2 pr-4 pl-4 admin-col-nachweis-baende admin-col-wrap">
 			<div class="flex flex-col">
 				<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Alm {{ $entry.MusenalmID }}</div>
 				{{- if $entry.References -}}
@@ -83,11 +83,16 @@
 		{{- else -}}
 			<span class="inline">[o.J.]</span>
 		{{- end -}}
-			<span
-				class="inline-block align-middle ml-1"
-				title="{{- if eq $entry.EditState "Unknown" -}}Gesucht{{- else if eq $entry.EditState "ToDo" -}}Zu erledigen{{- else if eq $entry.EditState "Review" -}}Überprüfen{{- else if eq $entry.EditState "Seen" -}}Autopsiert{{- else if eq $entry.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $entry.EditState }}{{- end -}}"
-				aria-label="{{- if eq $entry.EditState "Unknown" -}}Gesucht{{- else if eq $entry.EditState "ToDo" -}}Zu erledigen{{- else if eq $entry.EditState "Review" -}}Überprüfen{{- else if eq $entry.EditState "Seen" -}}Autopsiert{{- else if eq $entry.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $entry.EditState }}{{- end -}}">
-				<i class="status-icon align-middle {{- if eq $entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entry.EditState "Seen" }} ri-information-line{{- else if eq $entry.EditState "Review" }} ri-search-line{{- else if eq $entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $entry.EditState }}"></i>
+			<span class="inline-block align-middle ml-1">
+				{{- template "_status_picker" (Dict
+					"status" $entry.EditState
+					"scope" "entry"
+					"endpoint" (printf "/admin/almanach/%v/edit/status" $entry.MusenalmID)
+					"csrf_token" .csrf_token
+					"last_edited" $entry.Updated
+					"picker_class" ""
+					"toggle_class" "admin-list-status-trigger"
+				) -}}
 			</span>
 	</div>
 	{{- if $entry.TitleStmt -}}

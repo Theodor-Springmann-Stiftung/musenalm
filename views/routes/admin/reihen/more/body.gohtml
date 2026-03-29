@@ -6,5 +6,6 @@
 		"editor_user" (index $model.result.Users $series.Editor)
 		"band_links" (index $model.result.BandLinks $series.Id)
 		"can_edit" (IsAdminOrEditor $model.request.user)
+		"csrf_token" $model.csrf_token
 	) -}}
 {{- end -}}

@@ -1,5 +1,5 @@
 {{ $series := .series }}
-<td class="col-reference pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 admin-col-nachweis-reihen admin-col-wrap{{ if eq $series.EditState "ToDo" }} border-l-4 border-red-500{{ else if eq $series.EditState "Review" }} border-l-4 border-amber-500{{ end }}">
+<td data-role="reihen-status-reference-cell" class="col-reference pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 admin-col-nachweis-reihen admin-col-wrap">
 		<div class="flex flex-col">
 			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Nr {{ $series.MusenalmID }}</div>
 			{{- if $series.References -}}
@@ -45,13 +45,15 @@
 					</span>
 				{{- end -}}
 			</div>
-			<span
-				class="col-status inline-flex"
-				title="{{- if eq $series.EditState "Unknown" -}}Unbekannt{{- else if eq $series.EditState "ToDo" -}}Zu erledigen{{- else if eq $series.EditState "Review" -}}Überprüfen{{- else if eq $series.EditState "Seen" -}}Gesichtet{{- else if eq $series.EditState "Edited" -}}Erfasst{{- else -}}{{ $series.EditState }}{{- end -}}"
-				aria-label="{{- if eq $series.EditState "Unknown" -}}Unbekannt{{- else if eq $series.EditState "ToDo" -}}Zu erledigen{{- else if eq $series.EditState "Review" -}}Überprüfen{{- else if eq $series.EditState "Seen" -}}Gesichtet{{- else if eq $series.EditState "Edited" -}}Erfasst{{- else -}}{{ $series.EditState }}{{- end -}}">
-				<span class="status-badge admin-status-chip" data-status="{{ $series.EditState }}">
-					<i class="status-icon {{- if eq $series.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $series.EditState "Seen" }} ri-information-line{{- else if eq $series.EditState "Review" }} ri-search-line{{- else if eq $series.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-				</span>
+			<span class="col-status inline-flex">
+				{{- template "_status_picker" (Dict
+					"status" $series.EditState
+					"endpoint" (printf "/admin/reihe/%v/edit/status" $series.MusenalmID)
+					"csrf_token" .csrf_token
+					"last_edited" $series.Updated
+					"picker_class" ""
+					"toggle_class" "admin-list-status-trigger"
+				) -}}
 			</span>
 			<div class="admin-list-action-stack">
 				<div class="admin-list-chip-pair">

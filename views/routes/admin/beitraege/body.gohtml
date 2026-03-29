@@ -432,6 +432,8 @@ class="admin-page-shell font-sans pt-0 pb-8">
 	{{ template "_beitraege_results" $model }}
 </div>
 
+<input type="hidden" data-role="global-csrf-token" value="{{ $model.csrf_token }}" />
+
 <dialog id="beitraege-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
 	<div class="p-5 w-[22rem]">
 		<div class="text-base font-bold text-gray-900">Beitrag löschen?</div>

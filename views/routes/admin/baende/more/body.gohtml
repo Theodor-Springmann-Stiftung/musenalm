@@ -9,5 +9,6 @@
 		"series_links" (index $model.result.SeriesLinks $entry.Id)
 		"agent_rels" (index $model.result.EntriesAgents $entry.Id)
 		"can_edit" (IsAdminOrEditor $model.request.user)
+		"csrf_token" $model.csrf_token
 	) -}}
 {{- end -}}

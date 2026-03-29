@@ -1,7 +1,7 @@
 {{ $entry := .entry }}
 <tbody data-role="baende-row-group" data-entry-id="{{ $entry.MusenalmID }}">
 	<tr
-		class="align-top{{ if eq $entry.EditState "Unknown" }} bg-stone-100/70{{ else if eq $entry.EditState "ToDo" }} bg-red-50{{ else if eq $entry.EditState "Review" }} bg-amber-50{{ else if eq $entry.EditState "Edited" }} bg-emerald-50/40{{ else }} bg-slate-50{{ end }} border-b"
+		class="align-top border-b transition-colors"
 		data-role="baende-row"
 		data-entry-id="{{ $entry.MusenalmID }}">
 		{{ template "_baende_row_cells" . }}

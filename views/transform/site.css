@@ -842,7 +842,7 @@
 	}
 
 	.admin-list-head {
-		@apply border-b border-stone-300 bg-stone-100 text-left text-stone-600;
+		@apply border-b border-stone-400 bg-stone-200/60 text-left text-slate-900;
 	}
 
 	.admin-list-row {
@@ -959,6 +959,74 @@
 
 	.admin-status-chip .status-icon {
 		@apply text-base;
+	}
+
+	.admin-list-status-trigger {
+		@apply inline-flex h-7 w-7 items-center justify-center rounded-xs border text-sm transition-colors;
+	}
+
+	.admin-list-status-trigger[data-status="Edited"] {
+		@apply border-green-600 bg-green-50 text-green-900 hover:bg-green-100;
+	}
+
+	.admin-list-status-trigger[data-status="Seen"] {
+		@apply border-blue-600 bg-blue-50 text-blue-900 hover:bg-blue-100;
+	}
+
+	.admin-list-status-trigger[data-status="Review"] {
+		@apply border-orange-600 bg-orange-50 text-orange-900 hover:bg-orange-100;
+	}
+
+	.admin-list-status-trigger[data-status="ToDo"] {
+		@apply border-red-600 bg-red-50 text-red-900 hover:bg-red-100;
+	}
+
+	.admin-list-status-trigger[data-status="Unknown"] {
+		@apply border-stone-500 bg-stone-100 text-stone-700 hover:bg-stone-200;
+	}
+
+	[data-role="reihen-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) {
+		@apply bg-red-50/70;
+	}
+
+	[data-role="reihen-row"]:has(.admin-list-status-trigger[data-status="Review"]) {
+		@apply bg-amber-50/70;
+	}
+
+	[data-role="reihen-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) [data-role="reihen-status-reference-cell"] {
+		@apply border-l-4 border-red-500;
+	}
+
+	[data-role="reihen-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="reihen-status-reference-cell"] {
+		@apply border-l-4 border-amber-500;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Unknown"]) {
+		@apply bg-stone-100/70;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) {
+		@apply bg-red-50;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Review"]) {
+		@apply bg-amber-50;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Edited"]) {
+		@apply bg-emerald-50/40;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Seen"]) {
+		@apply bg-slate-50;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) [data-role="baende-status-reference-cell"] {
+		@apply border-l-4 border-red-500;
+	}
+
+	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="baende-status-reference-cell"] {
+		@apply border-l-4 border-amber-500;
 	}
 
 	.admin-placeholder-grid {

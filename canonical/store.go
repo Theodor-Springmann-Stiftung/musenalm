@@ -198,6 +198,26 @@ func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput
 	return nil
 }
 
+func (s *Store) UpdateAgentStatus(tx core.App, agent *dbmodels.Agent, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+	if err := validateStatus(status); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(agent.Updated().Time(), expectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	agent.SetEditState(strings.TrimSpace(status))
+	if editorID != "" {
+		agent.SetEditor(editorID)
+	}
+	if err := tx.Save(agent); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkAgentUpdated(agent.Id, false)
+	}
+	return nil
+}
+
 func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(agent.Updated().Time(), opts.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
@@ -260,6 +280,26 @@ func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput
 	}
 	if effects != nil {
 		effects.MarkPlaceUpdated(place.Id, nameChanged)
+	}
+	return nil
+}
+
+func (s *Store) UpdatePlaceStatus(tx core.App, place *dbmodels.Place, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+	if err := validateStatus(status); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(place.Updated().Time(), expectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	place.SetEditState(strings.TrimSpace(status))
+	if editorID != "" {
+		place.SetEditor(editorID)
+	}
+	if err := tx.Save(place); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkPlaceUpdated(place.Id, false)
 	}
 	return nil
 }
@@ -343,6 +383,26 @@ func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesI
 	}
 	if effects != nil {
 		effects.MarkSeriesUpdated(series.Id, titleChanged)
+	}
+	return nil
+}
+
+func (s *Store) UpdateSeriesStatus(tx core.App, series *dbmodels.Series, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+	if err := validateStatus(status); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(series.Updated().Time(), expectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	series.SetEditState(strings.TrimSpace(status))
+	if editorID != "" {
+		series.SetEditor(editorID)
+	}
+	if err := tx.Save(series); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkSeriesUpdated(series.Id, false)
 	}
 	return nil
 }
@@ -439,6 +499,28 @@ func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput
 		effects.InvalidateSortedEntries = true
 		effects.ResetBaende = true
 		effects.MarkEntryUpdated(entry.Id, updateMode)
+	}
+	return nil
+}
+
+func (s *Store) UpdateEntryStatus(tx core.App, entry *dbmodels.Entry, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+	if err := validateStatus(status); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(entry.Updated().Time(), expectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	entry.SetEditState(strings.TrimSpace(status))
+	if editorID != "" {
+		entry.SetEditor(editorID)
+	}
+	if err := tx.Save(entry); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.InvalidateSortedEntries = true
+		effects.ResetBaende = true
+		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryOnly)
 	}
 	return nil
 }
@@ -808,6 +890,26 @@ func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbm
 	}
 	if effects != nil {
 		effects.MarkContentUpdated(content.Id, entry.Id)
+	}
+	return nil
+}
+
+func (s *Store) UpdateContentStatus(tx core.App, content *dbmodels.Content, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+	if err := validateStatus(status); err != nil {
+		return err
+	}
+	if err := checkExpectedUpdatedAt(content.Updated().Time(), expectedUpdatedAt, "Der Beitrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
+		return err
+	}
+	content.SetEditState(strings.TrimSpace(status))
+	if editorID != "" {
+		content.SetEditor(editorID)
+	}
+	if err := tx.Save(content); err != nil {
+		return err
+	}
+	if effects != nil {
+		effects.MarkContentUpdated(content.Id, content.Entry())
 	}
 	return nil
 }

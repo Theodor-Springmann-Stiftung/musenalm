@@ -108,6 +108,7 @@ func (p *AlmanachContentsEditPage) Setup(router *router.Router[*core.RequestEven
 	rg.GET(URL_ALMANACH_CONTENTS_PANEL_EDIT, p.GETPanelEdit(engine, app, ia))
 	rg.GET(URL_ALMANACH_CONTENTS_PANEL_EDIT_SLASH, p.GETPanelEdit(engine, app, ia))
 	rg.POST(URL_ALMANACH_CONTENTS_EDIT, p.POSTSave(engine, app, ia, store))
+	rg.POST(URL_ALMANACH_CONTENTS_STATUS, p.POSTUpdateStatus(app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_DELETE, p.POSTDelete(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_RESERVATION, p.POSTReserveNumbers(engine, app, ia, store))
 	rg.POST(URL_ALMANACH_CONTENTS_RESERVATION_STOP, p.POSTDeactivateReservation(engine, app, ia, store))
@@ -467,6 +468,71 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 		setFlashSuccess(e, savedMessage)
 		redirect := fmt.Sprintf(URL_ALMANACH_CONTENTS_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
+func (p *AlmanachContentsEditPage) POSTUpdateStatus(app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		contentMusenalmID := strings.TrimSpace(e.Request.PathValue("contentMusenalmId"))
+		req := templating.NewRequest(e)
+
+		payload := statusUpdatePayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		entry, err := dbmodels.Entries_MusenalmID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Band wurde nicht gefunden.",
+			})
+		}
+		content, err := dbmodels.Contents_MusenalmID(app, contentMusenalmID)
+		if err != nil || content == nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Beitrag wurde nicht gefunden.",
+			})
+		}
+		if content.Entry() != entry.Id {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Beitrag gehört zu einem anderen Band.",
+			})
+		}
+
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
+		}
+
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.UpdateContentStatus(tx, content, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+		}); err != nil {
+			app.Logger().Error("Failed to update content status", "entry_id", entry.Id, "content_id", content.Id, "error", err)
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Status konnte nicht gespeichert werden."),
+			})
+		}
+
+		freshContent, freshErr := dbmodels.Contents_MusenalmID(app, contentMusenalmID)
+		if freshErr == nil && freshContent != nil {
+			content = freshContent
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":     true,
+			"status":      content.EditState(),
+			"last_edited": content.Updated().Time().Format(time.RFC3339Nano),
+		})
 	}
 }
 

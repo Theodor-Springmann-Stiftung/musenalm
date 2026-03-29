@@ -1,7 +1,7 @@
 {{ $series := .series }}
 <tbody class="odd:[&_tr]:bg-white even:[&_tr]:bg-stone-50/50" data-role="reihen-row-group" data-series-id="{{ $series.MusenalmID }}">
 	<tr
-		class="admin-list-row hover:!bg-stone-50{{ if eq $series.EditState "ToDo" }} bg-red-50/70{{ else if eq $series.EditState "Review" }} bg-amber-50/70{{ end }}"
+		class="admin-list-row hover:!bg-stone-50"
 		data-role="reihen-row"
 		data-series-id="{{ $series.MusenalmID }}">
 		{{ template "_reihen_row_cells" . }}

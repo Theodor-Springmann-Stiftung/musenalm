@@ -9,7 +9,7 @@
 {{- if and $overrideID (ne $overrideID "") -}}
 	{{- $contentID = $overrideID -}}
 {{- end -}}
-<tr data-role="content-item" class="border-b border-stone-200 align-top transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80" data-content-id="{{ $contentID }}">
+<tr data-role="content-item" class="border-b border-stone-200 align-top transition-colors odd:bg-white even:bg-stone-50/60 hover:bg-stone-100/80" data-content-id="{{ $contentID }}" data-content-musenalm-id="{{ $content.MusenalmID }}" data-last-edited="{{ $content.Updated }}">
 	<td class="px-2 py-2 align-top w-[4.5rem]" data-role="content-cell-move">
 		<div class="flex items-center gap-1" data-role="content-move-controls">
 			<button
@@ -145,14 +145,14 @@
 		</div>
 	</td>
 	<td class="px-2 py-2 align-top whitespace-nowrap w-px">
-		<span
-			class="inline"
-			title="{{- if eq $content.EditState "Unknown" -}}Unbekannt{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "Seen" -}}Gesichtet{{- else if eq $content.EditState "Edited" -}}Erfasst{{- else -}}{{ $content.EditState }}{{- end -}}"
-			aria-label="{{- if eq $content.EditState "Unknown" -}}Unbekannt{{- else if eq $content.EditState "ToDo" -}}Zu erledigen{{- else if eq $content.EditState "Review" -}}Überprüfen{{- else if eq $content.EditState "Seen" -}}Gesichtet{{- else if eq $content.EditState "Edited" -}}Erfasst{{- else -}}{{ $content.EditState }}{{- end -}}">
-			<span class="status-badge admin-status-chip" data-status="{{ $content.EditState }}">
-				<i class="status-icon {{- if eq $content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $content.EditState "Seen" }} ri-information-line{{- else if eq $content.EditState "Review" }} ri-search-line{{- else if eq $content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-			</span>
-		</span>
+		{{- template "_status_picker" (Dict
+			"status" $content.EditState
+			"endpoint" (printf "/admin/almanach/%v/contents/status/%v" $entry.MusenalmID $content.MusenalmID)
+			"csrf_token" $csrf
+			"last_edited" $content.Updated
+			"picker_class" ""
+			"toggle_class" "admin-list-status-trigger"
+		) -}}
 	</td>
 	<td class="px-2 py-2 align-top whitespace-nowrap w-px" data-role="content-cell-actions">
 		<div class="flex items-center justify-end gap-1.5" data-role="content-cell-actions-inner">

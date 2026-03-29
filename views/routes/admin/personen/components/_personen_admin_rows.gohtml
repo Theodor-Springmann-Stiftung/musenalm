@@ -80,13 +80,15 @@
 							</span>
 						{{- end -}}
 					</div>
-					<span
-						class="col-status inline-flex"
-						title="{{- if eq $agent.EditState "Unknown" -}}Unbekannt{{- else if eq $agent.EditState "ToDo" -}}Zu erledigen{{- else if eq $agent.EditState "Review" -}}Überprüfen{{- else if eq $agent.EditState "Seen" -}}Gesichtet{{- else if eq $agent.EditState "Edited" -}}Erfasst{{- else -}}{{ $agent.EditState }}{{- end -}}"
-						aria-label="{{- if eq $agent.EditState "Unknown" -}}Unbekannt{{- else if eq $agent.EditState "ToDo" -}}Zu erledigen{{- else if eq $agent.EditState "Review" -}}Überprüfen{{- else if eq $agent.EditState "Seen" -}}Gesichtet{{- else if eq $agent.EditState "Edited" -}}Erfasst{{- else -}}{{ $agent.EditState }}{{- end -}}">
-						<span class="status-badge admin-status-chip" data-status="{{ $agent.EditState }}">
-							<i class="status-icon {{- if eq $agent.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $agent.EditState "Seen" }} ri-information-line{{- else if eq $agent.EditState "Review" }} ri-search-line{{- else if eq $agent.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
-						</span>
+					<span class="col-status inline-flex">
+						{{- template "_status_picker" (Dict
+							"status" $agent.EditState
+							"endpoint" (printf "/admin/person/%v/edit/status" $agent.Id)
+							"csrf_token" $model.csrf_token
+							"last_edited" $agent.Updated
+							"picker_class" ""
+							"toggle_class" "admin-list-status-trigger"
+						) -}}
 					</span>
 					<div class="admin-list-action-stack">
 						<div class="admin-list-chip-pair">

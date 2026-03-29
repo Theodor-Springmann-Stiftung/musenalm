@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
@@ -41,6 +42,7 @@ func (p *OrtEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemo
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_ORT_EDIT, p.GET(engine, app))
 	rg.POST(URL_ORT_EDIT, p.POST(engine, app, ia, store))
+	rg.POST(URL_ORT_STATUS, p.POSTStatus(app, ia, store))
 	rg.POST(URL_ORT_DELETE, p.POSTDelete(engine, app, ia, store))
 	return nil
 }
@@ -219,6 +221,59 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, ia pagemodel
 		setFlashSuccess(e, "Änderungen gespeichert.")
 		redirect := fmt.Sprintf(URL_ORT_EDIT_FORMAT, id)
 		return e.Redirect(http.StatusSeeOther, redirect)
+	}
+}
+
+func (p *OrtEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		payload := statusUpdatePayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		place, err := dbmodels.Places_ID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Ort wurde nicht gefunden.",
+			})
+		}
+
+		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
+		if err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültiger Bearbeitungszeitstempel.",
+			})
+		}
+
+		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
+			return store.UpdatePlaceStatus(tx, place, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+		}); err != nil {
+			app.Logger().Error("Failed to update place status", "place_id", place.Id, "error", err)
+			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
+				"error": canonicalErrorMessage(err, "Status konnte nicht gespeichert werden."),
+			})
+		}
+
+		freshPlace, freshErr := dbmodels.Places_ID(app, id)
+		if freshErr == nil && freshPlace != nil {
+			place = freshPlace
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":     true,
+			"status":      place.EditState(),
+			"last_edited": place.Updated().Time().Format(time.RFC3339Nano),
+		})
 	}
 }
 
