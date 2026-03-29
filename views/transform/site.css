@@ -167,6 +167,37 @@
 		@apply flex h-screen w-full overflow-visible;
 	}
 
+	.visitor-admin-layout {
+		@apply relative flex min-h-screen w-full items-start overflow-x-clip bg-white;
+	}
+
+	.visitor-admin-sidebar-column {
+		@apply sticky top-0 z-30 h-screen self-start shrink-0 overflow-hidden border-r border-transparent bg-stone-100 transition-[width,border-color] duration-300 ease-out;
+		width: 0;
+	}
+
+	.visitor-admin-sidebar-column.is-open {
+		width: min(17rem, 78vw);
+		@apply border-stone-400;
+		box-shadow: 1px 0 0 rgba(68, 64, 60, 0.14);
+	}
+
+	.visitor-admin-sidebar-shell {
+		@apply h-screen w-[min(17rem,78vw)] max-w-[min(17rem,78vw)] overflow-y-auto bg-stone-100;
+	}
+
+	.visitor-admin-main-column {
+		@apply relative z-0 min-w-0 flex-1;
+	}
+
+	.visitor-admin-sidebar-trigger {
+		@apply fixed bottom-6 left-6 z-40 inline-flex h-11 w-11 items-center justify-center rounded-xs border border-stone-300 bg-white text-slate-700 shadow-sm transition-[left,background-color,border-color,color] duration-300 ease-out hover:border-stone-400 hover:bg-stone-100 hover:text-slate-950;
+	}
+
+	.visitor-admin-sidebar-trigger.is-open {
+		left: calc(min(17rem, 78vw) + 1rem);
+	}
+
 	.admin-sidebar-frame {
 		@apply relative z-40 h-screen w-[17rem] shrink-0 overflow-visible border-r border-stone-400 bg-stone-100 transition-[width] duration-200;
 		box-shadow: 1px 0 0 rgba(68, 64, 60, 0.14);
@@ -951,6 +982,22 @@
 	@media (max-width: 1024px) {
 		.admin-layout {
 			@apply h-auto min-h-screen flex-col overflow-visible;
+		}
+
+		.visitor-admin-layout {
+			@apply min-h-screen items-start;
+		}
+
+		.visitor-admin-sidebar-column.is-open {
+			width: min(16rem, 76vw);
+		}
+
+		.visitor-admin-sidebar-shell {
+			@apply w-[min(16rem,76vw)] max-w-[min(16rem,76vw)];
+		}
+
+		.visitor-admin-sidebar-trigger.is-open {
+			left: calc(min(16rem, 76vw) + 1rem);
 		}
 
 		.admin-sidebar-frame {

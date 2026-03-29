@@ -27,7 +27,7 @@
 				siteTitle: {{ printf "%q" .site.title }},
 				expandCollapsedSidebarSections() {
 					this.$nextTick(() => {
-						document.querySelectorAll('#admin-sidebar details:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
+						document.querySelectorAll('#admin-sidebar details.admin-sidebar-section-collapsible:not(.admin-sidebar-create-section):not(.admin-sidebar-public-section)').forEach((el) => {
 							el.open = true;
 						});
 					});
@@ -97,7 +97,6 @@
 							section.removeAttribute('data-section-current');
 						}
 					});
-
 					const heading = document.querySelector('#admin-main-content .simple-entity-title, #admin-main-content .admin-page-title');
 					const currentHeading = heading?.textContent?.trim() || '';
 							sidebar.querySelectorAll('.admin-sidebar-link').forEach((link) => {

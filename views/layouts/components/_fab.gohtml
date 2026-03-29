@@ -1,11 +1,82 @@
-{{- if .request.user -}}
-<fab-menu
-  data-user-name="{{ if .request.user.Name }}{{ .request.user.Name }}{{ end }}"
-  data-user-email="{{ .request.user.Email }}"
-  data-user-id="{{ .request.user.Id }}"
-  data-user-is-superuser="{{ if .request.user.IsSuperuser }}true{{ else }}false{{ end }}"
-  data-is-admin-or-editor="{{ if (IsAdminOrEditor .request.user) }}true{{ else }}false{{ end }}"
-  data-is-admin="{{ if eq .request.user.Role "Admin" }}true{{ else }}false{{ end }}"
-  data-redirect-path="{{ .request.fullpath }}"
-></fab-menu>
+{{- if and .request.user (IsAdminOrEditor .request.user) -}}
+<div
+	x-data="{ open: false }"
+	x-id="['visitor-admin-fab']"
+	@keydown.escape.window="open = false"
+	@click.outside="open = false"
+	hx-boost="false"
+	class="fixed bottom-6 left-6 z-40">
+	<div
+		x-cloak
+		x-show="open"
+		x-transition.opacity.scale.origin.bottom.left.duration.150ms
+		class="absolute bottom-14 left-0 w-[17rem] overflow-hidden rounded-xs border border-stone-300 bg-white shadow-lg">
+		<div class="border-b border-stone-200 px-3 pt-2 pb-1.5">
+			<div class="leading-none text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-stone-500">Neu</div>
+		</div>
+		<div class="py-1">
+			<a href="/admin/almanach-new/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-book-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Neuer Band</span>
+			</a>
+			<a href="/admin/reihen/new/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-book-shelf-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Neue Reihe</span>
+			</a>
+			<a href="/admin/personen/new/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-user-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Neue Person</span>
+			</a>
+			<a href="/admin/orte/new/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-map-pin-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Neuer Ort</span>
+			</a>
+		</div>
+
+		<div class="border-b border-stone-200 px-3 pt-2 pb-1.5">
+			<div class="leading-none text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-stone-500">Entitäten</div>
+		</div>
+		<div class="py-1">
+			<a href="/admin/reihen/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-book-shelf-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Reihen</span>
+			</a>
+			<a href="/admin/baende/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-book-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Bände</span>
+			</a>
+			<a href="/admin/beitraege/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-article-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Beiträge</span>
+			</a>
+			<a href="/admin/personen/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-user-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Personen</span>
+			</a>
+			<a href="/admin/orte/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-map-pin-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Orte</span>
+			</a>
+			<a href="/admin/abkuerzungen/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-text text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Abkürzungen</span>
+			</a>
+			<a href="/admin/seiten/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-pages-line text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<span>Seiten</span>
+			</a>
+		</div>
+	</div>
+
+	<button
+		type="button"
+		@click="open = !open"
+		:aria-expanded="open"
+		:aria-label="open ? 'Admin-Menü schließen' : 'Admin-Menü öffnen'"
+		:title="open ? 'Admin-Menü schließen' : 'Admin-Menü öffnen'"
+		class="inline-flex h-11 w-11 items-center justify-center rounded-xs border border-stone-400 bg-white text-slate-700 shadow-sm transition-colors hover:bg-stone-100 hover:text-slate-950">
+		<i class="ri-menu-line text-[1.15rem]" x-show="!open" aria-hidden="true"></i>
+		<i class="ri-close-line text-[1.15rem]" x-show="open" x-cloak aria-hidden="true"></i>
+	</button>
+</div>
 {{- end -}}

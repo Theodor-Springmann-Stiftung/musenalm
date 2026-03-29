@@ -4,6 +4,7 @@
 {{- $canEditAccount := false -}}
 {{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
 {{- $path := "" -}}
+{{- $isVisitorSidebar := .visitor_sidebar -}}
 {{- if and $model.request $model.request.user (not $model.request.user.IsSuperuser) -}}
 	{{- $accountHref = (printf "/admin/user/%s/edit/" $model.request.user.Id) -}}
 	{{- $profilePathPrefix = (printf "/admin/user/%s/edit" $model.request.user.Id) -}}
@@ -12,6 +13,15 @@
 {{- if and $model.request $model.request.path -}}
 	{{- $path = $model.request.path -}}
 {{- end -}}
+{{- $isPublicReihenActive := or (eq $path "/reihen") (HasPrefix $path "/reihen/") (HasPrefix $path "/reihe/") -}}
+{{- $isPublicPersonsActive := or (eq $path "/personen") (HasPrefix $path "/personen/") (HasPrefix $path "/person/") -}}
+{{- $isPublicSearchActive := or (eq $path "/suche") (HasPrefix $path "/suche/") -}}
+{{- $isPublicEditorialIntroActive := or (eq $path "/") (eq $path "/index") (eq $path "/index/") (eq $path "/redaktion/einleitung") (HasPrefix $path "/redaktion/einleitung/") -}}
+{{- $isPublicEditorialHintsActive := or (eq $path "/redaktion/benutzerhinweise") (HasPrefix $path "/redaktion/benutzerhinweise/") -}}
+{{- $isPublicEditorialLitActive := or (eq $path "/redaktion/literatur") (HasPrefix $path "/redaktion/literatur/") -}}
+{{- $isPublicEditorialCabinetActive := or (eq $path "/redaktion/lesekabinett") (HasPrefix $path "/redaktion/lesekabinett/") -}}
+{{- $isPublicEditorialThanksActive := or (eq $path "/redaktion/danksagungen") (HasPrefix $path "/redaktion/danksagungen/") -}}
+{{- $isPublicEditorialContactActive := or (eq $path "/redaktion/kontakt") (HasPrefix $path "/redaktion/kontakt/") -}}
 {{- $isNewBandActive := HasPrefix $path "/admin/almanach-new/" -}}
 {{- $bandContentsPathPrefix := "" -}}
 {{- if and (HasPrefix $path "/admin/almanach/") $model.result $model.result.Entry -}}
@@ -33,7 +43,14 @@
 {{- $isUserInviteActive := HasPrefix $path "/admin/user/management/access" -}}
 {{- $isUserManagementActive := and (HasPrefix $path "/admin/user/management") (not $isUserInviteActive) -}}
 {{- $isProfileActive := and $profilePathPrefix (HasPrefix $path $profilePathPrefix) -}}
-{{- $isPublicSectionActive := false -}}
+{{- if $isVisitorSidebar -}}
+	{{- $isSeriesActive = or (HasPrefix $path "/admin/reihen/") (HasPrefix $path "/admin/reihe/") -}}
+	{{- $isBandsActive = or (HasPrefix $path "/admin/baende/") (HasPrefix $path "/admin/almanach/") -}}
+	{{- $isContentsActive = or (HasPrefix $path "/admin/beitraege/") $isBandContentsActive -}}
+	{{- $isPersonsActive = or (HasPrefix $path "/admin/personen/") (HasPrefix $path "/admin/person/") -}}
+	{{- $isPlacesActive = or (HasPrefix $path "/admin/orte/") (HasPrefix $path "/admin/ort/") -}}
+{{- end -}}
+{{- $isPublicSectionActive := or $isPublicReihenActive $isPublicPersonsActive $isPublicSearchActive $isPublicEditorialIntroActive $isPublicEditorialHintsActive $isPublicEditorialLitActive $isPublicEditorialCabinetActive $isPublicEditorialThanksActive $isPublicEditorialContactActive -}}
 {{- $isCreateSectionActive := or $isNewBandActive $isNewSeriesActive $isNewPlaceActive $isNewPersonActive -}}
 {{- $isListsSectionActive := or $isBandsActive $isContentsActive $isSeriesActive $isPlacesActive $isPersonsActive $isAbbreviationsActive $isPagesActive -}}
 {{- $isAdminSectionActive := or $isSettingsActive $isExportsActive $isUserInviteActive $isUserManagementActive -}}
@@ -69,17 +86,29 @@
 			</h1>
 			<div class="admin-mode-pill">Verwaltung</div>
 		</div>
-		<button
-			type="button"
-			class="admin-sidebar-toggle"
-			@click="toggleSidebar()"
-			:aria-label="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'"
-			:title="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'">
-			<i class="ri-layout-left-line" x-show="!sidebarCollapsed" aria-hidden="true"></i>
-			<i class="ri-layout-right-line" x-show="sidebarCollapsed" x-cloak aria-hidden="true"></i>
-		</button>
+		{{- if $isVisitorSidebar -}}
+			<button
+				type="button"
+				class="admin-sidebar-toggle"
+				@click="closeVisitorSidebar()"
+				aria-label="Verwaltung schließen"
+				title="Verwaltung schließen">
+				<i class="ri-close-line" aria-hidden="true"></i>
+			</button>
+		{{- else -}}
+			<button
+				type="button"
+				class="admin-sidebar-toggle"
+				@click="toggleSidebar()"
+				:aria-label="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'"
+				:title="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'">
+				<i class="ri-layout-left-line" x-show="!sidebarCollapsed" aria-hidden="true"></i>
+				<i class="ri-layout-right-line" x-show="sidebarCollapsed" x-cloak aria-hidden="true"></i>
+			</button>
+		{{- end -}}
 	</div>
 
+	{{- if not $isVisitorSidebar -}}
 	<div class="admin-sidebar-collapsed-public" x-data="{ open: false, submenu: '' }" @click.outside="open = false; submenu = ''">
 		<button
 			type="button"
@@ -125,6 +154,7 @@
 			<a href="/admin/personen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPersonActive }} active{{ end }}">Neue Person</a>
 		</div>
 	</div>
+	{{- end -}}
 
 	<nav class="admin-sidebar-nav" aria-label="Administration Navigation">
 		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-public-section" {{ if $isPublicSectionActive }}open data-section-current="true"{{ end }}>
@@ -133,19 +163,19 @@
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/reihen/" hx-boost="false" title="Reihen" class="admin-sidebar-link">
+				<a href="/reihen/" hx-boost="false" title="Reihen" class="admin-sidebar-link" {{ if $isPublicReihenActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-book-shelf-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Reihen</span>
 					</span>
 				</a>
-				<a href="/personen/" hx-boost="false" title="Personen" class="admin-sidebar-link">
+				<a href="/personen/" hx-boost="false" title="Personen" class="admin-sidebar-link" {{ if $isPublicPersonsActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Personen</span>
 					</span>
 				</a>
-				<a href="/suche/" hx-boost="false" title="Suche" class="admin-sidebar-link">
+				<a href="/suche/" hx-boost="false" title="Suche" class="admin-sidebar-link" {{ if $isPublicSearchActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-search-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Suche</span>
@@ -154,37 +184,37 @@
 				<div class="admin-sidebar-group">
 					<div class="admin-sidebar-group-title admin-sidebar-group-title-prominent">Redaktion</div>
 					<div class="admin-sidebar-group-links">
-						<a href="/redaktion/einleitung/" hx-boost="false" title="Einleitung" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/einleitung/" hx-boost="false" title="Einleitung" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialIntroActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-quill-pen-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Einleitung</span>
 							</span>
 						</a>
-						<a href="/redaktion/benutzerhinweise/" hx-boost="false" title="Hinweise" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/benutzerhinweise/" hx-boost="false" title="Hinweise" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialHintsActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-information-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Hinweise</span>
 							</span>
 						</a>
-						<a href="/redaktion/literatur/" hx-boost="false" title="Literatur" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/literatur/" hx-boost="false" title="Literatur" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialLitActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-book-open-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Literatur</span>
 							</span>
 						</a>
-						<a href="/redaktion/lesekabinett/" hx-boost="false" title="Lesekabinett" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/lesekabinett/" hx-boost="false" title="Lesekabinett" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialCabinetActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-archive-drawer-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Lesekabinett</span>
 							</span>
 						</a>
-						<a href="/redaktion/danksagungen/" hx-boost="false" title="Danksagungen" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/danksagungen/" hx-boost="false" title="Danksagungen" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialThanksActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-heart-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Danksagungen</span>
 							</span>
 						</a>
-						<a href="/redaktion/kontakt/" hx-boost="false" title="Kontakt" class="admin-sidebar-link admin-sidebar-link-nested">
+						<a href="/redaktion/kontakt/" hx-boost="false" title="Kontakt" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialContactActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-mail-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Kontakt</span>
@@ -208,25 +238,27 @@
 			</div>
 		</details>
 
-		<details class="admin-sidebar-section" open {{ if $isListsSectionActive }}data-section-current="true"{{ end }}>
+		<details class="admin-sidebar-section admin-sidebar-section-collapsible" open {{ if $isListsSectionActive }}data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
 				<span>Entitäten</span>
+				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span></a>
-				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span></a>
-				<a href="/admin/beitraege/" title="Beiträge" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
-				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
-				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
+				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span></a>
+				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span></a>
+				<a href="/admin/beitraege/" title="Beiträge" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
+				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
+				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
 				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
 				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>
 		</details>
 
 		{{- if $isAdminUser -}}
-		<details class="admin-sidebar-section" open {{ if $isAdminSectionActive }}data-section-current="true"{{ end }}>
+		<details class="admin-sidebar-section admin-sidebar-section-collapsible" open {{ if $isAdminSectionActive }}data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
 				<span>Administration</span>
+				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
 				<a href="/admin/settings/" title="Einstellungen" class="admin-sidebar-link" {{ if $isSettingsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-settings-3-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Einstellungen</span></span></a>

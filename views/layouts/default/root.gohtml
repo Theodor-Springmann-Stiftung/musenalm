@@ -10,21 +10,20 @@
 	</head>
 
 	<body id="body" class="w-full text-lg" hx-ext="response-targets" hx-boost="true">
-		<div class="flex flex-col min-h-screen w-full">
+		<div class="flex min-h-screen w-full flex-col">
 			<!-- this is the loading indicator -->
 			{{ template "_global_notice" . }}
 			<header class="border-b border-zinc-300 pb-0" id="header">
 				{{ template "_menu_public" . }}
 			</header>
 
-			<main class="">
+			<main class="min-w-0 flex-1">
 				{{ block "body" . }}
 					<!-- Default app body... -->
 				{{ end }}
 			</main>
 
 			{{ template "_footer" . }}
-
 			{{ template "_fab" . }}
 
 			{{ block "scripts" . }}
