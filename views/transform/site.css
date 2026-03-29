@@ -663,19 +663,19 @@
 	}
 
 	.admin-list-filter-trigger {
-		@apply cursor-pointer select-none rounded-md bg-gray-100 px-3 py-1.5 text-[0.98rem] font-semibold text-slate-700 transition-colors duration-100 hover:bg-stone-200 hover:text-slate-950;
+		@apply cursor-pointer select-none rounded-xs border border-stone-200 bg-gray-100 px-3 py-1.5 text-[0.98rem] font-semibold text-slate-700 transition-colors duration-100 hover:bg-stone-200 hover:text-slate-950;
 	}
 
 	.admin-list-filter-trigger-active {
-		@apply font-semibold text-slate-900 ring-1 ring-slate-300;
+		@apply border-slate-400 font-semibold text-slate-900 ring-1 ring-slate-300;
 	}
 
 	.admin-list-search-form {
-		@apply flex min-w-[18rem] max-w-[24rem] items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5;
+		@apply flex min-w-[18rem] max-w-[24rem] items-center gap-2 rounded-xs border border-stone-200 bg-gray-100 px-3 py-1.5;
 	}
 
 	.admin-list-secondary-trigger {
-		@apply cursor-pointer select-none rounded-xs px-2 py-1 text-lg font-semibold text-gray-600 transition-colors duration-100 hover:text-slate-950;
+		@apply cursor-pointer select-none rounded-xs border border-stone-200 bg-gray-100 px-2 py-1 text-lg font-semibold text-gray-600 transition-colors duration-100 hover:text-slate-950;
 	}
 
 	.admin-list-count-summary {

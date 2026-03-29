@@ -1,9 +1,24 @@
 {{ $group := . }}
 {{ $entry := $group.Entry }}
 
-<section class="overflow-hidden rounded-b-xs border-x border-b border-stone-200 bg-white shadow-sm">
-	<div class="flex items-center justify-between gap-4 border-b border-stone-200 bg-stone-50 px-4 py-2.5">
+<section
+	class="overflow-hidden rounded-b-xs border-x border-b border-stone-200 bg-white shadow-sm"
+	data-role="beitraege-group"
+	data-band-id="{{ $entry.MusenalmID }}"
+	data-collapsed="false">
+	<div
+		class="flex items-center justify-between gap-4 border-b border-stone-200 bg-stone-50 px-4 py-2.5"
+		data-role="beitraege-group-header">
 		<div class="min-w-0 flex items-center gap-3">
+				<button
+					type="button"
+					class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xs text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-900"
+					data-role="beitraege-group-toggle"
+					aria-expanded="true"
+					aria-label="Band einklappen"
+				title="Band einklappen">
+				<i class="ri-arrow-down-s-line text-lg" data-role="beitraege-group-toggle-icon"></i>
+			</button>
 			<a
 				href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
 				hx-target="#admin-main-content"
@@ -36,7 +51,7 @@
 		</div>
 	</div>
 
-	<div class="divide-y divide-stone-200">
+	<div class="divide-y divide-stone-200" data-role="beitraege-group-body">
 		{{- range $_, $row := $group.Rows -}}
 			{{ $content := $row.Content }}
 			<div data-role="beitraege-row" class="grid grid-cols-[5.5rem_3.5rem_8rem_minmax(0,1fr)_5.5rem_auto_auto] gap-x-3 px-4 py-2.5 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">

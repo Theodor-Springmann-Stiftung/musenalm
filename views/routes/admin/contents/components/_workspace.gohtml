@@ -36,7 +36,7 @@
 		</div>
 	{{- end -}}
 	{{- if $hasContents -}}
-		<div class="admin-list-toolbar !mt-1 border-b border-stone-200 pt-1 pb-3">
+		<div class="admin-list-toolbar !mt-2 pt-1 pb-3">
 			<div class="grid w-full grid-cols-[minmax(0,1fr)_max-content] items-center gap-x-6 gap-y-3 px-4">
 				<div class="admin-list-toolbar-primary" data-role="content-filter-toolbar">
 					<div class="relative">
@@ -142,37 +142,39 @@
 				</div>
 			</div>
 		</div>
-		<div class="mt-2 flex shrink-0 flex-col" data-role="contents-panel">
-			<table class="w-full border-collapse table-auto"
-				data-role="contents-list"
-				data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
-				<colgroup>
-					<col class="w-[4.5rem]" data-role="content-col-move">
-					<col data-role="content-col-alm">
-					<col>
-					<col>
-					<col data-role="content-col-actions">
-				</colgroup>
-				{{- range $_, $content := $model.result.Contents -}}
-					{{- template "_content_item" (Dict
-						"content" $content
-						"entry" $model.result.Entry
-						"csrf_token" $model.csrf_token
-						"content_types" $model.content_types
-						"musenalm_types" $model.musenalm_types
-						"pagination_values" $model.pagination_values
-						"agents" $model.result.Agents
-						"content_agents" (index $model.result.ContentsAgents $content.Id)
-						"content_agent_displays" (index $model.result.ContentAgentDisplays $content.Id)
-						"agent_relations" $model.agent_relations
-						"open_edit" false
-						"is_new" false
-					) -}}
-				{{- end -}}
-			</table>
+		<div class="mt-2 flex shrink-0 flex-col px-4" data-role="contents-panel">
+			<div class="overflow-hidden border border-stone-200">
+				<table class="w-full border-collapse table-auto"
+					data-role="contents-list"
+					data-order-endpoint="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit">
+					<colgroup>
+						<col class="w-[4.5rem]" data-role="content-col-move">
+						<col data-role="content-col-alm">
+						<col>
+						<col>
+						<col data-role="content-col-actions">
+					</colgroup>
+					{{- range $_, $content := $model.result.Contents -}}
+						{{- template "_content_item" (Dict
+							"content" $content
+							"entry" $model.result.Entry
+							"csrf_token" $model.csrf_token
+							"content_types" $model.content_types
+							"musenalm_types" $model.musenalm_types
+							"pagination_values" $model.pagination_values
+							"agents" $model.result.Agents
+							"content_agents" (index $model.result.ContentsAgents $content.Id)
+							"content_agent_displays" (index $model.result.ContentAgentDisplays $content.Id)
+							"agent_relations" $model.agent_relations
+							"open_edit" false
+							"is_new" false
+						) -}}
+					{{- end -}}
+				</table>
+			</div>
 		</div>
 		<div class="grow"></div>
-		<div class="border-t border-stone-200 px-4 py-3">
+		<div class="px-4 py-3">
 			<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
 				{{- if not $activeReservation -}}
 				<form method="POST" action="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/reservation" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-700">

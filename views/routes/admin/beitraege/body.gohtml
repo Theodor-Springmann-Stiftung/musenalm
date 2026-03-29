@@ -419,6 +419,74 @@ class="admin-page-shell font-sans pt-0 pb-8">
 	})();
 
 	(() => {
+		const collapseState = window.__beitraegeCollapsedBands || (window.__beitraegeCollapsedBands = {});
+
+		const getBandState = (bandId) => collapseState[String(bandId)] === true;
+
+		const setBandState = (bandId, collapsed) => {
+			const key = String(bandId);
+			if (collapsed) {
+				collapseState[key] = true;
+				return;
+			}
+			delete collapseState[key];
+		};
+
+		const applyGroupState = (group, collapsed) => {
+			const header = group.querySelector("[data-role='beitraege-group-header']");
+			const body = group.querySelector("[data-role='beitraege-group-body']");
+			const toggle = group.querySelector("[data-role='beitraege-group-toggle']");
+			const icon = group.querySelector("[data-role='beitraege-group-toggle-icon']");
+			if (!header || !body || !toggle || !icon) {
+				return;
+			}
+
+			group.dataset.collapsed = collapsed ? "true" : "false";
+			body.classList.toggle("hidden", collapsed);
+			header.style.borderBottomWidth = collapsed ? "0px" : "";
+			toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+			toggle.setAttribute("aria-label", collapsed ? "Band aufklappen" : "Band einklappen");
+			toggle.setAttribute("title", collapsed ? "Band aufklappen" : "Band einklappen");
+			icon.classList.toggle("ri-arrow-down-s-line", !collapsed);
+			icon.classList.toggle("ri-arrow-right-s-line", collapsed);
+		};
+
+		const bindGroupCollapse = (scope = document) => {
+			const groups = scope.matches?.("[data-role='beitraege-group']")
+				? [scope]
+				: scope.querySelectorAll?.("[data-role='beitraege-group']") || [];
+
+			groups.forEach((group) => {
+				const bandId = group.dataset.bandId;
+				const toggle = group.querySelector("[data-role='beitraege-group-toggle']");
+				if (!bandId || !toggle) {
+					return;
+				}
+
+				if (group.dataset.collapseBound !== "true") {
+					toggle.addEventListener("click", () => {
+						const nextCollapsed = !getBandState(bandId);
+						setBandState(bandId, nextCollapsed);
+						applyGroupState(group, nextCollapsed);
+					});
+					group.dataset.collapseBound = "true";
+				}
+
+				applyGroupState(group, getBandState(bandId));
+			});
+		};
+
+		bindGroupCollapse(document);
+		document.body.addEventListener("htmx:afterSwap", (event) => {
+			const target = event.target;
+			if (!target) return;
+			if (target.id === "admin-beitraege-results" || target.id === "admin-beitraege-groups" || target.closest?.("#admin-beitraege-results")) {
+				bindGroupCollapse(target);
+			}
+		});
+	})();
+
+	(() => {
 		const initViewOptions = () => {
 			const toggleRoot = document.querySelector('[data-role="beitraege-view-toggle"]');
 			if (!toggleRoot) {
