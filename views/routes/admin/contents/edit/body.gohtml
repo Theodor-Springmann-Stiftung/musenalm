@@ -175,11 +175,16 @@
 	</div>
 </div>
 	</div>
-	{{- if $model.open -}}
-		{{ template "_editor_panel" $model }}
-	{{- else -}}
-		{{ template "_editor_panel" (Dict "open" false) }}
-	{{- end -}}
+	<div
+		class="contents-editor-panel-slot"
+		data-role="contents-editor-panel-slot"
+		data-open="{{ if $model.open }}true{{ else }}false{{ end }}">
+		{{- if $model.open -}}
+			{{ template "_editor_panel" $model }}
+		{{- else -}}
+			{{ template "_editor_panel" (Dict "open" false) }}
+		{{- end -}}
+	</div>
 </div>
 
 <dialog id="content-delete-dialog" class="dbform fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
@@ -254,7 +259,7 @@
 	<script type="module">
 		let list = null;
 		const contentsBasePath = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit";
-		const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+		const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" data-loading="false" class="contents-editor-panel-shell hidden"></div>';
 		const scrollLockCache = new Map();
 	const trimTrailingSlash = (value) => {
 		if (!value) {
@@ -305,10 +310,32 @@
 		if (!contentMusenalmId) {
 			return false;
 		}
+		const panelSlot = document.querySelector("[data-role='contents-editor-panel-slot']");
+		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+		panelSlot?.setAttribute("data-open", "true");
+		if (panelShell && panelShell.dataset.open !== "true") {
+			panelShell.dataset.open = "true";
+			panelShell.dataset.loading = "true";
+			panelShell.classList.remove("hidden", "is-closing");
+			panelShell.innerHTML = `
+				<div class="contents-editor-panel-loading">
+					<div class="contents-editor-panel-loading-bar contents-editor-panel-loading-bar-title"></div>
+					<div class="contents-editor-panel-loading-bar contents-editor-panel-loading-bar-actions"></div>
+					<div class="contents-editor-panel-loading-body">
+						<div class="contents-editor-panel-loading-line"></div>
+						<div class="contents-editor-panel-loading-line"></div>
+						<div class="contents-editor-panel-loading-line is-short"></div>
+					</div>
+				</div>
+			`;
+			syncEditorState();
+		}
 		const path = buildContentsPanelPath(contentMusenalmId);
 		const loaded = await loadEditorPanelForPath(path);
 		if (loaded) {
 			setContentsHistoryPath(path, replaceUrl);
+		} else if (panelShell && panelShell.dataset.loading === "true") {
+			finishClosingEditorPanel({ syncUrl: false, replaceUrl: true });
 		}
 		return loaded;
 	};
@@ -511,10 +538,12 @@
 
 		const syncEditorState = ({ scrollActive = false, forceScroll = false, scrollBehavior = "auto" } = {}) => {
 			const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+			const panelSlot = document.querySelector("[data-role='contents-editor-panel-slot']");
 			const editorOpen = isEditorOpen();
 			if (!workspace) {
 				return;
 			}
+		panelSlot?.setAttribute("data-open", editorOpen ? "true" : "false");
 		if (editorOpen) {
 			workspace.dataset.panelOpen = "true";
 		} else {
@@ -545,6 +574,18 @@
 			initViewOptions();
 			initEditorPanel();
 			initPage();
+		};
+
+		const finishClosingEditorPanel = ({ syncUrl = true, replaceUrl = true } = {}) => {
+			const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+			if (!panelShell) {
+				return;
+			}
+			panelShell.outerHTML = closedEditorPanelMarkup;
+			if (syncUrl) {
+				setContentsHistoryPath(contentsBasePath, replaceUrl);
+			}
+			syncEditorState();
 		};
 
 		const replacePanelShell = (html) => {
@@ -584,12 +625,16 @@
 			window.__contentsEditorPanelController.abort();
 			window.__contentsEditorPanelController = null;
 		}
-			panelShell.outerHTML = closedEditorPanelMarkup;
-			if (syncUrl) {
-				setContentsHistoryPath(contentsBasePath, replaceUrl);
-			}
-			syncEditorState();
-		};
+		if (panelShell.dataset.open === "true" && !panelShell.dataset.closing) {
+			panelShell.dataset.closing = "true";
+			panelShell.classList.add("is-closing");
+			window.setTimeout(() => {
+				finishClosingEditorPanel({ syncUrl, replaceUrl });
+			}, 180);
+			return;
+		}
+		finishClosingEditorPanel({ syncUrl, replaceUrl });
+	};
 		window.__closeContentsEditorPanel = closeEditorPanel;
 
 	const initEditorPanel = () => {
@@ -1299,18 +1344,12 @@
 				const hideWhileFiltering = temporaryFilterHiddenColumns.has(key);
 				el.style.display = filtering && hideWhileFiltering ? "none" : "";
 			});
-			document.querySelectorAll("[data-role='content-col-actions']").forEach((el) => {
-				el.style.width = editorOpen ? "0.5rem" : "";
-				el.style.minWidth = editorOpen ? "0.5rem" : "";
-			});
-			document.querySelectorAll("[data-role='content-cell-actions']").forEach((el) => {
-				el.style.width = editorOpen ? "0.5rem" : "";
-				el.style.minWidth = editorOpen ? "0.5rem" : "";
-				el.style.paddingLeft = editorOpen ? "0" : "";
-				el.style.paddingRight = editorOpen ? "0" : "";
-			});
-			document.querySelectorAll("[data-role='content-cell-actions-inner']").forEach((el) => {
-				el.style.display = editorOpen ? "none" : "";
+			document.querySelectorAll("[data-role='content-col-actions'], [data-role='content-cell-actions'], [data-role='content-cell-actions-inner']").forEach((el) => {
+				el.style.width = "";
+				el.style.minWidth = "";
+				el.style.paddingLeft = "";
+				el.style.paddingRight = "";
+				el.style.display = "";
 			});
 		};
 		window.__contentsApplyViewState = applyState;
@@ -1900,7 +1939,7 @@
 		}
 		window.__contentsEditorCloseFallbackBound = true;
 
-		const fallbackClosedMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+		const fallbackClosedMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" data-loading="false" class="contents-editor-panel-shell hidden"></div>';
 
 		const closePanelFallback = () => {
 			if (typeof window.__closeContentsEditorPanel === "function") {

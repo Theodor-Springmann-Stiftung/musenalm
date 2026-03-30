@@ -5,8 +5,9 @@
 	id="contents-editor-panel-shell"
 	data-role="contents-editor-panel-shell"
 	data-open="false"
+	data-loading="false"
 	{{- if $oob }} hx-swap-oob="outerHTML"{{- end -}}
-	class="hidden">
+	class="contents-editor-panel-shell hidden">
 </div>
 {{- else -}}
 {{- $model := . -}}
@@ -22,9 +23,10 @@
 	id="contents-editor-panel-shell"
 	data-role="contents-editor-panel-shell"
 	data-open="true"
+	data-loading="false"
 	data-content-musenalm-id="{{ $model.content.MusenalmID }}"
 	{{- if $oob }} hx-swap-oob="outerHTML"{{- end -}}
-	class="flex min-h-0 w-full flex-col overflow-hidden rounded-xs border border-stone-400 bg-white lg:h-full lg:max-h-full lg:w-[42rem] lg:shrink-0">
+	class="contents-editor-panel-shell flex min-h-0 w-full flex-col overflow-hidden rounded-xs border border-stone-400 bg-white lg:h-full lg:max-h-full">
 	<div class="flex shrink-0 items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
 		<div class="min-w-0 flex items-center gap-3 text-base text-slate-900">
 			{{- if not $model.is_new -}}
