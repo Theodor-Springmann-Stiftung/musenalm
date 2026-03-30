@@ -12,6 +12,7 @@
 	type: {{ printf "%q" $model.type }},
 	status: {{ printf "%q" $model.status }},
 	scans: {{ printf "%q" $model.scans }},
+	sortField: {{ printf "%q" $model.sort_field }},
 	selectedLabels: {
 		entry: {{ printf "%q" (index $model.selected_filter_labels "entry") }},
 		year: {{ printf "%q" (index $model.selected_filter_labels "year") }},
@@ -33,6 +34,7 @@
 			type: this.type,
 			status: this.status,
 			scans: this.scans,
+			sort: this.sortField,
 			offset: 0,
 			...overrides,
 		};
@@ -53,6 +55,7 @@
 			type: this.type,
 			status: this.status,
 			scans: this.scans,
+			sort: this.sortField,
 			offset: this.offset,
 			...overrides,
 		};
@@ -87,6 +90,17 @@
 	},
 	clearNamedFilter(key, indicator = 'body', sourceEl = null) {
 		this.applyFilter({ [key]: '' }, { [key]: '' }, indicator, sourceEl);
+	},
+	applySort(sort) {
+		if (this.sortField === sort) return;
+		this.sortField = sort;
+		this.offset = 0;
+		this.hasMore = true;
+		htmx.ajax('GET', this.buildResultsUrl({ sort, offset: 0 }), {
+			target: '#admin-beitraege-results',
+			swap: 'outerHTML',
+			source: undefined,
+		});
 	},
 	clearFilters() {
 		this.year = '';
@@ -143,6 +157,7 @@
 		if (this.type) params.set('type', this.type);
 		if (this.status) params.set('status', this.status);
 		if (this.scans) params.set('scans', this.scans);
+		if (this.sortField && this.sortField !== 'title') params.set('sort', this.sortField);
 		const query = params.toString();
 		const newUrl = query ? `/admin/beitraege/?${query}` : '/admin/beitraege/';
 		window.history.replaceState(null, '', newUrl);
@@ -159,6 +174,7 @@
 		type = params.get('type') || '';
 		status = params.get('status') || '';
 		scans = params.get('scans') || '';
+		sortField = params.get('sort') || 'title';
 		updateUrl();
 	}
 "
@@ -358,6 +374,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<input type="hidden" name="type" :value="type" />
 						<input type="hidden" name="status" :value="status" />
 						<input type="hidden" name="scans" :value="scans" />
+						<input type="hidden" name="sort" :value="sortField" />
 						<div class="relative min-w-0 flex-1">
 							<input
 								x-ref="beitraegeSearchInput"
@@ -396,6 +413,23 @@ class="admin-page-shell font-sans pt-0 pb-8">
 			</div>
 
 			<div class="admin-list-toolbar-secondary justify-end">
+				<div class="admin-list-segmented-filter" hx-boost="false">
+					<a
+						href="#"
+						@click.prevent="applySort('title')"
+						:class="sortField === 'title' ? 'admin-list-segmented-filter-option-active' : ''"
+						class="admin-list-segmented-filter-option">
+						Alphabetisch
+					</a>
+					<a
+						href="#"
+						@click.prevent="applySort('year')"
+						:class="sortField === 'year' ? 'admin-list-segmented-filter-option-active' : ''"
+						class="admin-list-segmented-filter-option">
+						Chronologisch
+					</a>
+				</div>
+
 				<div class="relative" x-data="{ open: false }">
 					<details class="font-sans text-base list-none" data-role="beitraege-view-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
 						<summary class="admin-list-secondary-trigger flex items-center gap-2">

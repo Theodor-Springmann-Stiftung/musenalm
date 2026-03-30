@@ -218,6 +218,12 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 			offset = value
 		}
 	}
+	sortField := strings.ToLower(strings.TrimSpace(e.Request.URL.Query().Get("sort")))
+	switch sortField {
+	case "title", "year":
+	default:
+		sortField = "title"
+	}
 
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
 	entryFilter := strings.TrimSpace(e.Request.URL.Query().Get("entry"))
@@ -248,10 +254,7 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	if !ok {
 		return data, fmt.Errorf("failed to get sorted entries from cache")
 	}
-	orderedEntries := selectBaendeSortedEntries(sortedEntriesMap, "title")
-	if orderedEntries == nil {
-		orderedEntries = allEntries
-	}
+	orderedEntries := selectBeitraegeOrderedEntries(sortedEntriesMap, allEntries, sortField)
 	if entryFilter != "" {
 		filteredOrderedEntries := make([]*dbmodels.Entry, 0, 1)
 		for _, entry := range orderedEntries {
@@ -459,6 +462,7 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	data["type"] = contentType
 	data["status"] = status
 	data["scans"] = scans
+	data["sort_field"] = sortField
 	data["offset"] = offset
 	data["next_offset"] = nextOffset
 	data["has_more"] = hasMore
@@ -549,6 +553,31 @@ func adminBeitraegeOrderedEntryIDsFromCounts(entries []*dbmodels.Entry, counts m
 		totalCount += count
 	}
 	return orderedEntryIDs, totalCount
+}
+
+func selectBeitraegeOrderedEntries(sortedEntries map[string][]*dbmodels.Entry, allEntries []*dbmodels.Entry, sortField string) []*dbmodels.Entry {
+	switch sortField {
+	case "year":
+		if sortedEntries != nil {
+			if entries, ok := sortedEntries["year"]; ok && entries != nil {
+				return entries
+			}
+		}
+		fallback := make([]*dbmodels.Entry, len(allEntries))
+		copy(fallback, allEntries)
+		dbmodels.Sort_Entries_Year_Title(fallback)
+		return fallback
+	default:
+		if sortedEntries != nil {
+			if entries, ok := sortedEntries["title"]; ok && entries != nil {
+				return entries
+			}
+		}
+		fallback := make([]*dbmodels.Entry, len(allEntries))
+		copy(fallback, allEntries)
+		dbmodels.Sort_Entries_Title_Year(fallback)
+		return fallback
+	}
 }
 
 func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilterData, error) {
