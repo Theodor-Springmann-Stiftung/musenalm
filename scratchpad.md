@@ -3,10 +3,8 @@ TODO:
 - Voreinstllung Sprache Almanach/Eintrag ist Deutsch
 
 BUGS:
-- Mehr Beiträge Landen funktioniert nach dreimaligem Klicken nicht mehr (vmtl. weil wir unterschiedlich vielew Beiträge laden)
 - Tooltips auf dem /reihen Endpoint
 - Orphena 4886 Wird dreifach angezeigt auf dev.musenalm.de
-- Sprung/Querverweise sind broken 
 
 Features:
 - Extra-DB für FTS5: ist eigentlich nicht Teil der Haupt-DB, sondern nur Suchindex

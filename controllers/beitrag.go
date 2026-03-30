@@ -49,8 +49,10 @@ func (p *BeitragPage) Setup(router *router.Router[*core.RequestEvent], ia pagemo
 }
 
 type BeitragResult struct {
-	Entry   *dbmodels.Entry
-	Content *dbmodels.Content
+	Entry        *dbmodels.Entry
+	Content      *dbmodels.Content
+	PrevByNumber *dbmodels.Content
+	NextByNumber *dbmodels.Content
 
 	ContentsAgents []*dbmodels.RContentsAgents // <- Key is content id
 }
@@ -71,9 +73,32 @@ func NewBeitragResult(app core.App, id string) (*BeitragResult, bool, error) {
 		return nil, false, err
 	}
 
+	entryContents, err := dbmodels.Contents_Entry(app, entry.Id)
+	if err != nil {
+		return nil, false, err
+	}
+	dbmodels.Sort_Contents_Numbering(entryContents)
+
+	var prevByNumber *dbmodels.Content
+	var nextByNumber *dbmodels.Content
+	for i, candidate := range entryContents {
+		if candidate.Id != content.Id {
+			continue
+		}
+		if i > 0 {
+			prevByNumber = entryContents[i-1]
+		}
+		if i+1 < len(entryContents) {
+			nextByNumber = entryContents[i+1]
+		}
+		break
+	}
+
 	return &BeitragResult{
 		Entry:          entry,
 		Content:        content,
+		PrevByNumber:   prevByNumber,
+		NextByNumber:   nextByNumber,
 		ContentsAgents: acrelations,
 	}, redirect, nil
 }
