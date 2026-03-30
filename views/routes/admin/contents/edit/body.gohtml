@@ -286,7 +286,8 @@
 		if (!currentList) {
 			return [];
 		}
-		return Array.from(currentList.querySelectorAll("[data-role='content-item'][data-content-musenalm-id]"));
+		return Array.from(currentList.querySelectorAll("[data-role='content-item'][data-content-musenalm-id]"))
+			.filter((item) => item.style.display !== "none");
 	};
 	const getAdjacentContentMusenalmIds = (contentMusenalmId) => {
 		const items = getOrderedContentItems();
