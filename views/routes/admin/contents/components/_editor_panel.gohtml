@@ -142,7 +142,7 @@
 						<select
 							name="content_{{ $model.content_id }}_edit_state"
 							autocomplete="off"
-							class="contents-editor-footer-state status-select"
+							class="contents-editor-footer-state status-select status-select-real"
 							data-role="contents-editor-footer-state"
 							data-status="{{ $model.content.EditState }}">
 							<option value="Unknown" {{ if eq $model.content.EditState "Unknown" }}selected{{ end }}>Unbekannt</option>

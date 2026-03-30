@@ -7,6 +7,7 @@
 		loading: false,
 		search: '{{ $model.search }}',
 		letter: '{{ $model.letter }}',
+		status: '{{ $model.status }}',
 		person: '{{ $model.person }}',
 		place: '{{ $model.place }}',
 		year: '{{ $model.year }}',
@@ -29,7 +30,7 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (person) params.set('person', person); if (place) params.set('place', place); if (year) params.set('year', year); if (entry) params.set('entry', entry); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/reihen/more/?${params.toString()}`; })()"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (person) params.set('person', person); if (place) params.set('place', place); if (year) params.set('year', year); if (entry) params.set('entry', entry); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/reihen/more/?${params.toString()}`; })()"
 			hx-target="#reihen-table"
 			hx-swap="beforeend"
 			hx-indicator="this"

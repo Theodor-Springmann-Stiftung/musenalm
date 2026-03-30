@@ -7,6 +7,7 @@
 		loading: false,
 		search: '{{ $model.search }}',
 		letter: '{{ $model.letter }}',
+		status: '{{ $model.status }}',
 		corp: '{{ $model.corp }}',
 		profession: '{{ $model.profession }}'
 	}">
@@ -23,7 +24,7 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (corp) params.set('corp', corp); if (profession) params.set('profession', profession); return `/admin/personen/more/?${params.toString()}`; })()"
+			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (corp) params.set('corp', corp); if (profession) params.set('profession', profession); return `/admin/personen/more/?${params.toString()}`; })()"
 			hx-select="#personen-admin-more-rows > *"
 			hx-target="#personen-admin-table-body"
 			hx-swap="beforeend"

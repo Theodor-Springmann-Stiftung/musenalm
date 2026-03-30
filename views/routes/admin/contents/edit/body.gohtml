@@ -251,12 +251,11 @@
 </script>
 </div>
 
-<script type="module">
-	let list = null;
-	const contentsBasePath = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit";
-	const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
-	const contentsEditorSidebarLockId = "contents-editor-panel";
-	const scrollLockCache = new Map();
+	<script type="module">
+		let list = null;
+		const contentsBasePath = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit";
+		const closedEditorPanelMarkup = '<div id="contents-editor-panel-shell" data-role="contents-editor-panel-shell" data-open="false" class="hidden"></div>';
+		const scrollLockCache = new Map();
 	const trimTrailingSlash = (value) => {
 		if (!value) {
 			return "/";
@@ -265,19 +264,21 @@
 		return trimmed || "/";
 	};
 	const buildContentsPanelPath = (contentMusenalmId) => `${contentsBasePath}/${contentMusenalmId}`;
-	const getPanelMusenalmIdFromPath = (path = window.location.pathname) => {
-		const normalizedPath = trimTrailingSlash(path);
-		const normalizedBase = trimTrailingSlash(contentsBasePath);
-		if (!normalizedPath.startsWith(normalizedBase + "/")) {
-			return "";
-		}
-		return normalizedPath.slice(normalizedBase.length + 1).split("/")[0] || "";
-	};
-	const setContentsHistoryPath = (path, replace = true) => {
-		const normalizedTarget = trimTrailingSlash(path);
-		const normalizedCurrent = trimTrailingSlash(window.location.pathname);
-		if (normalizedTarget === normalizedCurrent) {
-			return;
+		const getPanelMusenalmIdFromPath = (path = window.location.pathname) => {
+			const normalizedPath = trimTrailingSlash(path);
+			const normalizedBase = trimTrailingSlash(contentsBasePath);
+			if (!normalizedPath.startsWith(normalizedBase + "/")) {
+				return "";
+			}
+			return normalizedPath.slice(normalizedBase.length + 1).split("/")[0] || "";
+		};
+		const initialEntryContentMusenalmId = getPanelMusenalmIdFromPath();
+		let hasConsumedInitialEntryActiveScroll = initialEntryContentMusenalmId === "";
+		const setContentsHistoryPath = (path, replace = true) => {
+			const normalizedTarget = trimTrailingSlash(path);
+			const normalizedCurrent = trimTrailingSlash(window.location.pathname);
+			if (normalizedTarget === normalizedCurrent) {
+				return;
 		}
 		window.history[replace ? "replaceState" : "pushState"](null, "", normalizedTarget);
 	};
@@ -314,12 +315,6 @@
 	const getOpenPanelMusenalmId = () => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
 		return panelShell?.dataset.contentMusenalmId || "";
-	};
-	const lockAdminSidebarForEditor = () => {
-		window.__adminSidebarController?.lock?.(contentsEditorSidebarLockId);
-	};
-	const unlockAdminSidebarForEditor = () => {
-		window.__adminSidebarController?.unlock?.(contentsEditorSidebarLockId);
 	};
 	const contentStatusMeta = {
 		Unknown: { label: "Unbekannt", icon: "ri-forbid-2-line" },
@@ -467,20 +462,15 @@
 		}
 	};
 
-	const isEditorOpen = () => {
-		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
-		return panelShell?.dataset.open === "true";
-	};
-	const consumeActiveContentScrollBehavior = () => {
-		const nextBehavior = window.__contentsPendingActiveScrollBehavior || "auto";
-		window.__contentsPendingActiveScrollBehavior = "auto";
-		return nextBehavior;
-	};
-	const scrollActiveContentRowIntoView = (contentMusenalmId, { behavior = "auto", force = false } = {}) => {
-		if (!contentMusenalmId) {
-			window.__contentsCenteredRowId = "";
-			return;
-		}
+		const isEditorOpen = () => {
+			const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+			return panelShell?.dataset.open === "true";
+		};
+		const scrollActiveContentRowIntoView = (contentMusenalmId, { behavior = "auto", force = false } = {}) => {
+			if (!contentMusenalmId) {
+				window.__contentsCenteredRowId = "";
+				return;
+			}
 		const scrollShell = document.querySelector("[data-role='contents-workspace-scroll']");
 		const activeRow = document.querySelector(`[data-role='content-item'][data-content-musenalm-id='${contentMusenalmId}']`);
 		if (!scrollShell || !activeRow || activeRow.style.display === "none") {
@@ -519,40 +509,55 @@
 		}
 	};
 
-	const syncEditorState = ({ scrollActive = false, forceScroll = false, scrollBehavior = "auto" } = {}) => {
-		const workspace = document.querySelector("[data-role='contents-edit-workspace']");
-		const editorOpen = isEditorOpen();
-		if (!workspace) {
-			if (!editorOpen) {
-				unlockAdminSidebarForEditor();
+		const syncEditorState = ({ scrollActive = false, forceScroll = false, scrollBehavior = "auto" } = {}) => {
+			const workspace = document.querySelector("[data-role='contents-edit-workspace']");
+			const editorOpen = isEditorOpen();
+			if (!workspace) {
+				return;
 			}
-			return;
-		}
 		if (editorOpen) {
 			workspace.dataset.panelOpen = "true";
-			lockAdminSidebarForEditor();
 		} else {
 			delete workspace.dataset.panelOpen;
-			unlockAdminSidebarForEditor();
-		}
-		syncActiveContentRow({ scrollIntoView: scrollActive, forceScroll, scrollBehavior });
-		window.__contentsApplyViewState?.();
-	};
+			}
+			syncActiveContentRow({ scrollIntoView: scrollActive, forceScroll, scrollBehavior });
+			window.__contentsApplyViewState?.();
+		};
+	const maybeScrollActiveContentOnInitialPageEntry = (contentMusenalmId) => {
+			if (hasConsumedInitialEntryActiveScroll) {
+				return;
+			}
+			hasConsumedInitialEntryActiveScroll = true;
+			if (!contentMusenalmId || contentMusenalmId !== initialEntryContentMusenalmId) {
+				return;
+			}
+			syncEditorState({ scrollActive: true, forceScroll: true });
+		};
 
-	const replacePanelShell = (html) => {
-		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
-		if (!panelShell) {
-			return;
+		const runPanelSwapInit = () => {
+			initEditorPanel();
+			syncEditorState();
+			window.__contentsApplyViewState?.();
+		};
+
+		const runWorkspaceInit = () => {
+			initFilter();
+			initViewOptions();
+			initEditorPanel();
+			initPage();
+		};
+
+		const replacePanelShell = (html) => {
+			const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+			if (!panelShell) {
+				return;
 		}
 		const markup = (html || "").trim();
 		panelShell.outerHTML = markup || closedEditorPanelMarkup;
 		if (window.htmx?.process) {
 			window.htmx.process(document.body);
 		}
-		initFilter();
-		initViewOptions();
-		initEditorPanel();
-		initPage();
+		runPanelSwapInit();
 	};
 
 	const loadEditorPanelForPath = async (path) => {
@@ -579,13 +584,13 @@
 			window.__contentsEditorPanelController.abort();
 			window.__contentsEditorPanelController = null;
 		}
-		panelShell.outerHTML = closedEditorPanelMarkup;
-		if (syncUrl) {
-			setContentsHistoryPath(contentsBasePath, replaceUrl);
-		}
-		syncEditorState({ scrollActive: true, forceScroll: true });
-	};
-	window.__closeContentsEditorPanel = closeEditorPanel;
+			panelShell.outerHTML = closedEditorPanelMarkup;
+			if (syncUrl) {
+				setContentsHistoryPath(contentsBasePath, replaceUrl);
+			}
+			syncEditorState();
+		};
+		window.__closeContentsEditorPanel = closeEditorPanel;
 
 	const initEditorPanel = () => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
@@ -630,18 +635,17 @@
 				button.setAttribute("aria-disabled", "true");
 				return;
 			}
-			button.disabled = false;
-			button.classList.remove("simple-entity-header-chip-disabled");
-			button.removeAttribute("aria-disabled");
-			button.addEventListener("click", async (event) => {
-				event.preventDefault();
-				button.disabled = true;
-				window.__contentsPendingActiveScrollBehavior = "smooth";
-				try {
-					await openEditorPanelForContent(targetContentMusenalmId, { replaceUrl: false });
-				} finally {
-					button.disabled = false;
-				}
+				button.disabled = false;
+				button.classList.remove("simple-entity-header-chip-disabled");
+				button.removeAttribute("aria-disabled");
+				button.addEventListener("click", async (event) => {
+					event.preventDefault();
+					button.disabled = true;
+					try {
+						await openEditorPanelForContent(targetContentMusenalmId, { replaceUrl: false });
+					} finally {
+						button.disabled = false;
+					}
 			}, { signal: panelController.signal });
 		});
 
@@ -744,10 +748,7 @@
 			if (window.htmx?.process) {
 				window.htmx.process(document.body);
 			}
-			initFilter();
-			initViewOptions();
-			initEditorPanel();
-			initPage();
+			runPanelSwapInit();
 			setContentsHistoryPath(contentsBasePath, true);
 		};
 
@@ -819,20 +820,16 @@
 			applyStatus(footerStateSelect.value || "Unknown");
 		}
 
-		if (window.customElements?.whenDefined) {
-			window.customElements.whenDefined("multi-select-simple").then(() => {
-				requestAnimationFrame(initMultiSelects);
-			});
-		} else {
-			initMultiSelects();
-		}
+			if (window.customElements?.whenDefined) {
+				window.customElements.whenDefined("multi-select-simple").then(() => {
+					requestAnimationFrame(initMultiSelects);
+				});
+			} else {
+				initMultiSelects();
+			}
 
-		syncEditorState({
-			scrollActive: true,
-			forceScroll: true,
-			scrollBehavior: consumeActiveContentScrollBehavior(),
-		});
-	};
+			maybeScrollActiveContentOnInitialPageEntry(currentContentMusenalmId);
+		};
 
 	// Normalize function for accent-insensitive matching
 	const normalizeText = (text) => {
@@ -1453,10 +1450,7 @@
 						if (window.htmx?.process) {
 							window.htmx.process(document.body);
 						}
-						initFilter();
-						initViewOptions();
-						initEditorPanel();
-						initPage();
+						runWorkspaceInit();
 						setContentsHistoryPath(contentsBasePath, true);
 						return;
 					}
@@ -1578,16 +1572,13 @@
 			if (nextMessage && currentMessage) {
 				currentMessage.outerHTML = nextMessage.outerHTML;
 			}
-			if (window.htmx?.process) {
-				window.htmx.process(document.body);
-			}
-			initFilter();
-			initViewOptions();
-			initEditorPanel();
-			initPage();
-			window.initAdminStatusPickers?.(document);
-			return true;
-		};
+				if (window.htmx?.process) {
+					window.htmx.process(document.body);
+				}
+				runWorkspaceInit();
+				window.initAdminStatusPickers?.(document.querySelector("#contents-workspace-left") || document);
+				return true;
+			};
 
 		const saveItemStatus = async (item, status, picker) => {
 			const endpoint = picker?.dataset.statusEndpoint || "";
@@ -1867,63 +1858,39 @@
 		list.addEventListener("pointercancel", endPointerDrag, { signal: dragSignal });
 	};
 
-	initFilter();
-	initViewOptions();
-	initEditorPanel();
-	initPage();
-	document.body.addEventListener("htmx:beforeRequest", (event) => {
-		if (!isEditorOpen()) {
-			return;
-		}
-		const target = event.detail?.target;
-		const staysInsideContentsWorkspace =
-			target?.id === "contents-editor-panel-shell" ||
-			target?.id === "contents-workspace-left" ||
-			!!target?.closest?.("[data-role='contents-edit-workspace']") ||
-			!!target?.closest?.("[data-role='contents-editor-panel-shell']");
-		if (!staysInsideContentsWorkspace) {
-			unlockAdminSidebarForEditor();
-		}
-	});
+	runWorkspaceInit();
 	document.body.addEventListener("htmx:beforeSwap", (event) => {
 		if (event.detail.target?.id === "admin-main-content") {
 			unlockContentsWorkspaceLayout();
-			unlockAdminSidebarForEditor();
 		}
 	});
 	document.body.addEventListener("htmx:afterSwap", (event) => {
-		if (event.target?.closest?.("[data-role='contents-edit-workspace']") || event.target?.id === "contents-editor-panel-shell" || event.target?.id === "contents-workspace-left") {
-			initFilter();
-			initViewOptions();
-			initEditorPanel();
-			initPage();
+		if (event.target?.id === "contents-editor-panel-shell") {
+			runPanelSwapInit();
+			return;
+		}
+		if (event.target?.closest?.("[data-role='contents-edit-workspace']") || event.target?.id === "contents-workspace-left") {
+			runWorkspaceInit();
 		}
 	});
 	window.addEventListener("pageshow", (event) => {
 		if (event.persisted) {
-			initFilter();
-			initViewOptions();
-			initEditorPanel();
-			initPage();
+			runWorkspaceInit();
 		}
 	});
-	window.addEventListener("popstate", () => {
-		const contentMusenalmId = getPanelMusenalmIdFromPath();
-		if (!contentMusenalmId) {
-			closeEditorPanel({ syncUrl: false });
-			return;
+		window.addEventListener("popstate", () => {
+			const contentMusenalmId = getPanelMusenalmIdFromPath();
+			if (!contentMusenalmId) {
+				closeEditorPanel({ syncUrl: false });
+				return;
 		}
 		if (isEditorOpen() && getOpenPanelMusenalmId() === contentMusenalmId) {
 			return;
-		}
-		openEditorPanelForContent(contentMusenalmId, { replaceUrl: true }).catch(() => null);
-	});
-	window.addEventListener("admin-sidebar-controller-ready", () => {
-		syncEditorState({ scrollActive: true, forceScroll: true });
-	});
-window.addEventListener("beforeunload", () => {
+			}
+			openEditorPanelForContent(contentMusenalmId, { replaceUrl: true }).catch(() => null);
+		});
+	window.addEventListener("beforeunload", () => {
 		unlockContentsWorkspaceLayout();
-		unlockAdminSidebarForEditor();
 	});
 </script>
 <script>

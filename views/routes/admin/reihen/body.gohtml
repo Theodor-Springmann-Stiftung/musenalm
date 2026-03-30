@@ -8,6 +8,7 @@
 	alphabetOpen: false,
 	searchOpen: false,
 	selectedLetter: '{{ $model.letter }}',
+	status: '{{ $model.status }}',
 	person: '{{ $model.person }}',
 	place: '{{ $model.place }}',
 	year: '{{ $model.year }}',
@@ -15,6 +16,7 @@
 	sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
 	sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
 	selectedLabels: {
+		status: {{ printf "%q" (index $model.selected_filter_labels "status") }},
 		person: {{ printf "%q" (index $model.selected_filter_labels "person") }},
 		place: {{ printf "%q" (index $model.selected_filter_labels "place") }},
 		year: {{ printf "%q" (index $model.selected_filter_labels "year") }},
@@ -23,6 +25,7 @@
 		return this[key] ? `${prefix}: ${this.selectedLabels[key] || this[key]}` : fallback;
 	},
 	appendFilters(params) {
+		if (this.status) params.set('status', this.status);
 		if (this.person) params.set('person', this.person);
 		if (this.place) params.set('place', this.place);
 		if (this.year) params.set('year', this.year);
@@ -33,6 +36,7 @@
 		const next = {
 			search: this.search,
 			letter: this.selectedLetter,
+			status: this.status,
 			person: this.person,
 			place: this.place,
 			year: this.year,
@@ -53,6 +57,7 @@
 		const next = {
 			search: this.search,
 			letter: this.selectedLetter,
+			status: this.status,
 			person: this.person,
 			place: this.place,
 			year: this.year,
@@ -99,6 +104,8 @@
 		this.place = '';
 		this.year = '';
 		this.entry = '';
+		this.status = '';
+		this.selectedLabels.status = '';
 		this.selectedLabels.person = '';
 		this.selectedLabels.place = '';
 		this.selectedLabels.year = '';
@@ -113,6 +120,7 @@
 		htmx.ajax('GET', this.buildResultsUrl({
 			search: '',
 			letter: '',
+			status: '',
 			person: '',
 			place: '',
 			year: '',
@@ -178,6 +186,7 @@
 		const params = new URL(responseUrl).searchParams;
 		sortField = params.get('sort') || sortField;
 		sortOrder = params.get('order') || sortOrder;
+		status = params.get('status') || '';
 		person = params.get('person') || '';
 		place = params.get('place') || '';
 		year = params.get('year') || '';
@@ -196,7 +205,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<button
 						type="button"
 						x-cloak
-						x-show="search || selectedLetter || person || place || year || entry"
+						x-show="search || selectedLetter || status || person || place || year || entry"
 						@click="clearAllFilters($el)"
 						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
 						<i class="ri-filter-off-line text-sm"></i>
@@ -280,6 +289,47 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					"width_class" "w-72"
 				) }}
 
+				<div class="relative" x-data="{ open: false }" data-role="reihen-filter">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-filter-trigger flex items-center gap-2"
+							:class="status ? 'admin-list-filter-trigger-active' : ''">
+							<span x-text="filterSummary('Status', 'status', 'Status')"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							<span id="reihen-status-spinner" class="htmx-indicator text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</summary>
+						<div class="absolute left-0 mt-2 w-72 z-10 bg-white rounded-md shadow-lg border border-gray-200">
+							<div class="p-3">
+								<div class="max-h-64 overflow-auto flex flex-col gap-1 text-sm text-gray-700 border border-stone-100 rounded-sm" data-role="filter-list">
+									<a data-role="filter-item" data-label="Alle" :href="buildPageUrl({ status: '', offset: 0 })"
+									   hx-indicator="#reihen-status-spinner"
+									   @click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('status', '#reihen-status-spinner', $el)"
+									   x-show="status"
+									   class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 no-underline transition-colors">
+										<i class="ri-filter-off-line text-base"></i>
+										<span>Alle</span>
+									</a>
+									{{- range $_, $s := $model.filter_statuses -}}
+										<a data-role="filter-item" data-label="{{ $s.label }}" :href="buildPageUrl({ status: '{{ $s.value }}', offset: 0 })"
+										   hx-indicator="#reihen-status-spinner"
+										   @click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('status', {{ printf "%q" $s.value }}, {{ printf "%q" $s.label }}, '#reihen-status-spinner', $el)"
+										   :class="status === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
+										   class="filter-list-row px-2 py-1 rounded-sm hover:bg-stone-100 no-underline transition-colors">
+											<span class="inline-flex items-center gap-2">
+												<span data-status="{{ $s.value }}" class="{{- if eq $s.value "Edited" }} text-green-700{{- else if eq $s.value "Seen" }} text-blue-700{{- else if eq $s.value "Review" }} text-orange-700{{- else if eq $s.value "ToDo" }} text-red-700{{- else }} text-gray-500{{- end }}">
+													<i class="status-icon{{- if eq $s.value "Edited" }} ri-checkbox-circle-line{{- else if eq $s.value "Seen" }} ri-information-line{{- else if eq $s.value "Review" }} ri-search-line{{- else if eq $s.value "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+												</span>
+												<span class="filter-list-searchable">{{ $s.label }}</span>
+											</span>
+										</a>
+									{{- end -}}
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+
 				<div class="relative" @click.outside="searchOpen = false">
 					<button
 						type="button"
@@ -308,6 +358,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						class="admin-list-search-form">
 						<input type="hidden" name="sort" :value="sortField" />
 						<input type="hidden" name="order" :value="sortOrder" />
+						<input type="hidden" name="status" :value="status" />
 						<input type="hidden" name="person" :value="person" />
 						<input type="hidden" name="place" :value="place" />
 						<input type="hidden" name="year" :value="year" />

@@ -266,6 +266,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
 	person := strings.TrimSpace(e.Request.URL.Query().Get("person"))
 	place := strings.TrimSpace(e.Request.URL.Query().Get("place"))
 	yearStr := strings.TrimSpace(e.Request.URL.Query().Get("year"))
@@ -361,6 +362,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		data["next_offset"] = 0
 		data["search"] = search
 		data["letter"] = letter
+		data["status"] = status
 		data["person"] = person
 		data["place"] = place
 		data["year"] = yearStr
@@ -369,19 +371,21 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		data["sort_order"] = sortOrder
 		data["letters"] = letters
 		data["csrf_token"] = req.Session().Token
+		data["filter_statuses"] = filterData.Statuses
+		data["filter_status_labels"] = filterData.StatusLabels
 		data["filter_agents"] = filterData.Agents
 		data["filter_agent_labels"] = filterData.AgentLabels
 		data["filter_places"] = filterData.Places
 		data["filter_place_labels"] = filterData.PlaceLabels
 		data["filter_years"] = filterData.Years
 		data["filter_year_labels"] = filterData.YearLabels
-		data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, person, place, yearStr)
+		data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, status, person, place, yearStr)
 		timer.Mark("filter_data")
 		return data, nil
 	}
 
 	var totalCount64 int64
-	if err := buildAdminReihenSeriesQuery(app, letter, filteredIDs).
+	if err := buildAdminReihenSeriesQuery(app, letter, status, filteredIDs).
 		Select("COUNT(*)").
 		Row(&totalCount64); err != nil {
 		return data, err
@@ -392,7 +396,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, REIHEN_ADMIN_PAGE_SIZE, showAggregated)
 	pageSeries := []*dbmodels.Series{}
 	if limit > 0 {
-		if err := buildAdminReihenSeriesQuery(app, letter, filteredIDs).
+		if err := buildAdminReihenSeriesQuery(app, letter, status, filteredIDs).
 			OrderBy(adminReihenOrderBy(sortField, sortOrder)...).
 			Limit(int64(limit)).
 			Offset(int64(queryOffset)).
@@ -421,6 +425,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	data["next_offset"] = nextOffset
 	data["search"] = search
 	data["letter"] = letter
+	data["status"] = status
 	data["person"] = person
 	data["place"] = place
 	data["year"] = yearStr
@@ -429,29 +434,34 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 	data["sort_order"] = sortOrder
 	data["letters"] = letters
 	data["csrf_token"] = req.Session().Token
+	data["filter_statuses"] = filterData.Statuses
+	data["filter_status_labels"] = filterData.StatusLabels
 	data["filter_agents"] = filterData.Agents
 	data["filter_agent_labels"] = filterData.AgentLabels
 	data["filter_places"] = filterData.Places
 	data["filter_place_labels"] = filterData.PlaceLabels
 	data["filter_years"] = filterData.Years
 	data["filter_year_labels"] = filterData.YearLabels
-	data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, person, place, yearStr)
+	data["selected_filter_labels"] = buildAdminReihenSelectedFilterLabels(filterData, status, person, place, yearStr)
 	timer.Mark("result")
 
 	return data, nil
 }
 
 type adminReihenFilterData struct {
-	Agents      []*dbmodels.Agent
-	AgentLabels map[string]string
-	Places      []*dbmodels.Place
-	PlaceLabels map[string]string
-	Years       []int
-	YearLabels  map[string]string
+	Statuses     []map[string]string
+	StatusLabels map[string]string
+	Agents       []*dbmodels.Agent
+	AgentLabels  map[string]string
+	Places       []*dbmodels.Place
+	PlaceLabels  map[string]string
+	Years        []int
+	YearLabels   map[string]string
 }
 
-func buildAdminReihenSelectedFilterLabels(filterData *adminReihenFilterData, person, place, year string) map[string]string {
+func buildAdminReihenSelectedFilterLabels(filterData *adminReihenFilterData, status, person, place, year string) map[string]string {
 	labels := map[string]string{
+		"status": "",
 		"person": "",
 		"place":  "",
 		"year":   "",
@@ -460,6 +470,13 @@ func buildAdminReihenSelectedFilterLabels(filterData *adminReihenFilterData, per
 		return labels
 	}
 
+	if status != "" {
+		if label, ok := filterData.StatusLabels[status]; ok && label != "" {
+			labels["status"] = label
+		} else {
+			labels["status"] = status
+		}
+	}
 	if person != "" {
 		if label, ok := filterData.AgentLabels[person]; ok && label != "" {
 			labels["person"] = label
@@ -529,12 +546,14 @@ func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
 	}
 
 	data := &adminReihenFilterData{
-		Agents:      buildAdminReihenAgentFilters(agentMap),
-		AgentLabels: buildAdminReihenAgentLabelMap(agentMap),
-		Places:      buildAdminReihenPlaceFilters(placeMap),
-		PlaceLabels: buildAdminReihenPlaceLabelMap(placeMap),
-		Years:       buildAdminReihenYearFilters(years),
-		YearLabels:  buildAdminReihenYearLabelMap(years),
+		Statuses:     buildStatusFilters(),
+		StatusLabels: buildStatusLabelMap(),
+		Agents:       buildAdminReihenAgentFilters(agentMap),
+		AgentLabels:  buildAdminReihenAgentLabelMap(agentMap),
+		Places:       buildAdminReihenPlaceFilters(placeMap),
+		PlaceLabels:  buildAdminReihenPlaceLabelMap(placeMap),
+		Years:        buildAdminReihenYearFilters(years),
+		YearLabels:   buildAdminReihenYearLabelMap(years),
 	}
 
 	adminReihenFilterCache.mu.Lock()
@@ -612,10 +631,13 @@ func buildAdminReihenLazyFilterData(app core.App, kind string) (*adminReihenLazy
 	}
 }
 
-func buildAdminReihenSeriesQuery(app core.App, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
+func buildAdminReihenSeriesQuery(app core.App, letter, status string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
 	query := app.RecordQuery(dbmodels.SERIES_TABLE)
 	if letter != "" {
 		query = query.AndWhere(adminInitialFilterExp(dbmodels.SERIES_TITLE_FIELD, letter))
+	}
+	if status != "" {
+		query = query.AndWhere(dbx.HashExp{dbmodels.EDITSTATE_FIELD: status})
 	}
 	if filteredIDs != nil {
 		query = query.AndWhere(dbx.HashExp{dbmodels.ID_FIELD: anySliceFromStringSet(filteredIDs)})

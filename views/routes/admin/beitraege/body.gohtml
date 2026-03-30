@@ -262,6 +262,47 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				<div class="relative" x-data="{ open: false }">
 					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
 						<summary class="admin-list-filter-trigger flex items-center gap-2"
+							:class="scans ? 'admin-list-filter-trigger-active' : ''">
+							<span x-text="filterSummary('Scans', 'scans', 'Scans')"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							<span id="beitraege-scans-spinner" class="htmx-indicator text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</summary>
+						<div class="absolute left-0 mt-2 z-10 rounded-md border border-gray-200 bg-white p-3 shadow-lg">
+							<div class="admin-list-segmented-filter whitespace-nowrap">
+								<a
+									href="#"
+									hx-indicator="#beitraege-scans-spinner"
+									@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('scans', '#beitraege-scans-spinner', $el)"
+									:class="scans === '' ? 'admin-list-segmented-filter-option-active' : ''"
+									class="admin-list-segmented-filter-option">
+									Alle
+								</a>
+								<a
+									href="#"
+									hx-indicator="#beitraege-scans-spinner"
+									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'with', 'Mit Scans', '#beitraege-scans-spinner', $el)"
+									:class="scans === 'with' ? 'admin-list-segmented-filter-option-active' : ''"
+									class="admin-list-segmented-filter-option">
+									Mit Scans
+								</a>
+								<a
+									href="#"
+									hx-indicator="#beitraege-scans-spinner"
+									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'without', 'Ohne Scans', '#beitraege-scans-spinner', $el)"
+									:class="scans === 'without' ? 'admin-list-segmented-filter-option-active' : ''"
+									class="admin-list-segmented-filter-option">
+									Ohne Scans
+								</a>
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-filter-trigger flex items-center gap-2"
 							:class="status ? 'admin-list-filter-trigger-active' : ''">
 							<span x-text="filterSummary('Status', 'status', 'Status')"></span>
 							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
@@ -296,47 +337,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 										</a>
 									{{- end -}}
 								</div>
-							</div>
-						</div>
-					</details>
-				</div>
-
-				<div class="relative" x-data="{ open: false }">
-					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
-						<summary class="admin-list-filter-trigger flex items-center gap-2"
-							:class="scans ? 'admin-list-filter-trigger-active' : ''">
-							<span x-text="filterSummary('Scans', 'scans', 'Scans')"></span>
-							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
-							<span id="beitraege-scans-spinner" class="htmx-indicator text-slate-900">
-								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
-							</span>
-						</summary>
-						<div class="absolute left-0 mt-2 z-10 rounded-md border border-gray-200 bg-white p-3 shadow-lg">
-							<div class="admin-list-segmented-filter whitespace-nowrap">
-								<a
-									href="#"
-									hx-indicator="#beitraege-scans-spinner"
-									@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('scans', '#beitraege-scans-spinner', $el)"
-									:class="scans === '' ? 'admin-list-segmented-filter-option-active' : ''"
-									class="admin-list-segmented-filter-option">
-									Alle
-								</a>
-								<a
-									href="#"
-									hx-indicator="#beitraege-scans-spinner"
-									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'with', 'Mit Scans', '#beitraege-scans-spinner', $el)"
-									:class="scans === 'with' ? 'admin-list-segmented-filter-option-active' : ''"
-									class="admin-list-segmented-filter-option">
-									Mit Scans
-								</a>
-								<a
-									href="#"
-									hx-indicator="#beitraege-scans-spinner"
-									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'without', 'Ohne Scans', '#beitraege-scans-spinner', $el)"
-									:class="scans === 'without' ? 'admin-list-segmented-filter-option-active' : ''"
-									class="admin-list-segmented-filter-option">
-									Ohne Scans
-								</a>
 							</div>
 						</div>
 					</details>
@@ -843,4 +843,5 @@ class="admin-page-shell font-sans pt-0 pb-8">
 			}
 		});
 	})();
+
 </script>

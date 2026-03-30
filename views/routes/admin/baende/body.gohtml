@@ -301,6 +301,46 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "person"
+					"title" "Person"
+					"endpoint" "/admin/baende/filters/person/"
+					"spinner_id" "baende-person-spinner"
+					"width_class" "w-80"
+				) }}
+
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "user"
+					"title" "Benutzer"
+					"endpoint" "/admin/baende/filters/user/"
+					"spinner_id" "baende-user-spinner"
+					"width_class" "w-80"
+				) }}
+
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "year"
+					"title" "Jahr"
+					"endpoint" "/admin/baende/filters/year/"
+					"spinner_id" "baende-year-spinner"
+					"width_class" "w-72"
+				) }}
+
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "place"
+					"title" "Ort"
+					"endpoint" "/admin/baende/filters/place/"
+					"spinner_id" "baende-place-spinner"
+					"width_class" "w-80"
+				) }}
+
+				{{ template "_baende_lazy_filter" (Dict
+					"kind" "series"
+					"title" "Reihentitel"
+					"endpoint" "/admin/baende/filters/series/"
+					"spinner_id" "baende-series-spinner"
+					"width_class" "w-80"
+				) }}
+
 				<!-- Status filter -->
 				<div class="relative" x-data="{ open: false }" data-role="baende-filter">
 					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
@@ -342,46 +382,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						</div>
 					</details>
 				</div>
-
-				{{ template "_baende_lazy_filter" (Dict
-					"kind" "person"
-					"title" "Person"
-					"endpoint" "/admin/baende/filters/person/"
-					"spinner_id" "baende-person-spinner"
-					"width_class" "w-80"
-				) }}
-
-				{{ template "_baende_lazy_filter" (Dict
-					"kind" "user"
-					"title" "Benutzer"
-					"endpoint" "/admin/baende/filters/user/"
-					"spinner_id" "baende-user-spinner"
-					"width_class" "w-80"
-				) }}
-
-				{{ template "_baende_lazy_filter" (Dict
-					"kind" "year"
-					"title" "Jahr"
-					"endpoint" "/admin/baende/filters/year/"
-					"spinner_id" "baende-year-spinner"
-					"width_class" "w-72"
-				) }}
-
-				{{ template "_baende_lazy_filter" (Dict
-					"kind" "place"
-					"title" "Ort"
-					"endpoint" "/admin/baende/filters/place/"
-					"spinner_id" "baende-place-spinner"
-					"width_class" "w-80"
-				) }}
-
-				{{ template "_baende_lazy_filter" (Dict
-					"kind" "series"
-					"title" "Reihentitel"
-					"endpoint" "/admin/baende/filters/series/"
-					"spinner_id" "baende-series-spinner"
-					"width_class" "w-80"
-				) }}
 
 				<!-- Search -->
 				<div class="relative" @click.outside="searchOpen = false">

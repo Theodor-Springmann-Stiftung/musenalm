@@ -8,14 +8,21 @@
 	alphabetOpen: false,
 	searchOpen: false,
 	selectedLetter: '{{ $model.letter }}',
+	status: '{{ $model.status }}',
 	corp: '{{ $model.corp }}',
 	profession: '{{ $model.profession }}',
+	statusLabels: {
+		{{- range $_, $s := $model.filter_statuses -}}
+		{{ printf "%q" $s.value }}: {{ printf "%q" $s.label }},
+		{{- end -}}
+	},
 	professionLabels: {
 		{{- range $k, $v := $model.filter_profession_labels -}}
 		{{ printf "%q" $k }}: {{ printf "%q" $v }},
 		{{- end -}}
 	},
 	appendFilters(params) {
+		if (this.status) params.set('status', this.status);
 		if (this.corp) params.set('corp', this.corp);
 		if (this.profession) params.set('profession', this.profession);
 	},
@@ -24,6 +31,7 @@
 		const next = {
 			search: this.search,
 			letter: this.selectedLetter,
+			status: this.status,
 			corp: this.corp,
 			profession: this.profession,
 			offset: 0,
@@ -41,6 +49,7 @@
 		const next = {
 			search: this.search,
 			letter: this.selectedLetter,
+			status: this.status,
 			corp: this.corp,
 			profession: this.profession,
 			offset: this.offset,
@@ -68,6 +77,7 @@
 		});
 	},
 	clearFilters() {
+		this.status = '';
 		this.corp = '';
 		this.profession = '';
 	},
@@ -81,6 +91,7 @@
 		htmx.ajax('GET', this.buildResultsUrl({
 			search: '',
 			letter: '',
+			status: '',
 			corp: '',
 			profession: '',
 			offset: 0,
@@ -123,6 +134,7 @@
 	if ($event.detail.target && $event.detail.target.id === 'personen-admin-results') {
 		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
 		const params = new URL(responseUrl).searchParams;
+		status = params.get('status') || '';
 		corp = params.get('corp') || '';
 		profession = params.get('profession') || '';
 		search = params.get('search') || '';
@@ -139,7 +151,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<button
 						type="button"
 						x-cloak
-						x-show="search || selectedLetter || corp || profession"
+						x-show="search || selectedLetter || status || corp || profession"
 						@click="clearAllFilters($el)"
 						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
 						<i class="ri-filter-off-line text-sm"></i>
@@ -265,6 +277,47 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
+				<div class="relative" x-data="{ open: false }">
+					<details class="font-sans text-base list-none" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
+						<summary class="admin-list-filter-trigger flex items-center gap-2"
+							:class="status ? 'admin-list-filter-trigger-active' : ''">
+							<span x-text="status ? `Status: ${statusLabels[status] || status}` : 'Status'"></span>
+							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
+							<span id="personen-admin-status-spinner" class="htmx-indicator text-slate-900">
+								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
+							</span>
+						</summary>
+						<div class="absolute left-0 z-10 mt-2 w-72 rounded-md border border-gray-200 bg-white shadow-lg">
+							<div class="flex flex-col gap-1 p-3 text-sm text-gray-700">
+								<button
+									type="button"
+									x-show="status"
+									hx-indicator="#personen-admin-status-spinner"
+									@click="open = false; $el.closest('details').open = false; applyFilter({ status: '' }, '#personen-admin-status-spinner', $el)"
+									class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded bg-orange-100 px-2 py-1 text-sm font-semibold text-orange-800 hover:bg-orange-200 transition-colors">
+									<i class="ri-filter-off-line text-base"></i>
+									<span>Alle</span>
+								</button>
+								{{- range $_, $s := $model.filter_statuses -}}
+									<button
+										type="button"
+										hx-indicator="#personen-admin-status-spinner"
+										@click="open = false; $el.closest('details').open = false; applyFilter({ status: '{{ $s.value }}' }, '#personen-admin-status-spinner', $el)"
+										:class="status === '{{ $s.value }}' ? 'bg-stone-100 font-semibold' : ''"
+										class="rounded-sm px-2 py-1 text-left hover:bg-stone-100">
+										<span class="inline-flex items-center gap-2">
+											<span data-status="{{ $s.value }}" class="{{- if eq $s.value "Edited" }} text-green-700{{- else if eq $s.value "Seen" }} text-blue-700{{- else if eq $s.value "Review" }} text-orange-700{{- else if eq $s.value "ToDo" }} text-red-700{{- else }} text-gray-500{{- end }}">
+												<i class="status-icon{{- if eq $s.value "Edited" }} ri-checkbox-circle-line{{- else if eq $s.value "Seen" }} ri-information-line{{- else if eq $s.value "Review" }} ri-search-line{{- else if eq $s.value "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+											</span>
+											<span>{{ $s.label }}</span>
+										</span>
+									</button>
+								{{- end -}}
+							</div>
+						</div>
+					</details>
+				</div>
+
 				<div class="relative" @click.outside="searchOpen = false">
 					<button
 						type="button"
@@ -291,6 +344,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						@keydown.escape.prevent.stop="searchOpen = false"
 						aria-label="Personensuche"
 						class="admin-list-search-form">
+						<input type="hidden" name="status" :value="status" />
 						<input type="hidden" name="corp" :value="corp" />
 						<input type="hidden" name="profession" :value="profession" />
 						<input type="hidden" name="letter" :value="selectedLetter" />

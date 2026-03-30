@@ -166,6 +166,7 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
 	corp := strings.TrimSpace(e.Request.URL.Query().Get("corp"))
 	profession := strings.TrimSpace(e.Request.URL.Query().Get("profession"))
 
@@ -221,17 +222,20 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 		data["next_offset"] = 0
 		data["search"] = search
 		data["letter"] = letter
+		data["status"] = status
 		data["corp"] = corp
 		data["profession"] = profession
 		data["letters"] = letters
 		data["csrf_token"] = req.Session().Token
+		data["filter_statuses"] = buildStatusFilters()
+		data["filter_status_labels"] = buildStatusLabelMap()
 		data["filter_professions"] = buildAdminAgentProfessionFilters()
 		data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
 		return data, nil
 	}
 
 	var totalCount64 int64
-	if err := buildAdminPersonenQuery(app, corp, profession, letter, filteredIDs).
+	if err := buildAdminPersonenQuery(app, status, corp, profession, letter, filteredIDs).
 		Select("COUNT(*)").
 		Row(&totalCount64); err != nil {
 		return data, err
@@ -241,7 +245,7 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, PERSONEN_ADMIN_PAGE_SIZE, showAggregated)
 	pageAgents := []*dbmodels.Agent{}
 	if limit > 0 {
-		if err := buildAdminPersonenQuery(app, corp, profession, letter, filteredIDs).
+		if err := buildAdminPersonenQuery(app, status, corp, profession, letter, filteredIDs).
 			OrderBy(dbmodels.AGENTS_NAME_FIELD, dbmodels.ID_FIELD).
 			Limit(int64(limit)).
 			Offset(int64(queryOffset)).
@@ -284,18 +288,24 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 	data["next_offset"] = nextOffset
 	data["search"] = search
 	data["letter"] = letter
+	data["status"] = status
 	data["corp"] = corp
 	data["profession"] = profession
 	data["letters"] = letters
 	data["csrf_token"] = req.Session().Token
+	data["filter_statuses"] = buildStatusFilters()
+	data["filter_status_labels"] = buildStatusLabelMap()
 	data["filter_professions"] = buildAdminAgentProfessionFilters()
 	data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
 
 	return data, nil
 }
 
-func buildAdminPersonenQuery(app core.App, corp, profession, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
+func buildAdminPersonenQuery(app core.App, status, corp, profession, letter string, filteredIDs map[string]struct{}) *dbx.SelectQuery {
 	query := app.RecordQuery(dbmodels.AGENTS_TABLE)
+	if status != "" {
+		query = query.AndWhere(dbx.HashExp{dbmodels.EDITSTATE_FIELD: status})
+	}
 	if corp != "" {
 		query = query.AndWhere(dbx.HashExp{
 			dbmodels.AGENTS_CORP_FIELD: corp == "org",

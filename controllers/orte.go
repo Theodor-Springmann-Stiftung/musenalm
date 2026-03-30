@@ -127,6 +127,7 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 
 	search := strings.TrimSpace(e.Request.URL.Query().Get("search"))
 	letter := strings.ToUpper(strings.TrimSpace(e.Request.URL.Query().Get("letter")))
+	status := strings.TrimSpace(e.Request.URL.Query().Get("status"))
 	fictional := strings.TrimSpace(e.Request.URL.Query().Get("fictional"))
 	if fictional != "" && fictional != "fictional" && fictional != "nonfictional" {
 		fictional = ""
@@ -144,7 +145,7 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 	}
 
 	var totalCount64 int64
-	if err := buildAdminOrteQuery(app, search, letter, fictional).
+	if err := buildAdminOrteQuery(app, search, letter, status, fictional).
 		Select("COUNT(*)").
 		Row(&totalCount64); err != nil {
 		return data, err
@@ -154,7 +155,7 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 	queryOffset, limit, currentCount, nextOffset, hasMore := paginatedQueryWindow(offset, totalCount, ORTE_PAGE_SIZE, showAggregated)
 	pagePlaces := []*dbmodels.Place{}
 	if limit > 0 {
-		if err := buildAdminOrteQuery(app, search, letter, fictional).
+		if err := buildAdminOrteQuery(app, search, letter, status, fictional).
 			OrderBy(dbmodels.PLACES_NAME_FIELD, dbmodels.ID_FIELD).
 			Limit(int64(limit)).
 			Offset(int64(queryOffset)).
@@ -188,13 +189,16 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 	data["next_offset"] = nextOffset
 	data["search"] = search
 	data["letter"] = letter
+	data["status"] = status
 	data["fictional"] = fictional
 	data["letters"] = adminAlphabet
 	data["csrf_token"] = req.Session().Token
+	data["filter_statuses"] = buildStatusFilters()
+	data["filter_status_labels"] = buildStatusLabelMap()
 	return data, nil
 }
 
-func buildAdminOrteQuery(app core.App, search, letter, fictional string) *dbx.SelectQuery {
+func buildAdminOrteQuery(app core.App, search, letter, status, fictional string) *dbx.SelectQuery {
 	query := app.RecordQuery(dbmodels.PLACES_TABLE)
 	if search != "" {
 		query = query.AndWhere(dbx.Or(
@@ -204,6 +208,9 @@ func buildAdminOrteQuery(app core.App, search, letter, fictional string) *dbx.Se
 	}
 	if letter != "" {
 		query = query.AndWhere(adminInitialFilterExp(dbmodels.PLACES_NAME_FIELD, letter))
+	}
+	if status != "" {
+		query = query.AndWhere(dbx.HashExp{dbmodels.EDITSTATE_FIELD: status})
 	}
 	if fictional != "" {
 		query = query.AndWhere(dbx.HashExp{
