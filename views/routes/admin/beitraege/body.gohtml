@@ -220,7 +220,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<div class="absolute left-0 mt-2 w-72 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
 							<div class="p-3">
 								<div class="flex max-h-64 flex-col gap-1 overflow-auto rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
-									<a :href="buildPageUrl({ type: '', offset: 0 })"
+									<a href="#"
 										hx-indicator="#beitraege-type-spinner"
 										@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('type', '#beitraege-type-spinner', $el)"
 										x-show="type"
@@ -229,7 +229,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 										<span>Alle</span>
 									</a>
 									{{- range $_, $typ := $model.filter_types -}}
-										<a :href="buildPageUrl({ type: {{ printf "%q" $typ }}, offset: 0 })"
+										<a href="#"
 											hx-indicator="#beitraege-type-spinner"
 											@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('type', {{ printf "%q" $typ }}, {{ printf "%q" $typ }}, '#beitraege-type-spinner', $el)"
 											:class="type === {{ printf "%q" $typ }} ? 'bg-stone-100 font-semibold' : ''"
@@ -256,7 +256,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<div class="absolute left-0 mt-2 w-72 z-10 rounded-md border border-gray-200 bg-white shadow-lg">
 							<div class="p-3">
 								<div class="flex max-h-64 flex-col gap-1 overflow-auto rounded-sm border border-stone-100 text-sm text-gray-700" data-role="filter-list">
-									<a :href="buildPageUrl({ status: '', offset: 0 })"
+									<a href="#"
 										hx-indicator="#beitraege-status-spinner"
 										@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('status', '#beitraege-status-spinner', $el)"
 										x-show="status"
@@ -266,7 +266,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									</a>
 									{{- range $_, $statusValue := $model.filter_statuses -}}
 										{{- $statusLabel := index $model.filter_status_labels $statusValue -}}
-										<a :href="buildPageUrl({ status: {{ printf "%q" $statusValue }}, offset: 0 })"
+										<a href="#"
 											hx-indicator="#beitraege-status-spinner"
 											@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('status', {{ printf "%q" $statusValue }}, {{ printf "%q" $statusLabel }}, '#beitraege-status-spinner', $el)"
 											:class="status === {{ printf "%q" $statusValue }} ? 'bg-stone-100 font-semibold' : ''"
@@ -298,7 +298,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<div class="absolute left-0 mt-2 z-10 rounded-md border border-gray-200 bg-white p-3 shadow-lg">
 							<div class="admin-list-segmented-filter whitespace-nowrap">
 								<a
-									:href="buildPageUrl({ scans: '', offset: 0 })"
+									href="#"
 									hx-indicator="#beitraege-scans-spinner"
 									@click.prevent="open = false; $el.closest('details').open = false; clearNamedFilter('scans', '#beitraege-scans-spinner', $el)"
 									:class="scans === '' ? 'admin-list-segmented-filter-option-active' : ''"
@@ -306,7 +306,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									Alle
 								</a>
 								<a
-									:href="buildPageUrl({ scans: 'with', offset: 0 })"
+									href="#"
 									hx-indicator="#beitraege-scans-spinner"
 									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'with', 'Mit Scans', '#beitraege-scans-spinner', $el)"
 									:class="scans === 'with' ? 'admin-list-segmented-filter-option-active' : ''"
@@ -314,7 +314,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									Mit Scans
 								</a>
 								<a
-									:href="buildPageUrl({ scans: 'without', offset: 0 })"
+									href="#"
 									hx-indicator="#beitraege-scans-spinner"
 									@click.prevent="open = false; $el.closest('details').open = false; selectNamedFilter('scans', 'without', 'Ohne Scans', '#beitraege-scans-spinner', $el)"
 									:class="scans === 'without' ? 'admin-list-segmented-filter-option-active' : ''"
@@ -499,18 +499,20 @@ class="admin-page-shell font-sans pt-0 pb-8">
 		const applyGroupState = (group, collapsed) => {
 			const header = group.querySelector("[data-role='beitraege-group-header']");
 			const body = group.querySelector("[data-role='beitraege-group-body']");
-			const toggle = group.querySelector("[data-role='beitraege-group-toggle']");
 			const icon = group.querySelector("[data-role='beitraege-group-toggle-icon']");
-			if (!header || !body || !toggle || !icon) {
+			const toggles = group.querySelectorAll("[data-role='beitraege-group-toggle']");
+			if (!header || !body || !icon || !toggles.length) {
 				return;
 			}
 
 			group.dataset.collapsed = collapsed ? "true" : "false";
 			body.classList.toggle("hidden", collapsed);
 			header.style.borderBottomWidth = collapsed ? "0px" : "";
-			toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-			toggle.setAttribute("aria-label", collapsed ? "Band aufklappen" : "Band einklappen");
-			toggle.setAttribute("title", collapsed ? "Band aufklappen" : "Band einklappen");
+			toggles.forEach((toggle) => {
+				toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+				toggle.setAttribute("aria-label", collapsed ? "Band aufklappen" : "Band einklappen");
+				toggle.setAttribute("title", collapsed ? "Band aufklappen" : "Band einklappen");
+			});
 			icon.classList.toggle("ri-arrow-down-s-line", !collapsed);
 			icon.classList.toggle("ri-arrow-right-s-line", collapsed);
 		};
@@ -522,16 +524,18 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 			groups.forEach((group) => {
 				const bandId = group.dataset.bandId;
-				const toggle = group.querySelector("[data-role='beitraege-group-toggle']");
-				if (!bandId || !toggle) {
+				const toggles = group.querySelectorAll("[data-role='beitraege-group-toggle']");
+				if (!bandId || !toggles.length) {
 					return;
 				}
 
 				if (group.dataset.collapseBound !== "true") {
-					toggle.addEventListener("click", () => {
-						const nextCollapsed = !getBandState(bandId);
-						setBandState(bandId, nextCollapsed);
-						applyGroupState(group, nextCollapsed);
+					toggles.forEach((toggle) => {
+						toggle.addEventListener("click", () => {
+							const nextCollapsed = !getBandState(bandId);
+							setBandState(bandId, nextCollapsed);
+							applyGroupState(group, nextCollapsed);
+						});
 					});
 					group.dataset.collapseBound = "true";
 				}

@@ -6,6 +6,15 @@
 					<div class="mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $entry.References }}">{{ $entry.References }}</div>
 				{{- end -}}
 				<div class="ml-2.5 flex flex-nowrap items-center gap-1.5 pt-1">
+					{{- template "_status_picker" (Dict
+						"status" $entry.EditState
+						"scope" "entry"
+						"endpoint" (printf "/admin/almanach/%v/edit/status" $entry.MusenalmID)
+						"csrf_token" .csrf_token
+						"last_edited" $entry.Updated
+						"picker_class" "content-status-picker-menu-right"
+						"toggle_class" "admin-list-status-trigger"
+					) -}}
 					<div class="admin-list-chip-pair">
 						<a href="/almanach/{{ $entry.MusenalmID }}" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
 							<i class="ri-eye-line"></i>
@@ -83,17 +92,6 @@
 		{{- else -}}
 			<span class="inline">[o.J.]</span>
 		{{- end -}}
-			<span class="inline-block align-middle ml-1">
-				{{- template "_status_picker" (Dict
-					"status" $entry.EditState
-					"scope" "entry"
-					"endpoint" (printf "/admin/almanach/%v/edit/status" $entry.MusenalmID)
-					"csrf_token" .csrf_token
-					"last_edited" $entry.Updated
-					"picker_class" ""
-					"toggle_class" "admin-list-status-trigger"
-				) -}}
-			</span>
 	</div>
 	{{- if $entry.TitleStmt -}}
 		<div class="text-gray-700 text-base mt-1 leading-snug">

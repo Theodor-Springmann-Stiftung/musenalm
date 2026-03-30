@@ -19,21 +19,19 @@
 				title="Band einklappen">
 				<i class="ri-arrow-down-s-line text-lg" data-role="beitraege-group-toggle-icon"></i>
 			</button>
-			<a
-				href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit"
-				hx-target="#admin-main-content"
-				hx-swap="innerHTML"
-				hx-push-url="true"
-				hx-indicator="#admin-main-loading"
-				hx-headers='{"X-Admin-Main-Nav":"true"}'
-				data-admin-main-link
-				class="beitraege-admin-search-text min-w-0 truncate no-underline font-serif text-lg font-semibold text-slate-900 hover:text-slate-700">
+			<button
+				type="button"
+				data-role="beitraege-group-toggle"
+				aria-expanded="true"
+				aria-label="Band einklappen"
+				title="Band einklappen"
+				class="beitraege-admin-search-text min-w-0 truncate font-serif text-left text-lg font-semibold text-slate-900 transition-colors hover:text-slate-700">
 				{{- if $entry.PreferredTitle -}}
 					{{- $entry.PreferredTitle -}}
 				{{- else -}}
 					Band {{ $entry.MusenalmID }}
 				{{- end -}}
-			</a>
+			</button>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
 			<span class="inline-flex h-8 items-center rounded-xs border border-stone-300 bg-white px-2.5 py-0 text-sm font-semibold text-slate-700">

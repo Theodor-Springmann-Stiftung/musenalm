@@ -14,7 +14,18 @@
 		person: {{ printf "%q" $model.person }},
 		type: {{ printf "%q" $model.type }},
 		status: {{ printf "%q" $model.status }},
-		scans: {{ printf "%q" $model.scans }}
+		scans: {{ printf "%q" $model.scans }},
+		buildMoreVals() {
+			const values = { offset: this.offset };
+			if (this.search) values.search = this.search;
+			if (this.entry) values.entry = this.entry;
+			if (this.year) values.year = this.year;
+			if (this.person) values.person = this.person;
+			if (this.type) values.type = this.type;
+			if (this.status) values.status = this.status;
+			if (this.scans) values.scans = this.scans;
+			return JSON.stringify(values);
+		}
 	}">
 
 	{{- if $model.include_count_oob -}}
@@ -41,8 +52,10 @@
 	<div class="mt-6 flex justify-center" x-show="hasMore">
 		<button
 			type="button"
+			data-role="beitraege-load-more"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (entry) params.set('entry', entry); if (year) params.set('year', year); if (person) params.set('person', person); if (type) params.set('type', type); if (status) params.set('status', status); if (scans) params.set('scans', scans); return `/admin/beitraege/more/?${params.toString()}`; })()"
+			hx-get="/admin/beitraege/more/"
+			:hx-vals="buildMoreVals()"
 			hx-select="#admin-beitraege-more > *"
 			hx-target="#admin-beitraege-groups"
 			hx-swap="beforeend"
@@ -67,7 +80,7 @@
 			"
 			:disabled="loading">
 			<i class="ri-arrow-down-line" :class="{ 'spinning': loading }"></i>
-			<span x-text="loading ? 'Lädt...' : 'Weitere 80 Beiträge laden'">Weitere 80 Beiträge laden</span>
+			<span x-text="loading ? 'Lädt...' : 'Weitere Beiträge laden'">Weitere Beiträge laden</span>
 		</button>
 	</div>
 

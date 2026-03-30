@@ -256,6 +256,11 @@
 		@apply absolute right-0 z-20 mt-1 flex min-w-44 flex-col overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg;
 	}
 
+	.content-status-picker-menu-right .contents-editor-state-menu {
+		left: 0;
+		right: auto;
+	}
+
 	.contents-editor-state-option {
 		@apply inline-flex items-center gap-2 px-3 py-2 text-left text-sm font-normal text-slate-800 hover:bg-stone-100;
 	}

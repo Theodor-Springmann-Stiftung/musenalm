@@ -3,7 +3,7 @@
 <div class="p-3">
 	<a data-role="filter-item"
 		data-label="Alle"
-		:href="buildPageUrl({ ['{{ $model.Kind }}']: '', offset: 0 })"
+		href="#"
 		hx-indicator="#{{ $model.SpinnerID }}"
 		@click.prevent="
 			const root = $el.closest('details');
@@ -26,7 +26,7 @@
 		{{- range $_, $option := $model.Options -}}
 			<a data-role="filter-item"
 				data-label="{{ $option.Label }}"
-				:href="buildPageUrl({ ['{{ $model.Kind }}']: {{ printf "%q" $option.Value }}, offset: 0 })"
+				href="#"
 				hx-indicator="#{{ $model.SpinnerID }}"
 				@click.prevent="
 					const root = $el.closest('details');
