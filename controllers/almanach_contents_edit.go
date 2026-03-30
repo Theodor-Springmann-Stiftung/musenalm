@@ -437,15 +437,32 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				app.Logger().Error("Failed to render contents workspace", "entry_id", entry.Id, "error", err)
 				return e.String(http.StatusInternalServerError, "")
 			}
-			panelHTML, err := p.renderTemplateToString(engine, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, map[string]any{
+			panelData := map[string]any{
 				"open": false,
 				"oob":  false,
-			})
+			}
+			effectiveContentID := contentID
+			if mappedID, ok := tempToCreated[effectiveContentID]; ok {
+				effectiveContentID = mappedID
+			}
+			if effectiveContentID != "" {
+				if resolved, err := dbmodels.Contents_IDs(app, []any{effectiveContentID}); err == nil && len(resolved) > 0 {
+					panelData, err = p.buildContentPanelData(app, ia, e, id, resolved[0])
+					if err != nil {
+						app.Logger().Error("Failed to build contents panel data", "entry_id", entry.Id, "content_id", effectiveContentID, "error", err)
+						return e.String(http.StatusInternalServerError, "")
+					}
+					panelData["open"] = true
+					panelData["oob"] = false
+				}
+			}
+			panelHTML, err := p.renderTemplateToString(engine, TEMPLATE_ALMANACH_CONTENTS_EDIT_PANEL, panelData)
 			if err != nil {
-				app.Logger().Error("Failed to render closed contents panel", "entry_id", entry.Id, "error", err)
+				app.Logger().Error("Failed to render contents panel", "entry_id", entry.Id, "error", err)
 				return e.String(http.StatusInternalServerError, "")
 			}
-			return e.HTML(http.StatusOK, panelHTML+workspaceHTML+`<div id="user-message" hx-swap-oob="outerHTML"></div>`)
+			success := `<div hx-swap-oob="outerHTML:#user-message"><div id="user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> ` + html.EscapeString(savedMessage) + `</div></div></div>`
+			return e.HTML(http.StatusOK, panelHTML+workspaceHTML+success)
 		}
 
 		if contentID != "" {

@@ -231,6 +231,11 @@ export class AlmanachEditPage extends HTMLElement {
 		return `${path}/save`;
 	}
 
+	_isNewEntryPage() {
+		const path = window?.location?.pathname || "";
+		return path === "/admin/almanach-new/" || path === "/admin/almanach-new";
+	}
+
 	async _handleSaveClick(event) {
 		event.preventDefault();
 		if (this._isSaving) {
@@ -267,12 +272,10 @@ export class AlmanachEditPage extends HTMLElement {
 				const message = data?.error || `Speichern fehlgeschlagen (${response.status}).`;
 				throw new Error(message);
 			}
-
-			if (data?.redirect) {
+			if (this._isNewEntryPage() && data?.redirect) {
 				window.location.assign(data.redirect);
 				return;
 			}
-
 			await this._reloadForm(data?.message || "Änderungen gespeichert.");
 		} catch (error) {
 			this._showStatus(error instanceof Error ? error.message : "Speichern fehlgeschlagen.", "error");

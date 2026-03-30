@@ -131,11 +131,14 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, ia p
 
 		redirect := URL_HOME
 		if entry != nil {
-			redirect = fmt.Sprintf(URL_ALMANACH_VIEW, entry.MusenalmID())
+			redirect = fmt.Sprintf(URL_ALMANACH_EDIT_FORMAT, fmt.Sprintf("%d", entry.MusenalmID()))
 		}
+
+		setFlashSuccess(e, "Änderungen gespeichert.")
 
 		return e.JSON(http.StatusOK, map[string]any{
 			"success":  true,
+			"message":  "Änderungen gespeichert.",
 			"redirect": redirect,
 		})
 	}

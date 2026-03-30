@@ -135,6 +135,7 @@ const (
 	URL_ALMANACH_STATUS          = "edit/status"
 	TEMPLATE_ALMANACH_EDIT       = "/admin/almanach/edit/"
 	URL_ALMANACH_VIEW_FORMAT     = "/almanach/%s/"
+	URL_ALMANACH_EDIT_FORMAT     = "/admin/almanach/%s/edit/"
 	URL_ALMANACH_REIHEN_REDIRECT = "/reihen"
 
 	URL_ALMANACH_CONTENTS_ADMIN_BASE        = "/admin/almanach/{id}/"

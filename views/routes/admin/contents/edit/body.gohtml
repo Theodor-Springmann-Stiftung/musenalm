@@ -833,6 +833,7 @@
 			const template = document.createElement("template");
 			template.innerHTML = (html || "").trim();
 			const nextPanel = template.content.querySelector("#contents-editor-panel-shell");
+			const nextContentMusenalmId = nextPanel?.dataset.contentMusenalmId || "";
 			const oobNodes = Array.from(template.content.querySelectorAll("[hx-swap-oob]"));
 			oobNodes.forEach((node) => {
 				applyOobNode(node);
@@ -845,7 +846,7 @@
 				window.htmx.process(document.body);
 			}
 			runPanelSwapInit();
-			setContentsHistoryPath(contentsBasePath, true);
+			setContentsHistoryPath(nextContentMusenalmId ? buildContentsPanelPath(nextContentMusenalmId) : contentsBasePath, true);
 		};
 
 		const form = panelShell.querySelector("form.dbform");
