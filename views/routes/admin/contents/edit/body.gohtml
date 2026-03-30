@@ -288,10 +288,12 @@
 		window.history[replace ? "replaceState" : "pushState"](null, "", normalizedTarget);
 	};
 	const getOrderedContentItems = () => {
-		const currentList = list || document.querySelector("[data-role='contents-list']");
+		const currentList = list?.isConnected ? list : document.querySelector("[data-role='contents-list']");
 		if (!currentList) {
+			list = null;
 			return [];
 		}
+		list = currentList;
 		return Array.from(currentList.querySelectorAll("[data-role='content-item'][data-content-musenalm-id]"))
 			.filter((item) => item.style.display !== "none");
 	};
@@ -465,6 +467,18 @@
 		});
 		scrollLockCache.clear();
 	};
+	const getWorkspaceScrollTop = () => {
+		return document.querySelector("[data-role='contents-workspace-scroll']")?.scrollTop || 0;
+	};
+	const restoreWorkspaceScrollTop = (scrollTop) => {
+		window.requestAnimationFrame(() => {
+			const scrollShell = document.querySelector("[data-role='contents-workspace-scroll']");
+			if (!scrollShell) {
+				return;
+			}
+			scrollShell.scrollTop = Math.max(0, scrollTop || 0);
+		});
+	};
 
 	const applyMultiSelectInit = (el) => {
 		if (!el) return;
@@ -636,6 +650,28 @@
 		finishClosingEditorPanel({ syncUrl, replaceUrl });
 	};
 		window.__closeContentsEditorPanel = closeEditorPanel;
+	const closeEditorPanelBeforeDelete = ({ syncUrl = true, replaceUrl = true } = {}) => {
+		return new Promise((resolve) => {
+			const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
+			if (!panelShell || panelShell.dataset.open !== "true") {
+				closeEditorPanel({ syncUrl, replaceUrl });
+				resolve();
+				return;
+			}
+			if (window.__contentsEditorPanelController) {
+				window.__contentsEditorPanelController.abort();
+				window.__contentsEditorPanelController = null;
+			}
+			if (!panelShell.dataset.closing) {
+				panelShell.dataset.closing = "true";
+				panelShell.classList.add("is-closing");
+			}
+			window.setTimeout(() => {
+				finishClosingEditorPanel({ syncUrl, replaceUrl });
+				resolve();
+			}, 180);
+		});
+	};
 
 	const initEditorPanel = () => {
 		const panelShell = document.querySelector("[data-role='contents-editor-panel-shell']");
@@ -655,23 +691,38 @@
 		window.__contentsEditorPanelController = panelController;
 
 		panelShell.querySelectorAll("[data-role='contents-editor-close']").forEach((button) => {
-			if (button.dataset.init === "true") {
-				return;
-			}
-			button.dataset.init = "true";
 			button.addEventListener("click", (event) => {
 				event.preventDefault();
 				closeEditorPanel();
+			}, { signal: panelController.signal });
+		});
+		panelShell.querySelectorAll("[data-role='contents-editor-delete']").forEach((button) => {
+			button.addEventListener("click", (event) => {
+				event.preventDefault();
+				const contentMusenalmId = panelShell.dataset.contentMusenalmId || "";
+				const item = contentMusenalmId
+					? document.querySelector(`[data-role='content-item'][data-content-musenalm-id='${contentMusenalmId}']`)
+					: null;
+				const deleteDialog = document.getElementById("content-delete-dialog");
+				const deleteDialogTitle = document.getElementById("content-delete-dialog-title");
+				if (!item || !deleteDialog) {
+					return;
+				}
+				deleteDialog.__itemToDelete = item;
+				const contentId = item.dataset.contentId || "";
+				const contentData = window.contentsSearchIndex?.[contentId];
+				const title = contentData?.titleStmt || contentData?.preferredTitle || "";
+				if (deleteDialogTitle) {
+					deleteDialogTitle.textContent = title;
+					deleteDialogTitle.style.display = title ? "" : "none";
+				}
+				deleteDialog.showModal();
 			}, { signal: panelController.signal });
 		});
 
 		const currentContentMusenalmId = panelShell.dataset.contentMusenalmId || "";
 		const adjacentIds = getAdjacentContentMusenalmIds(currentContentMusenalmId);
 		panelShell.querySelectorAll("[data-role='contents-editor-prev'], [data-role='contents-editor-next']").forEach((button) => {
-			if (button.dataset.init === "true") {
-				return;
-			}
-			button.dataset.init = "true";
 			const isPrev = button.dataset.role === "contents-editor-prev";
 			const targetContentMusenalmId = isPrev ? adjacentIds.prev : adjacentIds.next;
 			if (!targetContentMusenalmId) {
@@ -1273,14 +1324,14 @@
 		}
 		toggle.dataset.init = "true";
 
-		const storageKey = "admin-contents-view-options";
+		const storageKey = "admin-contents-view-options-v2";
 		const defaults = {
 			"move-controls": true,
 			"alm-number": true,
 			"type": true,
 			"annotation": false,
 			"responsibility": true,
-			"linked-agents": true,
+			"linked-agents": false,
 			"scans": true,
 			"extended-info": false,
 		};
@@ -1435,7 +1486,6 @@
 		const deleteDialogTitle = document.getElementById("content-delete-dialog-title");
 		const deleteConfirmBtn = deleteDialog?.querySelector("[data-role='content-delete-confirm']");
 		const deleteCancelBtn = deleteDialog?.querySelector("[data-role='content-delete-cancel']");
-		let itemToDelete = null;
 		const renumberDialog = document.getElementById("content-renumber-dialog");
 		const renumberDialogTitle = document.getElementById("content-renumber-dialog-title");
 		const renumberDialogWarning = document.getElementById("content-renumber-dialog-warning");
@@ -1445,17 +1495,22 @@
 		const renumberNewEndpoint = "/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/renumber/new";
 		let renumberMode = "";
 
-		const deleteContent = (item) => {
+		const deleteContent = async (item) => {
 			if (!item) {
 				return;
 			}
 			const contentId = item.dataset.contentId || "";
+			const contentMusenalmId = item.dataset.contentMusenalmId || "";
 			if (!contentId || !csrfToken) {
 				return;
+			}
+			if (contentMusenalmId && getOpenPanelMusenalmId() === contentMusenalmId) {
+				await closeEditorPanelBeforeDelete({ syncUrl: true, replaceUrl: true });
 			}
 			const payload = new URLSearchParams();
 			payload.set("csrf_token", csrfToken);
 			payload.set("content_id", contentId);
+			const preservedScrollTop = getWorkspaceScrollTop();
 			fetch(deleteEndpoint, {
 				method: "POST",
 				headers: {
@@ -1490,6 +1545,7 @@
 							window.htmx.process(document.body);
 						}
 						runWorkspaceInit();
+						restoreWorkspaceScrollTop(preservedScrollTop);
 						setContentsHistoryPath(contentsBasePath, true);
 						return;
 					}
@@ -1497,6 +1553,9 @@
 				})
 				.catch(() => null)
 				.finally(() => {
+					if (deleteDialog) {
+						delete deleteDialog.__itemToDelete;
+					}
 					deleteDialog?.close();
 				});
 		};
@@ -1504,15 +1563,19 @@
 		// Setup shared delete dialog events
 		if (deleteDialog && deleteDialog.dataset.init !== "true") {
 			deleteDialog.dataset.init = "true";
-			deleteCancelBtn?.addEventListener("click", () => deleteDialog.close());
+			deleteCancelBtn?.addEventListener("click", () => {
+				delete deleteDialog.__itemToDelete;
+				deleteDialog.close();
+			});
 			deleteDialog.addEventListener("cancel", (e) => {
 				e.preventDefault();
+				delete deleteDialog.__itemToDelete;
 				deleteDialog.close();
 			});
 			deleteConfirmBtn?.addEventListener("click", () => {
+				const itemToDelete = deleteDialog.__itemToDelete || null;
 				if (itemToDelete) {
 					deleteContent(itemToDelete);
-					itemToDelete = null;
 				}
 			});
 		}
@@ -1679,7 +1742,7 @@
 
 			if (deleteButtonView && deleteDialog) {
 				deleteButtonView.addEventListener("click", () => {
-					itemToDelete = item;
+					deleteDialog.__itemToDelete = item;
 					// Get title from search index for the dialog
 					const contentId = item.dataset.contentId;
 					const contentData = window.contentsSearchIndex?.[contentId];
