@@ -34,7 +34,7 @@
 	<div class="font-sans mb-1 flex items-center gap-2">
 		<div><i class="ri-article-line"></i> Einzelbeitrag</div>
 		<span class="inline-flex items-center rounded-xs border border-stone-200 px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700 tabular-nums">
-			{{ $model.result.Content.MusenalmID }}
+			ID {{ $model.result.Content.MusenalmID }}
 		</span>
 		<div>&middot;</div>
 		<div class="flex items-center gap-3">
@@ -48,7 +48,11 @@
 					</a>
 				</tool-tip>
 			{{- end -}}
-			<span class="text-gray-800 font-bold no-underline">0&thinsp;-&thinsp;9</span>
+			<span class="text-gray-800 font-bold no-underline">
+				{{ $model.result.Entry.PreferredTitle }}, {{ if $model.result.Content.Extent }}S. {{
+				$model.result.Content.Extent }}{{ else }}Nr. {{ $model.result.Content.MusenalmID }}{{- end
+				-}}
+			</span>
 			{{- if $model.result.NextByNumber -}}
 				<tool-tip position="top" class="!inline">
 					<div class="data-tip">{{- if $model.result.NextByNumber.PreferredTitle -}}{{ $model.result.NextByNumber.PreferredTitle }}{{- else -}}Beitrag Nr. {{ $model.result.NextByNumber.MusenalmID }}{{- end -}}</div>
@@ -68,14 +72,7 @@
 		{{- end -}}
 	</div>
 	<h1 class="text-3xl font-bold">
-		{{ $model.result.Entry.PreferredTitle }},
-		{{ if $model.result.Content.Extent -}}
-			S.
-			{{ $model.result.Content.Extent }}
-		{{ else -}}
-			Nr.
-			{{ $model.result.Content.MusenalmID }}
-		{{- end -}}
+		{{ $model.result.Content.PreferredTitle }}
 	</h1>
 	<span class="mt-1">
 		{{- $arr := $model.result.Content.MusenalmType -}}
