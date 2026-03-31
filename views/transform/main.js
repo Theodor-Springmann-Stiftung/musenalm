@@ -2,6 +2,8 @@
 import "./site.css";
 
 import Trix from "trix";
+import tippy from "tippy.js";
+import "tippy.js/dist/tippy.css";
 
 // Disable file attachments in Trix editor
 document.addEventListener("trix-file-accept", (event) => {
@@ -204,13 +206,7 @@ function setupCancelLinks(root = document) {
 	});
 }
 
-const ADMIN_STATUS_ICON_CLASSES = [
-	"ri-checkbox-circle-line",
-	"ri-information-line",
-	"ri-search-line",
-	"ri-list-check",
-	"ri-forbid-2-line",
-];
+const ADMIN_STATUS_ICON_CLASSES = ["ri-checkbox-circle-line", "ri-information-line", "ri-search-line", "ri-list-check", "ri-forbid-2-line"];
 
 function closeAdminStatusMenus(except = null) {
 	document.querySelectorAll("[data-role='content-status-picker']").forEach((picker) => {
@@ -342,6 +338,27 @@ function initAdminStatusPickers(root = document) {
 
 window.initAdminStatusPickers = initAdminStatusPickers;
 
+function markHashNavigationCurrent() {
+	const hash = window.location.hash;
+	if (!hash) {
+		return;
+	}
+
+	const element = document.getElementById(hash.slice(1));
+	if (element) {
+		element.setAttribute("aria-current", "location");
+	}
+}
+
+function pruneAdminSidebarDetails() {
+	document.querySelectorAll("[data-admin-main-link]").forEach((link) => {
+		if (link.getAttribute("aria-current") === "page") {
+			return;
+		}
+		link.querySelectorAll(".admin-sidebar-link-detail").forEach((detail) => detail.remove());
+	});
+}
+
 // INFO: Hooks up to all the reset button children of the target element.
 // If an element has a changed state, it will trigger the action with `true`.
 // If no elements are changed, it will trigger the action with `false`.
@@ -388,12 +405,15 @@ function supportsFieldSizing() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+	markHashNavigationCurrent();
+	pruneAdminSidebarDetails();
 	setupCancelLinks(document);
 	initAdminStatusPickers(document);
 });
 
 document.addEventListener("htmx:afterSwap", (event) => {
 	const root = event.detail?.target || document;
+	pruneAdminSidebarDetails();
 	setupCancelLinks(root);
 	initAdminStatusPickers(root);
 });
@@ -661,6 +681,7 @@ function InitGlobalHtmxNotice() {
 	const resetBusyState = () => {
 		pending = 0;
 		setBodyBusy(false);
+		delete document.documentElement.dataset.htmxBusy;
 		document.querySelectorAll("[data-htmx-busy]").forEach((element) => {
 			delete element.dataset.htmxBusy;
 			element.removeAttribute("aria-busy");
@@ -753,6 +774,9 @@ function InitGlobalHtmxNotice() {
 
 	window.addEventListener("pageshow", () => {
 		resetBusyState();
+		pruneAdminSidebarDetails();
+		closeAdminStatusMenus();
+		initAdminStatusPickers(document);
 	});
 }
 
@@ -886,7 +910,6 @@ function FormLoad(form) {
 		// Update on change
 		checkbox.addEventListener("change", updateHiddenInput);
 	});
-
 }
 
 function InitStickyActionBars() {

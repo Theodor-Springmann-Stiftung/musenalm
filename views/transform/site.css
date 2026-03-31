@@ -1801,7 +1801,16 @@
 	}
 
 	[data-role="content-item"][data-editor-active="true"] > td {
-		@apply bg-blue-50/80;
+		@apply bg-blue-100/80 border-y-2 border-stone-800;
+	}
+
+	[data-role="content-item"][data-editor-active="true"] > td:last-of-type {
+		@apply border-r-2 border-stone-800;
+	}
+
+	/* We highlight the second bc the firtst one (verschieben) gets hidden */
+	[data-role="content-item"][data-editor-active="true"] > td:nth-of-type(2) {
+		@apply border-l-2 border-stone-800;
 	}
 
 	[data-role="content-item"][data-editor-active="true"]:hover > td {
