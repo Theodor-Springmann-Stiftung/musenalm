@@ -1264,7 +1264,7 @@
 	}
 
 	.content-editor-meta-select {
-		@apply pr-7;
+		@apply pr-0;
 	}
 
 	.content-editor-meta-trigger {

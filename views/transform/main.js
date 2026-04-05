@@ -33,6 +33,8 @@ import { ContentImages } from "./content-images.js";
 import { LookupField } from "./lookup-field.js";
 import { ExportManager } from "./export-manager.js";
 import { ContentTypeSelect } from "./content-type-select.js";
+import { ContentPersonRelations } from "./content-person-relations.js";
+import { ContentSeriesRelations } from "./content-series-relations.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
@@ -57,6 +59,8 @@ const CONTENT_IMAGES_ELEMENT = "content-images";
 const LOOKUP_FIELD_ELEMENT = "lookup-field";
 const EXPORT_MANAGER_ELEMENT = "export-manager";
 const CONTENT_TYPE_SELECT_ELEMENT = "content-type-select";
+const CONTENT_PERSON_RELATIONS_ELEMENT = "content-person-relations";
+const CONTENT_SERIES_RELATIONS_ELEMENT = "content-series-relations";
 
 window.lookupSeriesValue = ({ item }) => item?.id || "";
 window.lookupSeriesLink = ({ item }) => (item?.musenalm_id ? `/reihe/${item.musenalm_id}` : "");
@@ -86,6 +90,8 @@ customElements.define(CONTENT_IMAGES_ELEMENT, ContentImages);
 customElements.define(LOOKUP_FIELD_ELEMENT, LookupField);
 customElements.define(EXPORT_MANAGER_ELEMENT, ExportManager);
 customElements.define(CONTENT_TYPE_SELECT_ELEMENT, ContentTypeSelect);
+customElements.define(CONTENT_PERSON_RELATIONS_ELEMENT, ContentPersonRelations);
+customElements.define(CONTENT_SERIES_RELATIONS_ELEMENT, ContentSeriesRelations);
 
 function PathPlusQuery() {
 	const path = window.location.pathname;

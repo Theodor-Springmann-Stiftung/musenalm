@@ -640,11 +640,16 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	_collectNewRelations(prefix) {
-		const editor = this.querySelector(`relations-editor[data-prefix='${prefix}']`);
-		if (!editor) {
+		const container =
+			this.querySelector(`relations-editor[data-prefix='${prefix}']`) ||
+			this.querySelector(`content-person-relations[data-prefix='${prefix}']`) ||
+			this.querySelector(`content-series-relations[data-prefix='${prefix}']`);
+		if (!container) {
 			return [];
 		}
-		const newRows = editor.querySelectorAll("[data-role='relation-add-row'] [data-rel-row]");
+		const newRows = container.matches("relations-editor")
+			? container.querySelectorAll("[data-role='relation-add-row'] [data-rel-row]")
+			: container.querySelectorAll("[data-kind='new']");
 		const relations = [];
 		newRows.forEach((row) => {
 			const idInput = row.querySelector(`input[name='${prefix}_new_id']`);
