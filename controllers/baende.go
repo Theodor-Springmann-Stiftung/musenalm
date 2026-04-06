@@ -414,7 +414,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 		return data, err
 	}
 
-	contentsCount, err := loadBaendeContentsCount(app, pageEntries)
+	contentsCount, err := loadBaendeContentsCount(displayApp, pageEntries)
 	if err != nil {
 		return data, err
 	}
@@ -771,11 +771,20 @@ func loadBaendeSeriesData(app core.App, entries []*dbmodels.Entry) (map[string]*
 	return seriesMap, entrySeriesMap, nil
 }
 
-func loadBaendeContentsCount(app core.App, entries []*dbmodels.Entry) (map[string]int, error) {
-	if len(entries) == 0 {
-		return map[string]int{}, nil
+func loadBaendeContentsCount(musenalmApp *musapp.App, entries []*dbmodels.Entry) (map[string]int, error) {
+	summaryCache, err := musenalmApp.EnsureEntrySummaryCache()
+	if err != nil {
+		return nil, err
 	}
-	return dbmodels.CountContentsEntries(app, dbmodels.Ids(entries))
+
+	counts := make(map[string]int, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		counts[entry.Id] = summaryCache.Entries[entry.Id].ContentCount
+	}
+	return counts, nil
 }
 
 func buildBaendeFilterData(entries []*dbmodels.Entry, usersMap map[string]*dbmodels.User, agentOptions []baendeLazyFilterOption, placeOptions []baendeLazyFilterOption, seriesOptions []baendeLazyFilterOption, agentLabels map[string]string, placeLabels map[string]string, seriesLabels map[string]string) *baendeFilterData {

@@ -15,6 +15,9 @@ func (app *App) HandleCanonicalEffects(pbApp core.App, effects canonical.Mutatio
 	if effects.ResetBaende {
 		app.ResetBaendeCache()
 	}
+	if effects.ResetEntrySummary {
+		app.ResetEntrySummaryCache()
+	}
 	if effects.ResetEntryAgentOrder {
 		app.ResetEntryAgentOrderCache()
 	}

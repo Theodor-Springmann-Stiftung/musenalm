@@ -502,6 +502,7 @@ func (s *Store) CreateEntry(tx core.App, input EntryInput, effects *MutationEffe
 	if effects != nil {
 		effects.InvalidateSortedEntries = true
 		effects.ResetBaende = true
+		effects.ResetEntrySummary = true
 		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
 	}
 
@@ -811,6 +812,7 @@ func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptio
 	if effects != nil {
 		effects.InvalidateSortedEntries = true
 		effects.ResetBaende = true
+		effects.ResetEntrySummary = true
 		effects.MarkEntryDeleted(entry.Id)
 	}
 	return nil
@@ -835,6 +837,7 @@ func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentI
 		return nil, err
 	}
 	if effects != nil {
+		effects.ResetEntrySummary = true
 		effects.MarkContentUpdated(content.Id, entry.Id)
 	}
 
@@ -918,6 +921,7 @@ func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbm
 		return err
 	}
 	if effects != nil {
+		effects.ResetEntrySummary = true
 		effects.MarkContentUpdated(content.Id, entry.Id)
 	}
 	return nil
@@ -1127,6 +1131,7 @@ func (s *Store) DeleteContent(tx core.App, content *dbmodels.Content, effects *M
 		return err
 	}
 	if effects != nil {
+		effects.ResetEntrySummary = true
 		effects.MarkContentDeleted(content.Id)
 	}
 	return nil

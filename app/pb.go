@@ -59,6 +59,11 @@ type App struct {
 	imagesCacheRefreshMutex             sync.Mutex
 	imagesCacheRefreshRun               bool
 	imagesCacheRefreshQueued            bool
+	entrySummaryCache                   atomic.Pointer[EntrySummaryCache]
+	entrySummaryCacheBuildMutex         sync.Mutex
+	entrySummaryCacheRefreshMutex       sync.Mutex
+	entrySummaryCacheRefreshRun         bool
+	entrySummaryCacheRefreshQueued      bool
 	baendeCache                         atomic.Pointer[BaendeCache]
 	baendeCacheBuildMutex               sync.Mutex
 	baendeCacheRefreshMutex             sync.Mutex
@@ -94,6 +99,7 @@ type App struct {
 	htmlCacheBuildFunc                  func() (*PrefixCache, error)
 	pagesCacheBuildFunc                 func() (*PagesCacheSnapshot, error)
 	imagesCacheBuildFunc                func() (*ImagesCacheSnapshot, error)
+	entrySummaryCacheBuildFunc          func() (*EntrySummaryCache, error)
 	entryAgentOrderCacheBuildFunc       func() (*OrderedIDsCache, error)
 	contentAgentOrderCacheBuildFunc     func() (*OrderedIDsCache, error)
 	seriesOrderCacheBuildFunc           func() (*OrderedIDsCache, error)
@@ -110,6 +116,15 @@ type BaendeCache struct {
 
 type OrderedIDsCache struct {
 	IDs      []string
+	CachedAt time.Time
+}
+
+type EntrySummary struct {
+	ContentCount int
+}
+
+type EntrySummaryCache struct {
+	Entries  map[string]EntrySummary
 	CachedAt time.Time
 }
 
@@ -244,6 +259,7 @@ func (app *App) Serve() error {
 	})
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		app.ScheduleBaendeCacheRebuild()
+		app.ScheduleEntrySummaryCacheRebuild()
 		app.ScheduleEntryAgentOrderCacheRebuild()
 		app.ScheduleContentAgentOrderCacheRebuild()
 		app.ScheduleSeriesOrderCacheRebuild()
@@ -834,6 +850,117 @@ func (app *App) buildImagesCache() (*ImagesCacheSnapshot, error) {
 		cache[image.Key()] = image
 	}
 	return &ImagesCacheSnapshot{Images: cache}, nil
+}
+
+func (app *App) ResetEntrySummaryCache() {
+	app.ScheduleEntrySummaryCacheRebuild()
+}
+
+func (app *App) ScheduleEntrySummaryCacheRebuild() {
+	app.entrySummaryCacheRefreshMutex.Lock()
+	app.entrySummaryCacheRefreshQueued = true
+	if app.entrySummaryCacheRefreshRun {
+		app.entrySummaryCacheRefreshMutex.Unlock()
+		return
+	}
+	app.entrySummaryCacheRefreshRun = true
+	app.entrySummaryCacheRefreshMutex.Unlock()
+
+	go app.runEntrySummaryCacheRefreshLoop()
+}
+
+func (app *App) runEntrySummaryCacheRefreshLoop() {
+	for {
+		app.entrySummaryCacheRefreshMutex.Lock()
+		app.entrySummaryCacheRefreshQueued = false
+		app.entrySummaryCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildEntrySummaryCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild entry summary cache", "error", err)
+		}
+
+		app.entrySummaryCacheRefreshMutex.Lock()
+		if app.entrySummaryCacheRefreshQueued {
+			app.entrySummaryCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.entrySummaryCacheRefreshRun = false
+		app.entrySummaryCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureEntrySummaryCache() (*EntrySummaryCache, error) {
+	if cache := app.entrySummaryCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	app.entrySummaryCacheBuildMutex.Lock()
+	defer app.entrySummaryCacheBuildMutex.Unlock()
+
+	if cache := app.entrySummaryCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextEntrySummaryCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.entrySummaryCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildEntrySummaryCache() (*EntrySummaryCache, error) {
+	app.entrySummaryCacheBuildMutex.Lock()
+	defer app.entrySummaryCacheBuildMutex.Unlock()
+
+	cache, err := app.nextEntrySummaryCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.entrySummaryCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextEntrySummaryCacheSnapshot() (*EntrySummaryCache, error) {
+	if app.entrySummaryCacheBuildFunc != nil {
+		return app.entrySummaryCacheBuildFunc()
+	}
+	return app.buildEntrySummaryCache()
+}
+
+func (app *App) buildEntrySummaryCache() (*EntrySummaryCache, error) {
+	entries := []*dbmodels.Entry{}
+	if err := app.PB.RecordQuery(dbmodels.ENTRIES_TABLE).All(&entries); err != nil {
+		return nil, err
+	}
+
+	summary := make(map[string]EntrySummary, len(entries))
+	if len(entries) == 0 {
+		return &EntrySummaryCache{Entries: summary, CachedAt: time.Now()}, nil
+	}
+
+	counts, err := dbmodels.CountContentsEntries(app.PB.App, dbmodels.Ids(entries))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		summary[entry.Id] = EntrySummary{ContentCount: counts[entry.Id]}
+	}
+
+	return &EntrySummaryCache{Entries: summary, CachedAt: time.Now()}, nil
+}
+
+func (app *App) GetEntrySummary(id string) EntrySummary {
+	cache, err := app.EnsureEntrySummaryCache()
+	if err != nil || cache == nil {
+		return EntrySummary{}
+	}
+	return cache.Entries[id]
 }
 
 func (app *App) ResetBaendeCache() {

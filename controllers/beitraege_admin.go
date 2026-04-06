@@ -5,7 +5,6 @@ import (
 	"html"
 	"net/url"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -233,6 +232,10 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	if err != nil {
 		return data, err
 	}
+	musenalmApp, ok := ia.(*musapp.App)
+	if !ok {
+		return data, fmt.Errorf("unexpected app type %T", ia)
+	}
 
 	allEntries, ok := cacheInterface.GetEntries().([]*dbmodels.Entry)
 	if !ok {
@@ -278,9 +281,16 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	contentsCountMap := map[string]int{}
 
 	if useCachedCountPath {
-		contentsCountMap, err = dbmodels.CountContentsEntries(app, dbmodels.Ids(orderedEntries))
-		if err != nil {
-			return data, err
+		summaryCache, summaryErr := musenalmApp.EnsureEntrySummaryCache()
+		if summaryErr != nil {
+			return data, summaryErr
+		}
+		contentsCountMap = make(map[string]int, len(orderedEntries))
+		for _, entry := range orderedEntries {
+			if entry == nil {
+				continue
+			}
+			contentsCountMap[entry.Id] = summaryCache.Entries[entry.Id].ContentCount
 		}
 		orderedEntryIDs, totalCount = adminBeitraegeOrderedEntryIDsFromCounts(orderedEntries, contentsCountMap, yearInt, hasYearFilter)
 		timer.Mark("contents")
@@ -583,6 +593,10 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	if !ok {
 		return nil, fmt.Errorf("unexpected app type %T", ia)
 	}
+	summaryCache, err := displayApp.EnsureEntrySummaryCache()
+	if err != nil {
+		return nil, err
+	}
 	agentCache, err := displayApp.EnsureContentAgentOrderCache()
 	if err != nil {
 		return nil, err
@@ -601,29 +615,7 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 		return nil, err
 	}
 
-	contents := []*dbmodels.Content{}
-	if err := app.RecordQuery(dbmodels.CONTENTS_TABLE).All(&contents); err != nil {
-		return nil, err
-	}
-
-	typeSet := make(map[string]struct{})
-	for _, content := range contents {
-		if content == nil {
-			continue
-		}
-		for _, typ := range content.MusenalmType() {
-			typ = strings.TrimSpace(typ)
-			if typ != "" {
-				typeSet[typ] = struct{}{}
-			}
-		}
-	}
-
-	types := make([]string, 0, len(typeSet))
-	for typ := range typeSet {
-		types = append(types, typ)
-	}
-	sort.Strings(types)
+	types := append([]string(nil), dbmodels.MUSENALM_TYPE_VALUES...)
 
 	typeLabels := make(map[string]string, len(types))
 	for _, typ := range types {
@@ -631,7 +623,7 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	}
 
 	data := &beitraegeFilterData{
-		Entries:     buildBeitraegeEntryOptions(selectBaendeSortedEntries(sortedEntriesMap, "title")),
+		Entries:     buildBeitraegeEntryOptions(filterEntriesWithContents(selectBaendeSortedEntries(sortedEntriesMap, "title"), summaryCache)),
 		EntryLabels: buildBeitraegeEntryLabelMap(allEntries),
 		Agents:      toBeitraegeFilterOptions(agentOptions),
 		AgentLabels: agentLabels,
@@ -650,6 +642,23 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	}
 
 	return data, nil
+}
+
+func filterEntriesWithContents(entries []*dbmodels.Entry, summaryCache *musapp.EntrySummaryCache) []*dbmodels.Entry {
+	if len(entries) == 0 || summaryCache == nil {
+		return entries
+	}
+
+	filtered := make([]*dbmodels.Entry, 0, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		if summaryCache.Entries[entry.Id].ContentCount > 0 {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
 }
 
 func buildBeitraegeLazyFilterData(app core.App, ia pagemodels.IApp, kind string) (*beitraegeLazyFilterData, error) {
