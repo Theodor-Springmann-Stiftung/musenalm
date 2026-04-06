@@ -8,7 +8,15 @@
 		search: '{{ $model.search }}',
 		letter: '{{ $model.letter }}',
 		status: '{{ $model.status }}',
-		fictional: '{{ $model.fictional }}'
+		fictional: '{{ $model.fictional }}',
+		buildMoreVals() {
+			const values = { offset: this.offset };
+			if (this.search) values.search = this.search;
+			if (this.letter) values.letter = this.letter;
+			if (this.status) values.status = this.status;
+			if (this.fictional) values.fictional = this.fictional;
+			return JSON.stringify(values);
+		}
 	}"
 	data-current-count="{{ $model.current_count }}"
 	data-total-count="{{ $model.total_count }}">
@@ -22,7 +30,8 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (fictional) params.set('fictional', fictional); return `/admin/orte/more/?${params.toString()}`; })()"
+			hx-get="/admin/orte/more/"
+			:hx-vals="buildMoreVals()"
 			hx-select="#orte-more-rows > *"
 			hx-target="#orte-table-body"
 			hx-swap="beforeend"

@@ -9,7 +9,16 @@
 		letter: '{{ $model.letter }}',
 		status: '{{ $model.status }}',
 		corp: '{{ $model.corp }}',
-		profession: '{{ $model.profession }}'
+		profession: '{{ $model.profession }}',
+		buildMoreVals() {
+			const values = { offset: this.offset };
+			if (this.search) values.search = this.search;
+			if (this.letter) values.letter = this.letter;
+			if (this.status) values.status = this.status;
+			if (this.corp) values.corp = this.corp;
+			if (this.profession) values.profession = this.profession;
+			return JSON.stringify(values);
+		}
 	}">
 
 	<span id="personen-admin-count"
@@ -24,7 +33,8 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (corp) params.set('corp', corp); if (profession) params.set('profession', profession); return `/admin/personen/more/?${params.toString()}`; })()"
+			hx-get="/admin/personen/more/"
+			:hx-vals="buildMoreVals()"
 			hx-select="#personen-admin-more-rows > *"
 			hx-target="#personen-admin-table-body"
 			hx-swap="beforeend"

@@ -75,6 +75,19 @@
 		const query = params.toString();
 		return query ? `/admin/reihen/?${params.toString()}` : '/admin/reihen/';
 	},
+	buildMoreVals() {
+		const values = { offset: this.offset };
+		if (this.search) values.search = this.search;
+		if (this.selectedLetter) values.letter = this.selectedLetter;
+		if (this.status) values.status = this.status;
+		if (this.person) values.person = this.person;
+		if (this.place) values.place = this.place;
+		if (this.year) values.year = this.year;
+		if (this.entry) values.entry = this.entry;
+		if (this.sortField) values.sort = this.sortField;
+		if (this.sortOrder) values.order = this.sortOrder;
+		return JSON.stringify(values);
+	},
 	applyFilter(overrides = {}, labelOverrides = {}, indicator = 'body', sourceEl = null) {
 		Object.entries(overrides).forEach(([key, value]) => {
 			this[key] = value;
@@ -169,16 +182,6 @@
 		const newUrl = query ? `/admin/reihen/?${query}` : '/admin/reihen/';
 		window.history.replaceState(null, '', newUrl);
 	},
-	loadMoreUrl() {
-		const params = new URLSearchParams();
-		params.set('offset', this.offset);
-		params.set('sort', this.sortField);
-		params.set('order', this.sortOrder);
-		this.appendFilters(params);
-		if (this.search) params.set('search', this.search);
-		if (this.selectedLetter) params.set('letter', this.selectedLetter);
-		return `/admin/reihen/more/?${params.toString()}`;
-	}
 }"
 @htmx:after-swap.window="
 	if ($event.detail.target && $event.detail.target.id === 'reihenresults') {
@@ -441,9 +444,11 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				<button
 					type="button"
 					class="content-action-button"
-					:hx-get="loadMoreUrl()"
-					hx-target="#reihen-table"
-					hx-swap="beforeend"
+					hx-get="/admin/reihen/more/"
+					:hx-vals="buildMoreVals()"
+					hx-select="#reihen-more-rows > *"
+			hx-target="#reihen-table-body"
+			hx-swap="beforeend"
 					hx-indicator="this"
 					@htmx:before-request="loading = true"
 					@htmx:after-request="

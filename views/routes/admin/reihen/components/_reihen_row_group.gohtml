@@ -1,9 +1,7 @@
 {{ $series := .series }}
-<tbody class="odd:[&_tr]:bg-white even:[&_tr]:bg-stone-50/50" data-role="reihen-row-group" data-series-id="{{ $series.MusenalmID }}">
-	<tr
-		class="admin-list-row hover:!bg-stone-50"
-		data-role="reihen-row"
-		data-series-id="{{ $series.MusenalmID }}">
-		{{ template "_reihen_row_cells" . }}
-	</tr>
-</tbody>
+<tr
+	class="admin-list-row odd:bg-white even:bg-stone-50/50 hover:!bg-stone-50"
+	data-role="reihen-row"
+	data-series-id="{{ $series.MusenalmID }}">
+	{{ template "_reihen_row_cells" . }}
+</tr>

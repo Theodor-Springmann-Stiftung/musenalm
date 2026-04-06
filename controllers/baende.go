@@ -809,7 +809,7 @@ func (p *BaendePage) handleMore(engine *templating.Engine, app core.App, ma page
 			e.Response.Header().Set("X-Total-Count", "0")
 		}
 
-		return engine.Response200(e, URL_BAENDE_MORE, data, pagemodels.LAYOUT_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_BAENDE_MORE, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

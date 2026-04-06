@@ -67,14 +67,13 @@
 				<th class="py-2 pr-4 whitespace-nowrap text-right align-bottom"></th>
 			</tr>
 		</thead>
+		<tbody id="reihen-table-body">
 		{{- if not (len $model.result.Series) -}}
-			<tbody>
 				<tr>
 					<td colspan="4" class="py-6 text-center text-base text-gray-500">
 						Keine Reihen gefunden.
 					</td>
 				</tr>
-			</tbody>
 		{{- end -}}
 		{{- range $_, $series := $model.result.Series -}}
 			{{- template "_reihen_row_group" (Dict
@@ -85,6 +84,7 @@
 				"csrf_token" $model.csrf_token
 			) -}}
 		{{- end -}}
+		</tbody>
 	</table>
 </div>
 

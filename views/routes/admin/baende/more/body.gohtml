@@ -1,14 +1,18 @@
 {{ $model := . }}
 
-{{- range $_, $entry := $model.result.Entries -}}
-	{{- template "_baende_row_group" (Dict
-		"entry" $entry
-		"items" (index $model.result.Items $entry.Id)
-		"editor_user" (index $model.result.Users $entry.Editor)
-		"contents_count" (index $model.result.ContentsCount $entry.Id)
-		"series_links" (index $model.result.SeriesLinks $entry.Id)
-		"agent_rels" (index $model.result.EntriesAgents $entry.Id)
-		"can_edit" (IsAdminOrEditor $model.request.user)
-		"csrf_token" $model.csrf_token
-	) -}}
-{{- end -}}
+<table class="hidden">
+	<tbody id="baende-more-rows">
+		{{- range $_, $entry := $model.result.Entries -}}
+			{{- template "_baende_row_group" (Dict
+				"entry" $entry
+				"items" (index $model.result.Items $entry.Id)
+				"editor_user" (index $model.result.Users $entry.Editor)
+				"contents_count" (index $model.result.ContentsCount $entry.Id)
+				"series_links" (index $model.result.SeriesLinks $entry.Id)
+				"agent_rels" (index $model.result.EntriesAgents $entry.Id)
+				"can_edit" (IsAdminOrEditor $model.request.user)
+				"csrf_token" $model.csrf_token
+			) -}}
+		{{- end -}}
+	</tbody>
+</table>

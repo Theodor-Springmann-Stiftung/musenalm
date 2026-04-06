@@ -159,7 +159,7 @@ func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App) Ha
 			e.Response.Header().Set("X-Total-Count", "0")
 		}
 
-		return engine.Response200(e, URL_REIHEN_ADMIN_MORE, data, pagemodels.LAYOUT_FRAGMENT)
+		return engine.Response200(e, TEMPLATE_REIHEN_ADMIN_MORE, data, pagemodels.LAYOUT_FRAGMENT)
 	}
 }
 

@@ -1,9 +1,7 @@
 {{ $entry := .entry }}
-<tbody data-role="baende-row-group" data-entry-id="{{ $entry.MusenalmID }}">
-	<tr
-		class="align-top border-b transition-colors"
-		data-role="baende-row"
-		data-entry-id="{{ $entry.MusenalmID }}">
-		{{ template "_baende_row_cells" . }}
-	</tr>
-</tbody>
+<tr
+	class="align-top border-b transition-colors odd:bg-white even:bg-stone-50/50"
+	data-role="baende-row"
+	data-entry-id="{{ $entry.MusenalmID }}">
+	{{ template "_baende_row_cells" . }}
+</tr>

@@ -169,14 +169,13 @@
 				</th>
 			</tr>
 		</thead>
+		<tbody id="baende-table-body">
 		{{- if not (len $model.result.Entries) -}}
-			<tbody>
 				<tr>
 					<td colspan="10" class="py-6 text-center text-base text-gray-500">
 						Keine Bände gefunden.
 					</td>
 				</tr>
-			</tbody>
 		{{- end -}}
 		{{- range $_, $entry := $model.result.Entries -}}
 			{{- template "_baende_row_group" (Dict
@@ -190,6 +189,7 @@
 				"csrf_token" $model.csrf_token
 			) -}}
 		{{- end -}}
+		</tbody>
 	</table>
 </div>
 

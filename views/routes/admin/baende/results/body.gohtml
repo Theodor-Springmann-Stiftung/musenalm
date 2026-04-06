@@ -12,8 +12,23 @@
         user: '{{ $model.user }}',
         year: '{{ $model.year }}',
         place: '{{ $model.place }}',
+        series: '{{ $model.series }}',
         sortField: '{{ if $model.sort_field }}{{ $model.sort_field }}{{ else }}title{{ end }}',
-        sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}'
+        sortOrder: '{{ if $model.sort_order }}{{ $model.sort_order }}{{ else }}asc{{ end }}',
+        buildMoreVals() {
+            const values = { offset: this.offset };
+            if (this.search) values.search = this.search;
+            if (this.letter) values.letter = this.letter;
+            if (this.status) values.status = this.status;
+            if (this.person) values.person = this.person;
+            if (this.user) values.user = this.user;
+            if (this.year) values.year = this.year;
+            if (this.place) values.place = this.place;
+            if (this.series) values.series = this.series;
+            if (this.sortField) values.sort = this.sortField;
+            if (this.sortOrder) values.order = this.sortOrder;
+            return JSON.stringify(values);
+        }
      }">
 
 	<span id="baende-count"
@@ -31,9 +46,10 @@
 		<button
 			type="button"
 			class="content-action-button"
-			:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (letter) params.set('letter', letter); if (status) params.set('status', status); if (person) params.set('person', person); if (user) params.set('user', user); if (year) params.set('year', year); if (place) params.set('place', place); params.set('sort', sortField); params.set('order', sortOrder); return `/admin/baende/more/?${params.toString()}`; })()"
-			hx-replace-url="true"
-			hx-target="#baende-table"
+			hx-get="/admin/baende/more/"
+			:hx-vals="buildMoreVals()"
+			hx-select="#baende-more-rows > *"
+			hx-target="#baende-table-body"
 			hx-swap="beforeend"
 			hx-indicator="this"
 			@htmx:before-request="loading = true"

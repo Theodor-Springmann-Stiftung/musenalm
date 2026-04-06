@@ -63,6 +63,15 @@
 		const query = params.toString();
 		return query ? `/admin/personen/?${params.toString()}` : '/admin/personen/';
 	},
+	buildMoreVals() {
+		const values = { offset: this.offset };
+		if (this.search) values.search = this.search;
+		if (this.selectedLetter) values.letter = this.selectedLetter;
+		if (this.status) values.status = this.status;
+		if (this.corp) values.corp = this.corp;
+		if (this.profession) values.profession = this.profession;
+		return JSON.stringify(values);
+	},
 	applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
 		Object.entries(overrides).forEach(([key, value]) => {
 			this[key] = value;
@@ -121,14 +130,6 @@
 		const newUrl = query ? `/admin/personen/?${query}` : '/admin/personen/';
 		window.history.replaceState(null, '', newUrl);
 	},
-	loadMoreUrl() {
-		const params = new URLSearchParams();
-		params.set('offset', this.offset);
-		this.appendFilters(params);
-		if (this.search) params.set('search', this.search);
-		if (this.selectedLetter) params.set('letter', this.selectedLetter);
-		return `/admin/personen/more/?${params.toString()}`;
-	}
 }"
 @htmx:after-swap.window="
 	if ($event.detail.target && $event.detail.target.id === 'personen-admin-results') {
@@ -423,7 +424,8 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				<button
 					type="button"
 					class="content-action-button"
-					:hx-get="loadMoreUrl()"
+					hx-get="/admin/personen/more/"
+					:hx-vals="buildMoreVals()"
 					hx-select="#personen-admin-more-rows > *"
 					hx-target="#personen-admin-table-body"
 					hx-swap="beforeend"

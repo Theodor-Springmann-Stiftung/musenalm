@@ -65,6 +65,14 @@
 			const query = params.toString();
 			return query ? `/admin/orte/?${query}` : '/admin/orte/';
 		},
+		buildMoreVals() {
+			const values = { offset: this.offset };
+			if (this.search) values.search = this.search;
+			if (this.selectedLetter) values.letter = this.selectedLetter;
+			if (this.status) values.status = this.status;
+			if (this.fictional) values.fictional = this.fictional;
+			return JSON.stringify(values);
+		},
 		applyFilter(overrides = {}, indicator = 'body', sourceEl = null) {
 			Object.entries(overrides).forEach(([key, value]) => {
 				this[key] = value;
@@ -348,7 +356,8 @@
 				<button
 					type="button"
 					class="content-action-button"
-					:hx-get="(() => { const params = new URLSearchParams(); params.set('offset', offset); if (search) params.set('search', search); if (selectedLetter) params.set('letter', selectedLetter); if (status) params.set('status', status); if (fictional) params.set('fictional', fictional); return `/admin/orte/more/?${params.toString()}`; })()"
+					hx-get="/admin/orte/more/"
+					:hx-vals="buildMoreVals()"
 					hx-select="#orte-more-rows > *"
 					hx-target="#orte-table-body"
 					hx-swap="beforeend"
