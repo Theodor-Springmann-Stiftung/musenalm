@@ -3,18 +3,40 @@ package app
 import (
 	"fmt"
 	"strings"
-	"time"
+	"sync"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 )
 
 type DisplayCache struct {
+	Agents   sync.Map
+	Series   sync.Map
+	Entries  sync.Map
+	Places   sync.Map
+	Contents sync.Map
+}
+
+type displaySnapshot struct {
 	Agents   map[string]*AgentDisplay
 	Series   map[string]*SeriesDisplay
 	Entries  map[string]*EntryDisplay
 	Places   map[string]*PlaceDisplay
 	Contents map[string]*ContentDisplay
-	CachedAt time.Time
+}
+
+type displayRefreshPlan struct {
+	full           bool
+	updateAgents   map[string]struct{}
+	deleteAgents   map[string]struct{}
+	updateSeries   map[string]struct{}
+	deleteSeries   map[string]struct{}
+	updateEntries  map[string]struct{}
+	deleteEntries  map[string]struct{}
+	updatePlaces   map[string]struct{}
+	deletePlaces   map[string]struct{}
+	updateContents map[string]struct{}
+	deleteContents map[string]struct{}
 }
 
 type AgentDisplay struct {
@@ -64,8 +86,123 @@ type ContentDisplay struct {
 	Type       string
 }
 
+func NewDisplayCache() *DisplayCache {
+	return &DisplayCache{}
+}
+
+func newDisplayRefreshPlan() displayRefreshPlan {
+	return displayRefreshPlan{
+		updateAgents:   map[string]struct{}{},
+		deleteAgents:   map[string]struct{}{},
+		updateSeries:   map[string]struct{}{},
+		deleteSeries:   map[string]struct{}{},
+		updateEntries:  map[string]struct{}{},
+		deleteEntries:  map[string]struct{}{},
+		updatePlaces:   map[string]struct{}{},
+		deletePlaces:   map[string]struct{}{},
+		updateContents: map[string]struct{}{},
+		deleteContents: map[string]struct{}{},
+	}
+}
+
+func (p displayRefreshPlan) hasWork() bool {
+	return p.full ||
+		len(p.updateAgents) > 0 ||
+		len(p.deleteAgents) > 0 ||
+		len(p.updateSeries) > 0 ||
+		len(p.deleteSeries) > 0 ||
+		len(p.updateEntries) > 0 ||
+		len(p.deleteEntries) > 0 ||
+		len(p.updatePlaces) > 0 ||
+		len(p.deletePlaces) > 0 ||
+		len(p.updateContents) > 0 ||
+		len(p.deleteContents) > 0
+}
+
+func (p *displayRefreshPlan) merge(other displayRefreshPlan) {
+	if other.full {
+		p.full = true
+	}
+
+	mergeDisplaySet(p.updateAgents, p.deleteAgents, other.updateAgents, other.deleteAgents)
+	mergeDisplaySet(p.updateSeries, p.deleteSeries, other.updateSeries, other.deleteSeries)
+	mergeDisplaySet(p.updateEntries, p.deleteEntries, other.updateEntries, other.deleteEntries)
+	mergeDisplaySet(p.updatePlaces, p.deletePlaces, other.updatePlaces, other.deletePlaces)
+	mergeDisplaySet(p.updateContents, p.deleteContents, other.updateContents, other.deleteContents)
+}
+
+func mergeDisplaySet(targetUpdates, targetDeletes, sourceUpdates, sourceDeletes map[string]struct{}) {
+	for id := range sourceDeletes {
+		delete(targetUpdates, id)
+		targetDeletes[id] = struct{}{}
+	}
+	for id := range sourceUpdates {
+		if _, deleted := targetDeletes[id]; deleted {
+			continue
+		}
+		targetUpdates[id] = struct{}{}
+	}
+}
+
+func displayRefreshPlanFromEffects(effects canonical.MutationEffects) displayRefreshPlan {
+	plan := newDisplayRefreshPlan()
+
+	for id := range effects.UpdateAgents {
+		plan.updateAgents[id] = struct{}{}
+	}
+	for id := range effects.DeleteAgents {
+		plan.deleteAgents[id] = struct{}{}
+		delete(plan.updateAgents, id)
+	}
+
+	for id := range effects.UpdateSeries {
+		plan.updateSeries[id] = struct{}{}
+	}
+	for id := range effects.DeleteSeries {
+		plan.deleteSeries[id] = struct{}{}
+		delete(plan.updateSeries, id)
+	}
+
+	for id := range effects.UpdateEntries {
+		plan.updateEntries[id] = struct{}{}
+	}
+	for id := range effects.DeleteEntries {
+		plan.deleteEntries[id] = struct{}{}
+		delete(plan.updateEntries, id)
+	}
+
+	for id := range effects.UpdatePlaces {
+		plan.updatePlaces[id] = struct{}{}
+	}
+	for id := range effects.DeletePlaces {
+		plan.deletePlaces[id] = struct{}{}
+		delete(plan.updatePlaces, id)
+	}
+
+	for id := range effects.UpdateContents {
+		plan.updateContents[id] = struct{}{}
+	}
+	for id := range effects.DeleteContents {
+		plan.deleteContents[id] = struct{}{}
+		delete(plan.updateContents, id)
+	}
+
+	return plan
+}
+
 func (app *App) ScheduleDisplayCacheRebuild() {
+	plan := newDisplayRefreshPlan()
+	plan.full = true
+	app.ScheduleDisplayCacheRefresh(plan)
+}
+
+func (app *App) ScheduleDisplayCacheRefresh(plan displayRefreshPlan) {
+	if !plan.hasWork() {
+		return
+	}
+
 	app.displayCacheRefreshMutex.Lock()
+	app.displayCacheRefreshPlan.merge(plan)
 	app.displayCacheRefreshQueued = true
 	if app.displayCacheRefreshRun {
 		app.displayCacheRefreshMutex.Unlock()
@@ -80,11 +217,13 @@ func (app *App) ScheduleDisplayCacheRebuild() {
 func (app *App) runDisplayCacheRefreshLoop() {
 	for {
 		app.displayCacheRefreshMutex.Lock()
+		plan := app.displayCacheRefreshPlan
+		app.displayCacheRefreshPlan = newDisplayRefreshPlan()
 		app.displayCacheRefreshQueued = false
 		app.displayCacheRefreshMutex.Unlock()
 
-		if _, err := app.rebuildDisplayCache(); err != nil {
-			app.PB.Logger().Error("failed to rebuild display cache", "error", err)
+		if err := app.applyDisplayRefreshPlan(plan); err != nil {
+			app.PB.Logger().Error("failed to refresh display cache", "error", err)
 		}
 
 		app.displayCacheRefreshMutex.Lock()
@@ -98,46 +237,46 @@ func (app *App) runDisplayCacheRefreshLoop() {
 	}
 }
 
-func (app *App) EnsureDisplayCache() (*DisplayCache, error) {
-	if cache := app.displayCache.Load(); cache != nil {
-		return cache, nil
+func (app *App) applyDisplayRefreshPlan(plan displayRefreshPlan) error {
+	if !plan.hasWork() {
+		return nil
 	}
 
-	app.displayCacheBuildMutex.Lock()
-	defer app.displayCacheBuildMutex.Unlock()
-
-	if cache := app.displayCache.Load(); cache != nil {
-		return cache, nil
+	if plan.full {
+		snapshot, err := app.buildDisplaySnapshot()
+		if err != nil {
+			return err
+		}
+		app.displayCache.replaceAll(snapshot)
+		return nil
 	}
 
-	cache, err := app.nextDisplayCacheSnapshot()
-	if err != nil {
-		return nil, err
+	app.displayCache.deleteAgents(plan.deleteAgents)
+	app.displayCache.deleteSeries(plan.deleteSeries)
+	app.displayCache.deleteEntries(plan.deleteEntries)
+	app.displayCache.deletePlaces(plan.deletePlaces)
+	app.displayCache.deleteContents(plan.deleteContents)
+
+	if err := app.refreshAgentDisplays(plan.updateAgents); err != nil {
+		return err
 	}
-	app.displayCache.Store(cache)
-	return cache, nil
+	if err := app.refreshSeriesDisplays(plan.updateSeries); err != nil {
+		return err
+	}
+	if err := app.refreshEntryDisplays(plan.updateEntries); err != nil {
+		return err
+	}
+	if err := app.refreshPlaceDisplays(plan.updatePlaces); err != nil {
+		return err
+	}
+	if err := app.refreshContentDisplays(plan.updateContents); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (app *App) rebuildDisplayCache() (*DisplayCache, error) {
-	app.displayCacheBuildMutex.Lock()
-	defer app.displayCacheBuildMutex.Unlock()
-
-	cache, err := app.nextDisplayCacheSnapshot()
-	if err != nil {
-		return nil, err
-	}
-	app.displayCache.Store(cache)
-	return cache, nil
-}
-
-func (app *App) nextDisplayCacheSnapshot() (*DisplayCache, error) {
-	if app.displayCacheBuildFunc != nil {
-		return app.displayCacheBuildFunc()
-	}
-	return app.buildDisplayCache()
-}
-
-func (app *App) buildDisplayCache() (*DisplayCache, error) {
+func (app *App) buildDisplaySnapshot() (*displaySnapshot, error) {
 	agents := []*dbmodels.Agent{}
 	if err := app.PB.RecordQuery(dbmodels.AGENTS_TABLE).
 		OrderBy(dbmodels.AGENTS_NAME_FIELD).
@@ -173,109 +312,252 @@ func (app *App) buildDisplayCache() (*DisplayCache, error) {
 		return nil, err
 	}
 
-	cache := &DisplayCache{
+	snapshot := &displaySnapshot{
 		Agents:   make(map[string]*AgentDisplay, len(agents)),
 		Series:   make(map[string]*SeriesDisplay, len(series)),
 		Entries:  make(map[string]*EntryDisplay, len(entries)),
 		Places:   make(map[string]*PlaceDisplay, len(places)),
 		Contents: make(map[string]*ContentDisplay, len(contents)),
-		CachedAt: time.Now(),
 	}
 
 	for _, agent := range agents {
 		if agent == nil || agent.Id == "" {
 			continue
 		}
-		cache.Agents[agent.Id] = buildAgentDisplay(agent)
+		snapshot.Agents[agent.Id] = buildAgentDisplay(agent)
 	}
 
 	for _, currentSeries := range series {
 		if currentSeries == nil || currentSeries.Id == "" {
 			continue
 		}
-		cache.Series[currentSeries.Id] = buildSeriesDisplay(currentSeries)
+		snapshot.Series[currentSeries.Id] = buildSeriesDisplay(currentSeries)
 	}
 
 	for _, entry := range entries {
 		if entry == nil || entry.Id == "" {
 			continue
 		}
-		cache.Entries[entry.Id] = buildEntryDisplay(entry)
+		snapshot.Entries[entry.Id] = buildEntryDisplay(entry)
 	}
 
 	for _, place := range places {
 		if place == nil || place.Id == "" {
 			continue
 		}
-		cache.Places[place.Id] = buildPlaceDisplay(place)
+		snapshot.Places[place.Id] = buildPlaceDisplay(place)
 	}
 
 	for _, content := range contents {
 		if content == nil || content.Id == "" {
 			continue
 		}
-		cache.Contents[content.Id] = buildContentDisplay(content)
+		snapshot.Contents[content.Id] = buildContentDisplay(content)
 	}
 
-	return cache, nil
+	return snapshot, nil
+}
+
+func (app *App) refreshAgentDisplays(ids map[string]struct{}) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	agents, err := dbmodels.Agents_IDs(app.PB.App, stringIDsToAny(ids))
+	if err != nil {
+		return err
+	}
+	for _, agent := range agents {
+		if agent == nil || agent.Id == "" {
+			continue
+		}
+		app.displayCache.Agents.Store(agent.Id, buildAgentDisplay(agent))
+	}
+	return nil
+}
+
+func (app *App) refreshSeriesDisplays(ids map[string]struct{}) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	series, err := dbmodels.Series_IDs(app.PB.App, stringIDsToAny(ids))
+	if err != nil {
+		return err
+	}
+	for _, currentSeries := range series {
+		if currentSeries == nil || currentSeries.Id == "" {
+			continue
+		}
+		app.displayCache.Series.Store(currentSeries.Id, buildSeriesDisplay(currentSeries))
+	}
+	return nil
+}
+
+func (app *App) refreshEntryDisplays(ids map[string]struct{}) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	entries, err := dbmodels.Entries_IDs(app.PB.App, stringIDsToAny(ids))
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if entry == nil || entry.Id == "" {
+			continue
+		}
+		app.displayCache.Entries.Store(entry.Id, buildEntryDisplay(entry))
+	}
+	return nil
+}
+
+func (app *App) refreshPlaceDisplays(ids map[string]struct{}) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	places, err := dbmodels.Places_IDs(app.PB.App, stringIDsToAny(ids))
+	if err != nil {
+		return err
+	}
+	for _, place := range places {
+		if place == nil || place.Id == "" {
+			continue
+		}
+		app.displayCache.Places.Store(place.Id, buildPlaceDisplay(place))
+	}
+	return nil
+}
+
+func (app *App) refreshContentDisplays(ids map[string]struct{}) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	contents, err := dbmodels.Contents_IDs(app.PB.App, stringIDsToAny(ids))
+	if err != nil {
+		return err
+	}
+	for _, content := range contents {
+		if content == nil || content.Id == "" {
+			continue
+		}
+		app.displayCache.Contents.Store(content.Id, buildContentDisplay(content))
+	}
+	return nil
+}
+
+func stringIDsToAny(ids map[string]struct{}) []any {
+	values := make([]any, 0, len(ids))
+	for id := range ids {
+		values = append(values, id)
+	}
+	return values
+}
+
+func (c *DisplayCache) replaceAll(snapshot *displaySnapshot) {
+	clearSyncMap(&c.Agents)
+	clearSyncMap(&c.Series)
+	clearSyncMap(&c.Entries)
+	clearSyncMap(&c.Places)
+	clearSyncMap(&c.Contents)
+
+	for id, value := range snapshot.Agents {
+		c.Agents.Store(id, value)
+	}
+	for id, value := range snapshot.Series {
+		c.Series.Store(id, value)
+	}
+	for id, value := range snapshot.Entries {
+		c.Entries.Store(id, value)
+	}
+	for id, value := range snapshot.Places {
+		c.Places.Store(id, value)
+	}
+	for id, value := range snapshot.Contents {
+		c.Contents.Store(id, value)
+	}
+}
+
+func (c *DisplayCache) deleteAgents(ids map[string]struct{}) {
+	for id := range ids {
+		c.Agents.Delete(id)
+	}
+}
+
+func (c *DisplayCache) deleteSeries(ids map[string]struct{}) {
+	for id := range ids {
+		c.Series.Delete(id)
+	}
+}
+
+func (c *DisplayCache) deleteEntries(ids map[string]struct{}) {
+	for id := range ids {
+		c.Entries.Delete(id)
+	}
+}
+
+func (c *DisplayCache) deletePlaces(ids map[string]struct{}) {
+	for id := range ids {
+		c.Places.Delete(id)
+	}
+}
+
+func (c *DisplayCache) deleteContents(ids map[string]struct{}) {
+	for id := range ids {
+		c.Contents.Delete(id)
+	}
+}
+
+func clearSyncMap(m *sync.Map) {
+	m.Range(func(key, _ any) bool {
+		m.Delete(key)
+		return true
+	})
 }
 
 func (app *App) GetAgentDisplay(id string) *AgentDisplay {
-	cache, err := app.EnsureDisplayCache()
-	if err != nil {
-		app.PB.Logger().Error("failed to ensure agent display cache", "agent_id", id, "error", err)
-		return fallbackAgentDisplay(id)
-	}
-	if display := cache.Agents[id]; display != nil {
-		return display
+	if display, ok := app.displayCache.Agents.Load(id); ok {
+		if casted, ok := display.(*AgentDisplay); ok && casted != nil {
+			return casted
+		}
 	}
 	return fallbackAgentDisplay(id)
 }
 
 func (app *App) GetSeriesDisplay(id string) *SeriesDisplay {
-	cache, err := app.EnsureDisplayCache()
-	if err != nil {
-		app.PB.Logger().Error("failed to ensure series display cache", "series_id", id, "error", err)
-		return fallbackSeriesDisplay(id)
-	}
-	if display := cache.Series[id]; display != nil {
-		return display
+	if display, ok := app.displayCache.Series.Load(id); ok {
+		if casted, ok := display.(*SeriesDisplay); ok && casted != nil {
+			return casted
+		}
 	}
 	return fallbackSeriesDisplay(id)
 }
 
 func (app *App) GetEntryDisplay(id string) *EntryDisplay {
-	cache, err := app.EnsureDisplayCache()
-	if err != nil {
-		app.PB.Logger().Error("failed to ensure entry display cache", "entry_id", id, "error", err)
-		return fallbackEntryDisplay(id)
-	}
-	if display := cache.Entries[id]; display != nil {
-		return display
+	if display, ok := app.displayCache.Entries.Load(id); ok {
+		if casted, ok := display.(*EntryDisplay); ok && casted != nil {
+			return casted
+		}
 	}
 	return fallbackEntryDisplay(id)
 }
 
 func (app *App) GetPlaceDisplay(id string) *PlaceDisplay {
-	cache, err := app.EnsureDisplayCache()
-	if err != nil {
-		app.PB.Logger().Error("failed to ensure place display cache", "place_id", id, "error", err)
-		return fallbackPlaceDisplay(id)
-	}
-	if display := cache.Places[id]; display != nil {
-		return display
+	if display, ok := app.displayCache.Places.Load(id); ok {
+		if casted, ok := display.(*PlaceDisplay); ok && casted != nil {
+			return casted
+		}
 	}
 	return fallbackPlaceDisplay(id)
 }
 
 func (app *App) GetContentDisplay(id string) *ContentDisplay {
-	cache, err := app.EnsureDisplayCache()
-	if err != nil {
-		app.PB.Logger().Error("failed to ensure content display cache", "content_id", id, "error", err)
-		return fallbackContentDisplay(id)
-	}
-	if display := cache.Contents[id]; display != nil {
-		return display
+	if display, ok := app.displayCache.Contents.Load(id); ok {
+		if casted, ok := display.(*ContentDisplay); ok && casted != nil {
+			return casted
+		}
 	}
 	return fallbackContentDisplay(id)
 }
@@ -328,161 +610,88 @@ func buildPlaceDisplay(place *dbmodels.Place) *PlaceDisplay {
 }
 
 func buildContentDisplay(content *dbmodels.Content) *ContentDisplay {
+	types := make([]string, 0, len(content.MusenalmType()))
+	for _, typ := range content.MusenalmType() {
+		trimmed := strings.TrimSpace(typ)
+		if trimmed != "" {
+			types = append(types, trimmed)
+		}
+	}
+
 	return &ContentDisplay{
 		ID:         content.Id,
 		Id:         content.Id,
 		MusenalmID: content.MusenalmID(),
-		Title:      buildContentDisplayTitle(content),
-		Page:       buildContentDisplayPage(content),
-		ScanCount:  len(content.Scans()),
-		Type:       buildContentDisplayType(content),
+		Title: buildContentDisplayTitleFromFields(
+			content.PreferredTitle(),
+			content.TitleStmt(),
+			content.SubtitleStmt(),
+			content.IncipitStmt(),
+			types,
+			content.ResponsibilityStmt(),
+			content.Extent(),
+			content.MusenalmID(),
+		),
+		Page:      buildContentDisplayPageFromFields(content.MusenalmPagination(), content.Extent()),
+		ScanCount: len(content.Scans()),
+		Type:      strings.Join(types, ", "),
 	}
 }
 
-func buildContentDisplayTitle(content *dbmodels.Content) string {
-	if content == nil {
-		return ""
+func buildContentDisplayTitleFromFields(preferredTitle, title, subtitle, incipit string, types []string, responsibility, extent string, musenalmID int) string {
+	if trimmed := strings.TrimSpace(preferredTitle); trimmed != "" {
+		return trimmed
 	}
-
-	return buildContentDisplayTitleFromFields(
-		content.PreferredTitle(),
-		content.TitleStmt(),
-		content.SubtitleStmt(),
-		content.IncipitStmt(),
-		content.MusenalmType(),
-		content.ResponsibilityStmt(),
-		content.Extent(),
-		content.MusenalmID(),
-	)
-}
-
-func buildContentDisplayTitleFromFields(
-	preferredTitle string,
-	title string,
-	subtitle string,
-	incipit string,
-	musenalmTypes []string,
-	responsibility string,
-	extent string,
-	musenalmID int,
-) string {
-	if preferredTitle = strings.TrimSpace(preferredTitle); preferredTitle != "" {
-		return preferredTitle
-	}
-	if title = strings.TrimSpace(title); title != "" {
-		return title
-	}
-	if subtitle = strings.TrimSpace(subtitle); subtitle != "" {
-		return subtitle
-	}
-	if incipit = strings.TrimSpace(incipit); incipit != "" {
-		return incipit
-	}
-
-	typeLabel := strings.Join(cleanDisplayStrings(musenalmTypes), ", ")
-	if responsibility = strings.TrimSpace(responsibility); responsibility != "" && !strings.EqualFold(responsibility, "unbezeichnet") {
-		if typeLabel != "" {
-			return fmt.Sprintf("[%s] Unterzeichnet: %s", typeLabel, responsibility)
+	if trimmed := strings.TrimSpace(title); trimmed != "" {
+		if sub := strings.TrimSpace(subtitle); sub != "" {
+			return trimmed + ": " + sub
 		}
-		return fmt.Sprintf("Unterzeichnet: %s", responsibility)
+		return trimmed
+	}
+	if trimmed := strings.TrimSpace(incipit); trimmed != "" {
+		return trimmed
 	}
 
-	if extent = strings.TrimSpace(extent); extent != "" {
-		if typeLabel == "" {
-			typeLabel = "Beitrag"
-		}
-		return fmt.Sprintf("[%s %s]", typeLabel, extent)
+	parts := make([]string, 0, 3)
+	if len(types) > 0 {
+		parts = append(parts, "["+strings.Join(types, ", ")+"]")
+	}
+	if trimmed := strings.TrimSpace(responsibility); trimmed != "" {
+		parts = append(parts, "Unterzeichnet: "+trimmed)
+	}
+	if trimmed := strings.TrimSpace(extent); trimmed != "" {
+		parts = append(parts, trimmed)
+	}
+	if len(parts) > 0 {
+		return strings.Join(parts, " ")
 	}
 
-	if musenalmID > 0 {
-		return fmt.Sprintf("Inhalt #%d", musenalmID)
-	}
-
-	if typeLabel != "" {
-		return fmt.Sprintf("[%s]", typeLabel)
-	}
-
-	return "Beitrag"
+	return fmt.Sprintf("Inhalt #%d", musenalmID)
 }
 
-func buildContentDisplayPage(content *dbmodels.Content) string {
-	if content == nil {
-		return ""
-	}
-
-	return buildContentDisplayPageFromFields(content.MusenalmPagination(), content.Extent())
-}
-
-func buildContentDisplayType(content *dbmodels.Content) string {
-	if content == nil {
-		return ""
-	}
-
-	types := cleanDisplayStrings(content.MusenalmType())
-	if len(types) == 0 {
-		types = cleanDisplayStrings(content.ContentType())
-	}
-	return strings.Join(types, ", ")
-}
-
-func cleanDisplayStrings(values []string) []string {
-	cleaned := make([]string, 0, len(values))
-	for _, value := range values {
-		value = strings.TrimSpace(value)
-		if value == "" {
-			continue
-		}
-		cleaned = append(cleaned, value)
-	}
-	return cleaned
-}
-
-func buildContentDisplayPageFromFields(pagination string, extent string) string {
-	if pagination = strings.TrimSpace(pagination); pagination != "" {
-		return pagination
+func buildContentDisplayPageFromFields(pagination, extent string) string {
+	if trimmed := strings.TrimSpace(pagination); trimmed != "" {
+		return trimmed
 	}
 	return strings.TrimSpace(extent)
 }
 
 func fallbackAgentDisplay(id string) *AgentDisplay {
-	return &AgentDisplay{
-		ID:   id,
-		Id:   id,
-		Name: id,
-	}
+	return &AgentDisplay{ID: id, Id: id, Name: id}
 }
 
 func fallbackSeriesDisplay(id string) *SeriesDisplay {
-	return &SeriesDisplay{
-		ID:   id,
-		Id:   id,
-		Name: id,
-	}
+	return &SeriesDisplay{ID: id, Id: id, Name: id}
 }
 
 func fallbackEntryDisplay(id string) *EntryDisplay {
-	return &EntryDisplay{
-		ID:             id,
-		Id:             id,
-		ShortTitle:     id,
-		PreferredTitle: id,
-		Title:          id,
-		TitleStmt:      id,
-	}
+	return &EntryDisplay{ID: id, Id: id, ShortTitle: id, PreferredTitle: id, Title: id, TitleStmt: id}
 }
 
 func fallbackPlaceDisplay(id string) *PlaceDisplay {
-	return &PlaceDisplay{
-		ID:   id,
-		Id:   id,
-		Name: id,
-	}
+	return &PlaceDisplay{ID: id, Id: id, Name: id}
 }
 
 func fallbackContentDisplay(id string) *ContentDisplay {
-	return &ContentDisplay{
-		ID:    id,
-		Id:    id,
-		Title: id,
-	}
+	return &ContentDisplay{ID: id, Id: id, Title: id}
 }

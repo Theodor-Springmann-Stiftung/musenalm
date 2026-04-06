@@ -91,15 +91,46 @@ func TestFallbackDisplaysAreSafe(t *testing.T) {
 	}
 }
 
-func TestShouldResetDisplayCache(t *testing.T) {
-	if shouldResetDisplayCache(canonical.MutationEffects{}) {
-		t.Fatal("expected empty effects not to reset display cache")
+func TestDisplayRefreshPlanFromEffects(t *testing.T) {
+	empty := displayRefreshPlanFromEffects(canonical.MutationEffects{})
+	if empty.hasWork() {
+		t.Fatal("expected empty effects not to schedule display refresh work")
 	}
 
 	effects := canonical.MutationEffects{
+		UpdateAgents:   map[string]bool{"agent-1": false},
+		DeleteEntries:  map[string]struct{}{"entry-1": {}},
 		UpdateContents: map[string]string{"content-1": "entry-1"},
 	}
-	if !shouldResetDisplayCache(effects) {
-		t.Fatal("expected content updates to reset display cache")
+
+	plan := displayRefreshPlanFromEffects(effects)
+	if !plan.hasWork() {
+		t.Fatal("expected targeted display refresh work")
+	}
+	if _, ok := plan.updateAgents["agent-1"]; !ok {
+		t.Fatal("expected agent update to be tracked")
+	}
+	if _, ok := plan.deleteEntries["entry-1"]; !ok {
+		t.Fatal("expected entry delete to be tracked")
+	}
+	if _, ok := plan.updateContents["content-1"]; !ok {
+		t.Fatal("expected content update to be tracked")
+	}
+}
+
+func TestDisplayRefreshPlanMergePrefersDelete(t *testing.T) {
+	first := newDisplayRefreshPlan()
+	first.updateEntries["entry-1"] = struct{}{}
+
+	second := newDisplayRefreshPlan()
+	second.deleteEntries["entry-1"] = struct{}{}
+
+	first.merge(second)
+
+	if _, ok := first.updateEntries["entry-1"]; ok {
+		t.Fatal("expected delete to remove pending entry update")
+	}
+	if _, ok := first.deleteEntries["entry-1"]; !ok {
+		t.Fatal("expected entry delete to remain queued")
 	}
 }

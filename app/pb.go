@@ -52,13 +52,12 @@ type App struct {
 	baendeCacheRefreshMutex   sync.Mutex
 	baendeCacheRefreshRun     bool
 	baendeCacheRefreshQueued  bool
-	displayCache              atomic.Pointer[DisplayCache]
-	displayCacheBuildMutex    sync.Mutex
+	displayCache              *DisplayCache
 	displayCacheRefreshMutex  sync.Mutex
 	displayCacheRefreshRun    bool
 	displayCacheRefreshQueued bool
+	displayCacheRefreshPlan   displayRefreshPlan
 	baendeCacheBuildFunc      func() (*BaendeCache, error)
-	displayCacheBuildFunc     func() (*DisplayCache, error)
 	canonicalStore            *canonical.Store
 }
 
@@ -150,7 +149,9 @@ func init() {
 
 func New(config Config) *App {
 	app := App{
-		MAConfig: config,
+		MAConfig:                config,
+		displayCache:            NewDisplayCache(),
+		displayCacheRefreshPlan: newDisplayRefreshPlan(),
 	}
 	app.canonicalStore = canonical.NewStore()
 
