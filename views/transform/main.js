@@ -35,6 +35,7 @@ import { ExportManager } from "./export-manager.js";
 import { ContentTypeSelect } from "./content-type-select.js";
 import { ContentPersonRelations } from "./content-person-relations.js";
 import { ContentSeriesRelations } from "./content-series-relations.js";
+import { initStatusTooltips } from "./status-tooltips.js";
 
 const FILTER_LIST_ELEMENT = "filter-list";
 const SCROLL_BUTTON_ELEMENT = "scroll-button";
@@ -415,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	pruneAdminSidebarDetails();
 	setupCancelLinks(document);
 	initAdminStatusPickers(document);
+	initStatusTooltips(document);
 });
 
 document.addEventListener("htmx:afterSwap", (event) => {
@@ -422,12 +424,14 @@ document.addEventListener("htmx:afterSwap", (event) => {
 	pruneAdminSidebarDetails();
 	setupCancelLinks(root);
 	initAdminStatusPickers(root);
+	initStatusTooltips(root);
 });
 
 document.addEventListener("htmx:load", (event) => {
 	const root = event.detail?.elt || document;
 	setupCancelLinks(root);
 	initAdminStatusPickers(root);
+	initStatusTooltips(root);
 });
 
 document.addEventListener("click", (event) => {

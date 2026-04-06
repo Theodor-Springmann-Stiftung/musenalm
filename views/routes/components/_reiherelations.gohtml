@@ -23,21 +23,22 @@
 							{{- if $request.user -}}
 								<span
 									class="inline-flex items-center align-middle"
-									title="{{- if eq $bd.EditState "Unknown" -}}Gesucht{{- else if eq $bd.EditState "ToDo" -}}Zu erledigen{{- else if eq $bd.EditState "Review" -}}Überprüfen{{- else if eq $bd.EditState "Seen" -}}Autopsiert{{- else if eq $bd.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $bd.EditState }}{{- end -}}"
+									data-tippy-content="{{- if eq $bd.EditState "Unknown" -}}Gesucht{{- else if eq $bd.EditState "ToDo" -}}Zu erledigen{{- else if eq $bd.EditState "Review" -}}Überprüfen{{- else if eq $bd.EditState "Seen" -}}Autopsiert{{- else if eq $bd.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $bd.EditState }}{{- end -}}"
+									data-tippy-placement="right"
 									aria-label="{{- if eq $bd.EditState "Unknown" -}}Gesucht{{- else if eq $bd.EditState "ToDo" -}}Zu erledigen{{- else if eq $bd.EditState "Review" -}}Überprüfen{{- else if eq $bd.EditState "Seen" -}}Autopsiert{{- else if eq $bd.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $bd.EditState }}{{- end -}}">
 									<i class="status-icon relative -top-px ml-1 align-middle {{- if eq $bd.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $bd.EditState "Seen" }} ri-information-line{{- else if eq $bd.EditState "Review" }} ri-search-line{{- else if eq $bd.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $bd.EditState }}"></i>
 								</span>
 							{{- else -}}
 								{{- if not $bd.TitleStmt -}}
-									<span class="inline-flex items-center align-middle" title="Keine nähere Erfassung" aria-label="Keine nähere Erfassung">
+									<span class="inline-flex items-center align-middle" data-tippy-content="Keine nähere Erfassung" data-tippy-placement="right" aria-label="Keine nähere Erfassung">
 										<i class="ri-forbid-2-line relative -top-px ml-1 align-middle"></i>
 									</span>
 								{{- else if eq $bd.EditState "Edited" -}}
-									<span class="inline-flex items-center align-middle" title="Mit erfassten Beiträgen" aria-label="Mit erfassten Beiträgen">
+									<span class="inline-flex items-center align-middle" data-tippy-content="Mit erfassten Beiträgen" data-tippy-placement="right" aria-label="Mit erfassten Beiträgen">
 										<i class="ri-checkbox-circle-line relative -top-px ml-1 align-middle"></i>
 									</span>
 								{{- else -}}
-									<span class="inline-flex items-center align-middle" title="Mit genaueren Titelangaben" aria-label="Mit genaueren Titelangaben">
+									<span class="inline-flex items-center align-middle" data-tippy-content="Mit genaueren Titelangaben" data-tippy-placement="right" aria-label="Mit genaueren Titelangaben">
 										<i class="ri-information-line relative -top-px ml-1 align-middle"></i>
 									</span>
 								{{- end -}}

@@ -18,24 +18,10 @@
 									{{- else -}}
 										[o.J.]
 									{{- end -}}
-									<tool-tip position="right" class="inline">
-										<i class="status-icon ml-1 align-middle {{- if eq $link.Entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $link.Entry.EditState "Seen" }} ri-information-line{{- else if eq $link.Entry.EditState "Review" }} ri-search-line{{- else if eq $link.Entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-status="{{ $link.Entry.EditState }}"></i>
-										<div class="data-tip">
-											{{- if eq $link.Entry.EditState "Unknown" -}}
-												Gesucht
-											{{- else if eq $link.Entry.EditState "ToDo" -}}
-												Zu erledigen
-											{{- else if eq $link.Entry.EditState "Review" -}}
-												Überprüfen
-											{{- else if eq $link.Entry.EditState "Seen" -}}
-												Autopsiert
-											{{- else if eq $link.Entry.EditState "Edited" -}}
-												Vollständig Erfasst
-											{{- else -}}
-												{{ $link.Entry.EditState }}
-											{{- end -}}
-										</div>
-									</tool-tip>
+									<i class="status-icon ml-1 align-middle {{- if eq $link.Entry.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $link.Entry.EditState "Seen" }} ri-information-line{{- else if eq $link.Entry.EditState "Review" }} ri-search-line{{- else if eq $link.Entry.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"
+									   data-status="{{ $link.Entry.EditState }}"
+									   data-tippy-content="{{- if eq $link.Entry.EditState "Unknown" -}}Gesucht{{- else if eq $link.Entry.EditState "ToDo" -}}Zu erledigen{{- else if eq $link.Entry.EditState "Review" -}}Überprüfen{{- else if eq $link.Entry.EditState "Seen" -}}Autopsiert{{- else if eq $link.Entry.EditState "Edited" -}}Vollständig Erfasst{{- else -}}{{ $link.Entry.EditState }}{{- end -}}"
+									   data-tippy-placement="right"></i>
 								</div>
 							</a>
 							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
@@ -48,7 +34,7 @@
 										{{- if Contains $link.Entry.Language "ger" -}}
 											In deutscher Sprache
 										{{- else -}}
-											In französischer Sprache
+											In französischer Sprache
 										{{- end -}}
 									{{- else -}}
 										{{ $link.Relation.Type }}
@@ -58,19 +44,13 @@
 						</div>
 						<div class="admin-list-detail-meta">
 							<span class="admin-list-inline-stat bg-transparent px-0 text-black">Alm {{ $link.Entry.MusenalmID }}</span>
-							<tool-tip position="top" class="inline">
-								<a href="/almanach/{{ $link.Entry.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="admin-list-chip no-underline">
-									<i class="ri-external-link-line"></i>
-								</a>
-								<div class="data-tip">In neuem Tab öffnen</div>
-							</tool-tip>
+							<a href="/almanach/{{ $link.Entry.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="admin-list-chip no-underline" data-tippy-content="In neuem Tab öffnen" data-tippy-placement="top">
+								<i class="ri-external-link-line"></i>
+							</a>
 							{{- if $canEdit -}}
-								<tool-tip position="top" class="inline">
-									<a href="/admin/almanach/{{ $link.Entry.MusenalmID }}/edit/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip no-underline">
-										<i class="ri-edit-line"></i>
-									</a>
-									<div class="data-tip">Bearbeiten</div>
-								</tool-tip>
+								<a href="/admin/almanach/{{ $link.Entry.MusenalmID }}/edit/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip no-underline" data-tippy-content="Bearbeiten" data-tippy-placement="top">
+									<i class="ri-edit-line"></i>
+								</a>
 							{{- end -}}
 						</div>
 					</div>

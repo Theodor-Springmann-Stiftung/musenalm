@@ -4,6 +4,9 @@ import tailwindcss from "tailwindcss";
 
 export default defineConfig({
 	mode: "development",
+	define: {
+		"process.env.NODE_ENV": '"development"',
+	},
 	css: {
 		postcss: {
 			plugins: [tailwindcss],
