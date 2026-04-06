@@ -8,8 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 	"unicode/utf8"
 
 	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -27,12 +25,6 @@ const (
 )
 
 var adminBeitraegeAnnotationTags = regexp.MustCompile(`<[^>]+>`)
-
-var beitraegeRequestCache struct {
-	mu       sync.RWMutex
-	cachedAt time.Time
-	filters  *beitraegeFilterData
-}
 
 type BeitraegeAdminPage struct {
 	pagemodels.StaticPage
@@ -54,9 +46,9 @@ type BeitraegeAdminRow struct {
 }
 
 type beitraegeFilterData struct {
-	Entries      []*dbmodels.Entry
+	Entries      []beitraegeLazyFilterOption
 	EntryLabels  map[string]string
-	Agents       []*dbmodels.Agent
+	Agents       []beitraegeLazyFilterOption
 	AgentLabels  map[string]string
 	Years        []int
 	YearLabels   map[string]string
@@ -246,10 +238,6 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	if !ok {
 		return data, fmt.Errorf("failed to get entries from cache")
 	}
-	contentsCountMap, ok := cacheInterface.GetContentsCount().(map[string]int)
-	if !ok {
-		return data, fmt.Errorf("failed to get contents count from cache")
-	}
 	sortedEntriesMap, ok := cacheInterface.GetSortedEntries().(map[string][]*dbmodels.Entry)
 	if !ok {
 		return data, fmt.Errorf("failed to get sorted entries from cache")
@@ -287,8 +275,13 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	pageEntryIDs := []string{}
 	contentGroups := make(map[string][]*dbmodels.Content)
 	useCachedCountPath := contentIDs == nil && scans == ""
+	contentsCountMap := map[string]int{}
 
 	if useCachedCountPath {
+		contentsCountMap, err = dbmodels.CountContentsEntries(app, dbmodels.Ids(orderedEntries))
+		if err != nil {
+			return data, err
+		}
 		orderedEntryIDs, totalCount = adminBeitraegeOrderedEntryIDsFromCounts(orderedEntries, contentsCountMap, yearInt, hasYearFilter)
 		timer.Mark("contents")
 		timer.Mark("grouping")
@@ -585,14 +578,15 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	if err != nil {
 		return nil, err
 	}
-	cachedAt := cacheInterface.GetCachedAt()
 
-	beitraegeRequestCache.mu.RLock()
-	if beitraegeRequestCache.filters != nil && beitraegeRequestCache.cachedAt.Equal(cachedAt) {
-		defer beitraegeRequestCache.mu.RUnlock()
-		return beitraegeRequestCache.filters, nil
+	displayApp, ok := ia.(*musapp.App)
+	if !ok {
+		return nil, fmt.Errorf("unexpected app type %T", ia)
 	}
-	beitraegeRequestCache.mu.RUnlock()
+	agentCache, err := displayApp.EnsureContentAgentOrderCache()
+	if err != nil {
+		return nil, err
+	}
 
 	allEntries, ok := cacheInterface.GetEntries().([]*dbmodels.Entry)
 	if !ok {
@@ -602,12 +596,10 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	if !ok {
 		return nil, fmt.Errorf("failed to get sorted entries from cache")
 	}
-
-	agents := []*dbmodels.Agent{}
-	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&agents); err != nil {
+	agentOptions, agentLabels, err := buildBaendeAgentOptions(app, displayApp, agentCache.IDs)
+	if err != nil {
 		return nil, err
 	}
-	dbmodels.Sort_Agents_Name(agents)
 
 	contents := []*dbmodels.Content{}
 	if err := app.RecordQuery(dbmodels.CONTENTS_TABLE).All(&contents); err != nil {
@@ -639,10 +631,10 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 	}
 
 	data := &beitraegeFilterData{
-		Entries:     selectBaendeSortedEntries(sortedEntriesMap, "title"),
+		Entries:     buildBeitraegeEntryOptions(selectBaendeSortedEntries(sortedEntriesMap, "title")),
 		EntryLabels: buildBeitraegeEntryLabelMap(allEntries),
-		Agents:      agents,
-		AgentLabels: buildAgentLabelMap(mapByAgentID(agents)),
+		Agents:      toBeitraegeFilterOptions(agentOptions),
+		AgentLabels: agentLabels,
 		Years:       buildYearFilters(allEntries),
 		YearLabels:  buildYearLabelMap(allEntries),
 		Types:       types,
@@ -657,11 +649,6 @@ func loadBeitraegeFilterData(app core.App, ia pagemodels.IApp) (*beitraegeFilter
 		ScansLabels: map[string]string{"with": "Mit Scans", "without": "Ohne Scans"},
 	}
 
-	beitraegeRequestCache.mu.Lock()
-	beitraegeRequestCache.cachedAt = cachedAt
-	beitraegeRequestCache.filters = data
-	beitraegeRequestCache.mu.Unlock()
-
 	return data, nil
 }
 
@@ -674,20 +661,7 @@ func buildBeitraegeLazyFilterData(app core.App, ia pagemodels.IApp, kind string)
 	switch kind {
 	case "entry":
 		options := make([]beitraegeLazyFilterOption, 0, len(filterData.Entries))
-		for _, entry := range filterData.Entries {
-			if entry == nil {
-				continue
-			}
-			label := strings.TrimSpace(entry.PreferredTitle())
-			if label == "" {
-				label = fmt.Sprintf("Band %d", entry.MusenalmID())
-			}
-			options = append(options, beitraegeLazyFilterOption{
-				Value: entry.Id,
-				Label: label,
-				Meta:  fmt.Sprintf("Alm %d", entry.MusenalmID()),
-			})
-		}
+		options = append(options, filterData.Entries...)
 		return &beitraegeLazyFilterData{
 			Kind:        kind,
 			Title:       "Almanach",
@@ -696,29 +670,12 @@ func buildBeitraegeLazyFilterData(app core.App, ia pagemodels.IApp, kind string)
 			Options:     options,
 		}, nil
 	case "person":
-		options := make([]beitraegeLazyFilterOption, 0, len(filterData.Agents))
-		for _, agent := range filterData.Agents {
-			if agent == nil {
-				continue
-			}
-			option := beitraegeLazyFilterOption{
-				Value: agent.Id,
-				Label: agent.Name(),
-			}
-			if agent.CorporateBody() {
-				option.Meta = "ORG"
-				option.MetaIsBadge = true
-			} else if agent.BiographicalData() != "" {
-				option.Meta = agent.BiographicalData()
-			}
-			options = append(options, option)
-		}
 		return &beitraegeLazyFilterData{
 			Kind:        kind,
 			Title:       "Person",
 			Placeholder: "Personen filtern...",
 			SpinnerID:   "beitraege-person-spinner",
-			Options:     options,
+			Options:     filterData.Agents,
 		}, nil
 	case "year":
 		options := make([]beitraegeLazyFilterOption, 0, len(filterData.Years))
@@ -782,6 +739,38 @@ func mapByAgentID(agents []*dbmodels.Agent) map[string]*dbmodels.Agent {
 		}
 	}
 	return result
+}
+
+func buildBeitraegeEntryOptions(entries []*dbmodels.Entry) []beitraegeLazyFilterOption {
+	options := make([]beitraegeLazyFilterOption, 0, len(entries))
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		label := strings.TrimSpace(entry.PreferredTitle())
+		if label == "" {
+			label = fmt.Sprintf("Band %d", entry.MusenalmID())
+		}
+		options = append(options, beitraegeLazyFilterOption{
+			Value: entry.Id,
+			Label: label,
+			Meta:  fmt.Sprintf("Alm %d", entry.MusenalmID()),
+		})
+	}
+	return options
+}
+
+func toBeitraegeFilterOptions(options []baendeLazyFilterOption) []beitraegeLazyFilterOption {
+	converted := make([]beitraegeLazyFilterOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, beitraegeLazyFilterOption{
+			Value:       option.Value,
+			Label:       option.Label,
+			Meta:        option.Meta,
+			MetaIsBadge: option.MetaIsBadge,
+		})
+	}
+	return converted
 }
 
 func buildBeitraegeEntryLabelMap(entries []*dbmodels.Entry) map[string]string {

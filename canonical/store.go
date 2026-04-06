@@ -193,6 +193,18 @@ func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput
 		return err
 	}
 	if effects != nil {
+		if nameChanged {
+			hasEntryRelations, err := agentHasEntryRelations(tx, agent.Id)
+			if err != nil {
+				return err
+			}
+			hasContentRelations, err := agentHasContentRelations(tx, agent.Id)
+			if err != nil {
+				return err
+			}
+			effects.ResetEntryAgentOrder = effects.ResetEntryAgentOrder || hasEntryRelations
+			effects.ResetContentAgentOrder = effects.ResetContentAgentOrder || hasContentRelations
+		}
 		effects.MarkAgentUpdated(agent.Id, nameChanged)
 	}
 	return nil
@@ -222,6 +234,14 @@ func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptio
 	if err := checkExpectedUpdatedAt(agent.Updated().Time(), opts.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
+	hasEntryRelations, err := agentHasEntryRelations(tx, agent.Id)
+	if err != nil {
+		return err
+	}
+	hasContentRelations, err := agentHasContentRelations(tx, agent.Id)
+	if err != nil {
+		return err
+	}
 	if err := s.deleteAgentRelations(tx, agent.Id); err != nil {
 		return err
 	}
@@ -234,6 +254,8 @@ func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptio
 		return err
 	}
 	if effects != nil {
+		effects.ResetEntryAgentOrder = effects.ResetEntryAgentOrder || hasEntryRelations
+		effects.ResetContentAgentOrder = effects.ResetContentAgentOrder || hasContentRelations
 		effects.MarkAgentDeleted(agent.Id)
 	}
 	return nil
@@ -260,6 +282,7 @@ func (s *Store) CreatePlace(tx core.App, input PlaceInput, effects *MutationEffe
 		return nil, err
 	}
 	if effects != nil {
+		effects.ResetPlaceOrder = true
 		effects.MarkPlaceUpdated(place.Id, false)
 	}
 
@@ -279,6 +302,7 @@ func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput
 		return err
 	}
 	if effects != nil {
+		effects.ResetPlaceOrder = effects.ResetPlaceOrder || nameChanged
 		effects.MarkPlaceUpdated(place.Id, nameChanged)
 	}
 	return nil
@@ -334,6 +358,7 @@ func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptio
 		return err
 	}
 	if effects != nil {
+		effects.ResetPlaceOrder = true
 		effects.MarkPlaceDeleted(place.Id)
 		for _, entry := range entries {
 			effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
@@ -363,6 +388,7 @@ func (s *Store) CreateSeries(tx core.App, input SeriesInput, effects *MutationEf
 		return nil, err
 	}
 	if effects != nil {
+		effects.ResetSeriesOrder = true
 		effects.MarkSeriesUpdated(series.Id, false)
 	}
 
@@ -382,6 +408,7 @@ func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesI
 		return err
 	}
 	if effects != nil {
+		effects.ResetSeriesOrder = effects.ResetSeriesOrder || titleChanged
 		effects.MarkSeriesUpdated(series.Id, titleChanged)
 	}
 	return nil
@@ -446,6 +473,7 @@ func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRela
 		return err
 	}
 	if effects != nil {
+		effects.ResetSeriesOrder = true
 		effects.MarkSeriesDeleted(series.Id)
 	}
 	return nil
@@ -752,6 +780,7 @@ func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, rela
 	}
 
 	if effects != nil && (len(newRelations) > 0 || len(deletedIDs) > 0) {
+		effects.ResetEntryAgentOrder = true
 		effects.MarkEntryUpdated(entry.Id, EntryFTSEntryAndContents)
 	}
 
@@ -987,6 +1016,10 @@ func (s *Store) SaveContentAgentRelations(tx core.App, content *dbmodels.Content
 		if err := tx.Save(proxy); err != nil {
 			return err
 		}
+	}
+
+	if effects != nil && (len(newRelations) > 0 || len(deletedIDs) > 0) {
+		effects.ResetContentAgentOrder = true
 	}
 
 	return nil
@@ -1530,6 +1563,22 @@ func contentLabel(content *dbmodels.Content) string {
 		return content.Id
 	}
 	return "neu"
+}
+
+func agentHasEntryRelations(tx core.App, agentID string) (bool, error) {
+	rels, err := dbmodels.REntriesAgents_Agent(tx, agentID)
+	if err != nil {
+		return false, err
+	}
+	return len(rels) > 0, nil
+}
+
+func agentHasContentRelations(tx core.App, agentID string) (bool, error) {
+	rels, err := dbmodels.RContentsAgents_Agent(tx, agentID)
+	if err != nil {
+		return false, err
+	}
+	return len(rels) > 0, nil
 }
 
 func (s *Store) deleteAgentRelations(tx core.App, agentID string) error {

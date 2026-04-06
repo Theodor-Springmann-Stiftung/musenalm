@@ -6,10 +6,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
@@ -22,15 +20,8 @@ import (
 )
 
 const (
-	REIHEN_ADMIN_PAGE_SIZE    = 80
-	adminReihenFilterCacheTTL = 30 * time.Second
+	REIHEN_ADMIN_PAGE_SIZE = 80
 )
-
-var adminReihenFilterCache struct {
-	mu       sync.RWMutex
-	data     *adminReihenFilterData
-	cachedAt time.Time
-}
 
 var adminAlphabet = []string{
 	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
@@ -46,7 +37,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(rp)
+	musapp.Register(rp)
 }
 
 type ReihenAdminPage struct {
@@ -81,19 +72,23 @@ type adminReihenLazyFilterData struct {
 
 func (p *ReihenAdminPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
+	musenalmApp, ok := ia.(*musapp.App)
+	if !ok {
+		return fmt.Errorf("unexpected app type %T", ia)
+	}
 	rg := router.Group(URL_REIHEN_ADMIN)
 	rg.BindFunc(middleware.Authenticated(app))
-	rg.GET("", p.handlePage(engine, app))
-	rg.GET("results/", p.handleResults(engine, app))
-	rg.GET("more/", p.handleMore(engine, app))
-	rg.GET("filters/{kind}/", p.handleFilterOptions(engine, app))
+	rg.GET("", p.handlePage(engine, app, musenalmApp))
+	rg.GET("results/", p.handleResults(engine, app, musenalmApp))
+	rg.GET("more/", p.handleMore(engine, app, musenalmApp))
+	rg.GET("filters/{kind}/", p.handleFilterOptions(engine, app, musenalmApp))
 	rg.GET("row/{id}", p.handleRow(engine, app))
 	rg.GET("details/{id}", p.handleDetails(engine, app))
 	rg.GET("delete-info/{id}", p.handleDeleteInfo(engine, app))
 	return nil
 }
 
-func (p *ReihenAdminPage) handlePage(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenAdminPage) handlePage(engine *templating.Engine, app core.App, musenalmApp *musapp.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
@@ -101,7 +96,7 @@ func (p *ReihenAdminPage) handlePage(engine *templating.Engine, app core.App) Ha
 			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
 		}
 
-		data, err := p.buildResultData(app, e, req, true)
+		data, err := p.buildResultData(app, musenalmApp, e, req, true)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -109,7 +104,7 @@ func (p *ReihenAdminPage) handlePage(engine *templating.Engine, app core.App) Ha
 	}
 }
 
-func (p *ReihenAdminPage) handleResults(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenAdminPage) handleResults(engine *templating.Engine, app core.App, musenalmApp *musapp.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
@@ -117,7 +112,7 @@ func (p *ReihenAdminPage) handleResults(engine *templating.Engine, app core.App)
 			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
 		}
 
-		data, err := p.buildResultData(app, e, req, true)
+		data, err := p.buildResultData(app, musenalmApp, e, req, true)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -125,7 +120,7 @@ func (p *ReihenAdminPage) handleResults(engine *templating.Engine, app core.App)
 	}
 }
 
-func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App, musenalmApp *musapp.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
@@ -133,7 +128,7 @@ func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App) Ha
 			return e.Redirect(303, URL_LOGIN+"?redirectTo="+redirectTo)
 		}
 
-		data, err := p.buildResultData(app, e, req, false)
+		data, err := p.buildResultData(app, musenalmApp, e, req, false)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
@@ -163,14 +158,14 @@ func (p *ReihenAdminPage) handleMore(engine *templating.Engine, app core.App) Ha
 	}
 }
 
-func (p *ReihenAdminPage) handleFilterOptions(engine *templating.Engine, app core.App) HandleFunc {
+func (p *ReihenAdminPage) handleFilterOptions(engine *templating.Engine, app core.App, musenalmApp *musapp.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		req := templating.NewRequest(e)
 		if req.User() == nil {
 			return e.Redirect(303, URL_LOGIN)
 		}
 
-		data, err := buildAdminReihenLazyFilterData(app, e.Request.PathValue("kind"))
+		data, err := buildAdminReihenLazyFilterData(app, musenalmApp, e.Request.PathValue("kind"))
 		if err != nil {
 			return engine.Response404(e, err, nil)
 		}
@@ -250,7 +245,7 @@ func (p *ReihenAdminPage) handleDetails(engine *templating.Engine, app core.App)
 	}
 }
 
-func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, req *templating.Request, showAggregated bool) (data map[string]any, err error) {
+func (p *ReihenAdminPage) buildResultData(app core.App, musenalmApp *musapp.App, e *core.RequestEvent, req *templating.Request, showAggregated bool) (data map[string]any, err error) {
 	data = map[string]any{}
 	timer := newAdminRequestTimer(app, e, "reihen", showAggregated)
 	defer func() {
@@ -344,7 +339,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 
 	filteredIDs := applyAllowedIDs(allowedIDs...)
 	if filteredIDs != nil && len(filteredIDs) == 0 {
-		filterData, err := buildAdminReihenFilterData(app)
+		filterData, err := buildAdminReihenFilterData(app, musenalmApp)
 		if err != nil {
 			return data, err
 		}
@@ -411,7 +406,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 		return data, err
 	}
 	timer.Mark("page_result")
-	filterData, err := buildAdminReihenFilterData(app)
+	filterData, err := buildAdminReihenFilterData(app, musenalmApp)
 	if err != nil {
 		return data, err
 	}
@@ -451,7 +446,7 @@ func (p *ReihenAdminPage) buildResultData(app core.App, e *core.RequestEvent, re
 type adminReihenFilterData struct {
 	Statuses     []map[string]string
 	StatusLabels map[string]string
-	Agents       []*dbmodels.Agent
+	Agents       []adminReihenLazyFilterOption
 	AgentLabels  map[string]string
 	Places       []*dbmodels.Place
 	PlaceLabels  map[string]string
@@ -502,23 +497,14 @@ func buildAdminReihenSelectedFilterLabels(filterData *adminReihenFilterData, sta
 	return labels
 }
 
-func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
-	adminReihenFilterCache.mu.RLock()
-	if adminReihenFilterCache.data != nil && time.Since(adminReihenFilterCache.cachedAt) < adminReihenFilterCacheTTL {
-		defer adminReihenFilterCache.mu.RUnlock()
-		return adminReihenFilterCache.data, nil
-	}
-	adminReihenFilterCache.mu.RUnlock()
-
-	agents := []*dbmodels.Agent{}
-	if err := app.RecordQuery(dbmodels.AGENTS_TABLE).All(&agents); err != nil {
+func buildAdminReihenFilterData(app core.App, musenalmApp *musapp.App) (*adminReihenFilterData, error) {
+	entryAgentIDs, err := musenalmApp.GetEntryAgentOrderIDs()
+	if err != nil {
 		return nil, err
 	}
-	agentMap := make(map[string]*dbmodels.Agent, len(agents))
-	for _, agent := range agents {
-		if agent != nil {
-			agentMap[agent.Id] = agent
-		}
+	agentOptions, agentLabels, err := buildBaendeAgentOptions(app, musenalmApp, entryAgentIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	places := []*dbmodels.Place{}
@@ -545,49 +531,32 @@ func buildAdminReihenFilterData(app core.App) (*adminReihenFilterData, error) {
 		years[row.Year] = struct{}{}
 	}
 
-	data := &adminReihenFilterData{
+	return &adminReihenFilterData{
 		Statuses:     buildStatusFilters(),
 		StatusLabels: buildStatusLabelMap(),
-		Agents:       buildAdminReihenAgentFilters(agentMap),
-		AgentLabels:  buildAdminReihenAgentLabelMap(agentMap),
+		Agents:       toAdminReihenFilterOptions(agentOptions),
+		AgentLabels:  agentLabels,
 		Places:       buildAdminReihenPlaceFilters(placeMap),
 		PlaceLabels:  buildAdminReihenPlaceLabelMap(placeMap),
 		Years:        buildAdminReihenYearFilters(years),
 		YearLabels:   buildAdminReihenYearLabelMap(years),
-	}
-
-	adminReihenFilterCache.mu.Lock()
-	adminReihenFilterCache.data = data
-	adminReihenFilterCache.cachedAt = time.Now()
-	adminReihenFilterCache.mu.Unlock()
-
-	return data, nil
+	}, nil
 }
 
-func buildAdminReihenLazyFilterData(app core.App, kind string) (*adminReihenLazyFilterData, error) {
-	filterData, err := buildAdminReihenFilterData(app)
+func buildAdminReihenLazyFilterData(app core.App, musenalmApp *musapp.App, kind string) (*adminReihenLazyFilterData, error) {
+	filterData, err := buildAdminReihenFilterData(app, musenalmApp)
 	if err != nil {
 		return nil, err
 	}
 
 	switch kind {
 	case "person":
-		options := make([]adminReihenLazyFilterOption, 0, len(filterData.Agents))
-		for _, agent := range filterData.Agents {
-			if agent == nil {
-				continue
-			}
-			options = append(options, adminReihenLazyFilterOption{
-				Value: agent.Id,
-				Label: agent.Name(),
-			})
-		}
 		return &adminReihenLazyFilterData{
 			Kind:        kind,
 			Title:       "Person",
 			Placeholder: "Personen filtern...",
 			SpinnerID:   "reihen-person-spinner",
-			Options:     options,
+			Options:     filterData.Agents,
 		}, nil
 	case "place":
 		options := make([]adminReihenLazyFilterOption, 0, len(filterData.Places))
@@ -895,23 +864,15 @@ func normalizedAdminInitial(value string) string {
 	return normalizeAdminLetter(firstTitleLetter(value))
 }
 
-func buildAdminReihenAgentFilters(agentMap map[string]*dbmodels.Agent) []*dbmodels.Agent {
-	agents := make([]*dbmodels.Agent, 0, len(agentMap))
-	for _, agent := range agentMap {
-		agents = append(agents, agent)
+func toAdminReihenFilterOptions(options []baendeLazyFilterOption) []adminReihenLazyFilterOption {
+	converted := make([]adminReihenLazyFilterOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, adminReihenLazyFilterOption{
+			Value: option.Value,
+			Label: option.Label,
+		})
 	}
-	dbmodels.Sort_Agents_Name(agents)
-	return agents
-}
-
-func buildAdminReihenAgentLabelMap(agentMap map[string]*dbmodels.Agent) map[string]string {
-	labels := map[string]string{}
-	for id, agent := range agentMap {
-		if agent != nil {
-			labels[id] = agent.Name()
-		}
-	}
-	return labels
+	return converted
 }
 
 func buildAdminReihenPlaceFilters(placeMap map[string]*dbmodels.Place) []*dbmodels.Place {

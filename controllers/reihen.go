@@ -59,7 +59,7 @@ func (p *ReihenPage) handlePage(engine *templating.Engine, musenalmApp *app.App)
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		data["common"] = NewCommonReihenData(musenalmApp.Core())
+		data["common"] = NewCommonReihenData(musenalmApp)
 		return engine.Response200(e, URL_REIHEN, data)
 	}
 }
@@ -154,64 +154,42 @@ func (p *ReihenPage) buildResultData(musenalmApp *app.App, e *core.RequestEvent)
 
 type CommonReihenData struct {
 	Years   []int
-	Places  []*dbmodels.Place
+	Places  []map[string]any
 	Letters []string
-	Agents  []*dbmodels.Agent
+	Agents  []map[string]any
 }
 
-func NewCommonReihenData(app core.App) CommonReihenData {
-	arels := []*core.Record{}
-	err := app.RecordQuery(
-		dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)).
-		GroupBy(dbmodels.AGENTS_TABLE).
-		All(&arels)
+func NewCommonReihenData(musenalmApp *app.App) CommonReihenData {
+	pbApp := musenalmApp.Core()
+	agentOptions, placeOptions, err := loadCommonReihenFilterOptions(musenalmApp)
 	if err != nil {
-		app.Logger().Error("Failed to fetch agents", "error", err)
-	}
-
-	ids := []any{}
-	for _, a := range arels {
-		ids = append(ids, a.GetString(dbmodels.AGENTS_TABLE))
-	}
-
-	agents, err := dbmodels.Agents_IDs(app, ids)
-	if err != nil {
-		app.Logger().Error("Failed to fetch agents", "error", err)
+		pbApp.Logger().Error("Failed to build reihen filter options", "error", err)
 	}
 
 	letterrecs := []core.Record{}
 	letters := []string{}
 
-	err = app.RecordQuery(dbmodels.SERIES_TABLE).
+	err = pbApp.RecordQuery(dbmodels.SERIES_TABLE).
 		Select("upper(substr(" + dbmodels.SERIES_TITLE_FIELD + ", 1, 1)) AS id").
 		Distinct(true).
 		OrderBy("id").
 		All(&letterrecs)
 	if err != nil {
-		app.Logger().Error("Failed to fetch letters", "error", err)
+		pbApp.Logger().Error("Failed to fetch letters", "error", err)
 	}
 
 	for _, l := range letterrecs {
 		letters = append(letters, l.GetString("id"))
 	}
 
-	places := []*dbmodels.Place{}
-	err = app.RecordQuery(dbmodels.PLACES_TABLE).
-		OrderBy(dbmodels.PLACES_NAME_FIELD).
-		All(&places)
-	if err != nil {
-		app.Logger().Error("Failed to fetch places", "error", err)
-	}
-	dbmodels.Sort_Places_Name(places)
-
 	rec := []core.Record{}
-	err = app.RecordQuery(dbmodels.ENTRIES_TABLE).
+	err = pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
 		Select(dbmodels.YEAR_FIELD + " AS id").
 		Distinct(true).
 		OrderBy("id").
 		All(&rec)
 	if err != nil {
-		app.Logger().Error("Failed to fetch years", "error", err)
+		pbApp.Logger().Error("Failed to fetch years", "error", err)
 	}
 
 	years := []int{}
@@ -221,9 +199,9 @@ func NewCommonReihenData(app core.App) CommonReihenData {
 
 	return CommonReihenData{
 		Years:   years,
-		Places:  places,
+		Places:  placeOptions,
 		Letters: letters,
-		Agents:  agents,
+		Agents:  agentOptions,
 	}
 }
 
@@ -253,7 +231,7 @@ func NewSeriesListResult_Letter(musenalmApp *app.App, letter string) (*SeriesLis
 	if err != nil {
 		return nil, err
 	}
-	dbmodels.Sort_Series_Title(series)
+	sortSeriesByCachedOrder(musenalmApp, series)
 
 	relations, err := dbmodels.REntriesSeries_Seriess(pbApp, dbmodels.Ids(series))
 	if err != nil {
@@ -311,7 +289,7 @@ func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResu
 		return nil, err
 	}
 
-	dbmodels.Sort_Series_Title(series)
+	sortSeriesByCachedOrder(musenalmApp, series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -357,7 +335,7 @@ func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, er
 		return nil, err
 	}
 
-	dbmodels.Sort_Series_Title(series)
+	sortSeriesByCachedOrder(musenalmApp, series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -406,7 +384,7 @@ func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResul
 		return nil, err
 	}
 
-	dbmodels.Sort_Series_Title(series)
+	sortSeriesByCachedOrder(musenalmApp, series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -425,8 +403,8 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 		return nil, err
 	}
 
-	dbmodels.Sort_Series_Title(series)
-	dbmodels.Sort_Series_Title(altseries)
+	sortSeriesByCachedOrder(musenalmApp, series)
+	sortSeriesByCachedOrder(musenalmApp, altseries)
 
 	keys := []any{}
 	keys = append(keys, dbmodels.Ids(series)...)
@@ -467,7 +445,7 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 				return nil, err
 			}
 
-			dbmodels.Sort_Series_Title(idseries)
+			sortSeriesByCachedOrder(musenalmApp, idseries)
 			ret.IDSeries = idseries
 
 			for _, v := range idrelations {
@@ -541,4 +519,103 @@ func Series_Entries(app core.App, entries []*dbmodels.Entry) ([]*dbmodels.Series
 	}
 
 	return series, relations, nil
+}
+
+func loadCommonReihenFilterOptions(musenalmApp *app.App) ([]map[string]any, []map[string]any, error) {
+	agentIDs, err := musenalmApp.GetEntryAgentOrderIDs()
+	if err != nil {
+		return nil, nil, err
+	}
+	placeIDs, err := musenalmApp.GetPlaceOrderIDs()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	agentOptions, _, err := buildBaendeAgentOptions(musenalmApp.Core(), musenalmApp, agentIDs)
+	if err != nil {
+		return nil, nil, err
+	}
+	placeOptions, _ := buildBaendePlaceOptions(musenalmApp, placeIDs)
+
+	return reihenAgentItems(musenalmApp, agentOptions), reihenPlaceItems(musenalmApp, placeOptions), nil
+}
+
+func reihenAgentItems(musenalmApp *app.App, options []baendeLazyFilterOption) []map[string]any {
+	items := make([]map[string]any, 0, len(options))
+	for _, option := range options {
+		display := musenalmApp.GetAgentDisplay(option.Value)
+		musenalmID := any(nil)
+		if display != nil && display.MusenalmID > 0 {
+			musenalmID = display.MusenalmID
+		}
+		item := map[string]any{
+			"id":          option.Value,
+			"musenalm_id": musenalmID,
+			"name":        option.Label,
+		}
+		if option.MetaIsBadge {
+			item["corporate_body"] = true
+			item["biographical_data"] = ""
+		} else {
+			item["corporate_body"] = false
+			item["biographical_data"] = option.Meta
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+func reihenPlaceItems(musenalmApp *app.App, options []baendeLazyFilterOption) []map[string]any {
+	items := make([]map[string]any, 0, len(options))
+	for _, option := range options {
+		display := musenalmApp.GetPlaceDisplay(option.Value)
+		musenalmID := any(nil)
+		if display != nil && display.MusenalmID > 0 {
+			musenalmID = display.MusenalmID
+		}
+		items = append(items, map[string]any{
+			"id":          option.Value,
+			"musenalm_id": musenalmID,
+			"name":        option.Label,
+		})
+	}
+	return items
+}
+
+func sortSeriesByCachedOrder(musenalmApp *app.App, series []*dbmodels.Series) {
+	orderedIDs, err := musenalmApp.GetSeriesOrderIDs()
+	if err != nil {
+		dbmodels.Sort_Series_Title(series)
+		return
+	}
+	if len(orderedIDs) == 0 {
+		dbmodels.Sort_Series_Title(series)
+		return
+	}
+
+	rank := make(map[string]int, len(orderedIDs))
+	for i, id := range orderedIDs {
+		rank[id] = i
+	}
+
+	slices.SortFunc(series, func(left, right *dbmodels.Series) int {
+		leftRank, leftOK := rank[left.Id]
+		rightRank, rightOK := rank[right.Id]
+		switch {
+		case leftOK && rightOK:
+			return leftRank - rightRank
+		case leftOK:
+			return -1
+		case rightOK:
+			return 1
+		default:
+			if left.Title() < right.Title() {
+				return -1
+			}
+			if left.Title() > right.Title() {
+				return 1
+			}
+			return 0
+		}
+	})
 }

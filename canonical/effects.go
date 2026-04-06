@@ -11,6 +11,10 @@ const (
 type MutationEffects struct {
 	InvalidateSortedEntries bool
 	ResetBaende             bool
+	ResetEntryAgentOrder    bool
+	ResetContentAgentOrder  bool
+	ResetPlaceOrder         bool
+	ResetSeriesOrder        bool
 
 	UpdateAgents   map[string]bool
 	DeleteAgents   map[string]struct{}
@@ -176,6 +180,10 @@ func (e MutationEffects) Clone() MutationEffects {
 	cloned := MutationEffects{
 		InvalidateSortedEntries: e.InvalidateSortedEntries,
 		ResetBaende:             e.ResetBaende,
+		ResetEntryAgentOrder:    e.ResetEntryAgentOrder,
+		ResetContentAgentOrder:  e.ResetContentAgentOrder,
+		ResetPlaceOrder:         e.ResetPlaceOrder,
+		ResetSeriesOrder:        e.ResetSeriesOrder,
 		UpdateAgents:            map[string]bool{},
 		DeleteAgents:            map[string]struct{}{},
 		UpdatePlaces:            map[string]bool{},

@@ -13,15 +13,8 @@ import (
 // We use an interface with accessor methods to avoid circular dependencies
 type BaendeCacheInterface interface {
 	GetEntries() interface{}       // Returns []*dbmodels.Entry
-	GetSeries() interface{}        // Returns map[string]*dbmodels.Series
-	GetEntriesSeries() interface{} // Returns map[string][]*dbmodels.REntriesSeries
-	GetPlaces() interface{}        // Returns map[string]*dbmodels.Place
-	GetAgents() interface{}        // Returns map[string]*dbmodels.Agent
-	GetEntriesAgents() interface{} // Returns map[string][]*dbmodels.REntriesAgents
-	GetItems() interface{}         // Returns map[string][]*dbmodels.Item
-	GetUsers() interface{}         // Returns map[string]*dbmodels.User
-	GetContentsCount() interface{} // Returns map[string]int
 	GetSortedEntries() interface{} // Returns map[string][]*dbmodels.Entry
+	GetUsers() interface{}         // Returns map[string]*dbmodels.User
 	GetCachedAt() time.Time
 }
 

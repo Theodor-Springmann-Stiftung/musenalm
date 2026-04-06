@@ -10,10 +10,22 @@ import (
 
 func (app *App) HandleCanonicalEffects(pbApp core.App, effects canonical.MutationEffects) {
 	if effects.InvalidateSortedEntries {
-		InvalidateSortedEntriesCache()
+		InvalidateSortedEntriesCache(pbApp)
 	}
 	if effects.ResetBaende {
 		app.ResetBaendeCache()
+	}
+	if effects.ResetEntryAgentOrder {
+		app.ResetEntryAgentOrderCache()
+	}
+	if effects.ResetContentAgentOrder {
+		app.ResetContentAgentOrderCache()
+	}
+	if effects.ResetPlaceOrder {
+		app.ResetPlaceOrderCache()
+	}
+	if effects.ResetSeriesOrder {
+		app.ResetSeriesOrderCache()
 	}
 	if displayPlan := displayRefreshPlanFromEffects(effects); displayPlan.hasWork() {
 		app.ScheduleDisplayCacheRefresh(displayPlan)

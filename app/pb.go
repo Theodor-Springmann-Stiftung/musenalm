@@ -36,43 +36,81 @@ type BootFunc = func(e *core.BootstrapEvent) error
 
 // INFO: this is the main application that mainly is a pocketbase wrapper
 type App struct {
-	PB                        *pocketbase.PocketBase
-	MAConfig                  Config
-	Pages                     []pagemodels.IPage
-	dataCache                 *PrefixCache
-	dataMutex                 sync.RWMutex
-	htmlCache                 *PrefixCache
-	htmlMutex                 sync.RWMutex
-	pagesCache                map[string]PageMetaData
-	pagesMutex                sync.RWMutex
-	imagesCache               map[string]*dbmodels.Image
-	imagesMutex               sync.RWMutex
-	baendeCache               atomic.Pointer[BaendeCache]
-	baendeCacheBuildMutex     sync.Mutex
-	baendeCacheRefreshMutex   sync.Mutex
-	baendeCacheRefreshRun     bool
-	baendeCacheRefreshQueued  bool
-	displayCache              *DisplayCache
-	displayCacheRefreshMutex  sync.Mutex
-	displayCacheRefreshRun    bool
-	displayCacheRefreshQueued bool
-	displayCacheRefreshPlan   displayRefreshPlan
-	baendeCacheBuildFunc      func() (*BaendeCache, error)
-	canonicalStore            *canonical.Store
+	PB                                  *pocketbase.PocketBase
+	MAConfig                            Config
+	Pages                               []pagemodels.IPage
+	dataCache                           atomic.Pointer[PrefixCache]
+	dataCacheBuildMutex                 sync.Mutex
+	dataCacheRefreshMutex               sync.Mutex
+	dataCacheRefreshRun                 bool
+	dataCacheRefreshQueued              bool
+	htmlCache                           atomic.Pointer[PrefixCache]
+	htmlCacheBuildMutex                 sync.Mutex
+	htmlCacheRefreshMutex               sync.Mutex
+	htmlCacheRefreshRun                 bool
+	htmlCacheRefreshQueued              bool
+	pagesCache                          atomic.Pointer[PagesCacheSnapshot]
+	pagesCacheBuildMutex                sync.Mutex
+	pagesCacheRefreshMutex              sync.Mutex
+	pagesCacheRefreshRun                bool
+	pagesCacheRefreshQueued             bool
+	imagesCache                         atomic.Pointer[ImagesCacheSnapshot]
+	imagesCacheBuildMutex               sync.Mutex
+	imagesCacheRefreshMutex             sync.Mutex
+	imagesCacheRefreshRun               bool
+	imagesCacheRefreshQueued            bool
+	baendeCache                         atomic.Pointer[BaendeCache]
+	baendeCacheBuildMutex               sync.Mutex
+	baendeCacheRefreshMutex             sync.Mutex
+	baendeCacheRefreshRun               bool
+	baendeCacheRefreshQueued            bool
+	entryAgentOrderCache                atomic.Pointer[OrderedIDsCache]
+	entryAgentOrderCacheBuildMutex      sync.Mutex
+	entryAgentOrderCacheRefreshMutex    sync.Mutex
+	entryAgentOrderCacheRefreshRun      bool
+	entryAgentOrderCacheRefreshQueued   bool
+	contentAgentOrderCache              atomic.Pointer[OrderedIDsCache]
+	contentAgentOrderCacheBuildMutex    sync.Mutex
+	contentAgentOrderCacheRefreshMutex  sync.Mutex
+	contentAgentOrderCacheRefreshRun    bool
+	contentAgentOrderCacheRefreshQueued bool
+	seriesOrderCache                    atomic.Pointer[OrderedIDsCache]
+	seriesOrderCacheBuildMutex          sync.Mutex
+	seriesOrderCacheRefreshMutex        sync.Mutex
+	seriesOrderCacheRefreshRun          bool
+	seriesOrderCacheRefreshQueued       bool
+	placeOrderCache                     atomic.Pointer[OrderedIDsCache]
+	placeOrderCacheBuildMutex           sync.Mutex
+	placeOrderCacheRefreshMutex         sync.Mutex
+	placeOrderCacheRefreshRun           bool
+	placeOrderCacheRefreshQueued        bool
+	displayCache                        *DisplayCache
+	displayCacheRefreshMutex            sync.Mutex
+	displayCacheRefreshRun              bool
+	displayCacheRefreshQueued           bool
+	displayCacheRefreshPlan             displayRefreshPlan
+	baendeCacheBuildFunc                func() (*BaendeCache, error)
+	dataCacheBuildFunc                  func() (*PrefixCache, error)
+	htmlCacheBuildFunc                  func() (*PrefixCache, error)
+	pagesCacheBuildFunc                 func() (*PagesCacheSnapshot, error)
+	imagesCacheBuildFunc                func() (*ImagesCacheSnapshot, error)
+	entryAgentOrderCacheBuildFunc       func() (*OrderedIDsCache, error)
+	contentAgentOrderCacheBuildFunc     func() (*OrderedIDsCache, error)
+	seriesOrderCacheBuildFunc           func() (*OrderedIDsCache, error)
+	placeOrderCacheBuildFunc            func() (*OrderedIDsCache, error)
+	canonicalStore                      *canonical.Store
 }
 
 type BaendeCache struct {
 	Entries       []*dbmodels.Entry
 	SortedEntries map[string][]*dbmodels.Entry
-	Series        map[string]*dbmodels.Series
-	EntriesSeries map[string][]*dbmodels.REntriesSeries
-	Places        map[string]*dbmodels.Place
-	Agents        map[string]*dbmodels.Agent
-	EntriesAgents map[string][]*dbmodels.REntriesAgents
-	Items         map[string][]*dbmodels.Item
 	Users         map[string]*dbmodels.User
-	ContentsCount map[string]int
 	CachedAt      time.Time
+}
+
+type OrderedIDsCache struct {
+	IDs      []string
+	CachedAt time.Time
 }
 
 // Implement BaendeCacheInterface methods
@@ -84,36 +122,8 @@ func (bc *BaendeCache) GetSortedEntries() interface{} {
 	return bc.SortedEntries
 }
 
-func (bc *BaendeCache) GetSeries() interface{} {
-	return bc.Series
-}
-
-func (bc *BaendeCache) GetEntriesSeries() interface{} {
-	return bc.EntriesSeries
-}
-
-func (bc *BaendeCache) GetPlaces() interface{} {
-	return bc.Places
-}
-
-func (bc *BaendeCache) GetAgents() interface{} {
-	return bc.Agents
-}
-
-func (bc *BaendeCache) GetEntriesAgents() interface{} {
-	return bc.EntriesAgents
-}
-
-func (bc *BaendeCache) GetItems() interface{} {
-	return bc.Items
-}
-
 func (bc *BaendeCache) GetUsers() interface{} {
 	return bc.Users
-}
-
-func (bc *BaendeCache) GetContentsCount() interface{} {
-	return bc.ContentsCount
 }
 
 func (bc *BaendeCache) GetCachedAt() time.Time {
@@ -234,6 +244,10 @@ func (app *App) Serve() error {
 	})
 	app.PB.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		app.ScheduleBaendeCacheRebuild()
+		app.ScheduleEntryAgentOrderCacheRebuild()
+		app.ScheduleContentAgentOrderCacheRebuild()
+		app.ScheduleSeriesOrderCacheRebuild()
+		app.SchedulePlaceOrderCacheRebuild()
 		app.ScheduleDisplayCacheRebuild()
 		return e.Next()
 	})
@@ -255,54 +269,57 @@ func (app *App) createEngine() (*templating.Engine, error) {
 			"desc":  "Bibliographie deutscher Almanache des 18. und 19. Jahrhunderts",
 		}})
 
-	app.ResetDataCache()
 	engine.AddFunc("data", func(key string) any {
-		app.ensureDataCache()
-		app.dataMutex.RLock()
-		defer app.dataMutex.RUnlock()
-		return app.dataCache.Get(key)
+		cache, err := app.EnsureDataCache()
+		if err != nil || cache == nil {
+			return nil
+		}
+		return cache.Get(key)
 	})
 	engine.AddFunc("dataPrefix", func(prefix string) map[string]any {
-		app.ensureDataCache()
-		app.dataMutex.RLock()
-		defer app.dataMutex.RUnlock()
-		return app.dataCache.GetPrefix(prefix)
+		cache, err := app.EnsureDataCache()
+		if err != nil || cache == nil {
+			return map[string]any{}
+		}
+		return cache.GetPrefix(prefix)
 	})
 
-	app.ResetHtmlCache()
 	engine.AddFunc("html", func(key string) any {
-		app.ensureHtmlCache()
-		app.htmlMutex.RLock()
-		defer app.htmlMutex.RUnlock()
-		return app.htmlCache.Get(key)
+		cache, err := app.EnsureHtmlCache()
+		if err != nil || cache == nil {
+			return nil
+		}
+		return cache.Get(key)
 	})
 	engine.AddFunc("help", func(table string, field ...string) template.HTML {
-		app.ensureHtmlCache()
+		cache, err := app.EnsureHtmlCache()
+		if err != nil || cache == nil {
+			return ""
+		}
 		key := "help." + table
 		if len(field) > 0 && field[0] != "" {
 			key = key + "." + field[0]
 		}
-		app.htmlMutex.RLock()
-		defer app.htmlMutex.RUnlock()
-		return template.HTML(app.htmlCache.GetString(key))
+		return template.HTML(cache.GetString(key))
 	})
 	engine.AddFunc("helpOr", func(table, field, fallback string) template.HTML {
-		app.ensureHtmlCache()
+		cache, err := app.EnsureHtmlCache()
+		if err != nil || cache == nil {
+			return template.HTML(fallback)
+		}
 		key := "help." + table + "." + field
-		app.htmlMutex.RLock()
-		value := app.htmlCache.GetString(key)
-		app.htmlMutex.RUnlock()
+		value := cache.GetString(key)
 		if value == "" {
 			value = fallback
 		}
 		return template.HTML(value)
 	})
-	app.ResetPagesCache()
 	engine.AddFunc("pageMeta", func(name string) map[string]any {
-		app.ensurePagesCache()
-		app.pagesMutex.RLock()
-		meta, ok := app.pagesCache[name]
-		app.pagesMutex.RUnlock()
+		cache, err := app.EnsurePagesCache()
+		if err != nil || cache == nil {
+			return map[string]any{}
+		}
+		meta, ok := cache.Meta[name]
 		if !ok {
 			return map[string]any{}
 		}
@@ -313,10 +330,11 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		}
 	})
 	engine.AddFunc("pageMetaField", func(name, field string) string {
-		app.ensurePagesCache()
-		app.pagesMutex.RLock()
-		meta, ok := app.pagesCache[name]
-		app.pagesMutex.RUnlock()
+		cache, err := app.EnsurePagesCache()
+		if err != nil || cache == nil {
+			return ""
+		}
+		meta, ok := cache.Meta[name]
 		if !ok {
 			return ""
 		}
@@ -332,20 +350,22 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		}
 	})
 	engine.AddFunc("pageHtml", func(name string, section ...string) template.HTML {
-		app.ensureHtmlCache()
+		cache, err := app.EnsureHtmlCache()
+		if err != nil || cache == nil {
+			return ""
+		}
 		key := "page." + name
 		if len(section) > 0 && section[0] != "" {
 			key = key + "." + section[0]
 		}
-		app.htmlMutex.RLock()
-		defer app.htmlMutex.RUnlock()
-		return template.HTML(app.htmlCache.GetString(key))
+		return template.HTML(cache.GetString(key))
 	})
 	engine.AddFunc("imagePath", func(key string, preview ...bool) string {
-		app.ensureImagesCache()
-		app.imagesMutex.RLock()
-		image := app.imagesCache[key]
-		app.imagesMutex.RUnlock()
+		cache, err := app.EnsureImagesCache()
+		if err != nil || cache == nil {
+			return ""
+		}
+		image := cache.Images[key]
 		if image == nil {
 			return ""
 		}
@@ -355,10 +375,11 @@ func (app *App) createEngine() (*templating.Engine, error) {
 		return image.ImagePath()
 	})
 	engine.AddFunc("htmlPrefix", func(prefix string) map[string]any {
-		app.ensureHtmlCache()
-		app.htmlMutex.RLock()
-		defer app.htmlMutex.RUnlock()
-		return app.htmlCache.GetPrefix(prefix)
+		cache, err := app.EnsureHtmlCache()
+		if err != nil || cache == nil {
+			return map[string]any{}
+		}
+		return cache.GetPrefix(prefix)
 	})
 	engine.AddFunc("agentDisplay", func(id string) *AgentDisplay {
 		return app.GetAgentDisplay(id)
@@ -375,8 +396,6 @@ func (app *App) createEngine() (*templating.Engine, error) {
 	engine.AddFunc("contentDisplay", func(id string) *ContentDisplay {
 		return app.GetContentDisplay(id)
 	})
-
-	app.ResetImagesCache()
 	return engine, nil
 }
 
@@ -386,27 +405,27 @@ func (app *App) Core() core.App {
 }
 
 func (app *App) ResetDataCache() {
-	app.dataMutex.Lock()
-	defer app.dataMutex.Unlock()
-	app.dataCache = NewPrefixCache()
+	if app.dataCache.Load() != nil {
+		app.ScheduleDataCacheRebuild()
+	}
 }
 
 func (app *App) ResetHtmlCache() {
-	app.htmlMutex.Lock()
-	defer app.htmlMutex.Unlock()
-	app.htmlCache = NewPrefixCache()
+	if app.htmlCache.Load() != nil {
+		app.ScheduleHtmlCacheRebuild()
+	}
 }
 
 func (app *App) ResetImagesCache() {
-	app.imagesMutex.Lock()
-	defer app.imagesMutex.Unlock()
-	app.imagesCache = make(map[string]*dbmodels.Image)
+	if app.imagesCache.Load() != nil {
+		app.ScheduleImagesCacheRebuild()
+	}
 }
 
 func (app *App) ResetPagesCache() {
-	app.pagesMutex.Lock()
-	defer app.pagesMutex.Unlock()
-	app.pagesCache = make(map[string]PageMetaData)
+	if app.pagesCache.Load() != nil {
+		app.SchedulePagesCacheRebuild()
+	}
 }
 
 type PrefixCache struct {
@@ -418,6 +437,14 @@ type PageMetaData struct {
 	Title       string
 	Description string
 	Keywords    string
+}
+
+type PagesCacheSnapshot struct {
+	Meta map[string]PageMetaData
+}
+
+type ImagesCacheSnapshot struct {
+	Images map[string]*dbmodels.Image
 }
 
 func NewPrefixCache() *PrefixCache {
@@ -468,18 +495,78 @@ func (c *PrefixCache) GetPrefix(prefix string) map[string]any {
 	return matches
 }
 
-func (app *App) ensureDataCache() {
-	app.dataMutex.RLock()
-	if app.dataCache != nil && len(app.dataCache.data) > 0 {
-		app.dataMutex.RUnlock()
+func (app *App) ScheduleDataCacheRebuild() {
+	app.dataCacheRefreshMutex.Lock()
+	app.dataCacheRefreshQueued = true
+	if app.dataCacheRefreshRun {
+		app.dataCacheRefreshMutex.Unlock()
 		return
 	}
-	app.dataMutex.RUnlock()
+	app.dataCacheRefreshRun = true
+	app.dataCacheRefreshMutex.Unlock()
+	go app.runDataCacheRefreshLoop()
+}
 
+func (app *App) runDataCacheRefreshLoop() {
+	for {
+		app.dataCacheRefreshMutex.Lock()
+		app.dataCacheRefreshQueued = false
+		app.dataCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildDataCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild data cache", "error", err)
+		}
+
+		app.dataCacheRefreshMutex.Lock()
+		if app.dataCacheRefreshQueued {
+			app.dataCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.dataCacheRefreshRun = false
+		app.dataCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureDataCache() (*PrefixCache, error) {
+	if cache := app.dataCache.Load(); cache != nil {
+		return cache, nil
+	}
+	app.dataCacheBuildMutex.Lock()
+	defer app.dataCacheBuildMutex.Unlock()
+	if cache := app.dataCache.Load(); cache != nil {
+		return cache, nil
+	}
+	cache, err := app.nextDataCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.dataCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildDataCache() (*PrefixCache, error) {
+	app.dataCacheBuildMutex.Lock()
+	defer app.dataCacheBuildMutex.Unlock()
+	cache, err := app.nextDataCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.dataCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextDataCacheSnapshot() (*PrefixCache, error) {
+	if app.dataCacheBuildFunc != nil {
+		return app.dataCacheBuildFunc()
+	}
+	return app.buildDataCache()
+}
+
+func (app *App) buildDataCache() (*PrefixCache, error) {
 	data, err := dbmodels.Data_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("failed to fetch data cache", "error", err)
-		return
+		return nil, err
 	}
 
 	cache := NewPrefixCache()
@@ -490,26 +577,81 @@ func (app *App) ensureDataCache() {
 		cache.keys = append(cache.keys, key)
 	}
 	sort.Strings(cache.keys)
-
-	app.dataMutex.Lock()
-	if app.dataCache == nil || len(app.dataCache.data) == 0 {
-		app.dataCache = cache
-	}
-	app.dataMutex.Unlock()
+	return cache, nil
 }
 
-func (app *App) ensureHtmlCache() {
-	app.htmlMutex.RLock()
-	if app.htmlCache != nil && len(app.htmlCache.data) > 0 {
-		app.htmlMutex.RUnlock()
+func (app *App) ScheduleHtmlCacheRebuild() {
+	app.htmlCacheRefreshMutex.Lock()
+	app.htmlCacheRefreshQueued = true
+	if app.htmlCacheRefreshRun {
+		app.htmlCacheRefreshMutex.Unlock()
 		return
 	}
-	app.htmlMutex.RUnlock()
+	app.htmlCacheRefreshRun = true
+	app.htmlCacheRefreshMutex.Unlock()
+	go app.runHtmlCacheRefreshLoop()
+}
 
+func (app *App) runHtmlCacheRefreshLoop() {
+	for {
+		app.htmlCacheRefreshMutex.Lock()
+		app.htmlCacheRefreshQueued = false
+		app.htmlCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildHtmlCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild html cache", "error", err)
+		}
+
+		app.htmlCacheRefreshMutex.Lock()
+		if app.htmlCacheRefreshQueued {
+			app.htmlCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.htmlCacheRefreshRun = false
+		app.htmlCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureHtmlCache() (*PrefixCache, error) {
+	if cache := app.htmlCache.Load(); cache != nil {
+		return cache, nil
+	}
+	app.htmlCacheBuildMutex.Lock()
+	defer app.htmlCacheBuildMutex.Unlock()
+	if cache := app.htmlCache.Load(); cache != nil {
+		return cache, nil
+	}
+	cache, err := app.nextHtmlCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.htmlCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildHtmlCache() (*PrefixCache, error) {
+	app.htmlCacheBuildMutex.Lock()
+	defer app.htmlCacheBuildMutex.Unlock()
+	cache, err := app.nextHtmlCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.htmlCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextHtmlCacheSnapshot() (*PrefixCache, error) {
+	if app.htmlCacheBuildFunc != nil {
+		return app.htmlCacheBuildFunc()
+	}
+	return app.buildHtmlCache()
+}
+
+func (app *App) buildHtmlCache() (*PrefixCache, error) {
 	html, err := dbmodels.Html_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("failed to fetch html cache", "error", err)
-		return
+		return nil, err
 	}
 
 	cache := NewPrefixCache()
@@ -520,33 +662,86 @@ func (app *App) ensureHtmlCache() {
 		cache.keys = append(cache.keys, key)
 	}
 	sort.Strings(cache.keys)
-
-	app.htmlMutex.Lock()
-	if app.htmlCache == nil || len(app.htmlCache.data) == 0 {
-		app.htmlCache = cache
-	}
-	app.htmlMutex.Unlock()
+	return cache, nil
 }
 
-func (app *App) ensurePagesCache() {
-	app.pagesMutex.RLock()
-	if len(app.pagesCache) > 0 {
-		app.pagesMutex.RUnlock()
+func (app *App) SchedulePagesCacheRebuild() {
+	app.pagesCacheRefreshMutex.Lock()
+	app.pagesCacheRefreshQueued = true
+	if app.pagesCacheRefreshRun {
+		app.pagesCacheRefreshMutex.Unlock()
 		return
 	}
-	app.pagesMutex.RUnlock()
+	app.pagesCacheRefreshRun = true
+	app.pagesCacheRefreshMutex.Unlock()
+	go app.runPagesCacheRefreshLoop()
+}
 
+func (app *App) runPagesCacheRefreshLoop() {
+	for {
+		app.pagesCacheRefreshMutex.Lock()
+		app.pagesCacheRefreshQueued = false
+		app.pagesCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildPagesCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild pages cache", "error", err)
+		}
+
+		app.pagesCacheRefreshMutex.Lock()
+		if app.pagesCacheRefreshQueued {
+			app.pagesCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.pagesCacheRefreshRun = false
+		app.pagesCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsurePagesCache() (*PagesCacheSnapshot, error) {
+	if cache := app.pagesCache.Load(); cache != nil {
+		return cache, nil
+	}
+	app.pagesCacheBuildMutex.Lock()
+	defer app.pagesCacheBuildMutex.Unlock()
+	if cache := app.pagesCache.Load(); cache != nil {
+		return cache, nil
+	}
+	cache, err := app.nextPagesCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.pagesCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildPagesCache() (*PagesCacheSnapshot, error) {
+	app.pagesCacheBuildMutex.Lock()
+	defer app.pagesCacheBuildMutex.Unlock()
+	cache, err := app.nextPagesCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.pagesCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextPagesCacheSnapshot() (*PagesCacheSnapshot, error) {
+	if app.pagesCacheBuildFunc != nil {
+		return app.pagesCacheBuildFunc()
+	}
+	return app.buildPagesCache()
+}
+
+func (app *App) buildPagesCache() (*PagesCacheSnapshot, error) {
 	pages, err := dbmodels.Pages_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("failed to fetch pages cache", "error", err)
-		return
+		return nil, err
 	}
 
 	cache := make(map[string]PageMetaData, len(pages))
 	for _, page := range pages {
-		meta := PageMetaData{
-			Title: page.Title(),
-		}
+		meta := PageMetaData{Title: page.Title()}
 		if data := page.Data(); data != nil {
 			if value, ok := data["description"]; ok && value != nil {
 				meta.Description = fmt.Sprint(value)
@@ -557,38 +752,88 @@ func (app *App) ensurePagesCache() {
 		}
 		cache[page.Key()] = meta
 	}
-
-	app.pagesMutex.Lock()
-	if len(app.pagesCache) == 0 {
-		app.pagesCache = cache
-	}
-	app.pagesMutex.Unlock()
+	return &PagesCacheSnapshot{Meta: cache}, nil
 }
 
-func (app *App) ensureImagesCache() {
-	app.imagesMutex.RLock()
-	if len(app.imagesCache) > 0 {
-		app.imagesMutex.RUnlock()
+func (app *App) ScheduleImagesCacheRebuild() {
+	app.imagesCacheRefreshMutex.Lock()
+	app.imagesCacheRefreshQueued = true
+	if app.imagesCacheRefreshRun {
+		app.imagesCacheRefreshMutex.Unlock()
 		return
 	}
-	app.imagesMutex.RUnlock()
+	app.imagesCacheRefreshRun = true
+	app.imagesCacheRefreshMutex.Unlock()
+	go app.runImagesCacheRefreshLoop()
+}
 
+func (app *App) runImagesCacheRefreshLoop() {
+	for {
+		app.imagesCacheRefreshMutex.Lock()
+		app.imagesCacheRefreshQueued = false
+		app.imagesCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildImagesCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild images cache", "error", err)
+		}
+
+		app.imagesCacheRefreshMutex.Lock()
+		if app.imagesCacheRefreshQueued {
+			app.imagesCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.imagesCacheRefreshRun = false
+		app.imagesCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureImagesCache() (*ImagesCacheSnapshot, error) {
+	if cache := app.imagesCache.Load(); cache != nil {
+		return cache, nil
+	}
+	app.imagesCacheBuildMutex.Lock()
+	defer app.imagesCacheBuildMutex.Unlock()
+	if cache := app.imagesCache.Load(); cache != nil {
+		return cache, nil
+	}
+	cache, err := app.nextImagesCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.imagesCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildImagesCache() (*ImagesCacheSnapshot, error) {
+	app.imagesCacheBuildMutex.Lock()
+	defer app.imagesCacheBuildMutex.Unlock()
+	cache, err := app.nextImagesCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.imagesCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextImagesCacheSnapshot() (*ImagesCacheSnapshot, error) {
+	if app.imagesCacheBuildFunc != nil {
+		return app.imagesCacheBuildFunc()
+	}
+	return app.buildImagesCache()
+}
+
+func (app *App) buildImagesCache() (*ImagesCacheSnapshot, error) {
 	images, err := dbmodels.Images_All(app.PB.App)
 	if err != nil {
-		app.PB.Logger().Error("failed to fetch images cache", "error", err)
-		return
+		return nil, err
 	}
 
 	cache := make(map[string]*dbmodels.Image, len(images))
 	for _, image := range images {
 		cache[image.Key()] = image
 	}
-
-	app.imagesMutex.Lock()
-	if len(app.imagesCache) == 0 {
-		app.imagesCache = cache
-	}
-	app.imagesMutex.Unlock()
+	return &ImagesCacheSnapshot{Images: cache}, nil
 }
 
 func (app *App) ResetBaendeCache() {
@@ -677,114 +922,6 @@ func (app *App) buildBaendeCache() (*BaendeCache, error) {
 		return nil, err
 	}
 
-	// Collect entry IDs
-	entryIDs := make([]any, 0, len(entries))
-	for _, entry := range entries {
-		entryIDs = append(entryIDs, entry.Id)
-	}
-
-	// Load series and relations
-	seriesMap := map[string]*dbmodels.Series{}
-	entrySeriesMap := map[string][]*dbmodels.REntriesSeries{}
-	if len(entries) > 0 {
-		relations, err := dbmodels.REntriesSeries_Entries(app.PB.App, dbmodels.Ids(entries))
-		if err != nil {
-			return nil, err
-		}
-
-		seriesIDs := []any{}
-		for _, r := range relations {
-			seriesIDs = append(seriesIDs, r.Series())
-			entrySeriesMap[r.Entry()] = append(entrySeriesMap[r.Entry()], r)
-		}
-
-		if len(seriesIDs) > 0 {
-			series, err := dbmodels.Series_IDs(app.PB.App, seriesIDs)
-			if err != nil {
-				return nil, err
-			}
-			for _, s := range series {
-				seriesMap[s.Id] = s
-			}
-		}
-	}
-
-	// Load agents and relations
-	agentsMap := map[string]*dbmodels.Agent{}
-	entryAgentsMap := map[string][]*dbmodels.REntriesAgents{}
-	if len(entryIDs) > 0 {
-		arelations, err := dbmodels.REntriesAgents_Entries(app.PB.App, entryIDs)
-		if err != nil {
-			return nil, err
-		}
-
-		agentIDs := []any{}
-		for _, r := range arelations {
-			agentIDs = append(agentIDs, r.Agent())
-			entryAgentsMap[r.Entry()] = append(entryAgentsMap[r.Entry()], r)
-		}
-
-		if len(agentIDs) > 0 {
-			agents, err := dbmodels.Agents_IDs(app.PB.App, agentIDs)
-			if err != nil {
-				return nil, err
-			}
-			for _, a := range agents {
-				agentsMap[a.Id] = a
-			}
-		}
-	}
-
-	// Load places
-	placesMap := map[string]*dbmodels.Place{}
-	placesIDs := []any{}
-	for _, entry := range entries {
-		for _, placeID := range entry.Places() {
-			placesIDs = append(placesIDs, placeID)
-		}
-	}
-	if len(placesIDs) > 0 {
-		places, err := dbmodels.Places_IDs(app.PB.App, placesIDs)
-		if err != nil {
-			return nil, err
-		}
-		for _, place := range places {
-			placesMap[place.Id] = place
-		}
-	}
-
-	// Load items
-	itemsMap := map[string][]*dbmodels.Item{}
-	if len(entryIDs) > 0 {
-		allItems, err := dbmodels.Items_Entries(app.PB.App, entryIDs)
-		if err != nil {
-			return nil, err
-		}
-
-		interestedEntries := make(map[string]struct{})
-		for _, id := range entryIDs {
-			interestedEntries[id.(string)] = struct{}{}
-		}
-
-		for _, item := range allItems {
-			for _, entryID := range item.Entries() {
-				if _, ok := interestedEntries[entryID]; ok {
-					itemsMap[entryID] = append(itemsMap[entryID], item)
-				}
-			}
-		}
-	}
-
-	// Load contents counts
-	contentsCount := map[string]int{}
-	if len(entryIDs) > 0 {
-		counts, err := dbmodels.CountContentsEntries(app.PB.App, entryIDs)
-		if err != nil {
-			return nil, err
-		}
-		contentsCount = counts
-	}
-
 	// Load all users so the quick filter can show every account, not only
 	// editors currently referenced by entries in the table.
 	usersMap := map[string]*dbmodels.User{}
@@ -798,29 +935,21 @@ func (app *App) buildBaendeCache() (*BaendeCache, error) {
 		}
 	}
 
-	sortedEntries := buildBaendeSortedEntries(entries, itemsMap)
+	sortedEntries := buildBaendeSortedEntries(entries)
 
 	return &BaendeCache{
 		Entries:       entries,
 		SortedEntries: sortedEntries,
-		Series:        seriesMap,
-		EntriesSeries: entrySeriesMap,
-		Places:        placesMap,
-		Agents:        agentsMap,
-		EntriesAgents: entryAgentsMap,
-		Items:         itemsMap,
 		Users:         usersMap,
-		ContentsCount: contentsCount,
 		CachedAt:      time.Now(),
 	}, nil
 }
 
-func buildBaendeSortedEntries(entries []*dbmodels.Entry, itemsMap map[string][]*dbmodels.Item) map[string][]*dbmodels.Entry {
+func buildBaendeSortedEntries(entries []*dbmodels.Entry) map[string][]*dbmodels.Entry {
 	sorted := map[string][]*dbmodels.Entry{
 		"title":          cloneBaendeEntries(entries),
 		"alm":            cloneBaendeEntries(entries),
 		"year":           cloneBaendeEntries(entries),
-		"signatur":       cloneBaendeEntries(entries),
 		"responsibility": cloneBaendeEntries(entries),
 		"place":          cloneBaendeEntries(entries),
 		"updated":        cloneBaendeEntries(entries),
@@ -829,7 +958,6 @@ func buildBaendeSortedEntries(entries []*dbmodels.Entry, itemsMap map[string][]*
 	dbmodels.Sort_Entries_Title_Year(sorted["title"])
 	dbmodels.Sort_Entries_MusenalmID(sorted["alm"])
 	dbmodels.Sort_Entries_Year_Title(sorted["year"])
-	dbmodels.Sort_Entries_Signatur(sorted["signatur"], itemsMap)
 	dbmodels.Sort_Entries_Responsibility_Title(sorted["responsibility"])
 	dbmodels.Sort_Entries_Place_Title(sorted["place"])
 	dbmodels.Sort_Entries_Updated(sorted["updated"])
@@ -841,6 +969,462 @@ func cloneBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
 	cloned := make([]*dbmodels.Entry, len(entries))
 	copy(cloned, entries)
 	return cloned
+}
+
+func (app *App) ResetEntryAgentOrderCache() {
+	app.ScheduleEntryAgentOrderCacheRebuild()
+}
+
+func (app *App) ScheduleEntryAgentOrderCacheRebuild() {
+	app.entryAgentOrderCacheRefreshMutex.Lock()
+	app.entryAgentOrderCacheRefreshQueued = true
+	if app.entryAgentOrderCacheRefreshRun {
+		app.entryAgentOrderCacheRefreshMutex.Unlock()
+		return
+	}
+	app.entryAgentOrderCacheRefreshRun = true
+	app.entryAgentOrderCacheRefreshMutex.Unlock()
+
+	go app.runEntryAgentOrderCacheRefreshLoop()
+}
+
+func (app *App) runEntryAgentOrderCacheRefreshLoop() {
+	for {
+		app.entryAgentOrderCacheRefreshMutex.Lock()
+		app.entryAgentOrderCacheRefreshQueued = false
+		app.entryAgentOrderCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildEntryAgentOrderCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild entry agent order cache", "error", err)
+		}
+
+		app.entryAgentOrderCacheRefreshMutex.Lock()
+		if app.entryAgentOrderCacheRefreshQueued {
+			app.entryAgentOrderCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.entryAgentOrderCacheRefreshRun = false
+		app.entryAgentOrderCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureEntryAgentOrderCache() (*OrderedIDsCache, error) {
+	if cache := app.entryAgentOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	app.entryAgentOrderCacheBuildMutex.Lock()
+	defer app.entryAgentOrderCacheBuildMutex.Unlock()
+
+	if cache := app.entryAgentOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextEntryAgentOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.entryAgentOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildEntryAgentOrderCache() (*OrderedIDsCache, error) {
+	app.entryAgentOrderCacheBuildMutex.Lock()
+	defer app.entryAgentOrderCacheBuildMutex.Unlock()
+
+	cache, err := app.nextEntryAgentOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.entryAgentOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextEntryAgentOrderCacheSnapshot() (*OrderedIDsCache, error) {
+	if app.entryAgentOrderCacheBuildFunc != nil {
+		return app.entryAgentOrderCacheBuildFunc()
+	}
+	ids, err := buildOrderedEntryAgentIDs(app.PB.App)
+	if err != nil {
+		return nil, err
+	}
+	return &OrderedIDsCache{IDs: ids, CachedAt: time.Now()}, nil
+}
+
+func (app *App) GetEntryAgentOrderIDs() ([]string, error) {
+	cache, err := app.EnsureEntryAgentOrderCache()
+	if err != nil {
+		return nil, err
+	}
+	return cache.IDs, nil
+}
+
+func (app *App) ResetContentAgentOrderCache() {
+	app.ScheduleContentAgentOrderCacheRebuild()
+}
+
+func (app *App) ScheduleContentAgentOrderCacheRebuild() {
+	app.contentAgentOrderCacheRefreshMutex.Lock()
+	app.contentAgentOrderCacheRefreshQueued = true
+	if app.contentAgentOrderCacheRefreshRun {
+		app.contentAgentOrderCacheRefreshMutex.Unlock()
+		return
+	}
+	app.contentAgentOrderCacheRefreshRun = true
+	app.contentAgentOrderCacheRefreshMutex.Unlock()
+
+	go app.runContentAgentOrderCacheRefreshLoop()
+}
+
+func (app *App) runContentAgentOrderCacheRefreshLoop() {
+	for {
+		app.contentAgentOrderCacheRefreshMutex.Lock()
+		app.contentAgentOrderCacheRefreshQueued = false
+		app.contentAgentOrderCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildContentAgentOrderCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild content agent order cache", "error", err)
+		}
+
+		app.contentAgentOrderCacheRefreshMutex.Lock()
+		if app.contentAgentOrderCacheRefreshQueued {
+			app.contentAgentOrderCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.contentAgentOrderCacheRefreshRun = false
+		app.contentAgentOrderCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureContentAgentOrderCache() (*OrderedIDsCache, error) {
+	if cache := app.contentAgentOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	app.contentAgentOrderCacheBuildMutex.Lock()
+	defer app.contentAgentOrderCacheBuildMutex.Unlock()
+
+	if cache := app.contentAgentOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextContentAgentOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.contentAgentOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildContentAgentOrderCache() (*OrderedIDsCache, error) {
+	app.contentAgentOrderCacheBuildMutex.Lock()
+	defer app.contentAgentOrderCacheBuildMutex.Unlock()
+
+	cache, err := app.nextContentAgentOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.contentAgentOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextContentAgentOrderCacheSnapshot() (*OrderedIDsCache, error) {
+	if app.contentAgentOrderCacheBuildFunc != nil {
+		return app.contentAgentOrderCacheBuildFunc()
+	}
+	ids, err := buildOrderedContentAgentIDs(app.PB.App)
+	if err != nil {
+		return nil, err
+	}
+	return &OrderedIDsCache{IDs: ids, CachedAt: time.Now()}, nil
+}
+
+func (app *App) GetContentAgentOrderIDs() ([]string, error) {
+	cache, err := app.EnsureContentAgentOrderCache()
+	if err != nil {
+		return nil, err
+	}
+	return cache.IDs, nil
+}
+
+func (app *App) ResetSeriesOrderCache() {
+	app.ScheduleSeriesOrderCacheRebuild()
+}
+
+func (app *App) ScheduleSeriesOrderCacheRebuild() {
+	app.seriesOrderCacheRefreshMutex.Lock()
+	app.seriesOrderCacheRefreshQueued = true
+	if app.seriesOrderCacheRefreshRun {
+		app.seriesOrderCacheRefreshMutex.Unlock()
+		return
+	}
+	app.seriesOrderCacheRefreshRun = true
+	app.seriesOrderCacheRefreshMutex.Unlock()
+
+	go app.runSeriesOrderCacheRefreshLoop()
+}
+
+func (app *App) runSeriesOrderCacheRefreshLoop() {
+	for {
+		app.seriesOrderCacheRefreshMutex.Lock()
+		app.seriesOrderCacheRefreshQueued = false
+		app.seriesOrderCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildSeriesOrderCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild series order cache", "error", err)
+		}
+
+		app.seriesOrderCacheRefreshMutex.Lock()
+		if app.seriesOrderCacheRefreshQueued {
+			app.seriesOrderCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.seriesOrderCacheRefreshRun = false
+		app.seriesOrderCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsureSeriesOrderCache() (*OrderedIDsCache, error) {
+	if cache := app.seriesOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	app.seriesOrderCacheBuildMutex.Lock()
+	defer app.seriesOrderCacheBuildMutex.Unlock()
+
+	if cache := app.seriesOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextSeriesOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.seriesOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildSeriesOrderCache() (*OrderedIDsCache, error) {
+	app.seriesOrderCacheBuildMutex.Lock()
+	defer app.seriesOrderCacheBuildMutex.Unlock()
+
+	cache, err := app.nextSeriesOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.seriesOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextSeriesOrderCacheSnapshot() (*OrderedIDsCache, error) {
+	if app.seriesOrderCacheBuildFunc != nil {
+		return app.seriesOrderCacheBuildFunc()
+	}
+	ids, err := buildOrderedSeriesIDs(app.PB.App)
+	if err != nil {
+		return nil, err
+	}
+	return &OrderedIDsCache{IDs: ids, CachedAt: time.Now()}, nil
+}
+
+func (app *App) GetSeriesOrderIDs() ([]string, error) {
+	cache, err := app.EnsureSeriesOrderCache()
+	if err != nil {
+		return nil, err
+	}
+	return cache.IDs, nil
+}
+
+func (app *App) ResetPlaceOrderCache() {
+	app.SchedulePlaceOrderCacheRebuild()
+}
+
+func (app *App) SchedulePlaceOrderCacheRebuild() {
+	app.placeOrderCacheRefreshMutex.Lock()
+	app.placeOrderCacheRefreshQueued = true
+	if app.placeOrderCacheRefreshRun {
+		app.placeOrderCacheRefreshMutex.Unlock()
+		return
+	}
+	app.placeOrderCacheRefreshRun = true
+	app.placeOrderCacheRefreshMutex.Unlock()
+
+	go app.runPlaceOrderCacheRefreshLoop()
+}
+
+func (app *App) runPlaceOrderCacheRefreshLoop() {
+	for {
+		app.placeOrderCacheRefreshMutex.Lock()
+		app.placeOrderCacheRefreshQueued = false
+		app.placeOrderCacheRefreshMutex.Unlock()
+
+		if _, err := app.rebuildPlaceOrderCache(); err != nil {
+			app.PB.Logger().Error("failed to rebuild place order cache", "error", err)
+		}
+
+		app.placeOrderCacheRefreshMutex.Lock()
+		if app.placeOrderCacheRefreshQueued {
+			app.placeOrderCacheRefreshMutex.Unlock()
+			continue
+		}
+		app.placeOrderCacheRefreshRun = false
+		app.placeOrderCacheRefreshMutex.Unlock()
+		return
+	}
+}
+
+func (app *App) EnsurePlaceOrderCache() (*OrderedIDsCache, error) {
+	if cache := app.placeOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	app.placeOrderCacheBuildMutex.Lock()
+	defer app.placeOrderCacheBuildMutex.Unlock()
+
+	if cache := app.placeOrderCache.Load(); cache != nil {
+		return cache, nil
+	}
+
+	cache, err := app.nextPlaceOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.placeOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) rebuildPlaceOrderCache() (*OrderedIDsCache, error) {
+	app.placeOrderCacheBuildMutex.Lock()
+	defer app.placeOrderCacheBuildMutex.Unlock()
+
+	cache, err := app.nextPlaceOrderCacheSnapshot()
+	if err != nil {
+		return nil, err
+	}
+	app.placeOrderCache.Store(cache)
+	return cache, nil
+}
+
+func (app *App) nextPlaceOrderCacheSnapshot() (*OrderedIDsCache, error) {
+	if app.placeOrderCacheBuildFunc != nil {
+		return app.placeOrderCacheBuildFunc()
+	}
+	ids, err := buildOrderedPlaceIDs(app.PB.App)
+	if err != nil {
+		return nil, err
+	}
+	return &OrderedIDsCache{IDs: ids, CachedAt: time.Now()}, nil
+}
+
+func (app *App) GetPlaceOrderIDs() ([]string, error) {
+	cache, err := app.EnsurePlaceOrderCache()
+	if err != nil {
+		return nil, err
+	}
+	return cache.IDs, nil
+}
+
+func buildOrderedEntryAgentIDs(app core.App) ([]string, error) {
+	rels := []*dbmodels.REntriesAgents{}
+	if err := app.RecordQuery(dbmodels.RelationTableName(dbmodels.ENTRIES_TABLE, dbmodels.AGENTS_TABLE)).All(&rels); err != nil {
+		return nil, err
+	}
+	return buildOrderedRelatedAgentIDs(app, collectEntryRelationAgentIDs(rels))
+}
+
+func buildOrderedContentAgentIDs(app core.App) ([]string, error) {
+	rels := []*dbmodels.RContentsAgents{}
+	if err := app.RecordQuery(dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE)).All(&rels); err != nil {
+		return nil, err
+	}
+	return buildOrderedRelatedAgentIDs(app, collectContentRelationAgentIDs(rels))
+}
+
+func buildOrderedRelatedAgentIDs(app core.App, ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return []string{}, nil
+	}
+	agentIDs := make([]any, 0, len(ids))
+	for _, id := range ids {
+		agentIDs = append(agentIDs, id)
+	}
+	agents, err := dbmodels.Agents_IDs(app, agentIDs)
+	if err != nil {
+		return nil, err
+	}
+	dbmodels.Sort_Agents_Name(agents)
+	ordered := make([]string, 0, len(agents))
+	for _, agent := range agents {
+		if agent != nil {
+			ordered = append(ordered, agent.Id)
+		}
+	}
+	return ordered, nil
+}
+
+func collectEntryRelationAgentIDs(rels []*dbmodels.REntriesAgents) []string {
+	seen := map[string]struct{}{}
+	ids := make([]string, 0, len(rels))
+	for _, rel := range rels {
+		if rel == nil || rel.Agent() == "" {
+			continue
+		}
+		if _, ok := seen[rel.Agent()]; ok {
+			continue
+		}
+		seen[rel.Agent()] = struct{}{}
+		ids = append(ids, rel.Agent())
+	}
+	return ids
+}
+
+func collectContentRelationAgentIDs(rels []*dbmodels.RContentsAgents) []string {
+	seen := map[string]struct{}{}
+	ids := make([]string, 0, len(rels))
+	for _, rel := range rels {
+		if rel == nil || rel.Agent() == "" {
+			continue
+		}
+		if _, ok := seen[rel.Agent()]; ok {
+			continue
+		}
+		seen[rel.Agent()] = struct{}{}
+		ids = append(ids, rel.Agent())
+	}
+	return ids
+}
+
+func buildOrderedSeriesIDs(app core.App) ([]string, error) {
+	series := []*dbmodels.Series{}
+	if err := app.RecordQuery(dbmodels.SERIES_TABLE).All(&series); err != nil {
+		return nil, err
+	}
+	dbmodels.Sort_Series_Title(series)
+	ids := make([]string, 0, len(series))
+	for _, item := range series {
+		if item != nil {
+			ids = append(ids, item.Id)
+		}
+	}
+	return ids, nil
+}
+
+func buildOrderedPlaceIDs(app core.App) ([]string, error) {
+	places := []*dbmodels.Place{}
+	if err := app.RecordQuery(dbmodels.PLACES_TABLE).All(&places); err != nil {
+		return nil, err
+	}
+	dbmodels.Sort_Places_Name(places)
+	ids := make([]string, 0, len(places))
+	for _, place := range places {
+		if place != nil {
+			ids = append(ids, place.Id)
+		}
+	}
+	return ids, nil
 }
 
 func (app *App) GetBaendeCache() (pagemodels.BaendeCacheInterface, error) {
