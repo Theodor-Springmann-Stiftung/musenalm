@@ -127,9 +127,12 @@
 						<span class="inline-flex items-center justify-end gap-1">
 							{{- range $i, $scan := $scans -}}
 								{{- if lt $i 3 -}}
-									<popup-image data-image-url="{{- $scan -}}" class="inline-flex items-center">
+									<popup-image
+										data-image-url="{{- $scan -}}?thumb=0x300"
+										data-full-image-url="{{- $scan -}}"
+										class="inline-flex items-center">
 										<img
-											src="{{- $scan -}}"
+											src="{{- $scan -}}?thumb=0x300"
 											alt="Scan Vorschau"
 											class="h-5 w-5 rounded-full border border-slate-500 object-cover shadow-sm" />
 									</popup-image>

@@ -7552,10 +7552,10 @@ class Ee extends HTMLElement {
 }
 class pu extends HTMLElement {
   constructor() {
-    super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._hideDLButton = !1;
+    super(), this.overlay = null, this._others = null, this._thisindex = -1, this._preview = null, this._description = null, this._imageURL = "", this._fullImageURL = "", this._hideDLButton = !1;
   }
   connectedCallback() {
-    this.classList.add("cursor-pointer"), this.classList.add("select-none"), this._imageURL = this.getAttribute("data-image-url") || "", this._hideDLButton = this.getAttribute("data-hide-dl-button") || !1, this._preview = this.querySelector("img"), this._description = this.querySelector(".image-description"), this._preview && this._preview.addEventListener("click", () => {
+    this.classList.add("cursor-pointer"), this.classList.add("select-none"), this._imageURL = this.getAttribute("data-image-url") || "", this._fullImageURL = this.getAttribute("data-full-image-url") || this._imageURL, this._hideDLButton = this.getAttribute("data-hide-dl-button") || !1, this._preview = this.querySelector("img"), this._description = this.querySelector(".image-description"), this._preview && this._preview.addEventListener("click", () => {
       this.showOverlay();
     });
     let t = this.closest("image-reel, .image-reel");
@@ -7595,7 +7595,7 @@ class pu extends HTMLElement {
 						${this.prevButton()}
 				</div>
         <img
-          src="${this._imageURL}"
+          src="${this._fullImageURL}"
           alt="Popup Image"
           class="full max-h-[80vh] max-w-[80vw] object-contain block relative ${this.descriptionImgClass()}"
         />
@@ -7649,7 +7649,7 @@ class pu extends HTMLElement {
   downloadButton() {
     return this._hideDLButton ? "" : `
 					<tool-tip position="right">
-					<a href="${this._imageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
+					<a href="${this._fullImageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
 					<div class="data-tip">Bild herunterladen</div>
 					</tool-tip>
 		`;

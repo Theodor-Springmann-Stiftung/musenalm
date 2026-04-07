@@ -7,6 +7,7 @@ export class PopupImage extends HTMLElement {
 		this._preview = null;
 		this._description = null;
 		this._imageURL = "";
+		this._fullImageURL = "";
 		this._hideDLButton = false;
 	}
 
@@ -14,6 +15,7 @@ export class PopupImage extends HTMLElement {
 		this.classList.add("cursor-pointer");
 		this.classList.add("select-none");
 		this._imageURL = this.getAttribute("data-image-url") || "";
+		this._fullImageURL = this.getAttribute("data-full-image-url") || this._imageURL;
 		this._hideDLButton = this.getAttribute("data-hide-dl-button") || false;
 		this._preview = this.querySelector("img");
 		this._description = this.querySelector(".image-description");
@@ -97,7 +99,7 @@ export class PopupImage extends HTMLElement {
 						${this.prevButton()}
 				</div>
         <img
-          src="${this._imageURL}"
+          src="${this._fullImageURL}"
           alt="Popup Image"
           class="full max-h-[80vh] max-w-[80vw] object-contain block relative ${this.descriptionImgClass()}"
         />
@@ -191,7 +193,7 @@ export class PopupImage extends HTMLElement {
 
 		return `
 					<tool-tip position="right">
-					<a href="${this._imageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
+					<a href="${this._fullImageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
 					<div class="data-tip">Bild herunterladen</div>
 					</tool-tip>
 		`;
