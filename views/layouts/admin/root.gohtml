@@ -4,7 +4,8 @@
 		<script>
 			(() => {
 				try {
-					if (window.localStorage.getItem('admin-sidebar-collapsed') === 'true') {
+					const storedValue = window.localStorage.getItem('admin-sidebar-collapsed');
+					if (storedValue !== 'false') {
 						document.documentElement.classList.add('admin-layout-sidebar-collapsed');
 					}
 				} catch {}
@@ -118,6 +119,9 @@
 				},
 				syncSidebarState() {
 					document.documentElement.classList.toggle('admin-layout-sidebar-collapsed', this.sidebarCollapsed);
+					document.dispatchEvent(new CustomEvent('admin-sidebar-statechange', {
+						detail: { collapsed: this.sidebarCollapsed },
+					}));
 				},
 				lockSidebar(lockId) {
 					const key = (lockId || '').trim();

@@ -366,6 +366,92 @@ function pruneAdminSidebarDetails() {
 	});
 }
 
+const ADMIN_SIDEBAR_TOOLTIP_SELECTOR = [
+	"#admin-sidebar .admin-sidebar-link",
+	"#admin-sidebar .admin-sidebar-toggle",
+	"#admin-sidebar .admin-sidebar-collapsed-public-trigger",
+	"#admin-sidebar .admin-sidebar-collapsed-create-trigger",
+	"#admin-sidebar .admin-sidebar-account-icon",
+].join(", ");
+
+function adminSidebarTooltipContent(element) {
+	if (!(element instanceof HTMLElement)) {
+		return "";
+	}
+	const title = (element.getAttribute("title") || "").trim();
+	if (title) {
+		return title;
+	}
+	const ariaLabel = (element.getAttribute("aria-label") || "").trim();
+	if (ariaLabel) {
+		return ariaLabel;
+	}
+	return "";
+}
+
+function destroyAdminSidebarTooltips(root = document) {
+	const scope = root instanceof Element ? root : document;
+	const candidates = [];
+
+	if (root instanceof Element && root.matches(ADMIN_SIDEBAR_TOOLTIP_SELECTOR)) {
+		candidates.push(root);
+	}
+	candidates.push(...scope.querySelectorAll(ADMIN_SIDEBAR_TOOLTIP_SELECTOR));
+
+	candidates.forEach((element) => {
+		if (element._tippy) {
+			element._tippy.destroy();
+		}
+	});
+}
+
+function initAdminSidebarTooltips(root = document) {
+	const sidebar = document.getElementById("admin-sidebar");
+	if (!sidebar) {
+		return;
+	}
+
+	const isCollapsed = document.documentElement.classList.contains("admin-layout-sidebar-collapsed");
+	if (!isCollapsed) {
+		destroyAdminSidebarTooltips(sidebar);
+		return;
+	}
+
+	const scope = root instanceof Element ? root : sidebar;
+	const candidates = [];
+
+	if (root instanceof Element && root.matches(ADMIN_SIDEBAR_TOOLTIP_SELECTOR) && !root._tippy && adminSidebarTooltipContent(root)) {
+		candidates.push(root);
+	}
+
+	scope.querySelectorAll(ADMIN_SIDEBAR_TOOLTIP_SELECTOR).forEach((element) => {
+		if (element._tippy) {
+			return;
+		}
+		if (!adminSidebarTooltipContent(element)) {
+			return;
+		}
+		candidates.push(element);
+	});
+
+	if (!candidates.length) {
+		return;
+	}
+
+	tippy(candidates, {
+		placement: "right",
+		arrow: true,
+		delay: [0, 0],
+		duration: [100, 80],
+		content(reference) {
+			return adminSidebarTooltipContent(reference);
+		},
+		onShow(instance) {
+			instance.setContent(adminSidebarTooltipContent(instance.reference));
+		},
+	});
+}
+
 // INFO: Hooks up to all the reset button children of the target element.
 // If an element has a changed state, it will trigger the action with `true`.
 // If no elements are changed, it will trigger the action with `false`.
@@ -417,6 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	setupCancelLinks(document);
 	initAdminStatusPickers(document);
 	initStatusTooltips(document);
+	initAdminSidebarTooltips(document);
 });
 
 document.addEventListener("htmx:afterSwap", (event) => {
@@ -425,6 +512,7 @@ document.addEventListener("htmx:afterSwap", (event) => {
 	setupCancelLinks(root);
 	initAdminStatusPickers(root);
 	initStatusTooltips(root);
+	initAdminSidebarTooltips(document);
 });
 
 document.addEventListener("htmx:load", (event) => {
@@ -432,6 +520,11 @@ document.addEventListener("htmx:load", (event) => {
 	setupCancelLinks(root);
 	initAdminStatusPickers(root);
 	initStatusTooltips(root);
+	initAdminSidebarTooltips(root);
+});
+
+document.addEventListener("admin-sidebar-statechange", () => {
+	initAdminSidebarTooltips(document);
 });
 
 document.addEventListener("click", (event) => {
