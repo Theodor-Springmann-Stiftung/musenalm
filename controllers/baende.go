@@ -362,6 +362,7 @@ func (p *BaendePage) buildResultData(app core.App, ma pagemodels.IApp, e *core.R
 	}
 
 	if search != "" || requiresBaendeRuntimeSort(sort) || sort == "signatur" {
+		filteredEntries = cloneBaendeEntrySlice(filteredEntries)
 		sortBaendeEntries(filteredEntries, sort, itemsMap, entryPlaceLabels, entryAgentLabels)
 	}
 
@@ -584,10 +585,15 @@ func sortBaendeEntries(entries []*dbmodels.Entry, sort string, itemsMap map[stri
 }
 
 func reverseBaendeEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
-	reversed := make([]*dbmodels.Entry, len(entries))
-	copy(reversed, entries)
+	reversed := cloneBaendeEntrySlice(entries)
 	slices.Reverse(reversed)
 	return reversed
+}
+
+func cloneBaendeEntrySlice(entries []*dbmodels.Entry) []*dbmodels.Entry {
+	cloned := make([]*dbmodels.Entry, len(entries))
+	copy(cloned, entries)
+	return cloned
 }
 
 func toAnyStrings(values []string) []any {
