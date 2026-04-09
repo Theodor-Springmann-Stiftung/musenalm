@@ -378,6 +378,10 @@ function adminSidebarTooltipContent(element) {
 	if (!(element instanceof HTMLElement)) {
 		return "";
 	}
+	const explicitTooltip = (element.getAttribute("data-admin-sidebar-tooltip") || "").trim();
+	if (explicitTooltip) {
+		return explicitTooltip;
+	}
 	const title = (element.getAttribute("title") || "").trim();
 	if (title) {
 		return title;

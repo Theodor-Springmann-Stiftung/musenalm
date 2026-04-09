@@ -12041,11 +12041,14 @@ const _n = [
 function an(n) {
   if (!(n instanceof HTMLElement))
     return "";
-  const t = (n.getAttribute("title") || "").trim();
+  const t = (n.getAttribute("data-admin-sidebar-tooltip") || "").trim();
   if (t)
     return t;
-  const e = (n.getAttribute("aria-label") || "").trim();
-  return e || "";
+  const e = (n.getAttribute("title") || "").trim();
+  if (e)
+    return e;
+  const i = (n.getAttribute("aria-label") || "").trim();
+  return i || "";
 }
 function ef(n = document) {
   const t = n instanceof Element ? n : document, e = [];

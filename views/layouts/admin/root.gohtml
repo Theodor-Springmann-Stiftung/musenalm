@@ -175,7 +175,7 @@
 			@htmx:before-request.window="
 				const sourceLink = $event.detail.requestConfig?.elt?.closest?.('[data-admin-main-link]');
 				if (sourceLink) {
-					pendingSidebarTitle = sourceLink.getAttribute('title') || sourceLink.textContent || '';
+					pendingSidebarTitle = sourceLink.getAttribute('data-admin-sidebar-tooltip') || sourceLink.getAttribute('title') || sourceLink.textContent || '';
 				}
 			"
 			@htmx:after-swap.window="

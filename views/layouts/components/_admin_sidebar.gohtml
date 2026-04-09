@@ -92,7 +92,7 @@
 				class="admin-sidebar-toggle"
 				@click="closeVisitorSidebar()"
 				aria-label="Verwaltung schließen"
-				title="Verwaltung schließen">
+				data-admin-sidebar-tooltip="Verwaltung schließen">
 				<i class="ri-close-line" aria-hidden="true"></i>
 			</button>
 		{{- else -}}
@@ -101,7 +101,7 @@
 				class="admin-sidebar-toggle"
 				@click="toggleSidebar()"
 				:aria-label="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'"
-				:title="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'">
+				:data-admin-sidebar-tooltip="sidebarCollapsed ? 'Seitenleiste erweitern' : 'Seitenleiste einklappen'">
 				<i class="ri-layout-left-line" x-show="!sidebarCollapsed" aria-hidden="true"></i>
 				<i class="ri-layout-right-line" x-show="sidebarCollapsed" x-cloak aria-hidden="true"></i>
 			</button>
@@ -114,7 +114,7 @@
 			type="button"
 			class="admin-sidebar-collapsed-public-trigger"
 			:class="{ 'is-open': open }"
-			title="Öffentliche Seiten"
+			data-admin-sidebar-tooltip="Öffentliche Seiten"
 			@click="if (open) { open = false; submenu = '' } else { open = true }">
 			<i class="ri-global-line" aria-hidden="true"></i>
 		</button>
@@ -144,7 +144,7 @@
 	</div>
 
 	<div class="admin-sidebar-collapsed-create" x-data="{ open: false }" @click.outside="open = false">
-		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" title="Neu" @click="open = !open">
+		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" data-admin-sidebar-tooltip="Neu" @click="open = !open">
 			<i class="ri-add-circle-line" aria-hidden="true"></i>
 		</button>
 		<div x-cloak x-show="open" class="admin-sidebar-collapsed-create-popout">
@@ -163,19 +163,19 @@
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/reihen/" hx-boost="false" title="Reihen" class="admin-sidebar-link" {{ if $isPublicReihenActive }}aria-current="page"{{ end }}>
+				<a href="/reihen/" hx-boost="false" data-admin-sidebar-tooltip="Reihen" class="admin-sidebar-link" {{ if $isPublicReihenActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-book-shelf-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Reihen</span>
 					</span>
 				</a>
-				<a href="/personen/" hx-boost="false" title="Personen" class="admin-sidebar-link" {{ if $isPublicPersonsActive }}aria-current="page"{{ end }}>
+				<a href="/personen/" hx-boost="false" data-admin-sidebar-tooltip="Personen" class="admin-sidebar-link" {{ if $isPublicPersonsActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Personen</span>
 					</span>
 				</a>
-				<a href="/suche/" hx-boost="false" title="Suche" class="admin-sidebar-link" {{ if $isPublicSearchActive }}aria-current="page"{{ end }}>
+				<a href="/suche/" hx-boost="false" data-admin-sidebar-tooltip="Suche" class="admin-sidebar-link" {{ if $isPublicSearchActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label">
 						<i class="ri-search-line admin-sidebar-link-icon" aria-hidden="true"></i>
 						<span>Suche</span>
@@ -184,37 +184,37 @@
 				<div class="admin-sidebar-group">
 					<div class="admin-sidebar-group-title admin-sidebar-group-title-prominent">Redaktion</div>
 					<div class="admin-sidebar-group-links">
-						<a href="/redaktion/einleitung/" hx-boost="false" title="Einleitung" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialIntroActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/einleitung/" hx-boost="false" data-admin-sidebar-tooltip="Einleitung" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialIntroActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-quill-pen-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Einleitung</span>
 							</span>
 						</a>
-						<a href="/redaktion/benutzerhinweise/" hx-boost="false" title="Hinweise" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialHintsActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/benutzerhinweise/" hx-boost="false" data-admin-sidebar-tooltip="Hinweise" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialHintsActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-information-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Hinweise</span>
 							</span>
 						</a>
-						<a href="/redaktion/literatur/" hx-boost="false" title="Literatur" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialLitActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/literatur/" hx-boost="false" data-admin-sidebar-tooltip="Literatur" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialLitActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-book-open-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Literatur</span>
 							</span>
 						</a>
-						<a href="/redaktion/lesekabinett/" hx-boost="false" title="Lesekabinett" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialCabinetActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/lesekabinett/" hx-boost="false" data-admin-sidebar-tooltip="Lesekabinett" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialCabinetActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-archive-drawer-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Lesekabinett</span>
 							</span>
 						</a>
-						<a href="/redaktion/danksagungen/" hx-boost="false" title="Danksagungen" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialThanksActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/danksagungen/" hx-boost="false" data-admin-sidebar-tooltip="Danksagungen" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialThanksActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-heart-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Danksagungen</span>
 							</span>
 						</a>
-						<a href="/redaktion/kontakt/" hx-boost="false" title="Kontakt" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialContactActive }}aria-current="page"{{ end }}>
+						<a href="/redaktion/kontakt/" hx-boost="false" data-admin-sidebar-tooltip="Kontakt" class="admin-sidebar-link admin-sidebar-link-nested" {{ if $isPublicEditorialContactActive }}aria-current="page"{{ end }}>
 							<span class="admin-sidebar-link-label">
 								<i class="ri-mail-line admin-sidebar-link-icon" aria-hidden="true"></i>
 								<span>Kontakt</span>
@@ -231,10 +231,10 @@
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/almanach-new/" title="Neuer Band" class="admin-sidebar-link" {{ if $isNewBandActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Band</span></span></a>
-				<a href="/admin/reihen/new/" title="Neue Reihe" class="admin-sidebar-link" {{ if $isNewSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Reihe</span></span></a>
-				<a href="/admin/orte/new/" title="Neuer Ort" class="admin-sidebar-link" {{ if $isNewPlaceActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Ort</span></span></a>
-				<a href="/admin/personen/new/" title="Neue Person" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Person</span></span></a>
+				<a href="/admin/almanach-new/" data-admin-sidebar-tooltip="Neuer Band" class="admin-sidebar-link" {{ if $isNewBandActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Band</span></span></a>
+				<a href="/admin/reihen/new/" data-admin-sidebar-tooltip="Neue Reihe" class="admin-sidebar-link" {{ if $isNewSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Reihe</span></span></a>
+				<a href="/admin/orte/new/" data-admin-sidebar-tooltip="Neuer Ort" class="admin-sidebar-link" {{ if $isNewPlaceActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Ort</span></span></a>
+				<a href="/admin/personen/new/" data-admin-sidebar-tooltip="Neue Person" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Person</span></span></a>
 			</div>
 		</details>
 
@@ -244,13 +244,13 @@
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/reihen/" title="Reihen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span></a>
-				<a href="/admin/baende/" title="Bände" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span></a>
-				<a href="/admin/beitraege/" title="Beiträge" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
-				<a href="/admin/personen/" title="Personen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
-				<a href="/admin/orte/" title="Orte" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
-				<a href="/admin/abkuerzungen/" title="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
-				<a href="/admin/seiten/" title="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
+				<a href="/admin/reihen/" data-admin-sidebar-tooltip="Reihen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/reihen/|/reihen/|/reihe/|/admin/reihe/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-shelf-fill admin-sidebar-link-icon" aria-hidden="true"></i><span>Reihen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $seriesSidebarDetail }}</span></a>
+				<a href="/admin/baende/" data-admin-sidebar-tooltip="Bände" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/baende/|/admin/almanach/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isBandsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-book-line admin-sidebar-link-icon" aria-hidden="true"></i><span>B&auml;nde</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $bandSidebarDetail }}</span></a>
+				<a href="/admin/beitraege/" data-admin-sidebar-tooltip="Beiträge" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
+				<a href="/admin/personen/" data-admin-sidebar-tooltip="Personen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
+				<a href="/admin/orte/" data-admin-sidebar-tooltip="Orte" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
+				<a href="/admin/abkuerzungen/" data-admin-sidebar-tooltip="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
+				<a href="/admin/seiten/" data-admin-sidebar-tooltip="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
 			</div>
 		</details>
 
@@ -261,10 +261,10 @@
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/settings/" title="Einstellungen" class="admin-sidebar-link" {{ if $isSettingsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-settings-3-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Einstellungen</span></span></a>
-				<a href="/admin/exports/" title="Daten &amp; Export" class="admin-sidebar-link" {{ if $isExportsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-database-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Daten &amp; Export</span></span></a>
-				<a href="/admin/user/management/access/User" title="Nutzer einladen" class="admin-sidebar-link" {{ if $isUserInviteActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-key-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Nutzer einladen</span></span></a>
-				<a href="/admin/user/management" title="Benutzerverwaltung" class="admin-sidebar-link" {{ if $isUserManagementActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Benutzerverwaltung</span></span></a>
+				<a href="/admin/settings/" data-admin-sidebar-tooltip="Einstellungen" class="admin-sidebar-link" {{ if $isSettingsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-settings-3-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Einstellungen</span></span></a>
+				<a href="/admin/exports/" data-admin-sidebar-tooltip="Daten &amp; Export" class="admin-sidebar-link" {{ if $isExportsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-database-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Daten &amp; Export</span></span></a>
+				<a href="/admin/user/management/access/User" data-admin-sidebar-tooltip="Nutzer einladen" class="admin-sidebar-link" {{ if $isUserInviteActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-key-2-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Nutzer einladen</span></span></a>
+				<a href="/admin/user/management" data-admin-sidebar-tooltip="Benutzerverwaltung" class="admin-sidebar-link" {{ if $isUserManagementActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-group-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Benutzerverwaltung</span></span></a>
 			</div>
 		</details>
 		{{- end -}}
@@ -292,15 +292,15 @@
 			{{- end -}}
 		</div>
 		<div class="admin-sidebar-account-links">
-			<span class="admin-sidebar-account-icon" title="Konto">
+			<span class="admin-sidebar-account-icon" data-admin-sidebar-tooltip="Konto">
 				<i class="ri-user-line" aria-hidden="true"></i>
 			</span>
 			{{- if $canEditAccount -}}
-				<a href="{{ $accountHref }}" title="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
+				<a href="{{ $accountHref }}" data-admin-sidebar-tooltip="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
 					<span class="admin-sidebar-link-label"><i class="ri-pencil-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Bearbeiten</span></span>
 				</a>
 			{{- end -}}
-			<a href="/logout/?redirectTo=/reihen/" title="Logout" class="admin-sidebar-link admin-sidebar-account-link">
+			<a href="/logout/?redirectTo=/reihen/" data-admin-sidebar-tooltip="Logout" class="admin-sidebar-link admin-sidebar-account-link">
 				<span class="admin-sidebar-link-label"><i class="ri-logout-box-r-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Logout</span></span>
 			</a>
 		</div>
