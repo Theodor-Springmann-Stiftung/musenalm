@@ -8,12 +8,20 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+const autoCreatedLegacyContentAgentAnnotation = "Automatisch beim Import aus AUTORREALNAME erzeugt; bitte prüfen."
+
 type AgentResolver struct {
 	app        core.App
 	collection *core.Collection
 	byName     map[string]*dbmodels.Agent
 	byID       map[string]*dbmodels.Agent
 	nextFreeID int
+}
+
+type minimalAutoCreatedAgentData struct {
+	name       string
+	editState  string
+	annotation string
 }
 
 func NewAgentResolver(
@@ -74,6 +82,7 @@ func ParseAgentNames(raw string) []string {
 
 	replacer := strings.NewReplacer(
 		"; u. ", "|",
+		";", "|",
 		" u. ", "|",
 		" u ", "|",
 		" und ", "|",
@@ -229,6 +238,44 @@ func (r *AgentResolver) CreateAgentFromRealname(row xmlmodels.RealnameTabRow) (*
 	return agent, nil
 }
 
+func (r *AgentResolver) CreateMinimalAgent(name string, annotation string) (*dbmodels.Agent, error) {
+	data := buildMinimalAutoCreatedAgent(name)
+	if shouldSkipAgentName(data.name) {
+		return nil, nil
+	}
+
+	if existing := r.LookupByName(data.name); existing != nil {
+		return existing, nil
+	}
+
+	agent := dbmodels.NewAgent(core.NewRecord(r.collection))
+	agent.SetName(data.name)
+	agent.SetMusenalmID(r.nextFreeID)
+	agent.SetEditState(data.editState)
+	if strings.TrimSpace(annotation) == "" {
+		annotation = data.annotation
+	}
+	agent.SetAnnotation(NormalizeString(annotation))
+
+	if err := r.app.Save(agent); err != nil {
+		return nil, err
+	}
+
+	r.nextFreeID++
+	r.byName[name] = agent
+	r.byID[agent.Id] = agent
+
+	return agent, nil
+}
+
+func buildMinimalAutoCreatedAgent(name string) minimalAutoCreatedAgentData {
+	return minimalAutoCreatedAgentData{
+		name:       normalizeAgentName(name),
+		editState:  dbmodels.EDITORSTATE_VALUES[1],
+		annotation: autoCreatedLegacyContentAgentAnnotation,
+	}
+}
+
 func LegacyRowsByINHNR(legacy map[int]LegacyBandMatch) map[int]xmlmodels.LegacyINHTabRow {
 	ret := make(map[int]xmlmodels.LegacyINHTabRow)
 
@@ -359,8 +406,14 @@ func RecordsFromLegacyContentsAgents(
 					}
 					agent = created
 				} else {
-					app.Logger().Error("Legacy content author not found in agents or REALNAME-Tab", "content_musenalm_id", row.INHNR, "name", name)
-					continue
+					created, err := resolver.CreateMinimalAgent(name, autoCreatedLegacyContentAgentAnnotation)
+					if err != nil {
+						return nil, err
+					}
+					if created != nil {
+						app.Logger().Warn("Legacy content author auto-created from AUTORREALNAME", "content_musenalm_id", row.INHNR, "name", name)
+					}
+					agent = created
 				}
 			}
 

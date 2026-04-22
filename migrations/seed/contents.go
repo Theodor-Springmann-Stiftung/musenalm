@@ -3,6 +3,7 @@ package seed
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -433,7 +434,7 @@ func RecordsFromLegacyData(
 		record.SetPseudonym(pseudonymData.pseudonym)
 		record.SetMusenalmType(legacyMusenalmTypes(row.Objekt))
 		if row.Seite != 0 {
-			record.SetExtent(strconv.FormatFloat(row.Seite, 'f', -1, 64))
+			record.SetExtent(legacyPageExtent(row.Seite))
 		}
 		record.SetTitleStmt(NormalizeString(row.Titel))
 		record.SetIncipitStmt(NormalizeString(row.Incipit))
@@ -492,7 +493,7 @@ func RecordsFromLegacyINHTab(
 			record.SetPseudonym(pseudonymData.pseudonym)
 			record.SetMusenalmType(legacyMusenalmTypes(row.Objekt))
 			if row.Seite != 0 {
-				record.SetExtent(strconv.FormatFloat(row.Seite, 'f', -1, 64))
+				record.SetExtent(legacyPageExtent(row.Seite))
 			}
 			record.SetTitleStmt(NormalizeString(row.Titel))
 			record.SetIncipitStmt(NormalizeString(row.Incipit))
@@ -528,6 +529,10 @@ func applyLegacyUpdatedToContent(record *dbmodels.Content, legacy LegacyBandMatc
 	if updated, ok := parseLegacyEditedAt(legacy.LegacyAlm.BearbeitetAm); ok {
 		record.SetUpdated(updated)
 	}
+}
+
+func legacyPageExtent(page float64) string {
+	return strconv.FormatInt(int64(math.Floor(page)), 10)
 }
 
 func legacyMusenalmTypes(raw string) []string {

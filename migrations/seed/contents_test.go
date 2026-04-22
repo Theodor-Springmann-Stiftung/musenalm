@@ -70,6 +70,15 @@ func TestApplyLegacyUpdatedToContentIgnoresInvalidLegacyTimestamp(t *testing.T) 
 	}
 }
 
+func TestLegacyPageExtentDropsFractionalPart(t *testing.T) {
+	if got := legacyPageExtent(37.001); got != "37" {
+		t.Fatalf("expected 37, got %q", got)
+	}
+	if got := legacyPageExtent(103.999); got != "103" {
+		t.Fatalf("expected 103, got %q", got)
+	}
+}
+
 func TestParseIndexedImageSupportsLegacyFilenameVariants(t *testing.T) {
 	tests := []struct {
 		path      string

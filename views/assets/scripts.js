@@ -10013,7 +10013,10 @@ class _m extends HTMLElement {
     } = this._collectRelations(t, {
       prefix: "entries_series",
       targetField: "series"
-    }), g = this._collectNewRelations("entries_series"), b = this._readValue(t, "preferred_series_id"), {
+    }), g = this._collectNewRelations("entries_series"), b = this._readValue(t, "preferred_series_id");
+    if (!b)
+      throw new Error("Reihentitel ist erforderlich.");
+    const {
       relations: m,
       deleted: f
     } = this._collectRelations(t, {
