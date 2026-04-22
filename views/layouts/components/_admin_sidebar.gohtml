@@ -271,13 +271,13 @@
 	</nav>
 
 	<div class="admin-sidebar-account">
-		<div class="admin-sidebar-account-name">
+		<a href="/admin/" class="admin-sidebar-account-name no-underline">
 			{{- if and $model.request $model.request.user $model.request.user.Name -}}
 				{{ $model.request.user.Name }}
 			{{- else -}}
 				Account
 			{{- end -}}
-		</div>
+		</a>
 		<div class="admin-sidebar-account-role">
 			{{- if and $model.request $model.request.user -}}
 				{{- if eq $model.request.user.Role "Admin" -}}
@@ -292,13 +292,14 @@
 			{{- end -}}
 		</div>
 		<div class="admin-sidebar-account-links">
-			<span class="admin-sidebar-account-icon" data-admin-sidebar-tooltip="Konto">
-				<i class="ri-user-line" aria-hidden="true"></i>
-			</span>
 			{{- if $canEditAccount -}}
-				<a href="{{ $accountHref }}" data-admin-sidebar-tooltip="Bearbeiten" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
-					<span class="admin-sidebar-link-label"><i class="ri-pencil-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Bearbeiten</span></span>
+				<a href="{{ $accountHref }}" data-admin-sidebar-tooltip="Einstellungen" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
+					<span class="admin-sidebar-link-label"><i class="ri-user-settings-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Einstellungen</span></span>
 				</a>
+			{{- else -}}
+				<span class="admin-sidebar-account-icon" data-admin-sidebar-tooltip="Konto">
+					<i class="ri-user-line" aria-hidden="true"></i>
+				</span>
 			{{- end -}}
 			<a href="/logout/?redirectTo=/reihen/" data-admin-sidebar-tooltip="Logout" class="admin-sidebar-link admin-sidebar-account-link">
 				<span class="admin-sidebar-link-label"><i class="ri-logout-box-r-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Logout</span></span>
