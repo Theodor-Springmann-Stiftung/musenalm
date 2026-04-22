@@ -180,8 +180,6 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			})
 		}
 
-		SetRedirect(data, e)
-
-		return RedirectTo(e)
+		return e.Redirect(303, URL_ADMIN_START)
 	}
 }

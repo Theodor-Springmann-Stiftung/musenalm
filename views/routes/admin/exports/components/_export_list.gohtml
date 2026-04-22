@@ -85,7 +85,7 @@
 							</button>
 						{{- end -}}
 						{{- if eq $export.Status "complete" -}}
-							<a class="no-underline inline-flex items-center gap-2 rounded-xs bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" href="/admin/exports/download/{{ $export.Id }}">
+							<a hx-boost="false" class="no-underline inline-flex items-center gap-2 rounded-xs bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50" href="/admin/exports/download/{{ $export.Id }}">
 								<i class="ri-download-line"></i> Download
 							</a>
 						{{- end -}}

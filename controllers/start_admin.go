@@ -6,6 +6,7 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers/imports"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
@@ -39,6 +40,7 @@ type startEntryView struct {
 	MusenalmId     int
 	PreferredTitle string
 	Updated        types.DateTime
+	EditState      string
 	EditURL        string
 	ViewURL        string
 }
@@ -48,6 +50,7 @@ type startContentView struct {
 	MusenalmId     int
 	PreferredTitle string
 	Updated        types.DateTime
+	EditState      string
 	EntryId        string
 	EditURL        string
 	ViewURL        string
@@ -149,6 +152,7 @@ func (p *AdminStartPage) pageHandler(engine *templating.Engine, appInstance core
 				MusenalmId:     entry.MusenalmID(),
 				PreferredTitle: entry.PreferredTitle(),
 				Updated:        entry.Updated(),
+				EditState:      entry.EditState(),
 				EditURL:        fmt.Sprintf(URL_ALMANACH_EDIT_FORMAT, fmt.Sprintf("%d", entry.MusenalmID())),
 				ViewURL:        fmt.Sprintf(URL_ALMANACH_VIEW, entry.MusenalmID()),
 			})
@@ -196,6 +200,7 @@ func (p *AdminStartPage) pageHandler(engine *templating.Engine, appInstance core
 				MusenalmId:     content.MusenalmID(),
 				PreferredTitle: content.PreferredTitle(),
 				Updated:        content.Updated(),
+				EditState:      content.EditState(),
 				EntryId:        entryDbId,
 				EditURL:        fmt.Sprintf(URL_ALMANACH_CONTENTS_PANEL_EDIT_FORMAT, fmt.Sprintf("%d", entryMID), content.MusenalmID()),
 				ViewURL:        fmt.Sprintf(URL_BEITRAG_VIEW_FORMAT, content.MusenalmID()),
@@ -219,7 +224,15 @@ func (p *AdminStartPage) pageHandler(engine *templating.Engine, appInstance core
 		if fts5Status == "" {
 			fts5Status = "idle"
 		}
-		fts5LastRebuild := formatLastRebuild(appInstance)
+		if snapshot, ok := imports.FTS5Status(); ok {
+			if imports.FTS5IsRunning() || fts5Status == "" || fts5Status == "idle" || fts5Status == "running" || fts5Status == "restarting" {
+				fts5Status = snapshot.Status
+			}
+		}
+		var fts5LastRebuildDT types.DateTime
+		if raw := formatLastRebuild(appInstance); raw != "" {
+			fts5LastRebuildDT, _ = types.ParseDateTime(raw)
+		}
 
 		stats, err := loadSiteStats(appInstance)
 		if err != nil {
@@ -239,7 +252,7 @@ func (p *AdminStartPage) pageHandler(engine *templating.Engine, appInstance core
 		data["recent_inhalte"] = recentInhalte
 		data["latest_export"] = latestExport
 		data["fts5_status"] = fts5Status
-		data["fts5_last_rebuild"] = fts5LastRebuild
+		data["fts5_last_rebuild_dt"] = fts5LastRebuildDT
 		data["stats"] = stats
 		data["session_minutes_left"] = sessionMinutesLeft
 		data["session_expires_at"] = sessionExpiresAt

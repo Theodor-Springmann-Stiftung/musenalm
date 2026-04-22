@@ -431,6 +431,12 @@ func rebuildFTSWithContext(app core.App, clearExisting bool, ctx context.Context
 		return nil
 	})
 
+	// The defer above resets fts5SuppressSettings on function return, but the
+	// final state calls below must reach the DB now — flip it early.
+	fts5StatusMu.Lock()
+	fts5SuppressSettings = false
+	fts5StatusMu.Unlock()
+
 	if txErr != nil {
 		app.Logger().Error("FTS5 rebuild transaction failed", "error", txErr)
 		setFTS5RebuildState(app, "error", "Neuaufbau fehlgeschlagen.", done, total, txErr.Error())
