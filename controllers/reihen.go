@@ -206,8 +206,9 @@ func NewCommonReihenData(musenalmApp *app.App) CommonReihenData {
 }
 
 type SeriesListResult struct {
-	Series        []*dbmodels.Series
-	EntriesSeries map[string][]*dbmodels.REntriesSeries // <-- Key is Series.ID
+	Series           []*dbmodels.Series
+	EntriesSeries    map[string][]*dbmodels.REntriesSeries // <-- Key is Series.ID, secondary relations only
+	PreferredEntries map[string][]*dbmodels.Entry          // <-- Key is Series.ID, preferred entries
 
 	// INFO: Only on agent request
 	Agent         *dbmodels.Agent
@@ -242,14 +243,19 @@ func NewSeriesListResult_Letter(musenalmApp *app.App, letter string) (*SeriesLis
 	for _, r := range relations {
 		relationsMap[r.Series()] = append(relationsMap[r.Series()], r)
 	}
-
 	for _, r := range relationsMap {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
 
+	preferredEntries, err := loadPreferredEntriesBySeries(pbApp, dbmodels.Ids(series))
+	if err != nil {
+		return nil, err
+	}
+
 	return &SeriesListResult{
-		Series:        series,
-		EntriesSeries: relationsMap,
+		Series:           series,
+		EntriesSeries:    relationsMap,
+		PreferredEntries: preferredEntries,
 	}, nil
 }
 
@@ -278,10 +284,29 @@ func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResu
 	}
 
 	sids := []any{}
+	seenSIDs := map[string]struct{}{}
 	entriesseries := map[string][]*dbmodels.REntriesSeries{}
 	for _, r := range entriesseriesrels {
-		sids = append(sids, r.Series())
+		if _, ok := seenSIDs[r.Series()]; !ok {
+			seenSIDs[r.Series()] = struct{}{}
+			sids = append(sids, r.Series())
+		}
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
+	}
+
+	entries, err := dbmodels.Entries_IDs(pbApp, eids)
+	if err != nil {
+		return nil, err
+	}
+	preferredEntries := map[string][]*dbmodels.Entry{}
+	for _, entry := range entries {
+		if sid := entry.Series(); sid != "" {
+			preferredEntries[sid] = append(preferredEntries[sid], entry)
+			if _, ok := seenSIDs[sid]; !ok {
+				seenSIDs[sid] = struct{}{}
+				sids = append(sids, sid)
+			}
+		}
 	}
 
 	series, err := dbmodels.Series_IDs(pbApp, sids)
@@ -295,39 +320,51 @@ func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResu
 	}
 
 	return &SeriesListResult{
-		Series:        series,
-		EntriesSeries: entriesseries,
-		Agent:         agent,
-		EntriesAgents: entriesagents,
+		Series:           series,
+		EntriesSeries:    entriesseries,
+		PreferredEntries: preferredEntries,
+		Agent:            agent,
+		EntriesAgents:    entriesagents,
 	}, nil
 }
 
 func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, error) {
 	pbApp := musenalmApp.Core()
-	entries := []*core.Record{}
+	fullEntries := []*dbmodels.Entry{}
 	err := pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
-		Select(dbmodels.ID_FIELD).
 		Where(dbx.HashExp{dbmodels.YEAR_FIELD: year}).
-		All(&entries)
+		All(&fullEntries)
 	if err != nil {
 		return nil, err
 	}
 
-	eids := []any{}
-	for _, e := range entries {
-		eids = append(eids, e.Id)
-	}
+	eids := dbmodels.Ids(fullEntries)
 
 	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(pbApp, eids)
 	if err != nil {
 		return nil, err
 	}
 
+	seenSIDs := map[string]struct{}{}
 	sids := []any{}
 	entriesseries := map[string][]*dbmodels.REntriesSeries{}
 	for _, r := range entriesseriesrels {
-		sids = append(sids, r.Series())
+		if _, ok := seenSIDs[r.Series()]; !ok {
+			seenSIDs[r.Series()] = struct{}{}
+			sids = append(sids, r.Series())
+		}
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
+	}
+
+	preferredEntries := map[string][]*dbmodels.Entry{}
+	for _, entry := range fullEntries {
+		if sid := entry.Series(); sid != "" {
+			preferredEntries[sid] = append(preferredEntries[sid], entry)
+			if _, ok := seenSIDs[sid]; !ok {
+				seenSIDs[sid] = struct{}{}
+				sids = append(sids, sid)
+			}
+		}
 	}
 
 	series, err := dbmodels.Series_IDs(pbApp, sids)
@@ -341,8 +378,9 @@ func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, er
 	}
 
 	return &SeriesListResult{
-		Series:        series,
-		EntriesSeries: entriesseries,
+		Series:           series,
+		EntriesSeries:    entriesseries,
+		PreferredEntries: preferredEntries,
 	}, nil
 }
 
@@ -353,30 +391,41 @@ func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResul
 		return nil, err
 	}
 
-	entries := []*core.Record{}
+	fullEntries := []*dbmodels.Entry{}
 	err = pbApp.RecordQuery(dbmodels.ENTRIES_TABLE).
-		Select(dbmodels.ID_FIELD).
 		Where(dbx.Like(dbmodels.PLACES_TABLE, p.Id).Match(true, true)).
-		All(&entries)
+		All(&fullEntries)
 	if err != nil {
 		return nil, err
 	}
 
-	eids := []any{}
-	for _, e := range entries {
-		eids = append(eids, e.Id)
-	}
+	eids := dbmodels.Ids(fullEntries)
 
 	entriesseriesrels, err := dbmodels.REntriesSeries_Entries(pbApp, eids)
 	if err != nil {
 		return nil, err
 	}
 
+	seenSIDs := map[string]struct{}{}
 	sids := []any{}
 	entriesseries := map[string][]*dbmodels.REntriesSeries{}
 	for _, r := range entriesseriesrels {
-		sids = append(sids, r.Series())
+		if _, ok := seenSIDs[r.Series()]; !ok {
+			seenSIDs[r.Series()] = struct{}{}
+			sids = append(sids, r.Series())
+		}
 		entriesseries[r.Series()] = append(entriesseries[r.Series()], r)
+	}
+
+	preferredEntries := map[string][]*dbmodels.Entry{}
+	for _, entry := range fullEntries {
+		if sid := entry.Series(); sid != "" {
+			preferredEntries[sid] = append(preferredEntries[sid], entry)
+			if _, ok := seenSIDs[sid]; !ok {
+				seenSIDs[sid] = struct{}{}
+				sids = append(sids, sid)
+			}
+		}
 	}
 
 	series, err := dbmodels.Series_IDs(pbApp, sids)
@@ -390,9 +439,10 @@ func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResul
 	}
 
 	return &SeriesListResult{
-		Series:        series,
-		EntriesSeries: entriesseries,
-		Place:         p,
+		Series:           series,
+		EntriesSeries:    entriesseries,
+		PreferredEntries: preferredEntries,
+		Place:            p,
 	}, nil
 }
 
@@ -423,10 +473,16 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
 
+	preferredEntries, err := loadPreferredEntriesBySeries(pbApp, keys)
+	if err != nil {
+		return nil, err
+	}
+
 	ret := &SeriesListResult{
-		Series:        series,
-		AltSeries:     altseries,
-		EntriesSeries: relationsMap,
+		Series:           series,
+		AltSeries:        altseries,
+		EntriesSeries:    relationsMap,
+		PreferredEntries: preferredEntries,
 	}
 
 	if _, err := strconv.Atoi(strings.TrimSpace(search)); err == nil {
@@ -454,10 +510,31 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 			for _, r := range ret.EntriesSeries {
 				sortSeriesRelationsByEntryYear(r, musenalmApp)
 			}
+			for _, entry := range identries {
+				if sid := entry.Series(); sid != "" {
+					ret.PreferredEntries[sid] = append(ret.PreferredEntries[sid], entry)
+				}
+			}
 		}
 	}
 
 	return ret, nil
+}
+
+func loadPreferredEntriesBySeries(app core.App, seriesIDs []any) (map[string][]*dbmodels.Entry, error) {
+	if len(seriesIDs) == 0 {
+		return map[string][]*dbmodels.Entry{}, nil
+	}
+	entries, err := dbmodels.Entries_SeriesIDs(app, seriesIDs)
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string][]*dbmodels.Entry, len(seriesIDs))
+	for _, entry := range entries {
+		sid := entry.Series()
+		m[sid] = append(m[sid], entry)
+	}
+	return m, nil
 }
 
 func (r *SeriesListResult) Count() int {
@@ -473,14 +550,45 @@ func seriesRelationsBySeriesIDs(pbApp core.App, ids []any) ([]*dbmodels.REntries
 }
 
 func Entries_Series_IDs(pbApp core.App, ids []any) ([]*dbmodels.Entry, []*dbmodels.REntriesSeries, error) {
+	if len(ids) == 0 {
+		return []*dbmodels.Entry{}, []*dbmodels.REntriesSeries{}, nil
+	}
+
 	relations, err := seriesRelationsBySeriesIDs(pbApp, ids)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	entryIDs := make([]any, 0, len(relations))
+	preferredEntries, err := dbmodels.Entries_SeriesIDs(pbApp, ids)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	entryIDs := make([]any, 0, len(relations)+len(preferredEntries))
+	seenEntryIDs := make(map[string]struct{}, len(relations)+len(preferredEntries))
 	for _, relation := range relations {
+		if relation == nil || relation.Entry() == "" {
+			continue
+		}
+		if _, ok := seenEntryIDs[relation.Entry()]; ok {
+			continue
+		}
+		seenEntryIDs[relation.Entry()] = struct{}{}
 		entryIDs = append(entryIDs, relation.Entry())
+	}
+	for _, entry := range preferredEntries {
+		if entry == nil || entry.Id == "" {
+			continue
+		}
+		if _, ok := seenEntryIDs[entry.Id]; ok {
+			continue
+		}
+		seenEntryIDs[entry.Id] = struct{}{}
+		entryIDs = append(entryIDs, entry.Id)
+	}
+
+	if len(entryIDs) == 0 {
+		return []*dbmodels.Entry{}, relations, nil
 	}
 
 	entries, err := dbmodels.Entries_IDs(pbApp, entryIDs)
@@ -503,14 +611,40 @@ func sortSeriesRelationsByEntryYear(relations []*dbmodels.REntriesSeries, musena
 }
 
 func Series_Entries(app core.App, entries []*dbmodels.Entry) ([]*dbmodels.Series, []*dbmodels.REntriesSeries, error) {
+	if len(entries) == 0 {
+		return []*dbmodels.Series{}, []*dbmodels.REntriesSeries{}, nil
+	}
+
 	relations, err := dbmodels.REntriesSeries_Entries(app, dbmodels.Ids(entries))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	sids := []any{}
+	sids := make([]any, 0, len(relations)+len(entries))
+	seenSeriesIDs := make(map[string]struct{}, len(relations)+len(entries))
 	for _, r := range relations {
+		if r == nil || r.Series() == "" {
+			continue
+		}
+		if _, ok := seenSeriesIDs[r.Series()]; ok {
+			continue
+		}
+		seenSeriesIDs[r.Series()] = struct{}{}
 		sids = append(sids, r.Series())
+	}
+	for _, entry := range entries {
+		if entry == nil || entry.Series() == "" {
+			continue
+		}
+		if _, ok := seenSeriesIDs[entry.Series()]; ok {
+			continue
+		}
+		seenSeriesIDs[entry.Series()] = struct{}{}
+		sids = append(sids, entry.Series())
+	}
+
+	if len(sids) == 0 {
+		return []*dbmodels.Series{}, relations, nil
 	}
 
 	series, err := dbmodels.Series_IDs(app, sids)

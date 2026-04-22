@@ -21,20 +21,22 @@ type SearchResultBaende struct {
 	Entries map[string]*dbmodels.Entry // <- Key: Entry ID
 
 	// INFO: this is as they say doppelt gemoppelt bc of a logic error i made while tired
-	EntriesSeries map[string][]*dbmodels.REntriesSeries // <- Key: Entry ID
-	SeriesEntries map[string][]*dbmodels.REntriesSeries // <- Key: Series ID
-	EntriesAgents map[string][]*dbmodels.REntriesAgents // <- Key: Entry ID
+	EntriesSeries          map[string][]*dbmodels.REntriesSeries // <- Key: Entry ID, secondary only
+	SeriesEntries          map[string][]*dbmodels.REntriesSeries // <- Key: Series ID, secondary only
+	PreferredSeriesEntries map[string][]*dbmodels.Entry           // <- Key: Series ID, preferred entries
+	EntriesAgents          map[string][]*dbmodels.REntriesAgents  // <- Key: Entry ID
 
 	Pages []int
 }
 
 func EmptyResultBaende() *SearchResultBaende {
 	return &SearchResultBaende{
-		Hits:          []string{},
-		Entries:       make(map[string]*dbmodels.Entry),
-		EntriesSeries: make(map[string][]*dbmodels.REntriesSeries),
-		SeriesEntries: make(map[string][]*dbmodels.REntriesSeries),
-		EntriesAgents: make(map[string][]*dbmodels.REntriesAgents),
+		Hits:                   []string{},
+		Entries:                make(map[string]*dbmodels.Entry),
+		EntriesSeries:          make(map[string][]*dbmodels.REntriesSeries),
+		SeriesEntries:          make(map[string][]*dbmodels.REntriesSeries),
+		PreferredSeriesEntries: make(map[string][]*dbmodels.Entry),
+		EntriesAgents:          make(map[string][]*dbmodels.REntriesAgents),
 	}
 }
 
@@ -108,11 +110,25 @@ func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResu
 		relationsagentsmap[r.Entry()] = append(relationsagentsmap[r.Entry()], r)
 	}
 
+	preferredSeriesMap := make(map[string][]*dbmodels.Entry)
+	for _, entry := range entries {
+		if sid := entry.Series(); sid != "" {
+			preferredSeriesMap[sid] = append(preferredSeriesMap[sid], entry)
+		}
+	}
+
 	hits := []string{}
 	var pages []int
 	if params.Sort == "series" {
+		seenSeriesHits := map[string]struct{}{}
 		for seriesID := range invrelationsmap {
-			hits = append(hits, seriesID)
+			seenSeriesHits[seriesID] = struct{}{}
+		}
+		for seriesID := range preferredSeriesMap {
+			seenSeriesHits[seriesID] = struct{}{}
+		}
+		for sid := range seenSeriesHits {
+			hits = append(hits, sid)
 		}
 		slices.SortFunc(hits, func(left, right string) int {
 			leftSeries := app.GetSeriesDisplay(left)
@@ -125,7 +141,11 @@ func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResu
 			}
 			return 1
 		})
-		pages = PagesMap(hits, invrelationsmap, DEFAULT_PAGESIZE_BAENDE)
+		seriesCountMap := make(map[string]int, len(seenSeriesHits))
+		for sid := range seenSeriesHits {
+			seriesCountMap[sid] = len(invrelationsmap[sid]) + len(preferredSeriesMap[sid])
+		}
+		pages = PagesMapCounts(hits, seriesCountMap, DEFAULT_PAGESIZE_BAENDE)
 	} else {
 		dbmodels.Sort_Entries_Year_Title(entries)
 		for _, e := range entries {
@@ -145,12 +165,13 @@ func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResu
 	}
 
 	return &SearchResultBaende{
-		Hits:          hits,
-		Entries:       entriesmap,
-		EntriesSeries: relationsmap,
-		SeriesEntries: invrelationsmap,
-		EntriesAgents: relationsagentsmap,
-		Pages:         pages,
+		Hits:                   hits,
+		Entries:                entriesmap,
+		EntriesSeries:          relationsmap,
+		SeriesEntries:          invrelationsmap,
+		PreferredSeriesEntries: preferredSeriesMap,
+		EntriesAgents:          relationsagentsmap,
+		Pages:                  pages,
 	}, nil
 
 }

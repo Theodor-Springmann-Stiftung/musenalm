@@ -287,6 +287,9 @@
 							<span class="text-base font-sans pr-2  border-zinc-300">Reihe</span>
 							<span class="pl-2">{{ $series.Name }}</span>
 						</div>
+						{{- range $_, $entry := index $model.result.PreferredSeriesEntries $hit -}}
+							{{- template "band" (Arr $model $entry false) -}}
+						{{- end -}}
 						{{- range $_, $rel := index $model.result.SeriesEntries $hit -}}
 							{{- $entry := index $model.result.Entries $rel.Entry -}}
 							{{- template "band" (Arr $model $entry false) -}}

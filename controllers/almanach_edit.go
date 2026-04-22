@@ -17,10 +17,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-const (
-	preferredSeriesRelationType = "Bevorzugter Reihentitel"
-)
-
 func init() {
 	ep := &AlmanachEditPage{
 		StaticPage: pagemodels.StaticPage{
@@ -117,8 +113,11 @@ func NewAlmanachEditResult(app core.App, displayApp *musapp.App, id string, filt
 	}
 
 	series := []*dbmodels.Series{}
-	if len(result.SeriesRelations) > 0 {
-		sids := make([]any, 0, len(result.SeriesRelations))
+	{
+		sids := make([]any, 0, len(result.SeriesRelations)+1)
+		if sid := result.Entry.Series(); sid != "" {
+			sids = append(sids, sid)
+		}
 		for _, rel := range result.SeriesRelations {
 			if rel != nil && rel.Series() != "" {
 				sids = append(sids, rel.Series())
@@ -221,7 +220,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			if err := store.SaveEntryItems(tx, entry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			if err := store.SaveEntrySeriesRelations(tx, entry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, entry, payload.PreferredSeriesID, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
 				return err
 			}
 			if err := store.SaveEntryAgentRelations(tx, entry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs, effects); err != nil {
@@ -366,6 +365,7 @@ type almanachEditPayload struct {
 	Entry                    almanachEntryPayload         `json:"entry"`
 	Languages                []string                     `json:"languages"`
 	Places                   []string                     `json:"places"`
+	PreferredSeriesID        string                       `json:"preferred_series_id"`
 	Items                    []almanachItemPayload        `json:"items"`
 	DeletedItemIDs           []string                     `json:"deleted_item_ids"`
 	SeriesRelations          []almanachRelationPayload    `json:"series_relations"`

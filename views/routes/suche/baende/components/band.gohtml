@@ -138,9 +138,25 @@
 				{{- end -}}
 			</a>
 		</div>
+		{{- $preferredSID := $entry.Series -}}
 		{{- $srels := index $model.result.EntriesSeries $entry.Id -}}
-		{{- if $srels -}}
+		{{- if or $preferredSID $srels -}}
 			<div class="flex flex-row flex-wrap py-1 gap-y-1">
+				{{- if $preferredSID -}}
+					{{- $series := seriesDisplay $preferredSID -}}
+					<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
+						<span class="border-r pr-2 border-gray-300">Reihentitel</span
+						><a
+							href="/reihe/{{ $series.MusenalmID }}"
+							class="no-underline pl-2 block {{ if
+								$isSeries
+							-}}
+								search-text
+							{{- end -}}">
+							<b>{{- $series.Name -}}</b>
+						</a>
+					</div>
+				{{- end -}}
 				{{- range $_, $srel := $srels -}}
 					{{- $series := seriesDisplay $srel.Series -}}
 					<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">

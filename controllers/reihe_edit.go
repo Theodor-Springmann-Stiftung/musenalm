@@ -205,7 +205,7 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, ia p
 		}
 
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.DeleteSeries(tx, series, preferredSeriesRelationType, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
+			return store.DeleteSeries(tx, series, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete series", "series_id", series.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -300,24 +300,7 @@ func seriesContentsDetails(app core.App, entries []*dbmodels.Entry) ([]*dbmodels
 }
 
 func preferredSeriesEntries(app core.App, seriesID string) ([]*dbmodels.Entry, error) {
-	relations, err := dbmodels.REntriesSeries_Seriess(app, []any{seriesID})
-	if err != nil {
-		return nil, err
-	}
-	if len(relations) == 0 {
-		return []*dbmodels.Entry{}, nil
-	}
-	entryIDs := []any{}
-	for _, relation := range relations {
-		if strings.TrimSpace(relation.Type()) != preferredSeriesRelationType {
-			continue
-		}
-		entryIDs = append(entryIDs, relation.Entry())
-	}
-	if len(entryIDs) == 0 {
-		return []*dbmodels.Entry{}, nil
-	}
-	return dbmodels.Entries_IDs(app, entryIDs)
+	return dbmodels.Entries_Series(app, seriesID)
 }
 
 type reiheEditForm struct {

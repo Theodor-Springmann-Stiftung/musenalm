@@ -97,6 +97,7 @@ type EntryInput struct {
 	Year              *int
 	Languages         []string
 	Places            []string
+	PreferredSeriesID string
 	EditorID          string
 	ExpectedUpdatedAt *time.Time
 }
@@ -434,11 +435,11 @@ func (s *Store) UpdateSeriesStatus(tx core.App, series *dbmodels.Series, status 
 	return nil
 }
 
-func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, preferredRelationType string, opts DeleteOptions, effects *MutationEffects) error {
+func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, opts DeleteOptions, effects *MutationEffects) error {
 	if err := checkExpectedUpdatedAt(series.Updated().Time(), opts.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
-	preferredEntries, err := s.preferredSeriesEntries(tx, series.Id, preferredRelationType)
+	preferredEntries, err := s.preferredSeriesEntries(tx, series.Id)
 	if err != nil {
 		return err
 	}
@@ -630,8 +631,8 @@ func (s *Store) SaveEntryItems(tx core.App, entry *dbmodels.Entry, items []ItemI
 	return nil
 }
 
-func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
-	if err := validateEntrySeriesRelations(relations, newRelations); err != nil {
+func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, preferredSeriesID string, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
+	if err := validateEntrySeriesRelations(preferredSeriesID, relations, newRelations); err != nil {
 		return err
 	}
 
@@ -1359,6 +1360,7 @@ func (s *Store) applyEntryInput(entry *dbmodels.Entry, input EntryInput) {
 	entry.SetEditState(strings.TrimSpace(input.Status))
 	entry.SetLanguage(sanitizeStrings(input.Languages))
 	entry.SetPlaces(sanitizeStrings(input.Places))
+	entry.SetSeries(strings.TrimSpace(input.PreferredSeriesID))
 	if input.EditorID != "" {
 		entry.SetEditor(input.EditorID)
 	}
@@ -1505,13 +1507,16 @@ func validateEntryInput(input EntryInput) error {
 	if strings.TrimSpace(input.PreferredTitle) == "" {
 		return validationErrorf("Kurztitel ist erforderlich.")
 	}
+	if strings.TrimSpace(input.PreferredSeriesID) == "" {
+		return validationErrorf("Reihentitel ist erforderlich.")
+	}
 	if input.Year == nil {
 		return validationErrorf("Jahr muss angegeben werden.")
 	}
 	return validateStatus(input.Status)
 }
 
-func validateEntrySeriesRelations(relations []RelationInput, newRelations []RelationInput) error {
+func validateEntrySeriesRelations(preferredSeriesID string, relations []RelationInput, newRelations []RelationInput) error {
 	if err := validateRelations(relations, dbmodels.SERIES_RELATIONS); err != nil {
 		return err
 	}
@@ -1519,8 +1524,8 @@ func validateEntrySeriesRelations(relations []RelationInput, newRelations []Rela
 		return err
 	}
 
-	preferredCount := 0
 	seriesTargetIDs := make(map[string]struct{}, len(relations)+len(newRelations))
+	preferredSeriesID = strings.TrimSpace(preferredSeriesID)
 	for _, relation := range append(append([]RelationInput{}, relations...), newRelations...) {
 		targetID := strings.TrimSpace(relation.TargetID)
 		if targetID == "" {
@@ -1529,16 +1534,10 @@ func validateEntrySeriesRelations(relations []RelationInput, newRelations []Rela
 		if _, exists := seriesTargetIDs[targetID]; exists {
 			return validationErrorf("Doppelte Reihenverknüpfungen sind nicht erlaubt.")
 		}
-		seriesTargetIDs[targetID] = struct{}{}
-		if strings.TrimSpace(relation.Type) == "Bevorzugter Reihentitel" {
-			preferredCount++
+		if preferredSeriesID != "" && targetID == preferredSeriesID {
+			return validationErrorf("Die bevorzugte Reihe darf nicht zusätzlich als weitere Reihenverknüpfung gesetzt sein.")
 		}
-	}
-	if preferredCount == 0 {
-		return validationErrorf("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.")
-	}
-	if preferredCount > 1 {
-		return validationErrorf("Es darf nur ein bevorzugter Reihentitel gesetzt sein.")
+		seriesTargetIDs[targetID] = struct{}{}
 	}
 
 	return nil
@@ -1684,27 +1683,8 @@ func (s *Store) deleteEntryContents(tx core.App, entryID string) error {
 	return nil
 }
 
-func (s *Store) preferredSeriesEntries(app core.App, seriesID string, preferredRelationType string) ([]*dbmodels.Entry, error) {
-	relations, err := dbmodels.REntriesSeries_Seriess(app, []any{seriesID})
-	if err != nil {
-		return nil, err
-	}
-	if len(relations) == 0 {
-		return []*dbmodels.Entry{}, nil
-	}
-
-	entryIDs := []any{}
-	for _, relation := range relations {
-		if strings.TrimSpace(relation.Type()) != preferredRelationType {
-			continue
-		}
-		entryIDs = append(entryIDs, relation.Entry())
-	}
-	if len(entryIDs) == 0 {
-		return []*dbmodels.Entry{}, nil
-	}
-
-	return dbmodels.Entries_IDs(app, entryIDs)
+func (s *Store) preferredSeriesEntries(app core.App, seriesID string) ([]*dbmodels.Entry, error) {
+	return dbmodels.Entries_Series(app, seriesID)
 }
 
 func nextMusenalmID(app core.App, table string) (int, error) {

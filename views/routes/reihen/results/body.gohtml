@@ -7,7 +7,7 @@
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.IDSeries }}
 					{{ template "_reihe" (Arr $r $model.result.EntriesSeries
-					true false false $model.request) }}
+					true false false $model.request $model.result.PreferredEntries) }}
 				{{ end }}
 			</div>
 		{{ end }}
@@ -16,7 +16,7 @@
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.Series }}
 					{{ template "_reihe" (Arr $r $model.result.EntriesSeries false false
-						false $model.request)
+						false $model.request $model.result.PreferredEntries)
 					}}
 				{{ end }}
 			</div>
@@ -47,7 +47,7 @@
 			<div class="mb-1 max-w-[60rem] hyphens-auto">
 				{{ range $id, $r := $model.result.AltSeries }}
 					{{ template "_reihe" (Arr $r $model.result.EntriesSeries
-					false true true $model.request) }}
+					false true true $model.request $model.result.PreferredEntries) }}
 				{{ end }}
 			</div>
 		{{ end }}

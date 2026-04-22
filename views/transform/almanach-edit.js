@@ -1,5 +1,3 @@
-const PREFERRED_SERIES_RELATION = "Bevorzugter Reihentitel";
-
 export class AlmanachEditPage extends HTMLElement {
 	constructor() {
 		super();
@@ -15,8 +13,6 @@ export class AlmanachEditPage extends HTMLElement {
 		this._saveEndpoint = "";
 		this._deleteEndpoint = "";
 		this._isSaving = false;
-		this._preferredSeriesRelationId = "";
-		this._preferredSeriesSeriesId = "";
 		this._handleSaveClick = this._handleSaveClick.bind(this);
 		this._handleSaveViewClick = this._handleSaveViewClick.bind(this);
 		this._handleResetClick = this._handleResetClick.bind(this);
@@ -30,7 +26,6 @@ export class AlmanachEditPage extends HTMLElement {
 		setTimeout(() => {
 			this._initForm();
 			this._initPlaces();
-			this._initPreferredSeries();
 			this._initSaveHandling();
 			this._initStatusSelect();
 		}, 0);
@@ -178,16 +173,6 @@ export class AlmanachEditPage extends HTMLElement {
 			this._deleteDialog.addEventListener("cancel", this._handleDeleteCancelClick);
 		}
 	}
-
-	_initPreferredSeries() {
-		const preferredSelect = this.querySelector("#preferred-series-field");
-		if (!preferredSelect) {
-			return;
-		}
-		this._preferredSeriesRelationId = preferredSelect.getAttribute("data-preferred-relation-id") || "";
-		this._preferredSeriesSeriesId = preferredSelect.getAttribute("data-preferred-series-id") || "";
-	}
-
 
 	_teardownSaveHandling() {
 		if (this._saveButton) {
@@ -462,59 +447,6 @@ export class AlmanachEditPage extends HTMLElement {
 			throw new Error("Reihentitel ist erforderlich.");
 		}
 
-		const applyPreferred = (relation) => {
-			relation.type = PREFERRED_SERIES_RELATION;
-			relation.uncertain = false;
-		};
-
-		let preferredApplied = false;
-		seriesRelations.forEach((relation) => {
-			if (relation.target_id === preferredSeriesId) {
-				applyPreferred(relation);
-				preferredApplied = true;
-			}
-		});
-		newSeriesRelations.forEach((relation) => {
-			if (relation.target_id === preferredSeriesId) {
-				applyPreferred(relation);
-				preferredApplied = true;
-			}
-		});
-		if (!preferredApplied) {
-			if (this._preferredSeriesRelationId && this._preferredSeriesSeriesId === preferredSeriesId) {
-				seriesRelations.push({
-					id: this._preferredSeriesRelationId,
-					target_id: preferredSeriesId,
-					type: PREFERRED_SERIES_RELATION,
-					uncertain: false,
-				});
-			} else {
-				newSeriesRelations.push({
-					target_id: preferredSeriesId,
-					type: PREFERRED_SERIES_RELATION,
-					uncertain: false,
-				});
-			}
-		}
-
-		if (
-			this._preferredSeriesRelationId &&
-			this._preferredSeriesSeriesId &&
-			this._preferredSeriesSeriesId !== preferredSeriesId &&
-			!deletedSeriesRelationIds.includes(this._preferredSeriesRelationId)
-		) {
-			deletedSeriesRelationIds.push(this._preferredSeriesRelationId);
-		}
-		const preferredCount = [...seriesRelations, ...newSeriesRelations].filter(
-			(relation) => relation.type === PREFERRED_SERIES_RELATION,
-		).length;
-		if (preferredCount === 0) {
-			throw new Error("Mindestens ein bevorzugter Reihentitel muss verknüpft sein.");
-		}
-		if (preferredCount > 1) {
-			throw new Error("Es darf nur ein bevorzugter Reihentitel gesetzt sein.");
-		}
-
 		const {
 			relations: agentRelations,
 			deleted: deletedAgentRelationIds,
@@ -531,11 +463,15 @@ export class AlmanachEditPage extends HTMLElement {
 		if (duplicateSeries.length > 0) {
 			throw new Error("Doppelte Reihenverknüpfungen sind nicht erlaubt.");
 		}
+		if (preferredSeriesId && seriesTargetIds.includes(preferredSeriesId)) {
+			throw new Error("Die bevorzugte Reihe darf nicht zusätzlich als weitere Reihenverknüpfung gesetzt sein.");
+		}
 
 		return {
 			csrf_token: this._readValue(formData, "csrf_token"),
 			last_edited: this._readValue(formData, "last_edited"),
 			entry,
+			preferred_series_id: preferredSeriesId,
 			languages,
 			places,
 			items,

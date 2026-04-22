@@ -115,6 +115,14 @@ func Agents_IDs(app core.App, ids []any) ([]*Agent, error) {
 	return TableByIDs[*Agent](app, AGENTS_TABLE, ids)
 }
 
+func Entries_Series(app core.App, seriesID string) ([]*Entry, error) {
+	return TableByFields[*Entry](app, ENTRIES_TABLE, SERIES_TABLE, seriesID)
+}
+
+func Entries_SeriesIDs(app core.App, seriesIDs []any) ([]*Entry, error) {
+	return TableByFields[*Entry](app, ENTRIES_TABLE, SERIES_TABLE, seriesIDs)
+}
+
 func Entries_ID(app core.App, id string) (*Entry, error) {
 	e, err := TableByID[Entry](app, ENTRIES_TABLE, id)
 	return &e, err

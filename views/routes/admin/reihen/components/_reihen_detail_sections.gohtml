@@ -24,7 +24,7 @@
 									   data-tippy-placement="right"></i>
 								</div>
 							</a>
-							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
+							{{- if and $link.Relation $link.Relation.Type -}}
 								<div class="admin-list-inline-meta mt-1 whitespace-nowrap">
 									{{- if eq $link.Relation.Type "Früherer Reihentitel" -}}
 										Titelauflage aus einer anderen Reihe

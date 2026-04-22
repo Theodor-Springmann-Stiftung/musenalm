@@ -73,7 +73,7 @@
 					<div class="mb-1 max-w-[60rem] hyphens-auto">
 						{{- range $id, $r := $model.series -}}
 							{{- template "_reihe" (Arr $r $model.entries $model.relations false
-								$includeAnnotations $includeReferences)
+								$includeAnnotations $includeReferences (Dict))
 							-}}
 						{{- end -}}
 					</div>

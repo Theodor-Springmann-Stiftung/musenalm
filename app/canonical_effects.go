@@ -186,6 +186,11 @@ func updateEntryFTS5WithContents(app core.App, entry *dbmodels.Entry, updateCont
 	}
 
 	series := []*dbmodels.Series{}
+	if sid := entry.Series(); sid != "" {
+		if s, err := dbmodels.Series_ID(app, sid); err == nil && s != nil {
+			series = append(series, s)
+		}
+	}
 	seriesRelations, err := dbmodels.REntriesSeries_Entry(app, entry.Id)
 	if err == nil {
 		for _, relation := range seriesRelations {

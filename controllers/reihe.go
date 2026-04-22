@@ -56,6 +56,12 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 
 		data["relations"] = rmap[reihe.Id]
 
+		preferredEntries, err := dbmodels.Entries_Series(pbApp, reihe.Id)
+		if err != nil {
+			return engine.Response404(e, err, data)
+		}
+		data["preferred_entries"] = preferredEntries
+
 		return p.Get(e, engine, data)
 
 	})

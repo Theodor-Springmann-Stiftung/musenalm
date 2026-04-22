@@ -94,7 +94,7 @@
 					{{- range $_, $link := $details.SeriesLinks -}}
 						{{- $series := seriesDisplay $link.Series.Id -}}
 						<div>
-							{{- if and $link.Relation (not (eq $link.Relation.Type "Bevorzugter Reihentitel")) -}}
+							{{- if and $link.Relation $link.Relation.Type -}}
 								<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $link.Relation.Type }}</span>
 							{{- end -}}
 							<a

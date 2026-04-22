@@ -183,6 +183,14 @@ func (e *Entry) SetPlaces(places []string) {
 	e.Set(PLACES_TABLE, places)
 }
 
+func (e *Entry) Series() string {
+	return e.GetString(SERIES_TABLE)
+}
+
+func (e *Entry) SetSeries(id string) {
+	e.Set(SERIES_TABLE, id)
+}
+
 func (e *Entry) Meta() map[string]MetaData {
 	md := make(map[string]MetaData)
 	err := e.UnmarshalJSONField(META_FIELD, &md)

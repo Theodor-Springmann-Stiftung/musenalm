@@ -113,7 +113,7 @@ func (p *AlmanachNewPage) POSTSave(engine *templating.Engine, app core.App, ia p
 			if err := store.SaveEntryItems(tx, newEntry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			if err := store.SaveEntrySeriesRelations(tx, newEntry, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, newEntry, payload.PreferredSeriesID, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
 				return err
 			}
 			if err := store.SaveEntryAgentRelations(tx, newEntry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs, effects); err != nil {

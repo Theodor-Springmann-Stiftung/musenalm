@@ -268,6 +268,11 @@ func entriesFields(app core.App) core.FieldsList {
 		return nil
 	}
 
+	series, err := app.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
+	if err != nil {
+		return nil
+	}
+
 	fields := core.NewFieldsList(
 		// Title information
 		&core.TextField{Name: dbmodels.PREFERRED_TITLE_FIELD, Required: true, Presentable: true},
@@ -327,6 +332,13 @@ func entriesFields(app core.App) core.FieldsList {
 			CascadeDelete: false,
 			MaxSelect:     5000,
 		},
+		&core.RelationField{
+			Name:          dbmodels.SERIES_TABLE,
+			Required:      false,
+			CollectionId:  series.Id,
+			CascadeDelete: false,
+			MaxSelect:     1,
+		},
 
 		// EDIT DATA:
 		&core.JSONField{Name: dbmodels.META_FIELD, Required: false},
@@ -354,6 +366,7 @@ func entriesIndexes(collection *core.Collection) {
 	dbmodels.AddIndex(collection, dbmodels.PUBLICATION_STMT_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.YEAR_FIELD, false)
 	dbmodels.AddIndex(collection, dbmodels.EDITION_FIELD, false)
+	dbmodels.AddIndexNoCollate(collection, dbmodels.SERIES_TABLE, false)
 }
 
 func contents(app core.App) *core.Collection {

@@ -29,19 +29,24 @@ func RecordsFromRelationBändeReihen(
 			continue
 		}
 
-		series, ok := series[relation.Reihe]
+		ser, ok := series[relation.Reihe]
 		if !ok {
 			app.Logger().Error("Error finding Series", "error", err, "relation", relation)
 			continue
 		}
 
+		// Relation type "1" = Bevorzugter Reihentitel — stored directly on the entry
+		if relation.Relation == "1" {
+			entry.SetSeries(ser.Id)
+			_ = app.Save(entry)
+			continue
+		}
+
 		record := dbmodels.NewREntriesSeries(core.NewRecord(collection))
 		record.SetEntry(entry.Id)
-		record.SetSeries(series.Id)
+		record.SetSeries(ser.Id)
 
 		switch relation.Relation {
-		case "1":
-			record.SetType("Bevorzugter Reihentitel")
 		case "2":
 			record.SetType("Alternatives Titelblatt")
 		case "3":
@@ -60,27 +65,15 @@ func RecordsFromRelationBändeReihen(
 
 		rel := record.Type()
 		ent := record.Entry()
-		ser := record.Series()
+		serID := record.Series()
 
-		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(ser) == "" {
+		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(serID) == "" {
 			appendEntryComment(entry, "Unvollständige Relation Band–Reihe; bitte prüfen.")
 			_ = app.Save(entry)
 		}
 
-		key := entry.Id + "|" + series.Id
-		if idx, ok := seen[key]; ok {
-			existing := records[idx]
-			if existing.Type() == "Bevorzugter Reihentitel" {
-				appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
-				_ = app.Save(entry)
-				continue
-			}
-			if record.Type() == "Bevorzugter Reihentitel" {
-				records[idx] = record
-				appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
-				_ = app.Save(entry)
-				continue
-			}
+		key := entry.Id + "|" + ser.Id
+		if _, ok := seen[key]; ok {
 			appendEntryComment(entry, "Doppelte Relation Band–Reihe entfernt; bitte prüfen.")
 			_ = app.Save(entry)
 			continue

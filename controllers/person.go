@@ -55,10 +55,11 @@ func (p *PersonPage) Setup(router *router.Router[*core.RequestEvent], ia pagemod
 type AgentResult struct {
 	Agent *dbmodels.Agent
 
-	BResult       []*dbmodels.Series                    // Sorted
-	EntriesSeries map[string][]*dbmodels.REntriesSeries // KEY: Series ID
-	EntriesAgents map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
-	EntryCount    int
+	BResult          []*dbmodels.Series                    // Sorted
+	EntriesSeries    map[string][]*dbmodels.REntriesSeries // KEY: Series ID, secondary only
+	PreferredEntries map[string][]*dbmodels.Entry          // KEY: Series ID, preferred only
+	EntriesAgents    map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
+	EntryCount       int
 
 	// INFO: we could save a DB query by quering the entries table only once
 	CResult        []*dbmodels.Entry                      /// Sorted
@@ -120,9 +121,20 @@ func (p *AgentResult) FilterEntriesByPerson(musenalmApp *app.App, id string, res
 	if err != nil {
 		return err
 	}
+	seenSIDs := map[string]struct{}{}
+	seriesIds := []any{}
 	entriesseriesmap := make(map[string][]*dbmodels.REntriesSeries, len(entriesseries))
+	secondaryEntriesBySeries := make(map[string]map[string]struct{}, len(entriesseries))
 	for _, r := range entriesseries {
 		entriesseriesmap[r.Series()] = append(entriesseriesmap[r.Series()], r)
+		if secondaryEntriesBySeries[r.Series()] == nil {
+			secondaryEntriesBySeries[r.Series()] = map[string]struct{}{}
+		}
+		secondaryEntriesBySeries[r.Series()][r.Entry()] = struct{}{}
+		if _, ok := seenSIDs[r.Series()]; !ok {
+			seenSIDs[r.Series()] = struct{}{}
+			seriesIds = append(seriesIds, r.Series())
+		}
 	}
 
 	for _, r := range entriesseriesmap {
@@ -131,10 +143,27 @@ func (p *AgentResult) FilterEntriesByPerson(musenalmApp *app.App, id string, res
 
 	res.EntriesSeries = entriesseriesmap
 
-	seriesIds := []any{}
-	for _, s := range entriesseries {
-		seriesIds = append(seriesIds, s.Series())
+	// Also collect preferred series from entry.Series() field
+	fullEntries, err := dbmodels.Entries_IDs(pbApp, entryIDs)
+	if err != nil {
+		return err
 	}
+	preferredEntries := map[string][]*dbmodels.Entry{}
+	for _, entry := range fullEntries {
+		if sid := entry.Series(); sid != "" {
+			if _, ok := secondaryEntriesBySeries[sid][entry.Id]; !ok {
+				preferredEntries[sid] = append(preferredEntries[sid], entry)
+			}
+			if _, ok := seenSIDs[sid]; !ok {
+				seenSIDs[sid] = struct{}{}
+				seriesIds = append(seriesIds, sid)
+			}
+		}
+	}
+	for _, entries := range preferredEntries {
+		dbmodels.Sort_Entries_Year_Title(entries)
+	}
+	res.PreferredEntries = preferredEntries
 
 	// 4. DB Hit
 	series, err := dbmodels.Series_IDs(pbApp, seriesIds)

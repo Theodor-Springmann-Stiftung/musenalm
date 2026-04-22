@@ -729,6 +729,11 @@ func UpdateFTS5AgentAndRelated(app core.App, agent *Agent) error {
 			}
 
 			series := []*Series{}
+			if sid := entry.Series(); sid != "" {
+				if s, err := Series_ID(app, sid); err == nil && s != nil {
+					series = append(series, s)
+				}
+			}
 			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
 			if err == nil {
 				for _, rel := range seriesRels {
@@ -848,6 +853,11 @@ func UpdateFTS5PlaceAndRelatedEntries(app core.App, place *Place) error {
 			}
 
 			series := []*Series{}
+			if sid := entry.Series(); sid != "" {
+				if s, err := Series_ID(app, sid); err == nil && s != nil {
+					series = append(series, s)
+				}
+			}
 			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
 			if err == nil {
 				for _, rel := range seriesRels {
@@ -887,7 +897,55 @@ func UpdateFTS5SeriesAndRelatedEntries(app core.App, series *Series) error {
 		return err
 	}
 
-	// Find all entries that reference this series
+	// Find all entries that reference this series (preferred or secondary)
+	updateEntry := func(entry *Entry) {
+		places := []*Place{}
+		for _, placeID := range entry.Places() {
+			place, err := Places_ID(app, placeID)
+			if err == nil && place != nil {
+				places = append(places, place)
+			}
+		}
+
+		agents := []*Agent{}
+		agentRels, err := REntriesAgents_Entry(app, entry.Id)
+		if err == nil {
+			for _, rel := range agentRels {
+				agent, err := Agents_ID(app, rel.Agent())
+				if err == nil && agent != nil {
+					agents = append(agents, agent)
+				}
+			}
+		}
+
+		allSeries := []*Series{}
+		if sid := entry.Series(); sid != "" {
+			if s, err := Series_ID(app, sid); err == nil && s != nil {
+				allSeries = append(allSeries, s)
+			}
+		}
+		seriesRels, err := REntriesSeries_Entry(app, entry.Id)
+		if err == nil {
+			for _, rel := range seriesRels {
+				s, err := Series_ID(app, rel.Series())
+				if err == nil && s != nil {
+					allSeries = append(allSeries, s)
+				}
+			}
+		}
+
+		if err := UpdateFTS5Entry(app, entry, places, agents, allSeries); err != nil {
+			app.Logger().Error("Failed to update FTS5 for entry", "entry_id", entry.Id, "error", err)
+		}
+	}
+
+	preferredEntries, err := Entries_Series(app, series.Id)
+	if err == nil {
+		for _, entry := range preferredEntries {
+			updateEntry(entry)
+		}
+	}
+
 	relations, err := REntriesSeries_Seriess(app, []any{series.Id})
 	if err == nil {
 		for _, relation := range relations {
@@ -896,42 +954,7 @@ func UpdateFTS5SeriesAndRelatedEntries(app core.App, series *Series) error {
 				app.Logger().Error("Failed to load entry for FTS5 update", "entry_id", relation.Entry(), "error", err)
 				continue
 			}
-
-			// Load all related data for this entry
-			places := []*Place{}
-			for _, placeID := range entry.Places() {
-				place, err := Places_ID(app, placeID)
-				if err == nil && place != nil {
-					places = append(places, place)
-				}
-			}
-
-			agents := []*Agent{}
-			agentRels, err := REntriesAgents_Entry(app, entry.Id)
-			if err == nil {
-				for _, rel := range agentRels {
-					agent, err := Agents_ID(app, rel.Agent())
-					if err == nil && agent != nil {
-						agents = append(agents, agent)
-					}
-				}
-			}
-
-			allSeries := []*Series{}
-			seriesRels, err := REntriesSeries_Entry(app, entry.Id)
-			if err == nil {
-				for _, rel := range seriesRels {
-					s, err := Series_ID(app, rel.Series())
-					if err == nil && s != nil {
-						allSeries = append(allSeries, s)
-					}
-				}
-			}
-
-			// Only update the entry itself, not contents (contents don't store series data)
-			if err := UpdateFTS5Entry(app, entry, places, agents, allSeries); err != nil {
-				app.Logger().Error("Failed to update FTS5 for entry", "entry_id", entry.Id, "error", err)
-			}
+			updateEntry(entry)
 		}
 	}
 

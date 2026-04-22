@@ -296,6 +296,22 @@ func (p *SearchResultBeitraege) PagesCount() int {
 	return len(p.Pages) - 1
 }
 
+func PagesMapCounts(hits []string, counts map[string]int, pagesize int) []int {
+	ret := []int{0}
+	m := 0
+	for i, hit := range hits {
+		m += counts[hit]
+		if m >= pagesize {
+			ret = append(ret, i)
+			m = 0
+		}
+	}
+	if m > 0 {
+		ret = append(ret, len(hits))
+	}
+	return ret
+}
+
 func PagesMap[T any](hits []string, hitmap map[string][]*T, pagesize int) []int {
 	ret := []int{0}
 	m := 0

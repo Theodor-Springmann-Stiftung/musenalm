@@ -239,6 +239,13 @@ func rebuildFTSWithContext(app core.App, clearExisting bool, ctx context.Context
 		}
 
 		entriesSeriesMap := map[string][]*dbmodels.Series{}
+		for _, entry := range entries {
+			if sid := entry.Series(); sid != "" {
+				if s := seriesById[sid]; s != nil {
+					entriesSeriesMap[entry.Id] = append(entriesSeriesMap[entry.Id], s)
+				}
+			}
+		}
 		for _, rel := range entriesSeries {
 			if series := seriesById[rel.Series()]; series != nil {
 				entriesSeriesMap[rel.Entry()] = append(entriesSeriesMap[rel.Entry()], series)

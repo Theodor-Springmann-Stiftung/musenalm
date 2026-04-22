@@ -45,11 +45,12 @@ type ReihenAdminPage struct {
 }
 
 type ReihenAdminResult struct {
-	Series        []*dbmodels.Series
-	Entries       map[string]*dbmodels.Entry
-	SeriesEntries map[string][]*dbmodels.REntriesSeries
-	BandLinks     map[string][]*ReihenBandLink
-	Users         map[string]*dbmodels.User
+	Series                 []*dbmodels.Series
+	Entries                map[string]*dbmodels.Entry
+	SeriesEntries          map[string][]*dbmodels.REntriesSeries
+	PreferredSeriesEntries map[string][]*dbmodels.Entry // Key: series ID
+	BandLinks              map[string][]*ReihenBandLink
+	Users                  map[string]*dbmodels.User
 }
 
 type ReihenBandLink struct {
@@ -644,11 +645,12 @@ func adminReihenOrderBy(sortField, sortOrder string) []string {
 
 func loadAdminReihenPageResult(app core.App, pageSeries []*dbmodels.Series) (*ReihenAdminResult, error) {
 	result := &ReihenAdminResult{
-		Series:        pageSeries,
-		Entries:       map[string]*dbmodels.Entry{},
-		SeriesEntries: map[string][]*dbmodels.REntriesSeries{},
-		BandLinks:     map[string][]*ReihenBandLink{},
-		Users:         map[string]*dbmodels.User{},
+		Series:                 pageSeries,
+		Entries:                map[string]*dbmodels.Entry{},
+		SeriesEntries:          map[string][]*dbmodels.REntriesSeries{},
+		PreferredSeriesEntries: map[string][]*dbmodels.Entry{},
+		BandLinks:              map[string][]*ReihenBandLink{},
+		Users:                  map[string]*dbmodels.User{},
 	}
 
 	if len(pageSeries) == 0 {
@@ -668,6 +670,19 @@ func loadAdminReihenPageResult(app core.App, pageSeries []*dbmodels.Series) (*Re
 		result.SeriesEntries[rel.Series()] = append(result.SeriesEntries[rel.Series()], rel)
 		if entryID := rel.Entry(); entryID != "" {
 			entryIDs[entryID] = struct{}{}
+		}
+	}
+
+	preferredEntries, err := loadPreferredEntriesBySeries(app, dbmodels.Ids(pageSeries))
+	if err != nil {
+		return nil, err
+	}
+	result.PreferredSeriesEntries = preferredEntries
+	for _, entries := range preferredEntries {
+		for _, entry := range entries {
+			if entry != nil {
+				entryIDs[entry.Id] = struct{}{}
+			}
 		}
 	}
 
@@ -705,7 +720,7 @@ func loadAdminReihenPageResult(app core.App, pageSeries []*dbmodels.Series) (*Re
 		}
 	}
 
-	result.BandLinks = buildReihenBandLinksMap(pageSeries, result.Entries, result.SeriesEntries)
+	result.BandLinks = buildReihenBandLinksMap(pageSeries, result.Entries, result.SeriesEntries, result.PreferredSeriesEntries)
 	return result, nil
 }
 
@@ -783,6 +798,19 @@ func seriesIDsForEntrySet(app core.App, entryIDs map[string]struct{}) (map[strin
 			seriesIDs[rel.Series()] = struct{}{}
 		}
 	}
+
+	entries, err := dbmodels.Entries_IDs(app, anySliceFromStringSet(entryIDs))
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range entries {
+		if entry != nil {
+			if sid := entry.Series(); sid != "" {
+				seriesIDs[sid] = struct{}{}
+			}
+		}
+	}
+
 	return seriesIDs, nil
 }
 
@@ -915,19 +943,25 @@ func buildAdminReihenYearLabelMap(years map[int]struct{}) map[string]string {
 	return labels
 }
 
-func buildReihenBandLinksMap(series []*dbmodels.Series, entries map[string]*dbmodels.Entry, seriesEntries map[string][]*dbmodels.REntriesSeries) map[string][]*ReihenBandLink {
+func buildReihenBandLinksMap(series []*dbmodels.Series, entries map[string]*dbmodels.Entry, seriesEntries map[string][]*dbmodels.REntriesSeries, preferredSeriesEntries map[string][]*dbmodels.Entry) map[string][]*ReihenBandLink {
 	result := make(map[string][]*ReihenBandLink, len(series))
 	for _, item := range series {
 		if item == nil {
 			continue
 		}
-		result[item.Id] = buildReihenBandLinks(entries, seriesEntries[item.Id])
+		result[item.Id] = buildReihenBandLinks(entries, seriesEntries[item.Id], preferredSeriesEntries[item.Id])
 	}
 	return result
 }
 
-func buildReihenBandLinks(entries map[string]*dbmodels.Entry, rels []*dbmodels.REntriesSeries) []*ReihenBandLink {
-	links := make([]*ReihenBandLink, 0, len(rels))
+func buildReihenBandLinks(entries map[string]*dbmodels.Entry, rels []*dbmodels.REntriesSeries, preferredEntries []*dbmodels.Entry) []*ReihenBandLink {
+	links := make([]*ReihenBandLink, 0, len(preferredEntries)+len(rels))
+	for _, entry := range preferredEntries {
+		if entry == nil {
+			continue
+		}
+		links = append(links, &ReihenBandLink{Entry: entry})
+	}
 	for _, rel := range sortSeriesRelationsForAdmin(rels, entries) {
 		if rel == nil {
 			continue
@@ -983,12 +1017,22 @@ func (p *ReihenAdminPage) buildSingleSeriesRowData(app core.App, id string, req 
 		return nil, err
 	}
 
-	entriesMap := make(map[string]*dbmodels.Entry, len(entries))
+	preferredEntries, err := dbmodels.Entries_Series(app, series.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	entriesMap := make(map[string]*dbmodels.Entry, len(entries)+len(preferredEntries))
 	for _, entry := range entries {
 		if entry == nil {
 			continue
 		}
 		entriesMap[entry.Id] = entry
+	}
+	for _, entry := range preferredEntries {
+		if entry != nil {
+			entriesMap[entry.Id] = entry
+		}
 	}
 
 	var editorUser *dbmodels.User
@@ -1004,7 +1048,7 @@ func (p *ReihenAdminPage) buildSingleSeriesRowData(app core.App, id string, req 
 	data := map[string]any{
 		"series":       series,
 		"editor_user":  editorUser,
-		"band_links":   buildReihenBandLinks(entriesMap, relations),
+		"band_links":   buildReihenBandLinks(entriesMap, relations, preferredEntries),
 		"can_edit":     req.IsAdmin() || req.IsEditor(),
 		"expanded":     false,
 		"details_open": false,

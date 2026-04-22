@@ -68,7 +68,7 @@
 			</div>
 		{{ end }}
 		<div class="max-w-[64rem] [&_*]:!text-lg mt-6">
-			{{ template "_reiherelations" (Arr $r $model.relations true $model.request) }}
+			{{ template "_reiherelations" (Arr $r $model.relations true $model.request $model.preferred_entries) }}
 		</div>
 	</div>
 </div>

@@ -60,8 +60,9 @@ type BaendeResult struct {
 }
 
 type BaendeSeriesLink struct {
-	Series   *dbmodels.Series
-	Relation *dbmodels.REntriesSeries
+	Series      *dbmodels.Series
+	Relation    *dbmodels.REntriesSeries
+	IsPreferred bool
 }
 
 type BaendeRelationLink struct {
@@ -744,12 +745,26 @@ func loadBaendeSeriesData(app core.App, entries []*dbmodels.Entry) (map[string]*
 	if len(entries) == 0 {
 		return seriesMap, entrySeriesMap, nil
 	}
+
+	seenSeries := map[string]struct{}{}
+	seriesIDs := []string{}
+
+	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
+		if sid := entry.Series(); sid != "" {
+			if _, ok := seenSeries[sid]; !ok {
+				seenSeries[sid] = struct{}{}
+				seriesIDs = append(seriesIDs, sid)
+			}
+		}
+	}
+
 	rels, err := dbmodels.REntriesSeries_Entries(app, dbmodels.Ids(entries))
 	if err != nil {
 		return nil, nil, err
 	}
-	seriesIDs := make([]string, 0, len(rels))
-	seenSeries := map[string]struct{}{}
 	for _, rel := range rels {
 		if rel == nil {
 			continue
@@ -1189,11 +1204,20 @@ func filterEntriesBySeries(app core.App, entries []*dbmodels.Entry, seriesID str
 	if seriesID == "" {
 		return entries, nil
 	}
+	matchIDs := map[string]struct{}{}
+	for _, entry := range entries {
+		if entry != nil && entry.Series() == seriesID {
+			matchIDs[entry.Id] = struct{}{}
+		}
+	}
 	rels, err := dbmodels.REntriesSeries_Seriess(app, []any{seriesID})
 	if err != nil {
 		return nil, err
 	}
-	return filterEntriesByRelationSet(entries, entryIDsFromSeriesRelations(rels)), nil
+	for id := range entryIDsFromSeriesRelations(rels) {
+		matchIDs[id] = struct{}{}
+	}
+	return filterEntriesByRelationSet(entries, matchIDs), nil
 }
 
 func buildStatusFilters() []map[string]string {
@@ -1287,7 +1311,14 @@ func buildBaendeSeriesLinksMap(entries []*dbmodels.Entry, seriesMap map[string]*
 		if entry == nil {
 			continue
 		}
-		linksMap[entry.Id] = buildBaendeSeriesLinks(seriesMap, entrySeriesMap[entry.Id])
+		links := buildBaendeSeriesLinks(seriesMap, entrySeriesMap[entry.Id])
+		if sid := entry.Series(); sid != "" {
+			if s := seriesMap[sid]; s != nil {
+				preferred := &BaendeSeriesLink{Series: s, IsPreferred: true}
+				links = append([]*BaendeSeriesLink{preferred}, links...)
+			}
+		}
+		linksMap[entry.Id] = links
 	}
 	return linksMap
 }
@@ -1310,14 +1341,6 @@ func buildBaendeSeriesLinks(seriesMap map[string]*dbmodels.Series, rels []*dbmod
 
 	collator := collate.New(language.German)
 	slices.SortFunc(links, func(i, j *BaendeSeriesLink) int {
-		iPreferred := i.Relation != nil && i.Relation.Type() == preferredSeriesRelationType
-		jPreferred := j.Relation != nil && j.Relation.Type() == preferredSeriesRelationType
-		if iPreferred != jPreferred {
-			if iPreferred {
-				return -1
-			}
-			return 1
-		}
 		return collator.CompareString(i.Series.Title(), j.Series.Title())
 	})
 

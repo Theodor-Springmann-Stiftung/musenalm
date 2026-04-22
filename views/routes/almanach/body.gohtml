@@ -32,10 +32,11 @@
 
 
 <div id="breadcrumbs">
-	{{- range $i, $rel := $model.result.SeriesRelations -}}
-		{{- $s := seriesDisplay $rel.Series -}}
+	{{- $breadcrumbIndex := 0 -}}
+	{{- if $model.result.Entry.Series -}}
+		{{- $s := seriesDisplay $model.result.Entry.Series -}}
 		<div>
-			<div class="{{ if $i -}}opacity-0 pointer-events-none select-none{{- end -}}">
+			<div>
 				<a href="/reihen/?letter={{- First $s.Name -}}" class="">Reihen</a>
 				<i class="ri-arrow-right-wide-line"></i>
 			</div>
@@ -50,11 +51,29 @@
 				{{- end -}}
 			</div>
 			<div class="grow"></div>
-			{{- if not $i -}}
-				<div class="backbutton">
-					<a href="/reihen/?letter=A" class="no-underline"> <i class="ri-arrow-left-long-line"></i> Alle Bände nach Reihentiteln </a>
-				</div>
-			{{- end -}}
+			<div class="backbutton">
+				<a href="/reihen/?letter=A" class="no-underline"> <i class="ri-arrow-left-long-line"></i> Alle Bände nach Reihentiteln </a>
+			</div>
+		</div>
+	{{- end -}}
+	{{- range $i, $rel := $model.result.SeriesRelations -}}
+		{{- $s := seriesDisplay $rel.Series -}}
+		<div class="opacity-0 pointer-events-none select-none">
+			<div>
+				<a href="/reihen/?letter={{- First $s.Name -}}" class="">Reihen</a>
+				<i class="ri-arrow-right-wide-line"></i>
+			</div>
+			<div>
+				<a href="/reihe/{{- $s.MusenalmID -}}">{{ $s.Name }}</a>
+			</div>
+			<div>
+				{{- if $model.result.Entry.Year -}}
+					<i class="ri-arrow-right-wide-line"></i> <b>{{ $model.result.Entry.Year }}</b>
+				{{- else -}}
+					<i class="ri-arrow-right-wide-line"></i> <b>[o. J.]</b>
+				{{- end -}}
+			</div>
+			<div class="grow"></div>
 		</div>
 	{{- end -}}
 </div>

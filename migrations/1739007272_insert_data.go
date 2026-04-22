@@ -277,8 +277,15 @@ func init() {
 			}
 
 			ser := []*dbmodels.Series{}
+			if sid := entry.Series(); sid != "" {
+				if s := seriesmapid[sid]; s != nil {
+					ser = append(ser, s)
+				}
+			}
 			for _, series := range r_entries_series[entry.Id] {
-				ser = append(ser, seriesmapid[series.Series()])
+				if s := seriesmapid[series.Series()]; s != nil {
+					ser = append(ser, s)
+				}
 			}
 
 			agents := []*dbmodels.Agent{}

@@ -18,18 +18,13 @@ type AlmanachResult struct {
 -->
 
 {{- $preferredSeriesTitle := "" -}}
-{{- $preferredSeriesId := "" -}}
+{{- $preferredSeriesId := $model.result.Entry.Series -}}
 {{- $preferredSeriesMusenalmID := "" -}}
-{{- $preferredRelationId := "" -}}
-{{- if and $model.result $model.result.Series -}}
-	{{- range $i, $s := $model.result.Series -}}
-		{{- $rel := index $model.result.EntriesSeries $s.Id -}}
-		{{- if and $rel (eq $rel.Type "Bevorzugter Reihentitel") -}}
-			{{- $preferredSeriesTitle = $s.Title -}}
-			{{- $preferredSeriesId = $s.Id -}}
-			{{- $preferredSeriesMusenalmID = $s.MusenalmID -}}
-			{{- $preferredRelationId = $rel.Id -}}
-		{{- end -}}
+{{- if $preferredSeriesId -}}
+	{{- $preferredSeries := seriesDisplay $preferredSeriesId -}}
+	{{- if $preferredSeries -}}
+		{{- $preferredSeriesTitle = $preferredSeries.Name -}}
+		{{- $preferredSeriesMusenalmID = $preferredSeries.MusenalmID -}}
 	{{- end -}}
 {{- end -}}
 {{- $bandTitle := "Neuer Band" -}}
@@ -259,9 +254,7 @@ type AlmanachResult struct {
 						data-required="true"
 						data-initial-id="{{ $preferredSeriesId }}"
 						data-initial-name="{{ $preferredSeriesTitle }}"
-						data-initial-musenalm-id="{{ $preferredSeriesMusenalmID }}"
-						data-preferred-relation-id="{{ $preferredRelationId }}"
-						data-preferred-series-id="{{ $preferredSeriesId }}">
+						data-initial-musenalm-id="{{ $preferredSeriesMusenalmID }}">
 					</lookup-field>
 				</div>
 
@@ -322,7 +315,7 @@ type AlmanachResult struct {
 									{{- if $model.result.Series -}}
 										{{- range $_, $s := $model.result.Series -}}
 											{{- $rel := index $model.result.EntriesSeries $s.Id -}}
-											{{- if and $rel (ne $rel.Type "Bevorzugter Reihentitel") -}}
+											{{- if $rel -}}
 												{{- $hasNonPreferredSeries = true -}}
 												<tr data-role="content-series-row" data-kind="existing" class="align-middle">
 													<td class="px-3 py-2 align-middle">
@@ -340,9 +333,7 @@ type AlmanachResult struct {
 													<td class="px-3 py-2 align-middle">
 														<select data-role="content-series-type" name="entries_series_type[{{ $rel.Id }}]" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
 															{{- range $t := $model.series_relations -}}
-																{{- if ne $t "Bevorzugter Reihentitel" -}}
-																	<option value="{{ $t }}" {{ if eq $rel.Type $t }}selected{{ end }}>{{ $t }}</option>
-																{{- end -}}
+																<option value="{{ $t }}" {{ if eq $rel.Type $t }}selected{{ end }}>{{ $t }}</option>
 															{{- end -}}
 														</select>
 													</td>
@@ -409,9 +400,7 @@ type AlmanachResult struct {
 							<td class="px-3 py-2 align-middle">
 								<select data-role="content-series-type" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
 									{{- range $t := $model.series_relations -}}
-										{{- if ne $t "Bevorzugter Reihentitel" -}}
-											<option value="{{ $t }}">{{ $t }}</option>
-										{{- end -}}
+										<option value="{{ $t }}">{{ $t }}</option>
 									{{- end -}}
 								</select>
 							</td>

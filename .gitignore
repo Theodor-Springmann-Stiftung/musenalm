@@ -18,3 +18,5 @@ out.log
 *.log
 *.out
 *.zip
+.codex
+.claude

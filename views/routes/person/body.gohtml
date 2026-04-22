@@ -2,10 +2,11 @@
 	type AgentResult struct {
 	Agent *dbmodels.Agent
 
-	BResult       []*dbmodels.Series                    // Sorted
-	EntriesSeries map[string][]*dbmodels.REntriesSeries // KEY: Series ID
-	EntriesAgents map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
-	EntryCount    int
+	BResult          []*dbmodels.Series                    // Sorted
+	EntriesSeries    map[string][]*dbmodels.REntriesSeries // KEY: Series ID, secondary only
+	PreferredEntries map[string][]*dbmodels.Entry          // KEY: Series ID, preferred only
+	EntriesAgents    map[string][]*dbmodels.REntriesAgents // KEY: Entry ID
+	EntryCount       int
 
 	CResult        []*dbmodels.Entry                      /// Sorted
 	Contents       map[string][]*dbmodels.Content         // KEY: entry ID
@@ -131,8 +132,9 @@
 					{{ end }}
 					<div class="">
 						{{- $bds := index $model.result.EntriesSeries $r.Id -}}
+						{{- $preferred := index $model.result.PreferredEntries $r.Id -}}
 						{{ template "personreiherelations" (Arr $r $bds true
-							$model.result.EntriesAgents)
+							$model.result.EntriesAgents $preferred)
 						}}
 					</div>
 				</div>

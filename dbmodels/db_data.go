@@ -417,7 +417,6 @@ var AGENT_RELATIONS = []string{
 }
 
 var SERIES_RELATIONS = []string{
-	"Bevorzugter Reihentitel",
 	"Alternativer Reihentitel",
 	"Alternatives Titelblatt",
 	"Späterer Reihentitel",

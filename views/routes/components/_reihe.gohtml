@@ -4,8 +4,10 @@
 {{ $marka := index . 3 }}
 {{ $markr := index . 4 }}
 {{ $request := index . 5 }}
+{{ $preferredEntriesBySeriesID := index . 6 }}
 
 {{ $bds := index $relations $r.Id }}
+{{ $preferredBds := index $preferredEntriesBySeriesID $r.Id }}
 
 
 <div class="flex flex-col lg:flex-row mb-8 lg:mb-4">
@@ -23,6 +25,15 @@
 					Almanach-Nr.
 					<span class="reihen-text">
 						{{ $entry.MusenalmID }}
+					</span>
+				</div>
+			{{ end }}
+			{{ range $_, $entry := $preferredBds }}
+				{{ $bd := entryDisplay $entry.Id }}
+				<div class="font-sans text-sm px-2 py-1 bg-stone-100 searchable my-0.5">
+					Almanach-Nr.
+					<span class="reihen-text">
+						{{ $bd.MusenalmID }}
 					</span>
 				</div>
 			{{ end }}
@@ -55,6 +66,6 @@
 				<span class="{{ if $marka }}reihen-text{{ end }} annotation-content">{{ Safe $r.Annotation }}</span>
 			{{ end }}
 		</div>
-		{{ template "_reiherelations" (Arr $r $bds false $request) }}
+		{{ template "_reiherelations" (Arr $r $bds false $request $preferredBds) }}
 	</div>
 </div>
