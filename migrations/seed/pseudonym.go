@@ -13,12 +13,8 @@ type pseudonymImportData struct {
 }
 
 var (
-	trailingPseudonymMarkerRegexp      = regexp.MustCompile(`\s*#\s*$`)
-	entryPseudonymAnnotationRegexp     = regexp.MustCompile(`^\s*#\s*Pseud\.?\s*(?:/\))?\s*`)
-	contentPseudonymBlockRegexp        = regexp.MustCompile(`^\s*#\s*Pseud\.?\s*/\)\s*`)
-	contentPseudonymAnnotationRegexp   = regexp.MustCompile(`^\s*#\s*Pseud\.?(?:\s|$)`)
-	contentPseudonymAnnotationOnlyExpr = regexp.MustCompile(`^\s*#\s*Pseud\.?\s*$`)
-	leadingHashWhitespaceRegexp        = regexp.MustCompile(`^\s*#\s*`)
+	trailingPseudonymMarkerRegexp  = regexp.MustCompile(`\s*#\s*$`)
+	entryPseudonymAnnotationRegexp = regexp.MustCompile(`^\s*#\s*Pseud\.?\s*(?:/\))?\s*`)
 )
 
 func extractEntryPseudonymImportData(rawResponsibility, rawAnnotation string) pseudonymImportData {
@@ -41,27 +37,5 @@ func extractEntryPseudonymImportData(rawResponsibility, rawAnnotation string) ps
 }
 
 func extractContentPseudonymImportData(rawResponsibility, rawAnnotation string) pseudonymImportData {
-	ret := pseudonymImportData{
-		responsibility: rawResponsibility,
-		annotation:     rawAnnotation,
-	}
-
-	if trailingPseudonymMarkerRegexp.MatchString(ret.responsibility) {
-		ret.responsibility = trailingPseudonymMarkerRegexp.ReplaceAllString(ret.responsibility, "")
-		ret.pseudonym = true
-	}
-
-	switch {
-	case contentPseudonymBlockRegexp.MatchString(ret.annotation):
-		ret.annotation = contentPseudonymBlockRegexp.ReplaceAllString(ret.annotation, "")
-		ret.pseudonym = true
-	case contentPseudonymAnnotationOnlyExpr.MatchString(ret.annotation):
-		ret.annotation = ""
-		ret.pseudonym = true
-	case contentPseudonymAnnotationRegexp.MatchString(ret.annotation):
-		ret.annotation = leadingHashWhitespaceRegexp.ReplaceAllString(ret.annotation, "")
-		ret.pseudonym = true
-	}
-
-	return ret
+	return extractEntryPseudonymImportData(rawResponsibility, rawAnnotation)
 }

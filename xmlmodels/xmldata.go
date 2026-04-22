@@ -17,4 +17,5 @@ const (
 	RELATION_INHALTE_AKTEURE_FN = "_RELATION_InhalteAkteure.xml"
 	LEGACY_INH_TAB_FN           = "INH-TAB.xml"
 	LEGACY_ALMNEU_FN            = "AlmNeu.xml"
+	REALNAME_TAB_FN             = "REALNAME-Tab.xml"
 )

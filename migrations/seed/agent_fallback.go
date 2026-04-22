@@ -139,6 +139,27 @@ func (r *AgentResolver) ResolveNames(names []string, createMissing bool) ([]*dbm
 	return ret, nil
 }
 
+func (r *AgentResolver) LookupByName(name string) *dbmodels.Agent {
+	name = normalizeAgentName(name)
+	if shouldSkipAgentName(name) {
+		return nil
+	}
+
+	if agent, ok := r.byName[name]; ok {
+		return agent
+	}
+
+	record, err := r.app.FindFirstRecordByData(dbmodels.AGENTS_TABLE, dbmodels.AGENTS_NAME_FIELD, name)
+	if err != nil || record == nil {
+		return nil
+	}
+
+	agent := dbmodels.NewAgent(record)
+	r.byName[name] = agent
+	r.byID[agent.Id] = agent
+	return agent
+}
+
 func (r *AgentResolver) resolveOne(name string, createMissing bool) (*dbmodels.Agent, error) {
 	name = normalizeAgentName(name)
 	if shouldSkipAgentName(name) {
@@ -178,6 +199,36 @@ func (r *AgentResolver) resolveOne(name string, createMissing bool) (*dbmodels.A
 	return agent, nil
 }
 
+func (r *AgentResolver) CreateAgentFromRealname(row xmlmodels.RealnameTabRow) (*dbmodels.Agent, error) {
+	name := normalizeAgentName(row.Realname)
+	if shouldSkipAgentName(name) {
+		return nil, nil
+	}
+
+	if existing := r.LookupByName(name); existing != nil {
+		return existing, nil
+	}
+
+	agent := dbmodels.NewAgent(core.NewRecord(r.collection))
+	agent.SetName(name)
+	agent.SetBiographicalData(NormalizeString(row.Daten))
+	agent.SetReferences(NormalizeString(row.Nachweis))
+	agent.SetProfession(NormalizeString(row.Beitrag))
+	agent.SetPseudonyms(NormalizeString(row.Pseudonym))
+	agent.SetMusenalmID(r.nextFreeID)
+	agent.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+
+	if err := r.app.Save(agent); err != nil {
+		return nil, err
+	}
+
+	r.nextFreeID++
+	r.byName[name] = agent
+	r.byID[agent.Id] = agent
+
+	return agent, nil
+}
+
 func LegacyRowsByINHNR(legacy map[int]LegacyBandMatch) map[int]xmlmodels.LegacyINHTabRow {
 	ret := make(map[int]xmlmodels.LegacyINHTabRow)
 
@@ -188,6 +239,38 @@ func LegacyRowsByINHNR(legacy map[int]LegacyBandMatch) map[int]xmlmodels.LegacyI
 	}
 
 	return ret
+}
+
+type RealnameResolver struct {
+	byName map[string]xmlmodels.RealnameTabRow
+}
+
+func NewRealnameResolver(data *xmlmodels.RealnameTab) *RealnameResolver {
+	ret := &RealnameResolver{byName: make(map[string]xmlmodels.RealnameTabRow)}
+	if data == nil {
+		return ret
+	}
+
+	for _, row := range data.Rows {
+		name := normalizeAgentName(row.Realname)
+		if shouldSkipAgentName(name) {
+			continue
+		}
+		if _, ok := ret.byName[name]; !ok {
+			ret.byName[name] = row
+		}
+	}
+
+	return ret
+}
+
+func (r *RealnameResolver) Lookup(name string) (xmlmodels.RealnameTabRow, bool) {
+	if r == nil {
+		return xmlmodels.RealnameTabRow{}, false
+	}
+
+	row, ok := r.byName[normalizeAgentName(name)]
+	return row, ok
 }
 
 func InferFallbackContentAgentRelationType(content *dbmodels.Content) string {
@@ -215,6 +298,87 @@ func containsCategory(categories []string, predicate func(string) bool) bool {
 	}
 
 	return false
+}
+
+func legacyAuthorNameParts(raw string) []string {
+	exact := normalizeAgentName(raw)
+	if shouldSkipAgentName(exact) {
+		return nil
+	}
+
+	if !(strings.Contains(exact, " u ") ||
+		strings.Contains(exact, " u. ") ||
+		strings.Contains(exact, ";") ||
+		strings.Contains(exact, " & ")) {
+		return []string{exact}
+	}
+
+	return ParseAgentNames(exact)
+}
+
+func RecordsFromLegacyContentsAgents(
+	app core.App,
+	contentsByMusenalmID map[int]*dbmodels.Content,
+	existing map[string][]*dbmodels.RContentsAgents,
+	legacyData *xmlmodels.LegacyFallbackData,
+	resolver *AgentResolver,
+	realnames *RealnameResolver,
+) ([]*dbmodels.RContentsAgents, error) {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.RelationTableName(dbmodels.CONTENTS_TABLE, dbmodels.AGENTS_TABLE))
+	if err != nil {
+		return nil, err
+	}
+
+	records := []*dbmodels.RContentsAgents{}
+	if legacyData == nil {
+		return records, nil
+	}
+
+	for _, row := range legacyData.INHTab.Rows {
+		content, ok := contentsByMusenalmID[row.INHNR]
+		if !ok || content == nil {
+			continue
+		}
+		if len(existing[content.Id]) > 0 {
+			continue
+		}
+
+		names := legacyAuthorNameParts(row.AutorRealname)
+		if len(names) == 0 {
+			continue
+		}
+
+		seen := map[string]bool{}
+		for _, name := range names {
+			agent := resolver.LookupByName(name)
+			if agent == nil {
+				if realnameRow, found := realnames.Lookup(name); found {
+					created, err := resolver.CreateAgentFromRealname(realnameRow)
+					if err != nil {
+						return nil, err
+					}
+					agent = created
+				} else {
+					app.Logger().Error("Legacy content author not found in agents or REALNAME-Tab", "content_musenalm_id", row.INHNR, "name", name)
+					continue
+				}
+			}
+
+			if agent == nil || seen[agent.Id] {
+				continue
+			}
+			seen[agent.Id] = true
+
+			record := dbmodels.NewRContentsAgents(core.NewRecord(collection))
+			record.SetContent(content.Id)
+			record.SetAgent(agent.Id)
+			record.SetType("Autor:in")
+			records = append(records, record)
+			existing[content.Id] = append(existing[content.Id], record)
+		}
+	}
+
+	return records, nil
 }
 
 func RecordsFromFallbackContentsAgents(

@@ -61,8 +61,8 @@ func TestLegacyBandMatches(t *testing.T) {
 		t.Fatalf("expected 6 legacy band matches, got %d", len(got))
 	}
 
-	if len(got[4845].Rows) != 0 {
-		t.Fatalf("band 4845 should not receive dummy-only legacy rows")
+	if len(got[4845].Rows) != 1 {
+		t.Fatalf("band 4845 should now receive legacy rows without dummy filtering")
 	}
 
 	if len(got[4846].Rows) != 1 {
@@ -78,7 +78,7 @@ func TestLegacyBandMatches(t *testing.T) {
 	}
 
 	if len(got[4848].Rows) != 0 {
-		t.Fatalf("band 4848 should not receive legacy content rows while modern content exists")
+		t.Fatalf("band 4848 should still not receive legacy rows when no legacy content exists")
 	}
 
 	if got[4849].LegacyAlm.LegacyEntryID() != 9001 {

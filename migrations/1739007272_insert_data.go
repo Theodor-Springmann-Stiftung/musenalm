@@ -33,8 +33,13 @@ func init() {
 		if err != nil {
 			return err
 		}
+		realnameData, err := xmlmodels.ReadRealnameTab(xmlmodels.DATA_PATH, app.Logger())
+		if err != nil {
+			return err
+		}
 
 		adb.Reihen = xmlmodels.SanitizeReihen(adb.Reihen, adb.Relationen_Bände_Reihen)
+		images := seed.IndexContentImages(xmlmodels.IMG_PATH)
 
 		var agentsmap map[int]*dbmodels.Agent
 		var placesmap map[string]*dbmodels.Place
@@ -46,7 +51,6 @@ func init() {
 		var agentsmapid map[string]*dbmodels.Agent
 		var agentsmapname map[string]*dbmodels.Agent
 		var contentsmap map[int]*dbmodels.Content
-		var contentsmapid map[string]*dbmodels.Content
 		var r_entries_series map[string][]*dbmodels.REntriesSeries
 		var r_entries_agents map[string][]*dbmodels.REntriesAgents
 		var r_contents_agents map[string][]*dbmodels.RContentsAgents
@@ -119,7 +123,7 @@ func init() {
 		entriesmap = datatypes.MakeMap(entries, func(record *dbmodels.Entry) int { return record.MusenalmID() })
 		entriesmapid = datatypes.MakeMap(entries, func(record *dbmodels.Entry) string { return record.Id })
 
-		wg.Add(2)
+		wg.Add(1)
 
 		go func() {
 			records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO, entriesmap)
@@ -135,29 +139,22 @@ func init() {
 			wg.Done()
 		}()
 
-		go func() {
-			records, err := seed.RecordsFromInhalteWithLegacy(
-				app,
-				seed.SelectModernInhalteForImport(adb.Inhalte),
-				legacyMatches,
-				entriesmap,
-			)
-			if err != nil {
-				panic(err)
-			}
-			for _, record := range records {
-				if err = app.Save(record); err != nil {
-					app.Logger().Error("Error saving record", "error", err, "record", record)
-				}
-			}
-			contentsmap = datatypes.MakeMap(records, func(record *dbmodels.Content) int { return record.MusenalmID() })
-			contentsmapid = datatypes.MakeMap(records, func(record *dbmodels.Content) string { return record.Id })
-			wg.Done()
-		}()
-
 		wg.Wait()
 
-		wg.Add(3)
+		contentRecords, err := seed.RecordsFromLegacyData(app, legacyData, entriesmap, items, images)
+		if err != nil {
+			panic(err)
+		}
+		for _, record := range contentRecords {
+			if err = app.Save(record); err != nil {
+				app.Logger().Error("Error saving record", "error", err, "record", record)
+			}
+		}
+		contentsmap = datatypes.MakeMap(contentRecords, func(record *dbmodels.Content) int { return record.MusenalmID() })
+
+		r_contents_agents = map[string][]*dbmodels.RContentsAgents{}
+
+		wg.Add(2)
 
 		go func() {
 			records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen, seriesmap, entriesmap)
@@ -191,22 +188,6 @@ func init() {
 			wg.Done()
 		}()
 
-		go func() {
-			records, err := seed.RecordsFromRelationInhalteAkteure(app, adb.Relationen_Inhalte_Akteure, contentsmap, agentsmap)
-			if err != nil {
-				panic(err)
-			}
-			for _, record := range records {
-				if err = app.Save(record); err != nil {
-					app.Logger().Error("Error saving record", "error", err, "record", record)
-				}
-			}
-			r_contents_agents = datatypes.MakeMultiMap(
-				records,
-				func(record *dbmodels.RContentsAgents) string { return record.Content() })
-			wg.Done()
-		}()
-
 		wg.Wait()
 
 		resolver, err := seed.NewAgentResolver(app, agentsmapname, agentsmapid)
@@ -214,14 +195,15 @@ func init() {
 			panic(err)
 		}
 
-		legacyRowsByINHNR := seed.LegacyRowsByINHNR(legacyMatches)
+		realnameResolver := seed.NewRealnameResolver(realnameData)
 
-		contentFallbackRelations, err := seed.RecordsFromFallbackContentsAgents(
+		contentFallbackRelations, err := seed.RecordsFromLegacyContentsAgents(
 			app,
-			contentsmapid,
+			contentsmap,
 			r_contents_agents,
-			legacyRowsByINHNR,
+			legacyData,
 			resolver,
+			realnameResolver,
 		)
 		if err != nil {
 			panic(err)

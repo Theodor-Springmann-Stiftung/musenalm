@@ -20,8 +20,8 @@ func TestSelectedContentCountsPreservesModernCountsBeforeCutover(t *testing.T) {
 	}
 
 	got := SelectedContentCounts(inhalte, legacy)
-	if got[4848] != 2 {
-		t.Fatalf("expected modern count 2 for 4848, got %d", got[4848])
+	if got[4848] != 0 {
+		t.Fatalf("expected no count for 4848 without legacy rows, got %d", got[4848])
 	}
 	if got[4849] != 1 {
 		t.Fatalf("expected legacy count 1 for 4849, got %d", got[4849])
@@ -47,7 +47,7 @@ func TestSelectedContentCountsUsesLegacyFallbackBeforeCutoverWhenModernContentIs
 
 	got := SelectedContentCounts(inhalte, legacy)
 	if got[4848] != 2 {
-		t.Fatalf("expected legacy fallback count 2 for 4848, got %d", got[4848])
+		t.Fatalf("expected legacy count 2 for 4848, got %d", got[4848])
 	}
 }
 
@@ -74,8 +74,8 @@ func TestShouldSkipDummyLegacyContentKeepsRowsWithScans(t *testing.T) {
 	}
 
 	images := imageIndex{
-		byLegacyEntryContent: map[string][]string{
-			legacyImageKey(42, 1): {"scan.jpg"},
+		byContentID: map[int][]indexedImage{
+			1: {{path: "scan.jpg"}},
 		},
 	}
 

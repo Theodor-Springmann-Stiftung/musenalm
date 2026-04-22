@@ -21,15 +21,14 @@ func SelectedContentCounts(
 	inhalte xmlmodels.Inhalte,
 	legacy map[int]LegacyBandMatch,
 ) map[int]int {
-	filteredCounts := countFilteredModernContentsByBand(inhalte, getImages(xmlmodels.IMG_PATH))
+	filteredCounts := make(map[int]int)
+	_ = inhalte
 
 	for bandID, match := range legacy {
 		if len(match.Rows) == 0 {
 			continue
 		}
-		if UsesLegacyContents(bandID) || filteredCounts[bandID] == 0 {
-			filteredCounts[bandID] = len(match.Rows)
-		}
+		filteredCounts[bandID] = len(match.Rows)
 	}
 
 	return filteredCounts

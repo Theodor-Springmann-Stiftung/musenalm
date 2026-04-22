@@ -22,9 +22,7 @@ func LegacyBandMatches(
 	if legacy == nil {
 		return ret
 	}
-
-	images := getImages(xmlmodels.IMG_PATH)
-	modernFilteredCounts := countFilteredModernContentsByBand(inhalte, images)
+	_ = inhalte
 
 	for _, band := range baende.Bände {
 		oldEntry, ok := legacyAlmForBand(band, legacy)
@@ -38,11 +36,7 @@ func LegacyBandMatches(
 		}
 
 		match := LegacyBandMatch{LegacyAlm: oldEntry}
-		if UsesLegacyContents(band.ID) {
-			match.Rows = legacy.InhalteByEntryID[oldEntryID]
-		} else if modernFilteredCounts[band.ID] == 0 {
-			match.Rows = filterLegacyRowsForFallback(legacy.InhalteByEntryID[oldEntryID], oldEntryID, images)
-		}
+		match.Rows = legacy.InhalteByEntryID[oldEntryID]
 
 		ret[band.ID] = match
 	}
