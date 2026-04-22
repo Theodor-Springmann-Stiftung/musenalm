@@ -1,0 +1,27 @@
+{{ $model := . }}
+
+<div id="scan-strip" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex items-center gap-4 mb-6 overflow-hidden">
+	<div class="flex items-center gap-2 shrink-0">
+		<span class="font-serif font-bold text-base text-slate-800 whitespace-nowrap">
+			{{- if $model.random -}}Zufällige Scans{{- else -}}Letzte Scans{{- end -}}
+		</span>
+		<button
+			type="button"
+			hx-get="/admin/start/scans/?random=1"
+			hx-target="#scan-strip"
+			hx-swap="outerHTML"
+			class="group inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+			title="Zufällige Scans laden"
+			aria-label="Zufällige Scans laden">
+			<i class="ri-dice-line text-sm group-hover:animate-dice-roll" aria-hidden="true"></i>
+		</button>
+	</div>
+	<div class="w-px self-stretch bg-slate-300 shrink-0"></div>
+	<div class="flex items-center gap-1 flex-wrap overflow-hidden" style="max-height:1.75rem">
+		{{- range $model.scan_paths -}}
+		<popup-image data-image-url="{{ . }}?thumb=0x300" data-full-image-url="{{ . }}" class="inline-flex items-center shrink-0">
+			<img src="{{ . }}?thumb=0x300" alt="Scan" class="h-7 w-7 rounded-full border border-slate-300 object-cover shadow-sm" />
+		</popup-image>
+		{{- end -}}
+	</div>
+</div>

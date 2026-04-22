@@ -1,6 +1,13 @@
 package controllers
 
 const (
+	URL_ADMIN_START             = "/admin/"
+	TEMPLATE_ADMIN_START        = "/admin/start/"
+	URL_ADMIN_START_SCANS       = "start/scans/"
+	TEMPLATE_ADMIN_START_SCANS  = "/admin/start/scans/"
+)
+
+const (
 	URL_API_AGENTS         = "/admin/api/agents"
 	URL_API_AGENTS_SEARCH  = "/search"
 	URL_API_ENTRIES        = "/admin/api/entries"

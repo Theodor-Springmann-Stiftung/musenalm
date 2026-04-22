@@ -62,6 +62,18 @@
 	font-variant-caps: small-caps;
 }
 
+@keyframes dice-roll {
+	0%   { transform: rotate(0deg); }
+	20%  { transform: rotate(-22deg); }
+	50%  { transform: rotate(20deg); }
+	80%  { transform: rotate(-12deg); }
+	100% { transform: rotate(0deg); }
+}
+
+@utility animate-dice-roll {
+	animation: dice-roll 0.45s ease-in-out infinite;
+}
+
 @layer components {
 	html {
 		font-size: 16px;

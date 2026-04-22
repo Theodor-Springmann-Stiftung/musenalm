@@ -70,7 +70,7 @@ func Logout(e *core.RequestEvent, app *core.App) {
 }
 
 func RedirectTo(e *core.RequestEvent) error {
-	redirect := URL_REIHEN_LIST
+	redirect := URL_ADMIN_START
 
 	if r := e.Request.URL.Query().Get("redirectTo"); r != "" {
 		redirect = r

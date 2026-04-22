@@ -77,12 +77,12 @@
 
 <div id="admin-sidebar" class="admin-sidebar-inner">
 	<div class="admin-sidebar-brand">
-		<a href="/" class="no-underline admin-brand-logo-wrap" aria-label="Startseite">
+		<a href="/" class="no-underline admin-brand-logo-wrap" aria-label="Startseite" hx-boost="false">
 			<img class="admin-brand-logo" src="/assets/favicon_transparent.png" />
 		</a>
 		<div class="admin-brand-copy">
 			<h1 class="admin-brand-title">
-				<a href="/" class="no-underline admin-brand-link">{{ .site.title }}</a>
+				<a href="/" class="no-underline admin-brand-link" hx-boost="false">{{ .site.title }}</a>
 			</h1>
 			<div class="admin-mode-pill">Verwaltung</div>
 		</div>

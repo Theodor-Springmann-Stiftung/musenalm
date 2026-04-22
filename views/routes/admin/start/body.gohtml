@@ -1,0 +1,238 @@
+{{ $model := . }}
+{{ $request := $model.request }}
+
+<div class="admin-page-shell block">
+	<header class="admin-page-header">
+		<div class="admin-page-heading">
+			<div>
+				<h1 class="admin-page-title">Willkommen{{ if $request.user }}, {{ $request.user.Name }}{{ end }}</h1>
+				{{/* Session expiry indicator */}}
+				{{ $mins := $model.session_minutes_left }}
+				{{ if gt $mins 120 }}
+				<p class="admin-page-description text-slate-400 text-xs">
+					Sitzung gültig bis {{ GermanDate $model.session_expires_at }},&nbsp;{{ GermanTime $model.session_expires_at }}
+				</p>
+				{{ else if gt $mins 30 }}
+				<p class="admin-page-description text-amber-600 text-xs font-medium">
+					Sitzung läuft ab in {{ $mins }} Minuten
+				</p>
+				{{ else if gt $mins 0 }}
+				<p class="admin-page-description text-red-600 text-xs font-semibold">
+					Sitzung läuft bald ab &ndash; noch {{ $mins }}&nbsp;Minuten
+				</p>
+				{{ end }}
+			</div>
+		</div>
+	</header>
+
+	<div class="admin-page-body admin-page-body-simple">
+
+		{{/* Stats row */}}
+		{{ $stats := $model.stats }}
+		<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+			<a href="/admin/reihen/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Reihen }}</span>
+				<span class="text-xs text-slate-500 flex items-center gap-1"><i class="ri-book-shelf-fill" aria-hidden="true"></i> Reihen</span>
+			</a>
+			<a href="/admin/baende/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Baende }}</span>
+				<span class="text-xs text-slate-500 flex items-center gap-1"><i class="ri-book-line" aria-hidden="true"></i> Bände</span>
+			</a>
+			<a href="/admin/beitraege/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Inhalte }}</span>
+				<span class="text-xs text-slate-500 flex items-center gap-1"><i class="ri-article-line" aria-hidden="true"></i> Inhalte</span>
+			</a>
+			<div class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1">
+				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Scans }}</span>
+				<span class="text-xs text-slate-500 flex items-center gap-1"><i class="ri-image-line" aria-hidden="true"></i> Scans</span>
+			</div>
+			<a href="/admin/personen/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Persons }}</span>
+				<span class="text-xs text-slate-500 flex items-center gap-1"><i class="ri-user-line" aria-hidden="true"></i> Personen</span>
+			</a>
+		</div>
+
+		{{/* Recently edited */}}
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+			{{/* Bände */}}
+			<div class="bg-slate-50 rounded-xs shadow-sm border border-slate-200">
+				<div class="px-4 py-3 border-b border-slate-200">
+					<h2 class="text-sm font-semibold text-slate-900">Zuletzt bearbeitet: Bände</h2>
+				</div>
+				{{ if $model.recent_baende }}
+				<ul class="divide-y divide-slate-100 list-none my-0">
+					{{ range $model.recent_baende }}
+					<li class="ml-0 list-none px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
+						<span class="text-[0.65rem] text-slate-400 bg-slate-100 border border-slate-200 rounded-full px-1.5 shrink-0 tabular-nums leading-5">{{ .MusenalmId }}</span>
+						<span class="text-sm font-semibold text-slate-800 truncate min-w-0 flex-1">{{ if .PreferredTitle }}{{ .PreferredTitle }}{{ else }}<em class="font-normal text-slate-400">Kein Titel</em>{{ end }}</span>
+						<span class="text-[0.7rem] text-slate-400 shrink-0 whitespace-nowrap">{{ GermanDate .Updated }}</span>
+						<span class="inline-flex items-center gap-0.5 shrink-0">
+							<a href="{{ .ViewURL }}" hx-boost="false" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Anzeigen" aria-label="Anzeigen">
+								<i class="ri-eye-line text-xs" aria-hidden="true"></i>
+							</a>
+							<a href="{{ .EditURL }}" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Bearbeiten" aria-label="Bearbeiten">
+								<i class="ri-edit-line text-xs" aria-hidden="true"></i>
+							</a>
+						</span>
+					</li>
+					{{ end }}
+				</ul>
+				{{ else }}
+				<p class="px-4 py-3 text-sm text-slate-500">Keine Bände vorhanden.</p>
+				{{ end }}
+			</div>
+
+			{{/* Inhalte */}}
+			<div class="bg-slate-50 rounded-xs shadow-sm border border-slate-200">
+				<div class="px-4 py-3 border-b border-slate-200">
+					<h2 class="text-sm font-semibold text-slate-900">Zuletzt bearbeitet: Inhalte</h2>
+				</div>
+				{{ if $model.recent_inhalte }}
+				<ul class="divide-y divide-slate-100 list-none my-0">
+					{{ range $model.recent_inhalte }}
+					<li class="ml-0 list-none px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
+						<span class="text-[0.65rem] text-slate-400 bg-slate-100 border border-slate-200 rounded-full px-1.5 shrink-0 tabular-nums leading-5">{{ .MusenalmId }}</span>
+						<span class="text-sm font-semibold text-slate-800 truncate min-w-0 flex-1">{{ if .PreferredTitle }}{{ .PreferredTitle }}{{ else }}<em class="font-normal text-slate-400">Kein Titel</em>{{ end }}</span>
+						{{- if .ImagePaths -}}
+						<span class="inline-flex items-center gap-0.5 shrink-0">
+							{{- range $i, $src := .ImagePaths -}}
+							{{- if lt $i 3 -}}
+							<popup-image data-image-url="{{ $src }}?thumb=0x300" data-full-image-url="{{ $src }}" class="inline-flex items-center">
+								<img src="{{ $src }}?thumb=0x300" alt="Scan" class="h-5 w-5 rounded-full border border-slate-400 object-cover shadow-sm" />
+							</popup-image>
+							{{- end -}}
+							{{- end -}}
+						</span>
+						{{- end -}}
+						<span class="text-[0.7rem] text-slate-400 shrink-0 whitespace-nowrap">{{ GermanDate .Updated }}</span>
+						<span class="inline-flex items-center gap-0.5 shrink-0">
+							<a href="{{ .ViewURL }}" hx-boost="false" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Anzeigen" aria-label="Anzeigen">
+								<i class="ri-eye-line text-xs" aria-hidden="true"></i>
+							</a>
+							<a href="{{ .EditURL }}" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Bearbeiten" aria-label="Bearbeiten">
+								<i class="ri-edit-line text-xs" aria-hidden="true"></i>
+							</a>
+						</span>
+					</li>
+					{{ end }}
+				</ul>
+				{{ else }}
+				<p class="px-4 py-3 text-sm text-slate-500">Keine Inhalte vorhanden.</p>
+				{{ end }}
+			</div>
+		</div>
+
+		{{/* Recent scans strip */}}
+		{{ if $model.recent_scan_paths }}
+		<div id="scan-strip" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex items-center gap-4 mb-6 overflow-hidden">
+			<div class="flex items-center gap-2 shrink-0">
+				<span class="font-serif font-bold text-base text-slate-800 whitespace-nowrap">Letzte Scans</span>
+				<button
+					type="button"
+					hx-get="/admin/start/scans/?random=1"
+					hx-target="#scan-strip"
+					hx-swap="outerHTML"
+					class="group inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+					title="Zufällige Scans laden"
+					aria-label="Zufällige Scans laden">
+					<i class="ri-dice-line text-sm group-hover:animate-dice-roll" aria-hidden="true"></i>
+				</button>
+			</div>
+			<div class="w-px self-stretch bg-slate-300 shrink-0"></div>
+			<div class="flex items-center gap-1 flex-wrap overflow-hidden" style="max-height:1.75rem">
+				{{- range $model.recent_scan_paths -}}
+				<popup-image data-image-url="{{ . }}?thumb=0x300" data-full-image-url="{{ . }}" class="inline-flex items-center shrink-0">
+					<img src="{{ . }}?thumb=0x300" alt="Scan" class="h-7 w-7 rounded-full border border-slate-300 object-cover shadow-sm" />
+				</popup-image>
+				{{- end -}}
+			</div>
+		</div>
+		{{ end }}
+
+		{{/* System status */}}
+		<div class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 p-6">
+			<h2 class="text-base font-semibold text-slate-900 mb-5">Systemzustand</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+				{{/* Backup */}}
+				<div>
+					<div class="flex items-center gap-2 mb-2">
+						<i class="ri-archive-line text-slate-500"></i>
+						<h3 class="text-sm font-medium text-slate-700">Letztes Backup</h3>
+					</div>
+					{{ if $model.latest_export }}
+					{{ $export := $model.latest_export }}
+					<div class="text-sm text-slate-800">
+						<p class="font-medium">{{ $export.Name }}</p>
+						<p class="text-xs text-slate-500 mt-0.5">
+							Erstellt: {{ GermanDate $export.Created }}&ensp;{{ GermanTime $export.Created }}
+							{{ if $export.SizeLabel }}&ensp;&bull;&ensp;{{ $export.SizeLabel }}{{ end }}
+						</p>
+						<div class="mt-2 flex items-center gap-3">
+							{{ if eq $export.Status "complete" }}
+							<span class="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+								<i class="ri-checkbox-circle-line"></i> Fertig
+							</span>
+							<a href="/admin/exports/download/{{ $export.Id }}" class="inline-flex items-center gap-1 text-xs text-slate-700 bg-white border border-slate-300 rounded-full px-2 py-0.5 hover:bg-slate-100 transition-colors">
+								<i class="ri-download-line"></i> Herunterladen
+							</a>
+							{{ else if eq $export.Status "running" }}
+							<span class="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+								<i class="ri-loader-4-line animate-spin"></i> Läuft&hellip;
+							</span>
+							{{ else if eq $export.Status "queued" }}
+							<span class="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+								<i class="ri-time-line"></i> Warteschlange
+							</span>
+							{{ else if eq $export.Status "failed" }}
+							<span class="inline-flex items-center gap-1 text-xs text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">
+								<i class="ri-close-circle-line"></i> Fehler
+							</span>
+							{{ else }}
+							<span class="text-xs text-slate-500">{{ $export.Status }}</span>
+							{{ end }}
+							<a href="/admin/exports/" class="text-xs text-slate-500 hover:text-slate-800 hover:underline">Alle Exporte</a>
+						</div>
+					</div>
+					{{ else }}
+					<p class="text-sm text-slate-500">Noch kein Backup vorhanden.</p>
+					<a href="/admin/exports/" class="mt-2 inline-block text-xs text-slate-500 hover:text-slate-800 hover:underline">Backup starten</a>
+					{{ end }}
+				</div>
+
+				{{/* Search index */}}
+				<div>
+					<div class="flex items-center gap-2 mb-2">
+						<i class="ri-search-line text-slate-500"></i>
+						<h3 class="text-sm font-medium text-slate-700">Suchindex</h3>
+					</div>
+					<div class="text-sm text-slate-800">
+						{{ $status := $model.fts5_status }}
+						{{ if or (eq $status "idle") (eq $status "done") (eq $status "") }}
+						<span class="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+							<i class="ri-checkbox-circle-line"></i> Bereit
+						</span>
+						{{ else if or (eq $status "running") (eq $status "restarting") }}
+						<span class="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+							<i class="ri-loader-4-line animate-spin"></i> Wird aufgebaut&hellip;
+						</span>
+						{{ else }}
+						<span class="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+							<i class="ri-alert-line"></i> {{ $status }}
+						</span>
+						{{ end }}
+						{{ if $model.fts5_last_rebuild }}
+						<p class="text-xs text-slate-500 mt-1.5">Zuletzt aufgebaut: {{ $model.fts5_last_rebuild }}</p>
+						{{ else }}
+						<p class="text-xs text-slate-500 mt-1.5">Noch nicht aufgebaut.</p>
+						{{ end }}
+						<a href="/admin/exports/" class="mt-2 inline-block text-xs text-slate-500 hover:text-slate-800 hover:underline">Index verwalten</a>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+</div>
