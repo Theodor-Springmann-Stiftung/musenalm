@@ -229,6 +229,46 @@ func init() {
 			}
 		}
 
+		if _, err := seed.RunDataHarmonization(app); err != nil {
+			panic(err)
+		}
+
+		filteredSeriesMap := map[int]*dbmodels.Series{}
+		filteredSeriesMapByID := map[string]*dbmodels.Series{}
+		for musenalmID, record := range seriesmap {
+			found, findErr := app.FindRecordById(dbmodels.SERIES_TABLE, record.Id)
+			if findErr == nil && found != nil {
+				filteredSeriesMap[musenalmID] = record
+				filteredSeriesMapByID[record.Id] = record
+			}
+		}
+		seriesmap = filteredSeriesMap
+		seriesmapid = filteredSeriesMapByID
+
+		filteredAgentsByMusenalmID := map[int]*dbmodels.Agent{}
+		filteredAgentsByID := map[string]*dbmodels.Agent{}
+		filteredAgentsByName := map[string]*dbmodels.Agent{}
+		for musenalmID, record := range agentsmap {
+			found, findErr := app.FindRecordById(dbmodels.AGENTS_TABLE, record.Id)
+			if findErr == nil && found != nil {
+				filteredAgentsByMusenalmID[musenalmID] = record
+				filteredAgentsByID[record.Id] = record
+				filteredAgentsByName[record.Name()] = record
+			}
+		}
+		agentsmap = filteredAgentsByMusenalmID
+		agentsmapid = filteredAgentsByID
+		agentsmapname = filteredAgentsByName
+
+		filteredContentsMap := map[int]*dbmodels.Content{}
+		for musenalmID, record := range contentsmap {
+			found, findErr := app.FindRecordById(dbmodels.CONTENTS_TABLE, record.Id)
+			if findErr == nil && found != nil {
+				filteredContentsMap[musenalmID] = record
+			}
+		}
+		contentsmap = filteredContentsMap
+
 		// INFO: We need to get places again, sice it has changed in entries
 		places := []*dbmodels.Place{}
 		err = app.RecordQuery(dbmodels.PLACES_TABLE).All(&places)
