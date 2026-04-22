@@ -70,6 +70,29 @@ func canonicalNewRelationInputs(relations []almanachNewRelationPayload) []canoni
 	return result
 }
 
+func canonicalEntrySeriesRelationInputs(relations []almanachSeriesRelationPayload) []canonical.EntrySeriesRelationInput {
+	result := make([]canonical.EntrySeriesRelationInput, 0, len(relations))
+	for _, relation := range relations {
+		result = append(result, canonical.EntrySeriesRelationInput{
+			ID:         relation.ID,
+			TargetID:   relation.TargetID,
+			Annotation: relation.Annotation,
+		})
+	}
+	return result
+}
+
+func canonicalNewEntrySeriesRelationInputs(relations []almanachNewSeriesRelationPayload) []canonical.EntrySeriesRelationInput {
+	result := make([]canonical.EntrySeriesRelationInput, 0, len(relations))
+	for _, relation := range relations {
+		result = append(result, canonical.EntrySeriesRelationInput{
+			TargetID:   relation.TargetID,
+			Annotation: relation.Annotation,
+		})
+	}
+	return result
+}
+
 func canonicalContentInput(input contentFormInput, editorID string) canonical.ContentInput {
 	return canonical.ContentInput{
 		PreferredTitle: input.PreferredTitle,

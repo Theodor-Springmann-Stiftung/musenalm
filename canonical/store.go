@@ -119,6 +119,12 @@ type RelationInput struct {
 	Uncertain bool
 }
 
+type EntrySeriesRelationInput struct {
+	ID         string
+	TargetID   string
+	Annotation string
+}
+
 type ContentInput struct {
 	PreferredTitle    string
 	VariantTitle      string
@@ -631,7 +637,7 @@ func (s *Store) SaveEntryItems(tx core.App, entry *dbmodels.Entry, items []ItemI
 	return nil
 }
 
-func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, preferredSeriesID string, relations []RelationInput, newRelations []RelationInput, deletedIDs []string, effects *MutationEffects) error {
+func (s *Store) SaveEntrySeriesRelations(tx core.App, entry *dbmodels.Entry, preferredSeriesID string, relations []EntrySeriesRelationInput, newRelations []EntrySeriesRelationInput, deletedIDs []string, effects *MutationEffects) error {
 	if err := validateEntrySeriesRelations(preferredSeriesID, relations, newRelations); err != nil {
 		return err
 	}
@@ -1376,11 +1382,10 @@ func (s *Store) applyItemInput(item *dbmodels.Item, entryID string, input ItemIn
 	item.SetMedia(sanitizeStrings(input.Media))
 }
 
-func (s *Store) applyEntrySeriesRelation(proxy *dbmodels.REntriesSeries, entryID string, input RelationInput) {
+func (s *Store) applyEntrySeriesRelation(proxy *dbmodels.REntriesSeries, entryID string, input EntrySeriesRelationInput) {
 	proxy.SetEntry(entryID)
 	proxy.SetSeries(strings.TrimSpace(input.TargetID))
-	proxy.SetType(strings.TrimSpace(input.Type))
-	proxy.SetUncertain(input.Uncertain)
+	proxy.SetAnnotation(strings.TrimSpace(input.Annotation))
 }
 
 func (s *Store) applyEntryAgentRelation(proxy *dbmodels.REntriesAgents, entryID string, input RelationInput) {
@@ -1516,17 +1521,10 @@ func validateEntryInput(input EntryInput) error {
 	return validateStatus(input.Status)
 }
 
-func validateEntrySeriesRelations(preferredSeriesID string, relations []RelationInput, newRelations []RelationInput) error {
-	if err := validateRelations(relations, dbmodels.SERIES_RELATIONS); err != nil {
-		return err
-	}
-	if err := validateRelations(newRelations, dbmodels.SERIES_RELATIONS); err != nil {
-		return err
-	}
-
+func validateEntrySeriesRelations(preferredSeriesID string, relations []EntrySeriesRelationInput, newRelations []EntrySeriesRelationInput) error {
 	seriesTargetIDs := make(map[string]struct{}, len(relations)+len(newRelations))
 	preferredSeriesID = strings.TrimSpace(preferredSeriesID)
-	for _, relation := range append(append([]RelationInput{}, relations...), newRelations...) {
+	for _, relation := range append(append([]EntrySeriesRelationInput{}, relations...), newRelations...) {
 		targetID := strings.TrimSpace(relation.TargetID)
 		if targetID == "" {
 			continue

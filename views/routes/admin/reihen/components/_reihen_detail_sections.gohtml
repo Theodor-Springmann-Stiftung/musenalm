@@ -24,23 +24,6 @@
 									   data-tippy-placement="right"></i>
 								</div>
 							</a>
-							{{- if and $link.Relation $link.Relation.Type -}}
-								<div class="admin-list-inline-meta mt-1 whitespace-nowrap">
-									{{- if eq $link.Relation.Type "Früherer Reihentitel" -}}
-										Titelauflage aus einer anderen Reihe
-									{{- else if eq $link.Relation.Type "Späterer Reihentitel" -}}
-										Titelauflage
-									{{- else if eq $link.Relation.Type "In anderer Sprache" -}}
-										{{- if Contains $link.Entry.Language "ger" -}}
-											In deutscher Sprache
-										{{- else -}}
-											In französischer Sprache
-										{{- end -}}
-									{{- else -}}
-										{{ $link.Relation.Type }}
-									{{- end -}}
-								</div>
-							{{- end -}}
 						</div>
 						<div class="admin-list-detail-meta">
 							<span class="admin-list-inline-stat bg-transparent px-0 text-black">Alm {{ $link.Entry.MusenalmID }}</span>

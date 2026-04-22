@@ -61,7 +61,6 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App, ma pagem
 		data["csrf_token"] = req.Session().Token
 		data["item_types"] = dbmodels.ITEM_TYPE_VALUES
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
-		data["series_relations"] = dbmodels.SERIES_RELATIONS
 		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
@@ -220,7 +219,7 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			if err := store.SaveEntryItems(tx, entry, canonicalItemInputs(payload.Items), payload.DeletedItemIDs); err != nil {
 				return err
 			}
-			if err := store.SaveEntrySeriesRelations(tx, entry, payload.PreferredSeriesID, canonicalRelationInputs(payload.SeriesRelations), canonicalNewRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
+			if err := store.SaveEntrySeriesRelations(tx, entry, payload.PreferredSeriesID, canonicalEntrySeriesRelationInputs(payload.SeriesRelations), canonicalNewEntrySeriesRelationInputs(payload.NewSeriesRelations), payload.DeletedSeriesRelationIDs, effects); err != nil {
 				return err
 			}
 			if err := store.SaveEntryAgentRelations(tx, entry, canonicalRelationInputs(payload.AgentRelations), canonicalNewRelationInputs(payload.NewAgentRelations), payload.DeletedAgentRelationIDs, effects); err != nil {
@@ -360,20 +359,20 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, m
 }
 
 type almanachEditPayload struct {
-	CSRFToken                string                       `json:"csrf_token"`
-	LastEdited               string                       `json:"last_edited"`
-	Entry                    almanachEntryPayload         `json:"entry"`
-	Languages                []string                     `json:"languages"`
-	Places                   []string                     `json:"places"`
-	PreferredSeriesID        string                       `json:"preferred_series_id"`
-	Items                    []almanachItemPayload        `json:"items"`
-	DeletedItemIDs           []string                     `json:"deleted_item_ids"`
-	SeriesRelations          []almanachRelationPayload    `json:"series_relations"`
-	NewSeriesRelations       []almanachNewRelationPayload `json:"new_series_relations"`
-	DeletedSeriesRelationIDs []string                     `json:"deleted_series_relation_ids"`
-	AgentRelations           []almanachRelationPayload    `json:"agent_relations"`
-	NewAgentRelations        []almanachNewRelationPayload `json:"new_agent_relations"`
-	DeletedAgentRelationIDs  []string                     `json:"deleted_agent_relation_ids"`
+	CSRFToken                string                             `json:"csrf_token"`
+	LastEdited               string                             `json:"last_edited"`
+	Entry                    almanachEntryPayload               `json:"entry"`
+	Languages                []string                           `json:"languages"`
+	Places                   []string                           `json:"places"`
+	PreferredSeriesID        string                             `json:"preferred_series_id"`
+	Items                    []almanachItemPayload              `json:"items"`
+	DeletedItemIDs           []string                           `json:"deleted_item_ids"`
+	SeriesRelations          []almanachSeriesRelationPayload    `json:"series_relations"`
+	NewSeriesRelations       []almanachNewSeriesRelationPayload `json:"new_series_relations"`
+	DeletedSeriesRelationIDs []string                           `json:"deleted_series_relation_ids"`
+	AgentRelations           []almanachRelationPayload          `json:"agent_relations"`
+	NewAgentRelations        []almanachNewRelationPayload       `json:"new_agent_relations"`
+	DeletedAgentRelationIDs  []string                           `json:"deleted_agent_relation_ids"`
 }
 
 type almanachDeletePayload struct {
@@ -423,4 +422,15 @@ type almanachNewRelationPayload struct {
 	TargetID  string `json:"target_id"`
 	Type      string `json:"type"`
 	Uncertain bool   `json:"uncertain"`
+}
+
+type almanachSeriesRelationPayload struct {
+	ID         string `json:"id"`
+	TargetID   string `json:"target_id"`
+	Annotation string `json:"annotation"`
+}
+
+type almanachNewSeriesRelationPayload struct {
+	TargetID   string `json:"target_id"`
+	Annotation string `json:"annotation"`
 }

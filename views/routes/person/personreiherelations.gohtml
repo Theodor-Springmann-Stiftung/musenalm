@@ -79,23 +79,6 @@
 							{{- else -}}
 								[o.J.]
 							{{- end -}}
-							{{- if $rel.Type -}}
-								<div class="text-xs whitespace-nowrap">
-									{{- if eq $rel.Type "Früherer Reihentitel" -}}
-										Titelauflage aus einer anderen Reihe
-									{{- else if eq $rel.Type "Späterer Reihentitel" -}}
-										Titelauflage
-									{{- else if eq $rel.Type "In anderer Sprache" -}}
-										{{- if Contains $bd.Language "ger" -}}
-											In deutscher Sprache
-										{{- else -}}
-											In französischer Sprache
-										{{- end -}}
-									{{- else -}}
-										{{ $rel.Type }}
-									{{- end -}}
-								</div>
-							{{- end -}}
 						</a>
 					</div>
 					<div class="whitespace-nowrap align-top grow text-right">

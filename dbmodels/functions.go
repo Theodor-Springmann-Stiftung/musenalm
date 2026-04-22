@@ -96,3 +96,32 @@ func BasicRelationCollection(app core.App, sourcetablename, targettablename stri
 
 	return collection, nil
 }
+
+func EntriesSeriesRelationCollection(app core.App) (*core.Collection, error) {
+	entries, err := app.FindCollectionByNameOrId(ENTRIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	series, err := app.FindCollectionByNameOrId(SERIES_TABLE)
+	if err != nil {
+		return nil, err
+	}
+
+	collection := core.NewBaseCollection(RelationTableName(entries.Name, series.Name))
+	SetBasicPublicRules(collection)
+
+	fields := core.NewFieldsList(
+		&core.RelationField{Name: entries.Name, Required: true, CollectionId: entries.Id, MinSelect: 1, MaxSelect: 1},
+		&core.RelationField{Name: series.Name, Required: true, CollectionId: series.Id, MinSelect: 1, MaxSelect: 1},
+		&core.EditorField{Name: ANNOTATION_FIELD, Required: false, ConvertURLs: false},
+		&core.AutodateField{Name: CREATED_FIELD, OnCreate: true},
+		&core.AutodateField{Name: UPDATED_FIELD, OnCreate: true, OnUpdate: true},
+	)
+
+	collection.Fields = fields
+	AddIndex(collection, entries.Name, false)
+	AddIndex(collection, series.Name, false)
+
+	return collection, nil
+}

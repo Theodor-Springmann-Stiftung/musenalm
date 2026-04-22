@@ -12,10 +12,9 @@ const ROLE_DELETE = "[data-role='content-series-delete']";
 const ROLE_DELETE_INPUT = "[data-role='content-series-delete-input']";
 const ROLE_NAME = "[data-role='content-series-name']";
 const ROLE_LINK = "[data-role='content-series-link']";
-const ROLE_TYPE = "[data-role='content-series-type']";
-const ROLE_UNCERTAIN = "[data-role='content-series-uncertain']";
 const ROLE_TEMPLATE = "template[data-role='content-series-new-row-template']";
 const ROLE_NEW_ID = "[data-role='content-series-new-id']";
+const ROLE_NEW_ANNOTATION = "[data-role='content-series-new-annotation']";
 
 const FETCH_DEBOUNCE_MS = 200;
 const getSeriesLabel = (item) => item?.title || item?.name || item?.label || "";
@@ -40,7 +39,6 @@ export class ContentSeriesRelations extends HTMLElement {
 		this._prefix = this.getAttribute("data-prefix") || "";
 		this._endpoint = this.getAttribute("data-endpoint") || "/admin/api/series/search";
 		this._linkBase = this.getAttribute("data-link-base") || "/reihe/";
-		this._defaultRelation = this.getAttribute("data-default-relation") || "";
 		this._duplicateError = this.getAttribute("data-error-duplicate") || "Diese Reihe ist bereits verknüpft.";
 		this._tableBody = this.querySelector(ROLE_TABLE_BODY);
 		this._addToggle = this.querySelector(ROLE_ADD_TOGGLE);
@@ -287,25 +285,16 @@ export class ContentSeriesRelations extends HTMLElement {
 			nameEl.textContent = getSeriesLabel(item);
 		}
 
-		const typeSelect = fragment.querySelector(ROLE_TYPE);
-		if (typeSelect) {
-			typeSelect.name = `${this._prefix}_new_type`;
-			if (this._defaultRelation) {
-				typeSelect.value = this._defaultRelation;
-			}
-		}
-
-		const uncertain = fragment.querySelector(ROLE_UNCERTAIN);
-		if (uncertain) {
-			uncertain.name = `${this._prefix}_new_uncertain`;
-			uncertain.value = item.id;
-			uncertain.checked = false;
-		}
-
 		const hiddenId = fragment.querySelector(ROLE_NEW_ID);
 		if (hiddenId) {
 			hiddenId.name = `${this._prefix}_new_id`;
 			hiddenId.value = item.id;
+		}
+
+		const hiddenAnnotation = fragment.querySelector(ROLE_NEW_ANNOTATION);
+		if (hiddenAnnotation) {
+			hiddenAnnotation.name = `${this._prefix}_new_annotation`;
+			hiddenAnnotation.value = "";
 		}
 
 		this._tableBody.appendChild(fragment);
@@ -343,9 +332,6 @@ export class ContentSeriesRelations extends HTMLElement {
 		const isDeleted = deleteInput.checked;
 		row.classList.toggle("bg-red-50", isDeleted);
 		row.classList.toggle("opacity-70", isDeleted);
-		row.querySelectorAll(`${ROLE_TYPE}, ${ROLE_UNCERTAIN}`).forEach((field) => {
-			field.disabled = isDeleted;
-		});
 	}
 
 	_syncUi() {

@@ -58,7 +58,7 @@ func init() {
 			return err
 		}
 
-		r_entries_series, err := dbmodels.BasicRelationCollection(app, dbmodels.ENTRIES_TABLE, dbmodels.SERIES_TABLE, dbmodels.SERIES_RELATIONS)
+		r_entries_series, err := dbmodels.EntriesSeriesRelationCollection(app)
 		if err != nil {
 			return err
 		}

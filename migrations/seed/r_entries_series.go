@@ -45,29 +45,10 @@ func RecordsFromRelationBändeReihen(
 		record := dbmodels.NewREntriesSeries(core.NewRecord(collection))
 		record.SetEntry(entry.Id)
 		record.SetSeries(ser.Id)
-
-		switch relation.Relation {
-		case "2":
-			record.SetType("Alternatives Titelblatt")
-		case "3":
-			record.SetType("In anderer Sprache")
-		case "4":
-			entry.SetLanguage([]string{"fre"})
-			_ = app.Save(entry)
-			record.SetType("In anderer Sprache")
-		case "5":
-			record.SetType("Alternatives Titelblatt")
-		case "6":
-			record.SetType("Späterer Reihentitel")
-		case "7":
-			record.SetType("Früherer Reihentitel")
-		}
-
-		rel := record.Type()
 		ent := record.Entry()
 		serID := record.Series()
 
-		if strings.TrimSpace(rel) == "" || strings.TrimSpace(ent) == "" || strings.TrimSpace(serID) == "" {
+		if strings.TrimSpace(ent) == "" || strings.TrimSpace(serID) == "" {
 			appendEntryComment(entry, "Unvollständige Relation Band–Reihe; bitte prüfen.")
 			_ = app.Save(entry)
 		}

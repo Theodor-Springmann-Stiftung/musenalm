@@ -538,6 +538,7 @@ export class AlmanachEditPage extends HTMLElement {
 	_collectRelations(formData, { prefix, targetField }) {
 		const relations = [];
 		const deleted = [];
+		const isSeriesRelation = prefix === "entries_series";
 
 		// Iterate over ID fields instead of type fields (IDs are always submitted even when disabled)
 		for (const [key, value] of formData.entries()) {
@@ -546,9 +547,8 @@ export class AlmanachEditPage extends HTMLElement {
 			}
 			const relationKey = key.slice(key.indexOf("[") + 1, -1);
 			const targetKey = `${prefix}_${targetField}[${relationKey}]`;
-			const typeKey = `${prefix}_type[${relationKey}]`;
 			const deleteKey = `${prefix}_delete[${relationKey}]`;
-			const uncertainKey = `${prefix}_uncertain[${relationKey}]`;
+			const annotationKey = `${prefix}_annotation[${relationKey}]`;
 
 			const relationId = (value || "").trim();
 			const targetId = (formData.get(targetKey) || "").trim();
@@ -564,11 +564,21 @@ export class AlmanachEditPage extends HTMLElement {
 			}
 
 			// Not deleted, add to relations
-			const type = (formData.get(typeKey) || "").trim();
+			if (isSeriesRelation) {
+				relations.push({
+					id: relationId,
+					target_id: targetId,
+					annotation: (formData.get(annotationKey) || "").trim(),
+				});
+				continue;
+			}
+
+			const typeKey = `${prefix}_type[${relationKey}]`;
+			const uncertainKey = `${prefix}_uncertain[${relationKey}]`;
 			relations.push({
 				id: relationId,
 				target_id: targetId,
-				type: type,
+				type: (formData.get(typeKey) || "").trim(),
 				uncertain: formData.has(uncertainKey),
 			});
 		}
@@ -580,6 +590,7 @@ export class AlmanachEditPage extends HTMLElement {
 			this.querySelector(`relations-editor[data-prefix='${prefix}']`) ||
 			this.querySelector(`content-person-relations[data-prefix='${prefix}']`) ||
 			this.querySelector(`content-series-relations[data-prefix='${prefix}']`);
+		const isSeriesRelation = prefix === "entries_series";
 		if (!container) {
 			return [];
 		}
@@ -589,8 +600,6 @@ export class AlmanachEditPage extends HTMLElement {
 		const relations = [];
 		newRows.forEach((row) => {
 			const idInput = row.querySelector(`input[name='${prefix}_new_id']`);
-			const typeInput = row.querySelector(`select[name='${prefix}_new_type']`);
-			const uncertainInput = row.querySelector(`input[name='${prefix}_new_uncertain']`);
 			if (!idInput) {
 				return;
 			}
@@ -598,6 +607,17 @@ export class AlmanachEditPage extends HTMLElement {
 			if (!targetId) {
 				return;
 			}
+			if (isSeriesRelation) {
+				const annotationInput = row.querySelector(`input[name='${prefix}_new_annotation'], textarea[name='${prefix}_new_annotation']`);
+				relations.push({
+					target_id: targetId,
+					annotation: (annotationInput?.value || "").trim(),
+				});
+				return;
+			}
+
+			const typeInput = row.querySelector(`select[name='${prefix}_new_type']`);
+			const uncertainInput = row.querySelector(`input[name='${prefix}_new_uncertain']`);
 			relations.push({
 				target_id: targetId,
 				type: (typeInput?.value || "").trim(),

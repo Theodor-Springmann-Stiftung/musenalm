@@ -192,23 +192,6 @@
 							{{- range $i, $rel := $model.result.SeriesRelations -}}
 								{{- $s := seriesDisplay $rel.Series -}}
 								<div>
-									{{- if $rel.Type -}}
-										<span class="text-sm font-sans mr-2">
-											{{- if eq $rel.Type "Früherer Reihentitel" -}}
-												hat Titelauflage s.a.
-											{{- else if eq $rel.Type "Späterer Reihentitel" -}}
-												ist Titelauflage von, s.a.
-											{{- else if eq $rel.Type "In anderer Sprache" -}}
-												{{- if $isFra -}}
-													In deutscher Sprache s.a.
-												{{- else -}}
-													In französischer Sprache s.a.
-												{{- end -}}
-											{{- else if eq $rel.Type "Alternatives Titelblatt" -}}
-												alternatives Titelblatt, s.a.
-											{{- end -}}
-										</span>
-									{{- end -}}
 									<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Name }}</a>
 								</div>
 							{{- end -}}

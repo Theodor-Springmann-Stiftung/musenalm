@@ -94,9 +94,6 @@
 					{{- range $_, $link := $details.SeriesLinks -}}
 						{{- $series := seriesDisplay $link.Series.Id -}}
 						<div>
-							{{- if and $link.Relation $link.Relation.Type -}}
-								<span class="mr-2 inline-block rounded-xs bg-stone-100 px-1.5 py-0.5 text-[0.72rem] font-semibold text-slate-700">{{ $link.Relation.Type }}</span>
-							{{- end -}}
 							<a
 								href="/admin/baende/?offset=0&sort=title&order=asc&series={{ $series.ID }}"
 								hx-target="#admin-main-content"

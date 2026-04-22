@@ -57,7 +57,7 @@ type AlmanachResult struct {
 				<tool-tip position="top" class="inline">
 					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-chip" aria-label="Beiträge">
 						<i class="ri-article-line"></i>
-						<span>Beiträge</span>
+						<span>Beiträge bearbeiten</span>
 						<span class="admin-list-badge">{{ $contentCount }}</span>
 					</a>
 					<div class="data-tip">{{ $contentCount }} Beiträge bearbeiten</div>
@@ -329,19 +329,7 @@ type AlmanachResult struct {
 														</a>
 														<input type="hidden" name="entries_series_id[{{ $rel.Id }}]" value="{{ $rel.Id }}" />
 														<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
-													</td>
-													<td class="px-3 py-2 align-middle">
-														<select data-role="content-series-type" name="entries_series_type[{{ $rel.Id }}]" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
-															{{- range $t := $model.series_relations -}}
-																<option value="{{ $t }}" {{ if eq $rel.Type $t }}selected{{ end }}>{{ $t }}</option>
-															{{- end -}}
-														</select>
-													</td>
-													<td class="w-24 px-3 py-2 align-middle">
-														<label class="inline-flex items-center gap-1 text-sm text-slate-700">
-															<input data-role="content-series-uncertain" type="checkbox" name="entries_series_uncertain[{{ $rel.Id }}]" {{ if $rel.Uncertain }}checked{{ end }} />
-															<span>Unsicher</span>
-														</label>
+														<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
 													</td>
 													<td class="px-3 py-2 text-right align-middle">
 														<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
@@ -396,19 +384,7 @@ type AlmanachResult struct {
 									<span data-role="content-series-name"></span>
 								</a>
 								<input data-role="content-series-new-id" type="hidden" />
-							</td>
-							<td class="px-3 py-2 align-middle">
-								<select data-role="content-series-type" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
-									{{- range $t := $model.series_relations -}}
-										<option value="{{ $t }}">{{ $t }}</option>
-									{{- end -}}
-								</select>
-							</td>
-							<td class="w-24 px-3 py-2 align-middle">
-								<label class="inline-flex items-center gap-1 text-sm text-slate-700">
-									<input data-role="content-series-uncertain" type="checkbox" />
-									<span>Unsicher</span>
-								</label>
+								<input data-role="content-series-new-annotation" type="hidden" />
 							</td>
 							<td class="px-3 py-2 text-right align-middle">
 								<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">

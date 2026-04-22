@@ -416,14 +416,6 @@ var AGENT_RELATIONS = []string{
 	"Kupferstecher:in",
 }
 
-var SERIES_RELATIONS = []string{
-	"Alternativer Reihentitel",
-	"Alternatives Titelblatt",
-	"Späterer Reihentitel",
-	"Früherer Reihentitel",
-	"In anderer Sprache",
-}
-
 var PUBLIC_VIEW_RULE = types.Pointer("")
 var PUBLIC_LIST_RULE = types.Pointer("")
 
