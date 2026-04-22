@@ -1,10 +1,14 @@
 package controllers
 
 const (
-	URL_ADMIN_START             = "/admin/"
-	TEMPLATE_ADMIN_START        = "/admin/start/"
-	URL_ADMIN_START_SCANS       = "start/scans/"
-	TEMPLATE_ADMIN_START_SCANS  = "/admin/start/scans/"
+	URL_ADMIN_START              = "/admin/"
+	TEMPLATE_ADMIN_START         = "/admin/start/"
+	URL_ADMIN_START_SCANS        = "start/scans/"
+	TEMPLATE_ADMIN_START_SCANS   = "/admin/start/scans/"
+	URL_ADMIN_START_BAENDE       = "start/baende/"
+	TEMPLATE_ADMIN_START_BAENDE  = "/admin/start/baende/"
+	URL_ADMIN_START_INHALTE      = "start/inhalte/"
+	TEMPLATE_ADMIN_START_INHALTE = "/admin/start/inhalte/"
 )
 
 const (

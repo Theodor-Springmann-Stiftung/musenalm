@@ -1,0 +1,57 @@
+{{ $model := . }}
+{{ $todo := $model.todo_mode }}
+
+<div id="inhalte-list-card" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200">
+	<div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+		<h2 class="text-sm font-semibold text-slate-900">{{ if $todo }}Zu erledigen &ndash; Einträge{{ else }}Zuletzt bearbeitete Einträge{{ end }}</h2>
+		<div class="inline-flex gap-0.5">
+			<button type="button"
+				hx-get="/admin/start/inhalte/"
+				hx-target="#inhalte-list-card"
+				hx-swap="outerHTML"
+				class="text-xs px-2 py-0.5 rounded {{ if not $todo }}bg-slate-200 text-slate-800 font-medium{{ else }}text-slate-400 hover:text-slate-700 hover:bg-slate-100{{ end }}">
+				Zuletzt bearbeitet
+			</button>
+			<button type="button"
+				hx-get="/admin/start/inhalte/?mode=todo"
+				hx-target="#inhalte-list-card"
+				hx-swap="outerHTML"
+				class="text-xs px-2 py-0.5 rounded {{ if $todo }}bg-slate-200 text-slate-800 font-medium{{ else }}text-slate-400 hover:text-slate-700 hover:bg-slate-100{{ end }}">
+				ToDo
+			</button>
+		</div>
+	</div>
+	{{ if $model.items }}
+	<ul class="divide-y divide-slate-100 list-none my-0">
+		{{ range $model.items }}
+		<li class="ml-0 list-none px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
+			<span class="shrink-0 inline-flex items-center {{ if eq .EditState "Edited" }}text-emerald-600{{ else if eq .EditState "Seen" }}text-blue-500{{ else if eq .EditState "Review" }}text-amber-500{{ else if eq .EditState "ToDo" }}text-orange-400{{ else }}text-slate-300{{ end }}" title="{{ if eq .EditState "Edited" }}Status: Erfasst{{ else if eq .EditState "Seen" }}Status: Gesichtet{{ else if eq .EditState "Review" }}Status: Überprüfen{{ else if eq .EditState "ToDo" }}Status: Zu erledigen{{ else }}Status: Unbekannt{{ end }}"><i class="text-xs {{ if eq .EditState "Edited" }}ri-checkbox-circle-line{{ else if eq .EditState "Seen" }}ri-information-line{{ else if eq .EditState "Review" }}ri-search-line{{ else if eq .EditState "ToDo" }}ri-list-check{{ else }}ri-forbid-2-line{{ end }}" aria-hidden="true"></i></span>
+			<span class="text-[0.8rem] text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 shrink-0 tabular-nums leading-5">{{ .MusenalmId }}</span>
+			<span class="text-sm font-semibold text-slate-800 truncate min-w-0 flex-1">{{ if .PreferredTitle }}{{ .PreferredTitle }}{{ else }}<em class="font-normal text-slate-400">Kein Titel</em>{{ end }}</span>
+			{{- if .ImagePaths -}}
+			<span class="inline-flex items-center gap-0.5 shrink-0">
+				{{- range $i, $src := .ImagePaths -}}
+				{{- if lt $i 3 -}}
+				<popup-image data-image-url="{{ $src }}?thumb=0x300" data-full-image-url="{{ $src }}" class="inline-flex items-center">
+					<img src="{{ $src }}?thumb=0x300" alt="Scan" class="h-5 w-5 rounded-full border border-slate-400 object-cover shadow-sm" />
+				</popup-image>
+				{{- end -}}
+				{{- end -}}
+			</span>
+			{{- end -}}
+			<span class="text-[0.7rem] text-slate-400 shrink-0 whitespace-nowrap">{{ GermanDate .Updated }}</span>
+			<span class="inline-flex items-center gap-0.5 shrink-0">
+				<a href="{{ .ViewURL }}" hx-boost="false" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Anzeigen" aria-label="Anzeigen">
+					<i class="ri-eye-line text-xs" aria-hidden="true"></i>
+				</a>
+				<a href="{{ .EditURL }}" class="no-underline inline-flex items-center justify-center h-6 w-6 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors" title="Bearbeiten" aria-label="Bearbeiten">
+					<i class="ri-edit-line text-xs" aria-hidden="true"></i>
+				</a>
+			</span>
+		</li>
+		{{ end }}
+	</ul>
+	{{ else }}
+	<p class="px-4 py-3 text-sm text-slate-500">{{ if $todo }}Keine offenen Einträge.{{ else }}Keine Einträge vorhanden.{{ end }}</p>
+	{{ end }}
+</div>
