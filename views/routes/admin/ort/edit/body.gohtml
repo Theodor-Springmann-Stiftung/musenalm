@@ -78,34 +78,36 @@
 
 		<div class="simple-entity-form-grid">
 			<div class="simple-entity-main-column">
-				<div class="ui form">
-					<div class="flex flex-row gap-2 items-start">
-						<div class="field grow">
-							<label for="name">
-								Name
+				<div class="flex flex-row gap-2 items-start">
+					<div class="inputwrapper grow">
+						<div class="inputlabelrow">
+							<div class="flex items-center gap-1">
+								<label for="name" class="inputlabel">Name</label>
 								<tool-tip position="top" class="!inline">
 									<div class="data-tip">{{ help "places" "name" }}</div>
 									<i class="ri-question-line"></i>
 								</tool-tip>
-							</label>
-							<lookup-field
-								id="place-name-field"
-								name="name"
-								data-multiline="true"
-								data-no-enter="true"
-								data-required="true"
-								data-autocomplete="false"
-								data-valid-fn="lookupRequiredText"
-								data-dup-endpoint="/admin/api/places/search"
-								data-dup-result-key="places"
-								data-dup-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}"
-								value="{{- $place.Name -}}">
-							</lookup-field>
+							</div>
 						</div>
-						<div class="ui checkbox shrink-0" style="padding-top: 2rem;">
+						<lookup-field
+							id="place-name-field"
+							name="name"
+							data-multiline="true"
+							data-no-enter="true"
+							data-required="true"
+							data-autocomplete="false"
+							data-valid-fn="lookupRequiredText"
+							data-dup-endpoint="/admin/api/places/search"
+							data-dup-result-key="places"
+							data-dup-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}"
+							value="{{- $place.Name -}}">
+						</lookup-field>
+					</div>
+					<div class="inputwrapper shrink-0">
+						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
 							<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />
-							<label for="fictional">
-								Fiktional
+							<label class="flex items-center gap-1 text-gray-700" for="fictional">
+								<span>Fiktional</span>
 								<tool-tip position="top" class="!inline">
 									<div class="data-tip">{{ help "places" "fictional" }}</div>
 									<i class="ri-question-line"></i>
@@ -113,26 +115,30 @@
 							</label>
 						</div>
 					</div>
-					<div class="field">
-						<label for="pseudonyms">
-							Alternativnamen
+				</div>
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<div class="flex items-center gap-1">
+							<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ help "places" "pseudonyms" }}</div>
 								<i class="ri-question-line"></i>
 							</tool-tip>
-						</label>
-						<textarea name="pseudonyms" id="pseudonyms" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
+						</div>
 					</div>
-					<div class="field">
-						<label for="uri">
-							URL
+					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
+				</div>
+				<div class="inputwrapper">
+					<div class="inputlabelrow">
+						<div class="flex items-center gap-1">
+							<label for="uri" class="inputlabel">URL</label>
 							<tool-tip position="top" class="!inline">
 								<div class="data-tip">{{ help "places" "uri" }}</div>
 								<i class="ri-question-line"></i>
 							</tool-tip>
-						</label>
-						<input name="uri" id="uri" autocomplete="off" value="{{ $place.URI }}" />
+						</div>
 					</div>
+					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
 				</div>
 				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}
 			</div>
@@ -202,139 +208,6 @@
 				</div>
 			</div>
 		</dialog>
-		<div class="ui small modal" id="baende-delete-modal">
-			<div class="header">Band löschen?</div>
-			<div class="content">
-				<p id="baende-delete-title" class="text-sm font-bold text-gray-900 mb-2"></p>
-				<div id="baende-delete-impacts" class="text-sm text-gray-700">Lade Informationen …</div>
-				<div id="baende-delete-error" class="text-sm text-red-700 hidden mt-2"></div>
-			</div>
-			<div class="actions">
-				<button class="ui cancel button">Abbrechen</button>
-				<button class="ui red ok button">Löschen</button>
-			</div>
-			<input type="hidden" id="baende-delete-csrf" value="{{ $model.csrf_token }}" />
-		</div>
-		<div class="ui small modal" id="content-delete-modal">
-			<div class="header">Beitrag löschen?</div>
-			<div class="content">
-				<p id="content-delete-title" class="text-sm font-bold text-gray-900 mb-2"></p>
-				<div id="content-delete-error" class="text-sm text-red-700 hidden mt-2"></div>
-			</div>
-			<div class="actions">
-				<button class="ui cancel button">Abbrechen</button>
-				<button class="ui red ok button">Löschen</button>
-			</div>
-			<input type="hidden" id="content-delete-csrf" value="{{ $model.csrf_token }}" />
-		</div>
-		<script>
-			(function() {
-				var currentEntryId = '';
-				var currentEntryEndpoint = '';
-				var $baende = $('#baende-delete-modal');
-
-				$baende.modal({
-					closable: false,
-					onShow: function() {
-						$('#baende-delete-impacts').text('Lade Informationen …');
-						$('#baende-delete-error').addClass('hidden').text('');
-						if (!currentEntryId) return;
-						fetch('/admin/baende/delete-info/' + encodeURIComponent(currentEntryId))
-							.then(function(r) { return r.text(); })
-							.then(function(html) { $('#baende-delete-impacts').html(html); })
-							.catch(function() { $('#baende-delete-impacts').text('Infos konnten nicht geladen werden.'); });
-					},
-					onApprove: function() {
-						if (!currentEntryEndpoint) return false;
-						$('#baende-delete-error').addClass('hidden').text('');
-						var csrf = $('#baende-delete-csrf').val() || '';
-						fetch(currentEntryEndpoint, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-							body: JSON.stringify({ csrf_token: csrf })
-						})
-						.then(function(r) {
-							return r.json().then(function(d) { return { ok: r.ok, data: d }; }).catch(function() { return { ok: r.ok, data: null }; });
-						})
-						.then(function(result) {
-							if (!result.ok) throw new Error((result.data && result.data.error) || 'Löschen fehlgeschlagen.');
-							$baende.modal('hide');
-							if (currentEntryId) {
-								document.querySelectorAll('[data-entry-id="' + CSS.escape(currentEntryId) + '"]')
-									.forEach(function(el) { var row = el.closest('li'); if (row) row.remove(); });
-							}
-						})
-						.catch(function(err) {
-							$('#baende-delete-error').text(err.message || 'Löschen fehlgeschlagen.').removeClass('hidden');
-						});
-						return false;
-					}
-				});
-
-				document.addEventListener('click', function(event) {
-					var path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-					var btn = null;
-					for (var i = 0; i < path.length; i++) {
-						if (path[i].getAttribute && path[i].getAttribute('data-role') === 'baende-delete') { btn = path[i]; break; }
-					}
-					if (!btn && event.target && event.target.closest) { btn = event.target.closest('[data-role="baende-delete"]'); }
-					if (!btn) return;
-					event.preventDefault();
-					event.stopPropagation();
-					currentEntryId = btn.getAttribute('data-entry-id') || '';
-					currentEntryEndpoint = btn.getAttribute('data-delete-endpoint') || '';
-					$('#baende-delete-title').text(btn.getAttribute('data-entry-title') || 'Unbekannter Eintrag');
-					$baende.modal('show');
-				}, true);
-
-				var currentContentId = '';
-				var currentContentEndpoint = '';
-				var $content = $('#content-delete-modal');
-
-				$content.modal({
-					closable: false,
-					onApprove: function() {
-						if (!currentContentEndpoint || !currentContentId) return false;
-						$('#content-delete-error').addClass('hidden').text('');
-						var csrf = $('#content-delete-csrf').val() || '';
-						var payload = new URLSearchParams();
-						payload.set('csrf_token', csrf);
-						payload.set('content_id', currentContentId);
-						fetch(currentContentEndpoint, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true' },
-							body: payload.toString()
-						})
-						.then(function(r) {
-							if (!r.ok) throw new Error('Löschen fehlgeschlagen.');
-							$content.modal('hide');
-							document.querySelectorAll('[data-content-id="' + CSS.escape(currentContentId) + '"]')
-								.forEach(function(el) { var row = el.closest('li'); if (row) row.remove(); });
-						})
-						.catch(function(err) {
-							$('#content-delete-error').text(err.message || 'Löschen fehlgeschlagen.').removeClass('hidden');
-						});
-						return false;
-					}
-				});
-
-				document.addEventListener('click', function(event) {
-					var path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-					var btn = null;
-					for (var i = 0; i < path.length; i++) {
-						if (path[i].getAttribute && path[i].getAttribute('data-role') === 'content-delete') { btn = path[i]; break; }
-					}
-					if (!btn && event.target && event.target.closest) { btn = event.target.closest('[data-role="content-delete"]'); }
-					if (!btn) return;
-					event.preventDefault();
-					event.stopPropagation();
-					currentContentId = btn.getAttribute('data-content-id') || '';
-					currentContentEndpoint = btn.getAttribute('data-delete-endpoint') || '';
-					$('#content-delete-title').text(btn.getAttribute('data-content-title') || 'Unbekannter Beitrag');
-					$content.modal('show');
-				}, true);
-			})();
-		</script>
 		{{- end -}}
 	</form>
 	</div>

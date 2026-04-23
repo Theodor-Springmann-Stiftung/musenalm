@@ -81,13 +81,9 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	_initForm() {
-		console.log("AlmanachEditPage: _initForm called");
 		const form = this.querySelector("#changealmanachform");
-		console.log("Form found:", !!form, "FormLoad exists:", typeof window.FormLoad === "function");
 		if (form && typeof window.FormLoad === "function") {
 			window.FormLoad(form);
-		} else {
-			console.error("Cannot initialize form - form or FormLoad missing");
 		}
 	}
 
@@ -587,16 +583,12 @@ export class AlmanachEditPage extends HTMLElement {
 
 	_collectNewRelations(prefix) {
 		const container =
-			this.querySelector(`relations-editor[data-prefix='${prefix}']`) ||
 			this.querySelector(`content-person-relations[data-prefix='${prefix}']`) ||
 			this.querySelector(`content-series-relations[data-prefix='${prefix}']`);
-		const isSeriesRelation = prefix === "entries_series";
 		if (!container) {
 			return [];
 		}
-		const newRows = container.matches("relations-editor")
-			? container.querySelectorAll("[data-role='relation-add-row'] [data-rel-row]")
-			: container.querySelectorAll("[data-kind='new']");
+		const newRows = container.querySelectorAll("[data-kind='new']");
 		const relations = [];
 		newRows.forEach((row) => {
 			const idInput = row.querySelector(`input[name='${prefix}_new_id']`);

@@ -23,7 +23,6 @@ export class ImageReel extends HTMLElement {
 
 	calculateShownImages() {
 		const c = this.getBoundingClientRect();
-		console.log(c);
 		const fits = Math.floor(c.width / (this.#minWidth + 10));
 		for (let i = 0; i < this._images.length; i++) {
 			if (i < fits - 1) {
