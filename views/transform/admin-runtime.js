@@ -114,6 +114,8 @@ export function initAdminStatusPickers(root = document) {
 				const previousStatus = toggle.dataset.status || "Unknown";
 				applyAdminStatusPickerState(picker, nextStatus);
 				updatePersonViewChips(picker, nextStatus);
+				updateOrtViewChips(picker, nextStatus);
+				updateBeitragViewChips(picker, nextStatus);
 				menu.classList.add("hidden");
 				toggle.disabled = true;
 				toggle.classList.add("opacity-70", "pointer-events-none");
@@ -135,6 +137,8 @@ export function initAdminStatusPickers(root = document) {
 					if (result.status) {
 						applyAdminStatusPickerState(picker, result.status);
 						updatePersonViewChips(picker, result.status);
+						updateOrtViewChips(picker, result.status);
+						updateBeitragViewChips(picker, result.status);
 					}
 					if (result.last_edited) {
 						picker.dataset.lastEdited = result.last_edited;
@@ -146,6 +150,8 @@ export function initAdminStatusPickers(root = document) {
 				} catch (error) {
 					applyAdminStatusPickerState(picker, previousStatus);
 					updatePersonViewChips(picker, previousStatus);
+					updateOrtViewChips(picker, previousStatus);
+					updateBeitragViewChips(picker, previousStatus);
 					console.error(error);
 				} finally {
 					toggle.disabled = false;
@@ -154,6 +160,40 @@ export function initAdminStatusPickers(root = document) {
 			});
 		});
 	});
+}
+
+function updateBeitragViewChips(picker, status) {
+	const row = picker.closest("[data-role='beitraege-row']");
+	if (!row) return;
+	const chipPair = row.querySelector("[data-content-musenalm-id]");
+	if (!chipPair) return;
+	const id = chipPair.dataset.contentMusenalmId;
+	if (status === "ToDo") {
+		chipPair.innerHTML =
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true"><i class="ri-eye-line"></i></span>` +
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true"><i class="ri-external-link-line"></i></span>`;
+	} else {
+		chipPair.innerHTML =
+			`<a href="/beitrag/${id}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen"><i class="ri-eye-line"></i></a>` +
+			`<a href="/beitrag/${id}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen"><i class="ri-external-link-line"></i></a>`;
+	}
+}
+
+function updateOrtViewChips(picker, status) {
+	const row = picker.closest("tr");
+	if (!row) return;
+	const chipPair = row.querySelector("[data-place-musenalm-id]");
+	if (!chipPair) return;
+	const id = chipPair.dataset.placeMusenalmId;
+	if (status === "ToDo") {
+		chipPair.innerHTML =
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true"><i class="ri-eye-line"></i></span>` +
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true"><i class="ri-external-link-line"></i></span>`;
+	} else {
+		chipPair.innerHTML =
+			`<a href="/reihen/?place=${id}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen"><i class="ri-eye-line"></i></a>` +
+			`<a href="/reihen/?place=${id}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen"><i class="ri-external-link-line"></i></a>`;
+	}
 }
 
 function updatePersonViewChips(picker, status) {

@@ -202,9 +202,11 @@
 						<div class="fieldvalue">
 							{{- range $i, $placeID := $model.result.Entry.Places -}}
 								{{- $p := placeDisplay $placeID -}}
+								{{- if ne $p.EditState "ToDo" -}}
 								<div>
 									<a href="/reihen?place={{ $p.MusenalmID }}&hidden=true">{{ $p.Name }}</a>
 								</div>
+								{{- end -}}
 							{{- end -}}
 						</div>
 					</div>

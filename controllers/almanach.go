@@ -235,6 +235,7 @@ func NewAlmanachContentsResult(app core.App, id string, params BeitraegeFilterPa
 	if err != nil {
 		return nil, err
 	}
+	contents = filterPublicContents(contents)
 
 	types := Types_Contents(contents)
 	hs := HasScans(contents)
@@ -440,6 +441,16 @@ func HasScans(contents []*dbmodels.Content) bool {
 		}
 	}
 	return false
+}
+
+func filterPublicContents(contents []*dbmodels.Content) []*dbmodels.Content {
+	out := contents[:0]
+	for _, c := range contents {
+		if c.EditState() != "ToDo" {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 func filterEntriesAgentsByPublicIDs(app core.App, rels []*dbmodels.REntriesAgents) []*dbmodels.REntriesAgents {

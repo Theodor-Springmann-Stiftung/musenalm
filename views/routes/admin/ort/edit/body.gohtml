@@ -6,9 +6,10 @@
 {{- end -}}
 {{- $placeActions := Arr -}}
 {{- if not $model.is_new -}}
+	{{- $noPublicPage := eq ($place.EditState) "ToDo" -}}
 	{{- $placeActions = Arr
-		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
-		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen" "disabled" $noPublicPage)
+		(Dict "href" (printf "/reihen/?place=%d" $place.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true "disabled" $noPublicPage)
 		(Dict "href" "/admin/orte/" "icon" "ri-list-check-2" "tooltip" "Liste aller Orte")
 	-}}
 {{- end -}}

@@ -172,6 +172,7 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 			cs = scans
 		}
 
+		cs = filterPublicContents(cs)
 		contents = append(contents, cs...)
 	}
 
@@ -247,6 +248,14 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 	for _, a := range arels {
 		contentsagents[a.Content()] = append(contentsagents[a.Content()], a)
 	}
+
+	filteredEntries := entries[:0]
+	for _, e := range entries {
+		if len(contentsmap[e.Id]) > 0 {
+			filteredEntries = append(filteredEntries, e)
+		}
+	}
+	entries = filteredEntries
 
 	entriesmap := make(map[string]*dbmodels.Entry)
 	years := make(map[int]bool)

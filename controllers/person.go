@@ -202,6 +202,7 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 	if err != nil {
 		return err
 	}
+	contents = filterPublicContents(contents)
 
 	allContentRelations, err := dbmodels.RContentsAgents_Contents(app, contentIDs)
 	if err != nil {

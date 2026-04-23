@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -79,6 +80,9 @@ func NewBeitragResult(app core.App, id string) (*BeitragResult, bool, error) {
 	content, redirect, err := dbmodels.ResolveContentByPermalink(app, id)
 	if err != nil {
 		return nil, false, err
+	}
+	if content.EditState() == "ToDo" {
+		return nil, false, sql.ErrNoRows
 	}
 
 	entry, err := dbmodels.Entries_ID(app, content.Entry())

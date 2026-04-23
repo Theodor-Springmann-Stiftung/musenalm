@@ -75,6 +75,7 @@ type PlaceDisplay struct {
 	MusenalmID int
 	Name       string
 	Fictional  bool
+	EditState  string
 }
 
 type ContentDisplay struct {
@@ -608,6 +609,7 @@ func buildPlaceDisplay(place *dbmodels.Place) *PlaceDisplay {
 		MusenalmID: place.MusenalmID(),
 		Name:       strings.TrimSpace(place.Name()),
 		Fictional:  place.Fictional(),
+		EditState:  strings.TrimSpace(place.EditState()),
 	}
 }
 

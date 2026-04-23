@@ -122,9 +122,11 @@
 			{{- if $entry.Places -}}
 				{{- range $_, $placeid := $entry.Places -}}
 					{{- $place := placeDisplay $placeid -}}
+					{{- if ne $place.EditState "ToDo" -}}
 					<div class="inline pr-1 {{ if $isPlaces -}}search-text{{- end -}}">
 						<a href="/reihen?place={{ $place.MusenalmID }}&hidden=true">{{ $place.Name }}</a>,
 					</div>
+					{{- end -}}
 				{{- end -}}
 			{{- end -}}
 			<a href="/reihen/?year={{ $entry.Year }}&hidden=true">

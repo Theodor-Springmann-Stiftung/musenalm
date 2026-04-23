@@ -153,13 +153,22 @@
 				</div>
 
 					<div class="flex shrink-0 items-start gap-2">
-						<div class="admin-list-chip-pair">
-							<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-								<i class="ri-eye-line"></i>
-							</a>
-							<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-								<i class="ri-external-link-line"></i>
-							</a>
+						<div class="admin-list-chip-pair" data-content-musenalm-id="{{ $content.MusenalmID }}">
+							{{- if eq $content.EditState "ToDo" -}}
+								<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true">
+									<i class="ri-eye-line"></i>
+								</span>
+								<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
+									<i class="ri-external-link-line"></i>
+								</span>
+							{{- else -}}
+								<a href="/beitrag/{{ $content.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+									<i class="ri-eye-line"></i>
+								</a>
+								<a href="/beitrag/{{ $content.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+									<i class="ri-external-link-line"></i>
+								</a>
+							{{- end -}}
 						</div>
 						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip admin-list-chip-edit" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-line"></i>

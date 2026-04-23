@@ -677,7 +677,14 @@ func loadCommonReihenFilterOptions(musenalmApp *app.App) ([]map[string]any, []ma
 	if err != nil {
 		return nil, nil, err
 	}
-	placeOptions, _ := buildBaendePlaceOptions(musenalmApp, placeIDs)
+	publicPlaceIDs := placeIDs[:0]
+	for _, id := range placeIDs {
+		display := musenalmApp.GetPlaceDisplay(id)
+		if display != nil && display.EditState != "ToDo" {
+			publicPlaceIDs = append(publicPlaceIDs, id)
+		}
+	}
+	placeOptions, _ := buildBaendePlaceOptions(musenalmApp, publicPlaceIDs)
 
 	return reihenAgentItems(musenalmApp, agentOptions), reihenPlaceItems(musenalmApp, placeOptions), nil
 }
