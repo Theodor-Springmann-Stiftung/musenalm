@@ -148,12 +148,11 @@ export class PopupImage extends HTMLElement {
 		}
 
 		return `
-			<tool-tip position="right">
-			<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Next image" id="nextbtn">
-				<i class="ri-arrow-right-box-line"></i>
-			</button>
-			<div class="data-tip">Nächstes Bild</div>
-			</tool-tip>
+			<span data-tippy-placement="right" data-tippy-content="Nächstes Bild">
+				<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Next image" id="nextbtn">
+					<i class="ri-arrow-right-box-line"></i>
+				</button>
+			</span>
 		`;
 	}
 
@@ -163,12 +162,11 @@ export class PopupImage extends HTMLElement {
 		}
 
 		return `
-			<tool-tip position="right">
-			<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Previous image" id="prevbtn">
-				<i class="ri-arrow-left-box-line"></i>
-			</button>
-			<div class="data-tip">Vorheriges Bild</div>
-			</tool-tip>
+			<span data-tippy-placement="right" data-tippy-content="Vorheriges Bild">
+				<button class="hover:text-gray-300 cursor-pointer focus:outline-none" aria-label="Previous image" id="prevbtn">
+					<i class="ri-arrow-left-box-line"></i>
+				</button>
+			</span>
 		`;
 	}
 
@@ -192,10 +190,9 @@ export class PopupImage extends HTMLElement {
 		}
 
 		return `
-					<tool-tip position="right">
-					<a href="${this._fullImageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
-					<div class="data-tip">Bild herunterladen</div>
-					</tool-tip>
+					<span data-tippy-placement="right" data-tippy-content="Bild herunterladen">
+						<a href="${this._fullImageURL}" target="_blank" class="text-white no-underline hover:text-gray-300"><i class="ri-file-download-line"></i></a>
+					</span>
 		`;
 	}
 

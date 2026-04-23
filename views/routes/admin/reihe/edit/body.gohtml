@@ -85,10 +85,9 @@
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="title" class="inputlabel">Reihentitel</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ help "series" "title" }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "title" }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 					</div>
 					<lookup-field
@@ -110,10 +109,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="references" class="inputlabel">Nachweise</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "series" "refs" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "refs" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
@@ -122,10 +120,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "series" "frequency" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "frequency" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />

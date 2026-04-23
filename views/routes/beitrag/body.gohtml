@@ -39,14 +39,13 @@
 		<div>&middot;</div>
 		<div class="flex items-center gap-3">
 			{{- if $model.result.PrevByNumber -}}
-				<tool-tip position="top" class="!inline">
-					<div class="data-tip">{{- if $model.result.PrevByNumber.PreferredTitle -}}{{ $model.result.PrevByNumber.PreferredTitle }}{{- else -}}Beitrag Nr. {{ $model.result.PrevByNumber.MusenalmID }}{{- end -}}</div>
+				<span class="!inline" data-tippy-placement="top" data-tippy-content='{{- if $model.result.PrevByNumber.PreferredTitle -}}{{ $model.result.PrevByNumber.PreferredTitle }}{{- else -}}Beitrag Nr. {{ $model.result.PrevByNumber.MusenalmID }}{{- end -}}'>
 					<a
 						href="/beitrag/{{ $model.result.PrevByNumber.MusenalmID }}"
 						class="text-gray-700 hover:text-slate-950 no-underline">
 						<i class="ri-arrow-left-s-line"></i>
 					</a>
-				</tool-tip>
+				</span>
 			{{- end -}}
 			<span class="text-gray-800 font-bold no-underline">
 				{{ $model.result.Entry.PreferredTitle }}, {{ if $model.result.Content.Extent }}S. {{
@@ -54,14 +53,13 @@
 				-}}
 			</span>
 			{{- if $model.result.NextByNumber -}}
-				<tool-tip position="top" class="!inline">
-					<div class="data-tip">{{- if $model.result.NextByNumber.PreferredTitle -}}{{ $model.result.NextByNumber.PreferredTitle }}{{- else -}}Beitrag Nr. {{ $model.result.NextByNumber.MusenalmID }}{{- end -}}</div>
+				<span class="!inline" data-tippy-placement="top" data-tippy-content='{{- if $model.result.NextByNumber.PreferredTitle -}}{{ $model.result.NextByNumber.PreferredTitle }}{{- else -}}Beitrag Nr. {{ $model.result.NextByNumber.MusenalmID }}{{- end -}}'>
 					<a
 						href="/beitrag/{{ $model.result.NextByNumber.MusenalmID }}"
 						class="text-gray-700 hover:text-slate-950 no-underline">
 						<i class="ri-arrow-right-s-line"></i>
 					</a>
-				</tool-tip>
+				</span>
 			{{- end -}}
 		</div>
 		{{- if (IsAdminOrEditor $model.request.user) -}}

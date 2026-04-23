@@ -104,20 +104,12 @@
 		@apply bg-stone-50;
 	}
 
-	body[data-dragging="true"] tool-tip {
+	body[data-dragging="true"] [data-tippy-content] {
 		pointer-events: none;
 	}
 
-	body[data-dragging="true"] .tooltip-box {
-		display: none !important;
-	}
-
-	html.dragging tool-tip {
+	html.dragging [data-tippy-content] {
 		pointer-events: none;
-	}
-
-	html.dragging .tooltip-box {
-		display: none !important;
 	}
 
 	.content-image-pending .content-image-pending-button::before {
@@ -1821,8 +1813,8 @@
 	[data-role="contents-list"][data-filtering] [data-role="content-drag-handle"],
 	[data-role="contents-list"][data-filtering] [data-role="content-move-up"],
 	[data-role="contents-list"][data-filtering] [data-role="content-move-down"],
-	[data-role="contents-list"][data-filtering] tool-tip:has([data-role="content-move-up"]),
-	[data-role="contents-list"][data-filtering] tool-tip:has([data-role="content-move-down"]) {
+	[data-role="contents-list"][data-filtering] [data-tippy-content]:has([data-role="content-move-up"]),
+	[data-role="contents-list"][data-filtering] [data-tippy-content]:has([data-role="content-move-down"]) {
 		display: none;
 	}
 

@@ -42,51 +42,45 @@ type AlmanachResult struct {
 
 <header class="admin-page-header simple-entity-header">
 	<div class="simple-entity-title-row">
-		<tool-tip position="top" class="inline">
+		<span class="inline" data-tippy-placement="top" data-tippy-content="Band">
 			<span class="simple-entity-title-icon" aria-label="Band">
 				<i class="ri-book-line"></i>
 			</span>
-			<div class="data-tip">Band</div>
-		</tool-tip>
+		</span>
 		<h1 class="simple-entity-title">{{ $bandTitle }}</h1>
 	</div>
 
 	{{- if not $model.is_new -}}
 		<div class="admin-list-toolbar">
 			<div class="admin-list-toolbar-primary simple-entity-header-actions">
-				<tool-tip position="top" class="inline">
+				<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $contentCount }} Beiträge bearbeiten'>
 					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-chip" aria-label="Beiträge">
 						<i class="ri-article-line"></i>
 						<span>Beiträge bearbeiten</span>
 						<span class="admin-list-badge">{{ $contentCount }}</span>
 					</a>
-					<div class="data-tip">{{ $contentCount }} Beiträge bearbeiten</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
+				</span>
+				<span class="inline" data-tippy-placement="top" data-tippy-content="Anschauen">
 					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
 						<i class="ri-eye-line"></i>
 					</a>
-					<div class="data-tip">Anschauen</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
+				</span>
+				<span class="inline" data-tippy-placement="top" data-tippy-content="In neuem Tab öffnen">
 					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
 						<i class="ri-external-link-line"></i>
 					</a>
-					<div class="data-tip">In neuem Tab öffnen</div>
-				</tool-tip>
-				<tool-tip position="top" class="inline">
+				</span>
+				<span class="inline" data-tippy-placement="top" data-tippy-content="Liste aller Bände">
 					<a href="/admin/baende/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Liste aller Bände">
 						<i class="ri-list-check-2"></i>
 					</a>
-					<div class="data-tip">Liste aller Bände</div>
-				</tool-tip>
+				</span>
 				{{- if $model.result.PrevByTitle -}}
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByTitle.PreferredTitle }}'>
 						<a href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
 							<i class="ri-arrow-left-s-line"></i>
 						</a>
-						<div class="data-tip">{{ $model.result.PrevByTitle.PreferredTitle }}</div>
-					</tool-tip>
+					</span>
 				{{- else -}}
 					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
 						<i class="ri-arrow-left-s-line"></i>
@@ -94,12 +88,11 @@ type AlmanachResult struct {
 				{{- end -}}
 				<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
 				{{- if $model.result.NextByTitle -}}
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByTitle.PreferredTitle }}'>
 						<a href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
 							<i class="ri-arrow-right-s-line"></i>
 						</a>
-						<div class="data-tip">{{ $model.result.NextByTitle.PreferredTitle }}</div>
-					</tool-tip>
+					</span>
 				{{- else -}}
 					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
 						<i class="ri-arrow-right-s-line"></i>
@@ -110,31 +103,28 @@ type AlmanachResult struct {
 			<div class="admin-list-toolbar-secondary simple-entity-meta-inline" id="almanach-header-data">
 				<span class="simple-entity-meta-item">
 					{{- if $model.result.PrevByID -}}
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByID.MusenalmID }}: {{ $model.result.PrevByID.PreferredTitle }}'>
 							<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
 								<i class="ri-arrow-left-s-line"></i>
 							</a>
-							<div class="data-tip">{{ $model.result.PrevByID.MusenalmID }}: {{ $model.result.PrevByID.PreferredTitle }}</div>
-						</tool-tip>
+						</span>
 					{{- else -}}
 						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
 							<i class="ri-arrow-left-s-line"></i>
 						</span>
 					{{- end -}}
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "musenalm_id" }}'>
 						<span class="simple-entity-meta-icon" aria-hidden="true">
 							<i class="ri-fingerprint-line"></i>
 						</span>
-						<div class="data-tip">{{ help "entries" "musenalm_id" }}</div>
-					</tool-tip>
+					</span>
 					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.MusenalmID }}</span>
 					{{- if $model.result.NextByID -}}
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByID.MusenalmID }}: {{ $model.result.NextByID.PreferredTitle }}'>
 							<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
 								<i class="ri-arrow-right-s-line"></i>
 							</a>
-							<div class="data-tip">{{ $model.result.NextByID.MusenalmID }}: {{ $model.result.NextByID.PreferredTitle }}</div>
-						</tool-tip>
+						</span>
 					{{- else -}}
 						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
 							<i class="ri-arrow-right-s-line"></i>
@@ -143,33 +133,30 @@ type AlmanachResult struct {
 				</span>
 				<span class="simple-entity-meta-sep">|</span>
 				<span class="simple-entity-meta-item">
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "id" }}'>
 						<span class="simple-entity-meta-icon" aria-hidden="true">
 							<i class="ri-database-2-line"></i>
 						</span>
-						<div class="data-tip">{{ help "entries" "id" }}</div>
-					</tool-tip>
+					</span>
 					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.Id }}</span>
 				</span>
 				<span class="simple-entity-meta-sep">|</span>
 				<span class="simple-entity-meta-item">
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet">
 						<span class="simple-entity-meta-icon" aria-hidden="true">
 							<i class="ri-calendar-line"></i>
 						</span>
-						<div class="data-tip">Zuletzt bearbeitet</div>
-					</tool-tip>
+					</span>
 					<span class="simple-entity-meta-item-value tabular-nums" id="almanach-updated-stamp">{{ GermanShortDateTime $model.result.Entry.Updated }}</span>
 				</span>
 				{{- if $model.result.User -}}
 					<span class="simple-entity-meta-sep">|</span>
 					<span class="simple-entity-meta-item {{ if not $model.result.User }}hidden{{ end }}" id="almanach-updated-user">
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet von">
 							<span class="simple-entity-meta-icon" aria-hidden="true">
 								<i class="ri-user-line"></i>
 							</span>
-							<div class="data-tip">Zuletzt bearbeitet von</div>
-						</tool-tip>
+						</span>
 						<span class="simple-entity-meta-item-value" id="almanach-updated-user-name">{{ $model.result.User.Name }}</span>
 					</span>
 				{{- end -}}
@@ -202,10 +189,9 @@ type AlmanachResult struct {
 				<div class="inputlabelrow">
 					<div class="flex items-center gap-1">
 						<label for="preferred-title-field-input" class="inputlabel">Kurztitel</label>
-						<tool-tip position="top" class="!inline">
-							<div class="data-tip">{{ help "entries" "preferred_title" }}</div>
+						<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "preferred_title" }}'>
 							<i class="ri-question-line"></i>
-						</tool-tip>
+						</span>
 					</div>
 				</div>
 				<lookup-field
@@ -228,10 +214,9 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="preferred-series-field-input" class="inputlabel">Reihentitel</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ helpOr "entries" "series" "Bevorzugter Reihentitel für diesen Almanach." }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "series" "Bevorzugter Reihentitel für diesen Almanach." }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 						<div class="flex items-center gap-3 ml-auto pr-2">
 							<a href="/admin/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
@@ -262,10 +247,9 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="year" class="inputlabel">Jahr</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ help "entries" "year" }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "year" }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 					</div>
 					<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" />
@@ -275,10 +259,9 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ helpOr "entries" "edition" "Hinweis zur Ausgabe oder Edition." }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "edition" "Hinweis zur Ausgabe oder Edition." }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 					</div>
 					<textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
@@ -295,10 +278,9 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label class="inputlabel" for="series-section">Reihen</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ helpOr "entries" "series" "Verknüpfte Reihen für diesen Almanach." }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "series" "Verknüpfte Reihen für diesen Almanach." }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 						<div class="flex items-center gap-3">
 							<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
@@ -401,10 +383,9 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 						<label for="title" class="inputlabel">Titel</label>
-						<tool-tip position="top" class="!inline">
-							<div class="data-tip">{{ help "entries" "title_statement" }}</div>
+						<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "title_statement" }}'>
 							<i class="ri-question-line"></i>
-						</tool-tip>
+						</span>
 					</div>
 					</div>
 
@@ -424,10 +405,9 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="paralleltitle" class="inputlabel menu-label">Titel
 										(übersetzt)</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "parallel_title" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "parallel_title" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -443,10 +423,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "subtitle_statement" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "subtitle_statement" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -462,10 +441,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "variant_title" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "variant_title" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -481,10 +459,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="incipit" class="inputlabel menu-label">Incipit</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "incipit_statement" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "incipit_statement" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -500,10 +477,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "publication_statement" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "publication_statement" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -522,10 +498,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="responsibility_statement" class="inputlabel">Herausgeberangabe</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "responsibility_statement" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "responsibility_statement" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 							</div>
 							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
@@ -545,10 +520,9 @@ type AlmanachResult struct {
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="place_statement" class="inputlabel">Ortsangabe</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "entries" "place_statement" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "place_statement" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 
@@ -568,10 +542,9 @@ type AlmanachResult struct {
 								<div class="inputlabelrow">
 									<div class="flex items-center gap-1">
 										<label class="inputlabel" for="agents-section">Verknüpfte Personen</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ helpOr "entries" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "agents" "Beteiligte Personen oder Körperschaften." }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 									</div>
 									<div class="flex items-center gap-3">
 										<button type="button" id="agents-add-toggle" data-role="content-person-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
@@ -706,10 +679,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="places" class="inputlabel">Verknüpfte Orte</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "places" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "places" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="flex items-center gap-3">
 									<a href="/admin/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
@@ -763,10 +735,9 @@ type AlmanachResult struct {
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="languages" class="inputlabel">Sprachen</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "entries" "language" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "language" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 							<button type="button" id="languages-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
 								<i class="ri-link"></i> Sprache verlinken
@@ -790,10 +761,9 @@ type AlmanachResult struct {
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 							<label for="refs" class="inputlabel">Nachweise</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ help "entries" "refs" }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "refs" }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 						</div>
 						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
@@ -804,10 +774,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "extent" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "extent" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -823,10 +792,9 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="dimensions" class="inputlabel menu-label">Maße</label>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "entries" "dimensions" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "dimensions" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -950,34 +918,30 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "owner" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "owner" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "identifier" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "identifier" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "location" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "location" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "media" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "media" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
@@ -990,10 +954,9 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "uri" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "uri" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" />
 									</div>
 								</div>
@@ -1067,34 +1030,30 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "owner" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "owner" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "identifier" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "identifier" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "location" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "location" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="" />
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "media" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "media" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}">{{- $t -}}</option>
@@ -1107,10 +1066,9 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
-										<tool-tip position="top" class="!inline">
-											<div class="data-tip">{{ help "items" "uri" }}</div>
+										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "uri" }}'>
 											<i class="ri-question-line"></i>
-										</tool-tip>
+										</span>
 										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" />
 									</div>
 								</div>

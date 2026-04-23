@@ -6,7 +6,6 @@ import "tippy.js/dist/tippy.css";
 import { FilterPill } from "./filter-pill.js";
 import { FilterList } from "./filter-list.js";
 import { ScrollButton } from "./scroll-button.js";
-import { ToolTip } from "./tool-tip.js";
 import { PopupImage } from "./popup-image.js";
 import { TabList } from "./tab-list.js";
 import { AbbreviationTooltips } from "./abbrev-tooltips.js";
@@ -47,7 +46,6 @@ const ELEMENT_DEFINITIONS = [
 	["abbrev-tooltips", AbbreviationTooltips],
 	["filter-list", FilterList],
 	["scroll-button", ScrollButton],
-	["tool-tip", ToolTip],
 	["popup-image", PopupImage],
 	["tab-list", TabList],
 	["filter-pill", FilterPill],
@@ -230,5 +228,4 @@ export {
 	PopupImage,
 	ScrollButton,
 	TabList,
-	ToolTip,
 };

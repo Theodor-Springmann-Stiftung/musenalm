@@ -19,12 +19,11 @@
 
 <header class="admin-page-header simple-entity-header">
 	<div class="simple-entity-title-row">
-		<tool-tip position="top" class="inline">
+		<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $typeLabel }}'>
 			<span class="simple-entity-title-icon" aria-label="{{ $typeLabel }}">
 				<i class="{{ $typeIcon }}"></i>
 			</span>
-			<div class="data-tip">{{ $typeLabel }}</div>
-		</tool-tip>
+		</span>
 		<h1 class="simple-entity-title">{{ $title }}</h1>
 	</div>
 
@@ -32,7 +31,7 @@
 		<div class="admin-list-toolbar">
 			<div class="admin-list-toolbar-primary simple-entity-header-actions">
 				{{- range $action := $actions -}}
-					<tool-tip position="top" class="inline">
+					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ index $action "tooltip" }}'>
 						<a
 							href="{{ index $action "href" }}"
 							class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip"
@@ -40,17 +39,15 @@
 							aria-label="{{ index $action "tooltip" }}">
 							<i class="{{ index $action "icon" }}"></i>
 						</a>
-						<div class="data-tip">{{ index $action "tooltip" }}</div>
-					</tool-tip>
+					</span>
 				{{- end -}}
 				{{- if not $isNew -}}
 					{{- if $prevHref -}}
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $prevLabel }}'>
 							<a href="{{ $prevHref }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
 								<i class="ri-arrow-left-s-line"></i>
 							</a>
-							<div class="data-tip">{{ $prevLabel }}</div>
-						</tool-tip>
+						</span>
 					{{- else -}}
 						<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
 							<i class="ri-arrow-left-s-line"></i>
@@ -58,12 +55,11 @@
 					{{- end -}}
 					<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
 					{{- if $nextHref -}}
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $nextLabel }}'>
 							<a href="{{ $nextHref }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
 								<i class="ri-arrow-right-s-line"></i>
 							</a>
-							<div class="data-tip">{{ $nextLabel }}</div>
-						</tool-tip>
+						</span>
 					{{- else -}}
 						<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
 							<i class="ri-arrow-right-s-line"></i>
@@ -76,31 +72,28 @@
 				<div class="admin-list-toolbar-secondary simple-entity-meta-inline">
 					<span class="simple-entity-meta-item">
 						{{- if $prevMusenalmHref -}}
-							<tool-tip position="top" class="inline">
+							<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $prevMusenalmLabel }}'>
 								<a href="{{ $prevMusenalmHref }}" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
 									<i class="ri-arrow-left-s-line"></i>
 								</a>
-								<div class="data-tip">{{ $prevMusenalmLabel }}</div>
-							</tool-tip>
+							</span>
 						{{- else -}}
 							<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
 								<i class="ri-arrow-left-s-line"></i>
 							</span>
 						{{- end -}}
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content="Musenalm-ID">
 							<span class="simple-entity-meta-icon" aria-hidden="true">
 								<i class="ri-fingerprint-line"></i>
 							</span>
-							<div class="data-tip">Musenalm-ID</div>
-						</tool-tip>
+						</span>
 						<span class="simple-entity-meta-item-value tabular-nums">{{ $musenalmID }}</span>
 						{{- if $nextMusenalmHref -}}
-							<tool-tip position="top" class="inline">
+							<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $nextMusenalmLabel }}'>
 								<a href="{{ $nextMusenalmHref }}" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
 									<i class="ri-arrow-right-s-line"></i>
 								</a>
-								<div class="data-tip">{{ $nextMusenalmLabel }}</div>
-							</tool-tip>
+							</span>
 						{{- else -}}
 							<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
 								<i class="ri-arrow-right-s-line"></i>
@@ -109,33 +102,30 @@
 					</span>
 					<span class="simple-entity-meta-sep">|</span>
 					<span class="simple-entity-meta-item">
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content="Datenbank-ID">
 							<span class="simple-entity-meta-icon" aria-hidden="true">
 								<i class="ri-database-2-line"></i>
 							</span>
-							<div class="data-tip">Datenbank-ID</div>
-						</tool-tip>
+						</span>
 						<span class="simple-entity-meta-item-value tabular-nums">{{ $dbID }}</span>
 					</span>
 					<span class="simple-entity-meta-sep">|</span>
 					<span class="simple-entity-meta-item">
-						<tool-tip position="top" class="inline">
+						<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet">
 							<span class="simple-entity-meta-icon" aria-hidden="true">
 								<i class="ri-calendar-line"></i>
 							</span>
-							<div class="data-tip">Zuletzt bearbeitet</div>
-						</tool-tip>
+						</span>
 						<span class="simple-entity-meta-item-value tabular-nums">{{ GermanShortDateTime $updated }}</span>
 					</span>
 					{{- if $editorUser -}}
 						<span class="simple-entity-meta-sep">|</span>
 						<span class="simple-entity-meta-item">
-							<tool-tip position="top" class="inline">
+							<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet von">
 								<span class="simple-entity-meta-icon" aria-hidden="true">
 									<i class="ri-user-line"></i>
 								</span>
-								<div class="data-tip">Zuletzt bearbeitet von</div>
-							</tool-tip>
+							</span>
 							<span class="simple-entity-meta-item-value">{{ $editorUser.Name }}</span>
 						</span>
 					{{- end -}}

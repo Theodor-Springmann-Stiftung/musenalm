@@ -77,18 +77,16 @@
 									<div class="w-28 ml-4 shrink-0 font-sans text-sm text-right flex flex-row mt-1">
 										{{- if (index $model.bcount $agent.Id) -}}
 											<div class="mr-2">
-												<tool-tip position="top">
+												<span data-tippy-placement="top" data-tippy-content="Bände">
 													<i class="ri-book-line"></i> {{ index $model.bcount $agent.Id }}
-													<div class="data-tip">Bände</div>
-												</tool-tip>
+												</span>
 											</div>
 										{{- end -}}
 										{{- if index $model.ccount $agent.Id -}}
 											<div class="">
-												<tool-tip position="top">
+												<span data-tippy-placement="top" data-tippy-content="Beiträge">
 													<i class="ri-article-line"></i> {{ index $model.ccount $agent.Id }}
-													<div class="data-tip">Beiträge</div>
-												</tool-tip>
+												</span>
 											</div>
 										{{- end -}}
 									</div>

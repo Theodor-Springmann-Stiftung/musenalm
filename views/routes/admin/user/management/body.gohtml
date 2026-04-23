@@ -44,12 +44,11 @@
 								<div class="flex flex-row justify-end items-center gap-2">
 									<!-- INFO: User edit button -->
 									<div class="edit-button">
-										<tool-tip position="top">
-											<div class="data-tip font-bold hidden">Bearbeiten</div>
+										<span data-tippy-placement="top" data-tippy-content="Bearbeiten">
 											<a href="/admin/user/{{ $u.Id }}/edit?redirectTo=/admin/user/management" class="text-gray-200 no-underline">
 												<i class="ri-pencil-line"></i>
 											</a>
-										</tool-tip>
+										</span>
 									</div>
 
 									<!-- INFO: User logout button -->
@@ -65,12 +64,11 @@
 										x-target.away="_top">
 										<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
 										<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
-										<tool-tip position="top">
-											<div class="data-tip font-bold hidden">Logout</div>
+										<span data-tippy-placement="top" data-tippy-content="Logout">
 											<button class="text-red-900 bg-red-200 hover:bg-red-300">
 												<i class="ri-logout-box-r-line"></i>
 											</button>
-										</tool-tip>
+										</span>
 									</form>
 
 									<!-- INFO: User activate/deactivate button -->
@@ -78,23 +76,21 @@
 										<form x-init @ajax:before="confirm('Der Benutzer {{ $u.Name }} wird wieder aktiviert und kann sich einloggen. Sicher?') || $event.preventDefault()" class="" method="POST" action="/admin/user/management/activate/" hx-boost="false" x-target="user-{{ $u.Id }} user-message">
 											<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
 											<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
-											<tool-tip position="top">
-												<div class="data-tip font-bold hidden">Reaktivieren</div>
+											<span data-tippy-placement="top" data-tippy-content="Reaktivieren">
 												<button class="bg-green-600 hover:bg-green-700">
 													<i class="ri-restart-line"></i>
 												</button>
-											</tool-tip>
+											</span>
 										</form>
 									{{- else -}}
 										<form x-init @ajax:before="confirm('Der Benutzer {{ $u.Name }} wird ausgeloggt und kann sich nicht mehr einloggen. Sicher?') || $event.preventDefault()" class="" method="POST" action="/admin/user/management/deactivate/" hx-boost="false" x-target="user-{{ $u.Id }} user-message" x-target.away="_top">
 											<input type="hidden" name="uid" id="uid" required value="{{ $u.Id }}" />
 											<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
-											<tool-tip position="top">
-												<div class="data-tip font-bold hidden">Deaktivieren</div>
+											<span data-tippy-placement="top" data-tippy-content="Deaktivieren">
 												<button class="bg-red-600 hover:bg-red-700">
 													<i class="ri-prohibited-2-line"></i>
 												</button>
-											</tool-tip>
+											</span>
 										</form>
 									{{- end -}}
 

@@ -55,20 +55,17 @@
 			<div class="flex flex-row gap-x-1">
 				<div class="inline-block ml-1 whitespace-nowrap">
 					{{- if not $entry.TitleStmt -}}
-						<tool-tip position="right">
+						<span data-tippy-placement="right" data-tippy-content="Keine nähere Erfassung">
 							<i class="ri-forbid-2-line"></i>
-							<div class="data-tip">Keine nähere Erfassung</div>
-						</tool-tip>
+						</span>
 					{{- else if eq $entry.EditState "Edited" -}}
-						<tool-tip position="right">
+						<span data-tippy-placement="right" data-tippy-content="Mit erfassten Beiträgen">
 							<i class="ri-checkbox-circle-line"></i>
-							<div class="data-tip">Mit erfassten Beiträgen</div>
-						</tool-tip>
+						</span>
 					{{- else -}}
-						<tool-tip position="right">
+						<span data-tippy-placement="right" data-tippy-content="Mit genaueren Titelangaben">
 							<i class="ri-information-line"></i>
-							<div class="data-tip">Mit genaueren Titelangaben</div>
-						</tool-tip>
+						</span>
 					{{- end -}}
 				</div>
 				<div

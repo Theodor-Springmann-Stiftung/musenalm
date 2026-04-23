@@ -18,11 +18,8 @@ export class ResetButton extends HTMLElement {
 
 	connectedCallback() {
 		const buttonHTML = `
-              <button type="button" class="${RBI_BUTTON_BASE_CLASS} cursor-pointer disabled:cursor-default" aria-label="Reset field">
-								<tool-tip position="right">
-									<div class="data-tip">Feld zurücksetzen</div>
-									<span class="${RBI_ICON_CLASS} ri-arrow-go-back-fill"></span>
-								</tool-tip>
+              <button type="button" class="${RBI_BUTTON_BASE_CLASS} cursor-pointer disabled:cursor-default" aria-label="Reset field" data-tippy-placement="right" data-tippy-content="Feld zurücksetzen">
+								<span class="${RBI_ICON_CLASS} ri-arrow-go-back-fill"></span>
               </button>
             `;
 		this.innerHTML = buttonHTML;

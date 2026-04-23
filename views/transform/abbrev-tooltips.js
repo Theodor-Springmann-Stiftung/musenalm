@@ -126,14 +126,11 @@ export class AbbreviationTooltips extends HTMLElement {
 			if (matchObj) {
 				const { match, meaning } = matchObj;
 				result += `
-            <tool-tip position="top" class="!inline" timeout="300">
-              <div class="data-tip p-2 text-sm text-white bg-gray-700 rounded shadow">
-                ${meaning}
-              </div>
+            <span class="!inline" data-tippy-placement="top" data-tippy-content="${meaning}">
               <span class="cursor-help text-blue-900 hover:text-slate-800">
                 ${match}
               </span>
-            </tool-tip>
+            </span>
           `;
 				i += match.length;
 			} else {

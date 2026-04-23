@@ -73,8 +73,8 @@ func Unauthorized(
 	engine *templating.Engine,
 	e *core.RequestEvent,
 	error error,
-	data map[string]any) error {
-
+	data map[string]any,
+) error {
 	nonce, token, err := CSRF_CACHE.GenerateTokenBundle()
 	if err != nil {
 		return engine.Response500(e, err, data)
@@ -141,9 +141,12 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
-		duration := time.Hour * 2
+		// INFO: expiration = one work day
+		duration := time.Hour * 12
 		if formdata.Persistent == "on" {
-			duration = time.Hour * 24 * 90
+			// INFO: expiration date -- 7 days (-10hrs)
+			// so we seldom expire in office hours.
+			duration = (time.Hour * 24 * 7) - 10
 		}
 
 		token, err := dbmodels.CreateSessionToken(

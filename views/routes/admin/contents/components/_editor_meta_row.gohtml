@@ -4,10 +4,9 @@
 	<div class="inputlabelrow">
 		<div class="flex items-center gap-1">
 			<label for="content-{{ $model.content_id }}-extent" class="inputlabel">Seite, Paginierung &amp; Beitragstyp</label>
-			<tool-tip position="top" class="!inline">
-				<div class="data-tip">{{ helpOr "contents" "musenalm_type" "Seite, Paginierung und Musenalm-Typen des Beitrags." }}</div>
+			<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "contents" "musenalm_type" "Seite, Paginierung und Musenalm-Typen des Beitrags." }}'>
 				<i class="ri-question-line"></i>
-			</tool-tip>
+			</span>
 		</div>
 	</div>
 	<div class="grid grid-cols-[5.5rem_12rem_minmax(0,1fr)] items-stretch gap-2 px-2 py-1">

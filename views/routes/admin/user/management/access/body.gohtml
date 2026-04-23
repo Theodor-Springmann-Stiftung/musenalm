@@ -43,8 +43,7 @@
 						value="{{ $model.access_url }}"
 						deactive
 						readonly />
-					<tool-tip position="top">
-						<div class="data-tip font-bold hidden">Kopieren</div>
+					<span data-tippy-placement="top" data-tippy-content="Kopieren">
 						<button
 							type="button"
 							class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
@@ -55,9 +54,8 @@
 							onclick="navigator.clipboard.writeText(token.value)">
 							<i class="ri-file-copy-line"></i>
 						</button>
-					</tool-tip>
-					<tool-tip position="top">
-						<div class="data-tip font-bold hidden">In neuem Fenster öffnen</div>
+					</span>
+					<span data-tippy-placement="top" data-tippy-content="In neuem Fenster öffnen">
 						<a
 							id="access-link"
 							href="{{ $model.relative_url }}"
@@ -69,12 +67,11 @@
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
 							<i class="ri-external-link-line"></i>
 						</a>
-					</tool-tip>
+					</span>
 					<form class="" method="POST" hx-boost="false" x-target="token access-link qrinfo" @ajax:after="GenQRCode(token.value); SelectableInput(token)">
 						<input type="hidden" name="csrf_token" id="csrf_token" required value="{{ $model.csrf_token }}" />
 						<div class="col-span-9 flex flex-row items-center justify-center">
-							<tool-tip position="top">
-								<div class="data-tip font-bold hidden">Link invalidieren</div>
+							<span data-tippy-placement="top" data-tippy-content="Link invalidieren">
 								<button
 									type="submit"
 									class="ml-2 inline-flex justify-center py-2 px-3 border border-transparent
@@ -84,7 +81,7 @@
 					focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
 									<i class="ri-loop-left-line"></i>
 								</button>
-							</tool-tip>
+							</span>
 						</div>
 					</form>
 				</div>

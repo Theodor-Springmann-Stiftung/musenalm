@@ -86,10 +86,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="name" class="inputlabel">Name</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "agents" "name" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "name" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<lookup-field
@@ -112,10 +111,9 @@
 								$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
 								<label class="flex items-center gap-1 text-gray-700" for="corporate_body">
 									<span>Verlag, Druck od. Vertrieb</span>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "agents" "corporate_body" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "corporate_body" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</label>
 						</div>
 					</div>
@@ -124,10 +122,9 @@
 								<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
 								<label class="flex items-center gap-1 text-gray-700" for="fictional">
 									<span>Fiktional</span>
-									<tool-tip position="top" class="!inline">
-										<div class="data-tip">{{ help "agents" "fictional" }}</div>
+									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "fictional" }}'>
 										<i class="ri-question-line"></i>
-									</tool-tip>
+									</span>
 								</label>
 						</div>
 					</div>
@@ -136,10 +133,9 @@
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="pseudonyms" class="inputlabel">Pseudonyme</label>
-							<tool-tip position="top" class="!inline">
-								<div class="data-tip">{{ help "agents" "pseudonyms" }}</div>
+							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "pseudonyms" }}'>
 								<i class="ri-question-line"></i>
-							</tool-tip>
+							</span>
 						</div>
 					</div>
 					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
@@ -149,10 +145,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "agents" "biographical_data" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "biographical_data" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
@@ -161,10 +156,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="profession" class="inputlabel">Profession</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "agents" "profession" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "profession" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
@@ -175,10 +169,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="uri" class="inputlabel">URL</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "agents" "uri" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "uri" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
@@ -187,10 +180,9 @@
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="references" class="inputlabel">Nachweise</label>
-								<tool-tip position="top" class="!inline">
-									<div class="data-tip">{{ help "agents" "refs" }}</div>
+								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "refs" }}'>
 									<i class="ri-question-line"></i>
-								</tool-tip>
+								</span>
 							</div>
 						</div>
 						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>

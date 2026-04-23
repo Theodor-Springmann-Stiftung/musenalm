@@ -69,7 +69,7 @@
 			</div>
 			<div id="permalink" class="font-serif ml-3 min-w-7 pb-1">
 				{{- if not $model.search -}}
-					<tool-tip position="right" x-show="search">
+					<span x-show="search" data-tippy-placement="right" data-tippy-content="Link zu dieser Suchanfrage">
 						<a
 							:href="'/reihen/?search=' + search"
 							x-show="search"
@@ -78,8 +78,7 @@
 							hx-boost="false">
 							<i class="ri-links-line"></i
 						></a>
-						<div class="data-tip">Link zu dieser Suchanfrage</div>
-					</tool-tip>
+					</span>
 				{{- end -}}
 			</div>
 		</div>

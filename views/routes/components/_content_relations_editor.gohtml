@@ -17,10 +17,9 @@
 		<div class="inputlabelrow">
 			<div class="flex items-center gap-1">
 				<label class="inputlabel" for="{{ $agentsSectionID }}">Personen &amp; Körperschaften</label>
-				<tool-tip position="top" class="!inline">
-					<div class="data-tip">{{ helpOr "contents" "agents" "Beteiligte Personen oder Körperschaften." }}</div>
+				<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "contents" "agents" "Beteiligte Personen oder Körperschaften." }}'>
 					<i class="ri-question-line"></i>
-				</tool-tip>
+				</span>
 			</div>
 			<div class="flex items-center gap-3">
 				<a href="/admin/personen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">

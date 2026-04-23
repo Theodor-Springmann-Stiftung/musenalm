@@ -7,10 +7,9 @@
 		<div class="inputlabelrow">
 			<div class="flex items-center gap-1">
 				<label for="{{ $fieldId }}" class="inputlabel">Status</label>
-				<tool-tip position="top" class="!inline">
-					<div class="data-tip">{{ help "contents" "edit_state" }}</div>
+				<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "contents" "edit_state" }}'>
 					<i class="ri-question-line"></i>
-				</tool-tip>
+				</span>
 			</div>
 		</div>
 		<div class="relative">
@@ -33,10 +32,9 @@
 			<div class="inputlabelrow">
 				<div class="flex items-center gap-1">
 					<label for="{{ $prefix }}edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
-					<tool-tip position="top" class="!inline">
-						<div class="data-tip">{{ help "contents" "edit_comment" }}</div>
+					<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "contents" "edit_comment" }}'>
 						<i class="ri-question-line"></i>
-					</tool-tip>
+					</span>
 				</div>
 				<div class="pr-2">
 					<button class="dm-close-button font-bold input-label">
