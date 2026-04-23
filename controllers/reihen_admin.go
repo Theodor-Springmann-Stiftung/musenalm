@@ -533,8 +533,8 @@ func buildAdminReihenFilterData(app core.App, musenalmApp *musapp.App) (*adminRe
 	}
 
 	return &adminReihenFilterData{
-		Statuses:     buildStatusFilters(),
-		StatusLabels: buildStatusLabelMap(),
+		Statuses:     buildNonEntryStatusFilters(),
+		StatusLabels: buildNonEntryStatusLabelMap(),
 		Agents:       toAdminReihenFilterOptions(agentOptions),
 		AgentLabels:  agentLabels,
 		Places:       buildAdminReihenPlaceFilters(placeMap),

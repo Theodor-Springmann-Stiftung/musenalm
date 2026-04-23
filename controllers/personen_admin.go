@@ -227,8 +227,8 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 		data["profession"] = profession
 		data["letters"] = letters
 		data["csrf_token"] = req.Session().Token
-		data["filter_statuses"] = buildStatusFilters()
-		data["filter_status_labels"] = buildStatusLabelMap()
+		data["filter_statuses"] = buildNonEntryStatusFilters()
+		data["filter_status_labels"] = buildNonEntryStatusLabelMap()
 		data["filter_professions"] = buildAdminAgentProfessionFilters()
 		data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
 		return data, nil
@@ -293,8 +293,8 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 	data["profession"] = profession
 	data["letters"] = letters
 	data["csrf_token"] = req.Session().Token
-	data["filter_statuses"] = buildStatusFilters()
-	data["filter_status_labels"] = buildStatusLabelMap()
+	data["filter_statuses"] = buildNonEntryStatusFilters()
+	data["filter_status_labels"] = buildNonEntryStatusLabelMap()
 	data["filter_professions"] = buildAdminAgentProfessionFilters()
 	data["filter_profession_labels"] = buildAdminAgentProfessionLabelMap()
 

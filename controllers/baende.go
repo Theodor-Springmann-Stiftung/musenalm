@@ -1247,6 +1247,32 @@ func buildStatusLabelMap() map[string]string {
 	}
 }
 
+func buildNonEntryStatusFilters() []map[string]string {
+	labels := buildNonEntryStatusLabelMap()
+	allowed := []string{"Unknown", "ToDo", "Review", "Edited"}
+	filters := make([]map[string]string, 0, len(allowed))
+	for _, val := range allowed {
+		label := val
+		if mapped, ok := labels[val]; ok {
+			label = mapped
+		}
+		filters = append(filters, map[string]string{
+			"value": val,
+			"label": label,
+		})
+	}
+	return filters
+}
+
+func buildNonEntryStatusLabelMap() map[string]string {
+	return map[string]string{
+		"Unknown": "Unbekannt",
+		"ToDo":    "Zu erledigen",
+		"Review":  "Überprüfen",
+		"Edited":  "Erfasst",
+	}
+}
+
 func buildUserFilters(usersMap map[string]*dbmodels.User) []baendeLazyFilterOption {
 	users := make([]*dbmodels.User, 0, len(usersMap))
 	for _, user := range usersMap {

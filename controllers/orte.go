@@ -193,8 +193,8 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 	data["fictional"] = fictional
 	data["letters"] = adminAlphabet
 	data["csrf_token"] = req.Session().Token
-	data["filter_statuses"] = buildStatusFilters()
-	data["filter_status_labels"] = buildStatusLabelMap()
+	data["filter_statuses"] = buildNonEntryStatusFilters()
+	data["filter_status_labels"] = buildNonEntryStatusLabelMap()
 	return data, nil
 }
 
