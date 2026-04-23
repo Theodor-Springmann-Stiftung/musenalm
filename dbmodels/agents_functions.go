@@ -20,7 +20,6 @@ func FTS5SearchAgents(app core.App, query string) ([]*Agent, error) {
 	}
 
 	ids, err := FTS5Search(app, AGENTS_TABLE, req...)
-
 	if err != nil {
 		return nil, err
 	}
@@ -84,11 +83,14 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 	letters := []core.Record{}
 	ids := []string{}
 
+	notToDo := dbx.Not(dbx.HashExp{EDITSTATE_FIELD: "ToDo"})
+
 	if filter == "" || filter == "noorg" {
 		err := app.RecordQuery(AGENTS_TABLE).
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.HashExp{AGENTS_CORP_FIELD: false}).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -98,6 +100,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.HashExp{AGENTS_CORP_FIELD: true}).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -107,6 +110,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Musik").Match(true, true)).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -116,6 +120,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Text").Match(true, true)).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -125,6 +130,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Graphik").Match(true, true)).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -134,6 +140,7 @@ func LettersForAgents(app core.App, filter string) ([]string, error) {
 			Select("upper(substr(" + AGENTS_NAME_FIELD + ", 1, 1)) AS id").
 			Distinct(true).
 			Where(dbx.Like(AGENTS_PROFESSION_FIELD, "Hrsg").Match(true, true)).
+			AndWhere(notToDo).
 			All(&letters)
 		if err != nil {
 			return nil, err
@@ -195,6 +202,7 @@ func AgentsForProfession(app core.App, profession string, letter string) ([]*Age
 	err := app.RecordQuery(AGENTS_TABLE).
 		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
 		AndWhere(dbx.Like(AGENTS_PROFESSION_FIELD, profession).Match(true, true)).
+		AndWhere(dbx.Not(dbx.HashExp{EDITSTATE_FIELD: "ToDo"})).
 		OrderBy(AGENTS_NAME_FIELD).
 		All(&agents)
 	if err != nil {
@@ -209,6 +217,7 @@ func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
 	err := app.RecordQuery(AGENTS_TABLE).
 		Where(dbx.Like(AGENTS_NAME_FIELD, letter).Match(false, true)).
 		AndWhere(dbx.HashExp{AGENTS_CORP_FIELD: org}).
+		AndWhere(dbx.Not(dbx.HashExp{EDITSTATE_FIELD: "ToDo"})).
 		OrderBy(AGENTS_NAME_FIELD).
 		All(&agents)
 	if err != nil {
@@ -216,6 +225,32 @@ func AgentsForOrg(app core.App, org bool, letter string) ([]*Agent, error) {
 	}
 
 	return agents, nil
+}
+
+// PublicAgents_IDs fetches agents by ID, excluding those with edit_state="ToDo".
+func PublicAgents_IDs(app core.App, ids []any) ([]*Agent, error) {
+	agents := []*Agent{}
+	if len(ids) == 0 {
+		return agents, nil
+	}
+	err := app.RecordQuery(AGENTS_TABLE).
+		Where(dbx.HashExp{ID_FIELD: ids}).
+		AndWhere(dbx.Not(dbx.HashExp{EDITSTATE_FIELD: "ToDo"})).
+		All(&agents)
+	return agents, err
+}
+
+// PublicAgentIDSet returns the subset of the given IDs that are publicly visible.
+func PublicAgentIDSet(app core.App, ids []any) (map[string]struct{}, error) {
+	agents, err := PublicAgents_IDs(app, ids)
+	if err != nil {
+		return nil, err
+	}
+	set := make(map[string]struct{}, len(agents))
+	for _, a := range agents {
+		set[a.Id] = struct{}{}
+	}
+	return set, nil
 }
 
 type AgentCount struct {

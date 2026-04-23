@@ -134,11 +134,12 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 		if err != nil {
 			return engine.Response404(e, err, data)
 		}
-		altagents = aa
+		altagents = filterPublicAgents(aa)
 	} else {
 		data["FTS"] = true
 	}
 
+	agents = filterPublicAgents(agents)
 	dbmodels.Sort_Agents_Name(agents)
 	dbmodels.Sort_Agents_Name(altagents)
 
@@ -166,6 +167,16 @@ func (p *PersonenPage) SearchRequest(app core.App, engine *templating.Engine, e 
 	}
 
 	return p.Get(e, engine, data)
+}
+
+func filterPublicAgents(agents []*dbmodels.Agent) []*dbmodels.Agent {
+	out := agents[:0]
+	for _, a := range agents {
+		if a.EditState() != "ToDo" {
+			out = append(out, a)
+		}
+	}
+	return out
 }
 
 func (p *PersonenPage) Get(request *core.RequestEvent, engine *templating.Engine, data map[string]interface{}) error {

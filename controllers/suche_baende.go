@@ -109,6 +109,7 @@ func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResu
 	for _, r := range arelations {
 		relationsagentsmap[r.Entry()] = append(relationsagentsmap[r.Entry()], r)
 	}
+	relationsagentsmap = filterEntriesAgentMap(coreApp, relationsagentsmap)
 
 	preferredSeriesMap := make(map[string][]*dbmodels.Entry)
 	for _, entry := range entries {
@@ -186,6 +187,33 @@ func (r SearchResultBaende) Count() int {
 
 func (r SearchResultBaende) SeriesCount() int {
 	return len(r.SeriesEntries)
+}
+
+func filterEntriesAgentMap(app core.App, m map[string][]*dbmodels.REntriesAgents) map[string][]*dbmodels.REntriesAgents {
+	ids := []any{}
+	seen := map[string]struct{}{}
+	for _, rels := range m {
+		for _, r := range rels {
+			if _, ok := seen[r.Agent()]; !ok {
+				seen[r.Agent()] = struct{}{}
+				ids = append(ids, r.Agent())
+			}
+		}
+	}
+	publicIDs, err := dbmodels.PublicAgentIDSet(app, ids)
+	if err != nil {
+		return m
+	}
+	for eid, rels := range m {
+		filtered := rels[:0]
+		for _, r := range rels {
+			if _, ok := publicIDs[r.Agent()]; ok {
+				filtered = append(filtered, r)
+			}
+		}
+		m[eid] = filtered
+	}
+	return m
 }
 
 func Agents_Entries_IDs(app core.App, ids []any) ([]*dbmodels.Agent, []*dbmodels.REntriesAgents, error) {

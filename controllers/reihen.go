@@ -665,7 +665,15 @@ func loadCommonReihenFilterOptions(musenalmApp *app.App) ([]map[string]any, []ma
 		return nil, nil, err
 	}
 
-	agentOptions, _, err := buildBaendeAgentOptions(musenalmApp.Core(), musenalmApp, agentIDs)
+	publicAgentIDs := agentIDs[:0]
+	for _, id := range agentIDs {
+		display := musenalmApp.GetAgentDisplay(id)
+		if display != nil && display.EditState != "ToDo" {
+			publicAgentIDs = append(publicAgentIDs, id)
+		}
+	}
+
+	agentOptions, _, err := buildBaendeAgentOptions(musenalmApp.Core(), musenalmApp, publicAgentIDs)
 	if err != nil {
 		return nil, nil, err
 	}

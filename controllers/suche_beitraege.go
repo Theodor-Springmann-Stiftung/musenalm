@@ -217,10 +217,22 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 		aids = append(aids, aid)
 	}
 
-	agents, err := dbmodels.Agents_IDs(app, aids)
+	agents, err := dbmodels.PublicAgents_IDs(app, aids)
 	if err != nil {
 		return nil, err
 	}
+
+	publicAgentIDs := make(map[string]struct{}, len(agents))
+	for _, a := range agents {
+		publicAgentIDs[a.Id] = struct{}{}
+	}
+	filteredArels := arels[:0]
+	for _, r := range arels {
+		if _, ok := publicAgentIDs[r.Agent()]; ok {
+			filteredArels = append(filteredArels, r)
+		}
+	}
+	arels = filteredArels
 
 	contentsmap := make(map[string][]*dbmodels.Content)
 	for _, c := range contents {

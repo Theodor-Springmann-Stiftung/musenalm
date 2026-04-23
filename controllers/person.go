@@ -73,6 +73,9 @@ func NewAgentResult(musenalmApp *app.App, id string) (*AgentResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	if agent.EditState() == "ToDo" {
+		return nil, sql.ErrNoRows
+	}
 
 	res := &AgentResult{
 		Agent: agent,

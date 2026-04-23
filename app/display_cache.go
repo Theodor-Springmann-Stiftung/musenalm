@@ -46,6 +46,7 @@ type AgentDisplay struct {
 	Name       string
 	LifeDates  string
 	Fictional  bool
+	EditState  string
 }
 
 type SeriesDisplay struct {
@@ -570,6 +571,7 @@ func buildAgentDisplay(agent *dbmodels.Agent) *AgentDisplay {
 		Name:       strings.TrimSpace(agent.Name()),
 		LifeDates:  strings.TrimSpace(agent.BiographicalData()),
 		Fictional:  agent.Fictional(),
+		EditState:  strings.TrimSpace(agent.EditState()),
 	}
 }
 

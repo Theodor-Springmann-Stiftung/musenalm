@@ -31,15 +31,21 @@
 		<div class="admin-list-toolbar">
 			<div class="admin-list-toolbar-primary simple-entity-header-actions">
 				{{- range $action := $actions -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ index $action "tooltip" }}'>
-						<a
-							href="{{ index $action "href" }}"
-							class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip"
-							{{- if index $action "target_blank" }} target="_blank" rel="noopener"{{- end -}}
-							aria-label="{{ index $action "tooltip" }}">
+					{{- if index $action "disabled" -}}
+						<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="{{ index $action "tooltip" }}" aria-disabled="true">
 							<i class="{{ index $action "icon" }}"></i>
-						</a>
-					</span>
+						</span>
+					{{- else -}}
+						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ index $action "tooltip" }}'>
+							<a
+								href="{{ index $action "href" }}"
+								class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip"
+								{{- if index $action "target_blank" }} target="_blank" rel="noopener"{{- end -}}
+								aria-label="{{ index $action "tooltip" }}">
+								<i class="{{ index $action "icon" }}"></i>
+							</a>
+						</span>
+					{{- end -}}
 				{{- end -}}
 				{{- if not $isNew -}}
 					{{- if $prevHref -}}

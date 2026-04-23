@@ -91,13 +91,22 @@
 						) -}}
 					</span>
 					<div class="admin-list-action-stack">
-						<div class="admin-list-chip-pair">
-							<a href="/person/{{ $agent.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-								<i class="ri-eye-line"></i>
-							</a>
-							<a href="/person/{{ $agent.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-								<i class="ri-external-link-line"></i>
-							</a>
+						<div class="admin-list-chip-pair" data-person-musenalm-id="{{ $agent.MusenalmID }}">
+							{{- if eq ($agent.EditState) "ToDo" -}}
+								<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true">
+									<i class="ri-eye-line"></i>
+								</span>
+								<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
+									<i class="ri-external-link-line"></i>
+								</span>
+							{{- else -}}
+								<a href="/person/{{ $agent.MusenalmID }}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+									<i class="ri-eye-line"></i>
+								</a>
+								<a href="/person/{{ $agent.MusenalmID }}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+									<i class="ri-external-link-line"></i>
+								</a>
+							{{- end -}}
 						</div>
 						{{- if (IsAdminOrEditor $model.request.user) -}}
 							<a href="/admin/person/{{ $agent.Id }}/edit/" class="admin-list-chip admin-list-chip-edit" title="Bearbeiten" aria-label="Bearbeiten">

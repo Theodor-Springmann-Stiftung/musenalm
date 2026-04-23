@@ -124,6 +124,9 @@ func buildContentAgentDisplays(contents []*dbmodels.Content, contentAgents map[s
 			if display == nil {
 				continue
 			}
+			if display.EditState == "ToDo" {
+				continue
+			}
 
 			name := strings.TrimSpace(display.Name)
 			if name == "" {
@@ -197,6 +200,7 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 	if err != nil {
 		return nil, err
 	}
+	entriesagents = filterEntriesAgentsByPublicIDs(app, entriesagents)
 
 	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, entry.Id)
 	if err != nil {
@@ -269,6 +273,7 @@ func NewAlmanachContentsResult(app core.App, id string, params BeitraegeFilterPa
 	for _, r := range contentsagents {
 		caMap[r.Content()] = append(caMap[r.Content()], r)
 	}
+	filterContentsAgentMapByPublicIDs(app, caMap)
 
 	ret := &AlmanachResult{
 		Entry:          entry,
@@ -352,11 +357,13 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	for _, r := range contentsagents {
 		caMap[r.Content()] = append(caMap[r.Content()], r)
 	}
+	filterContentsAgentMapByPublicIDs(app, caMap)
 
 	entriesagents, err := dbmodels.REntriesAgents_Entry(app, entry.Id)
 	if err != nil {
 		return nil, err
 	}
+	entriesagents = filterEntriesAgentsByPublicIDs(app, entriesagents)
 
 	prevByTitle, nextByTitle, err := entryNeighborsByPreferredTitle(app, entry.Id)
 	if err != nil {
@@ -433,4 +440,48 @@ func HasScans(contents []*dbmodels.Content) bool {
 		}
 	}
 	return false
+}
+
+func filterEntriesAgentsByPublicIDs(app core.App, rels []*dbmodels.REntriesAgents) []*dbmodels.REntriesAgents {
+	ids := make([]any, 0, len(rels))
+	for _, r := range rels {
+		ids = append(ids, r.Agent())
+	}
+	publicIDs, err := dbmodels.PublicAgentIDSet(app, ids)
+	if err != nil {
+		return rels
+	}
+	out := rels[:0]
+	for _, r := range rels {
+		if _, ok := publicIDs[r.Agent()]; ok {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+func filterContentsAgentMapByPublicIDs(app core.App, caMap map[string][]*dbmodels.RContentsAgents) {
+	ids := []any{}
+	seen := map[string]struct{}{}
+	for _, rels := range caMap {
+		for _, r := range rels {
+			if _, ok := seen[r.Agent()]; !ok {
+				seen[r.Agent()] = struct{}{}
+				ids = append(ids, r.Agent())
+			}
+		}
+	}
+	publicIDs, err := dbmodels.PublicAgentIDSet(app, ids)
+	if err != nil {
+		return
+	}
+	for cid, rels := range caMap {
+		filtered := rels[:0]
+		for _, r := range rels {
+			if _, ok := publicIDs[r.Agent()]; ok {
+				filtered = append(filtered, r)
+			}
+		}
+		caMap[cid] = filtered
+	}
 }

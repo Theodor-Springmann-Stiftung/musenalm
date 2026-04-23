@@ -6,9 +6,10 @@
 {{- end -}}
 {{- $personActions := Arr -}}
 {{- if not $model.is_new -}}
+	{{- $noPublicPage := eq ($agent.EditState) "ToDo" -}}
 	{{- $personActions = Arr
-		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
-		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen" "disabled" $noPublicPage)
+		(Dict "href" (printf "/person/%d" $agent.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true "disabled" $noPublicPage)
 		(Dict "href" "/admin/personen/" "icon" "ri-list-check-2" "tooltip" "Liste aller Personen")
 	-}}
 {{- end -}}

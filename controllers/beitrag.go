@@ -57,6 +57,24 @@ type BeitragResult struct {
 	ContentsAgents []*dbmodels.RContentsAgents // <- Key is content id
 }
 
+func filterContentsAgentsByPublicIDs(app core.App, rels []*dbmodels.RContentsAgents) []*dbmodels.RContentsAgents {
+	ids := make([]any, 0, len(rels))
+	for _, r := range rels {
+		ids = append(ids, r.Agent())
+	}
+	publicIDs, err := dbmodels.PublicAgentIDSet(app, ids)
+	if err != nil {
+		return rels
+	}
+	out := rels[:0]
+	for _, r := range rels {
+		if _, ok := publicIDs[r.Agent()]; ok {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
 func NewBeitragResult(app core.App, id string) (*BeitragResult, bool, error) {
 	content, redirect, err := dbmodels.ResolveContentByPermalink(app, id)
 	if err != nil {
@@ -72,6 +90,7 @@ func NewBeitragResult(app core.App, id string) (*BeitragResult, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+	acrelations = filterContentsAgentsByPublicIDs(app, acrelations)
 
 	entryContents, err := dbmodels.Contents_Entry(app, entry.Id)
 	if err != nil {
