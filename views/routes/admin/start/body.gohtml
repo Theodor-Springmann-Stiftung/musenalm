@@ -8,18 +8,18 @@
 				<h1 class="admin-page-title">Willkommen{{ if $request.user }}, {{ $request.user.Name }}{{ end }}</h1>
 				{{/* Session expiry indicator */}}
 				{{ $mins := $model.session_minutes_left }}
-				{{ if gt $mins 240 }}
-				<p class="admin-page-description text-slate-500 text-xs">
-					Sitzung gültig bis <span class="ml-1 px-2 rounded-sm bg-slate-200 text-slate-900 px-2
+				{{ if gt $mins 120 }}
+				<p class="admin-page-description text-slate-400 text-xs">
+					Sitzung gültig bis <span class="px-2 rounded-sm bg-slate-200 text-slate-900 px-2
 																	 py-1 border border-slate-400">{{ GermanDate $model.session_expires_at
 																	 }},&nbsp;{{ GermanTime $model.session_expires_at
 																	 }}</span>
 				</p>
 				{{ else if gt $mins 30 }}
 				<p class="admin-page-description text-amber-600 text-xs font-medium">
-					Sitzung läuft in <span class="mx-1 px-2 rounded-sm bg-amber-100 text-amber-900 px-2
-																				py-1 border border-amber-300">{{ $mins }} Minuten</span> ab!
-					<a href="/login" class="ml-1">Logout</a>
+					Sitzung läuft in <span class="px-2 rounded-sm bg-amber-100 text-amber-900 px-2
+																				py-1">{{ $mins }} Minuten</span> ab
+					<a href="/login" class="ml-2">Logout</a>
 				</p>
 				{{ else }}
 				<p class="admin-page-description text-red-600 text-xs font-semibold">
@@ -27,7 +27,7 @@
 																													text-red-900 px-2
 																													py-1 border border-red-300">{{ $mins
 																													}}&nbsp;Minuten</span>
-					<a href="/login">Logout</a>
+					<a href="/login" class="ml-2">Logout</a>
 				</p>
 				{{ end }}
 			</div>
@@ -195,7 +195,7 @@
 							</span>
 							<a href="/admin/exports/download/{{ $export.Id }}" hx-boost="false" class="inline-flex
 								items-center gap-1 text-xs text-slate-700 bg-white border border-slate-300
-								rounded-full px-2 py-0.5 hover:bg-slate-100 transition-colors no-underline">
+								rounded-sm px-2 py-0.5 hover:bg-slate-100 transition-colors no-underline">
 								<i class="ri-download-line"></i> Herunterladen
 							</a>
 							{{ else if eq $export.Status "running" }}

@@ -271,26 +271,30 @@
 	</nav>
 
 	<div class="admin-sidebar-account">
-		<a href="/admin/" class="admin-sidebar-account-name no-underline">
-			{{- if and $model.request $model.request.user $model.request.user.Name -}}
-				{{ $model.request.user.Name }}
-			{{- else -}}
-				Account
-			{{- end -}}
-		</a>
-		<div class="admin-sidebar-account-role">
-			{{- if and $model.request $model.request.user -}}
-				{{- if eq $model.request.user.Role "Admin" -}}
-					Administrator
-				{{- else if eq $model.request.user.Role "Editor" -}}
-					Redaktion
+		<a href="/admin/" class="block px-4 py-1 bg-slate-50 no-underline hover:bg-slate-100 border
+			border-slate-100 hover:border-slate-300 transition-all duration-150">
+			<div class="admin-sidebar-account-name no-underline">
+				<i class="ri-user-line mr-2"></i>
+				{{- if and $model.request $model.request.user $model.request.user.Name -}}
+					{{ $model.request.user.Name }}
 				{{- else -}}
-					Benutzer
+					Account
 				{{- end -}}
-			{{- else -}}
-				Nicht angemeldet
-			{{- end -}}
-		</div>
+			</div>
+			<div class="admin-sidebar-account-role">
+				{{- if and $model.request $model.request.user -}}
+					{{- if eq $model.request.user.Role "Admin" -}}
+						Administrator
+					{{- else if eq $model.request.user.Role "Editor" -}}
+						Redaktion
+					{{- else -}}
+						Benutzer
+					{{- end -}}
+				{{- else -}}
+					Nicht angemeldet
+				{{- end -}}
+			</div>
+		</a>
 		<div class="admin-sidebar-account-links">
 			{{- if $canEditAccount -}}
 				<a href="{{ $accountHref }}" data-admin-sidebar-tooltip="Einstellungen" class="admin-sidebar-link admin-sidebar-account-link" {{ if $isProfileActive }}aria-current="page"{{ end }}>
