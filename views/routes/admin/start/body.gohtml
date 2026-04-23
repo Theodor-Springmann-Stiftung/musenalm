@@ -8,24 +8,24 @@
 				<h1 class="admin-page-title">Willkommen{{ if $request.user }}, {{ $request.user.Name }}{{ end }}</h1>
 				{{/* Session expiry indicator */}}
 				{{ $mins := $model.session_minutes_left }}
-				{{ if gt $mins 120 }}
-				<p class="admin-page-description text-slate-400 text-xs">
-					Sitzung gültig bis <span class="px-2 rounded-sm bg-slate-200 text-slate-900 px-2
-																	 py-1">{{ GermanDate $model.session_expires_at
+				{{ if gt $mins 240 }}
+				<p class="admin-page-description text-slate-500 text-xs">
+					Sitzung gültig bis <span class="ml-1 px-2 rounded-sm bg-slate-200 text-slate-900 px-2
+																	 py-1 border border-slate-400">{{ GermanDate $model.session_expires_at
 																	 }},&nbsp;{{ GermanTime $model.session_expires_at
 																	 }}</span>
 				</p>
 				{{ else if gt $mins 30 }}
 				<p class="admin-page-description text-amber-600 text-xs font-medium">
-					Sitzung läuft in <span class="px-2 rounded-sm bg-amber-100 text-amber-900 px-2
-																				py-1">{{ $mins }}</span> Minuten ab
-					<a href="/login">Logout</a>
+					Sitzung läuft in <span class="mx-1 px-2 rounded-sm bg-amber-100 text-amber-900 px-2
+																				py-1 border border-amber-300">{{ $mins }} Minuten</span> ab!
+					<a href="/login" class="ml-1">Logout</a>
 				</p>
-				{{ else if gt $mins 0 }}
+				{{ else }}
 				<p class="admin-page-description text-red-600 text-xs font-semibold">
-					Sitzung läuft bald ab &ndash; noch <span class="px-2 rounded-sm bg-red-100
+					Sitzung läuft bald ab &ndash; noch <span class="ml-1 px-2 rounded-sm bg-red-100
 																													text-red-900 px-2
-																													py-1">{{ $mins
+																													py-1 border border-red-300">{{ $mins
 																													}}&nbsp;Minuten</span>
 					<a href="/login">Logout</a>
 				</p>

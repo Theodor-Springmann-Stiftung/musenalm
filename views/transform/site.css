@@ -63,11 +63,21 @@
 }
 
 @keyframes dice-roll {
-	0%   { transform: rotate(0deg); }
-	20%  { transform: rotate(-22deg); }
-	50%  { transform: rotate(20deg); }
-	80%  { transform: rotate(-12deg); }
-	100% { transform: rotate(0deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	20% {
+		transform: rotate(-22deg);
+	}
+	50% {
+		transform: rotate(20deg);
+	}
+	80% {
+		transform: rotate(-12deg);
+	}
+	100% {
+		transform: rotate(0deg);
+	}
 }
 
 @utility animate-dice-roll {
@@ -460,7 +470,11 @@
 	}
 
 	.admin-sidebar-account {
-		@apply mx-3 mt-3 shrink-0 rounded-xs border border-stone-300 bg-white px-3 py-3 shadow-sm;
+		@apply mx-3 mt-3 shrink-0 rounded-xs border border-stone-300 bg-white px-3 py-3 shadow-sm flex flex-col;
+	}
+
+	.admin-sidebar-account-card {
+		@apply block !no-underline flex flex-col w-full bg-slate-100 flex flex-row p-2 hover:border-slate-800 border border-slate-300 transition-all duration-150;
 	}
 
 	.admin-sidebar-account-meta {
