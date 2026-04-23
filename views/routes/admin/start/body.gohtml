@@ -9,10 +9,9 @@
 				{{/* Session expiry indicator */}}
 				{{ $mins := $model.session_minutes_left }}
 				{{ if gt $mins 120 }}
-				<p class="admin-page-description text-slate-400 text-xs">
-					Sitzung gültig bis <span class="px-2 rounded-sm bg-slate-200 text-slate-900 px-2
+				<p class="admin-page-description text-slate-500 text-xs">
+					Sitzung gültig bis <span class="ml-1 px-2 rounded-sm bg-slate-200 text-slate-900 px-2
 																	 py-1 border border-slate-400">{{ GermanDate $model.session_expires_at
-																	 }},&nbsp;{{ GermanTime $model.session_expires_at
 																	 }}</span>
 				</p>
 				{{ else if gt $mins 30 }}

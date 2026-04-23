@@ -16,6 +16,8 @@ const (
 	secureTokenByteLength = 64
 )
 
+var sessionNow = types.NowDateTime
+
 func HashStringSHA256(data string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(data))
@@ -78,12 +80,12 @@ func CreateSessionToken(
 		session.SetSuperuser(superuserID)
 	}
 
-	date := types.NowDateTime()
+	date := sessionNow()
 	expires := date.Add(sessionDuration)
 	session.SetExpires(expires)
 
 	session.SetPersist(isPersistent)
-	session.SetLastAccess(types.NowDateTime())
+	session.SetLastAccess(sessionNow())
 	session.SetUserAgent(userAgent)
 	session.SetIP(ipAddress)
 	session.SetStatus(TOKEN_STATUS_VALUES[0])

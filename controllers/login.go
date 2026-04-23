@@ -16,6 +16,8 @@ import (
 )
 
 var CSRF_CACHE *security.CSRFProtector
+var berlinLocationLoader = time.LoadLocation
+var loginTimeNow = time.Now
 
 // TODO:
 // - rate limiting
@@ -94,6 +96,47 @@ func Unauthorized(
 	return e.HTML(http.StatusUnauthorized, htm)
 }
 
+func sessionExpiryWindow(now time.Time, persistent bool) (time.Time, time.Duration, error) {
+	location, err := berlinLocationLoader("Europe/Berlin")
+	if err != nil {
+		return time.Time{}, 0, fmt.Errorf("load Europe/Berlin location: %w", err)
+	}
+
+	nowInBerlin := now.In(location)
+	daysUntilExpiry := 1
+	if persistent {
+		daysUntilExpiry = 7
+	}
+
+	expiry := time.Date(
+		nowInBerlin.Year(),
+		nowInBerlin.Month(),
+		nowInBerlin.Day()+daysUntilExpiry,
+		2, 0, 0, 0,
+		location,
+	)
+
+	return expiry, expiry.Sub(nowInBerlin), nil
+}
+
+func newSessionCookie(token string, persistent bool, duration time.Duration, expiresAt time.Time) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:     dbmodels.SESSION_COOKIE_NAME,
+		Path:     "/",
+		Value:    token,
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
+		Secure:   true,
+	}
+
+	if persistent {
+		cookie.MaxAge = int(duration.Seconds())
+		cookie.Expires = expiresAt
+	}
+
+	return cookie
+}
+
 func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 	return func(e *core.RequestEvent) error {
 		data := make(map[string]any)
@@ -141,12 +184,9 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return Unauthorized(engine, e, fmt.Errorf("benutzername oder passwort falsch, bitte versuchen sie es erneut"), data)
 		}
 
-		// INFO: expiration = one work day
-		duration := time.Hour * 12
-		if formdata.Persistent == "on" {
-			// INFO: expiration date -- 7 days (-10hrs)
-			// so we seldom expire in office hours.
-			duration = (time.Hour * 24 * 7) - 10
+		expiresAt, duration, err := sessionExpiryWindow(loginTimeNow(), formdata.Persistent == "on")
+		if err != nil {
+			return engine.Response500(e, err, data)
 		}
 
 		token, err := dbmodels.CreateSessionToken(
@@ -162,26 +202,7 @@ func (p *LoginPage) POST(engine *templating.Engine, app core.App) HandleFunc {
 			return engine.Response500(e, err, data)
 		}
 
-		if formdata.Persistent == "on" {
-			e.SetCookie(&http.Cookie{
-				Name:     dbmodels.SESSION_COOKIE_NAME,
-				Path:     "/",
-				MaxAge:   int(duration.Seconds()),
-				Value:    token.SessionTokenClear,
-				SameSite: http.SameSiteLaxMode,
-				HttpOnly: true,
-				Secure:   true,
-			})
-		} else {
-			e.SetCookie(&http.Cookie{
-				Name:     dbmodels.SESSION_COOKIE_NAME,
-				Path:     "/",
-				Value:    token.SessionTokenClear,
-				SameSite: http.SameSiteLaxMode,
-				HttpOnly: true,
-				Secure:   true,
-			})
-		}
+		e.SetCookie(newSessionCookie(token.SessionTokenClear, formdata.Persistent == "on", duration, expiresAt))
 
 		return e.Redirect(303, URL_ADMIN_START)
 	}
