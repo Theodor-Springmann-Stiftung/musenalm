@@ -24,6 +24,7 @@
 		<label for="{{ $fieldID }}" class="inputlabel">{{ $label }}</label>
 	</div>
 
+	<div class="trixwrapper">
 	<trix-toolbar id="{{ $toolbarID }}">
 		<div class="trix-toolbar-container">
 			<!-- Text formatting group -->
@@ -102,4 +103,5 @@
 
 	<textarea hidden id="{{ $fieldID }}" name="{{ $fieldID }}" autocomplete="off">{{- $annotation -}}</textarea>
 	<trix-editor input="{{ $fieldID }}" toolbar="{{ $toolbarID }}"{{ if $editorClass }} class="{{ $editorClass }}"{{ end }}></trix-editor>
+	</div>
 </div>

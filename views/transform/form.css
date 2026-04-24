@@ -1210,13 +1210,14 @@
 		@apply ml-3;
 	}
 
-	/* Trix Custom Toolbar Styles */
-	trix-toolbar {
-		@apply -mt-1;
+	/* Trix Editor */
+	.trixwrapper {
+		@apply bg-white border border-slate-300 rounded-xs focus-within:border-blue-300 px-2 py-2;
 	}
 
+	/* Trix Custom Toolbar Styles */
 	.trix-toolbar-container {
-		@apply flex flex-wrap items-center gap-1 px-2 py-0.5 bg-stone-200 border-b border-stone-300;
+		@apply flex flex-wrap items-center gap-1 px-1 py-0.5 bg-slate-100 border border-slate-300 rounded-xs;
 	}
 
 	.trix-toolbar-group {
@@ -1254,7 +1255,7 @@
 
 	/* Trix editor content area */
 	trix-editor {
-		@apply block w-full focus:border-none focus:outline-none px-3 py-2 min-h-[9rem];
+		@apply block w-full focus:border-none mt-2 focus:outline-none px-1 min-h-[9rem];
 	}
 
 	.content-editor-meta-input,

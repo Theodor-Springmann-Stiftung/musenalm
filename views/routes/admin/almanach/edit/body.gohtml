@@ -200,11 +200,11 @@ type AlmanachResult struct {
 					{{- if $rel -}}{{- $hasNonPreferredSeries = true -}}{{- end -}}
 				{{- end -}}
 
-				<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} inputlabelrow mb-1">
+				<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} inputlabelrow">
 					<label class="inputlabel">Reihen</label>
 				</div>
 
-				<table class="min-w-full table-fixed text-sm">
+				<table class="min-w-full table-fixed text-sm mb-2 border border-slate-300 rounded-xs">
 					<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
 						{{- range $_, $s := $model.result.Series -}}
 							{{- $rel := index $model.result.EntriesSeries $s.Id -}}
@@ -235,11 +235,11 @@ type AlmanachResult struct {
 					</tbody>
 				</table>
 
-				<div data-role="content-series-add-panel" class="hidden pt-1.5">
+				<div data-role="content-series-add-panel" class="hidden pt-1.5 mb-2">
 					<div class="flex items-center gap-2">
 						<div class="relative min-w-0 flex-1">
 							<label for="series-add-search" class="sr-only">Reihe suchen</label>
-							<div class="inputshell">
+							<div class="inputshell py-0.5 px-1.5">
 								<input
 									id="series-add-search"
 									data-role="content-series-add-input"
@@ -427,7 +427,7 @@ type AlmanachResult struct {
 
 								<div id="agents-section">
 									<div class="overflow-hidden rounded-xs bg-white">
-										<table class="min-w-full table-fixed text-sm">
+										<table class="min-w-full table-fixed text-sm border rounded-xs border-slate-300">
 											<tbody data-role="content-person-table-body" class="divide-y divide-stone-200">
 												{{- if $model.result.EntriesAgents -}}
 													{{- range $_, $r := $model.result.EntriesAgents -}}
@@ -482,7 +482,7 @@ type AlmanachResult struct {
 										<div class="flex items-center gap-2">
 											<div class="relative min-w-0 flex-1">
 												<label for="agents-add-search" class="sr-only">Person suchen</label>
-												<div class="inputshell">
+												<div class="inputshell px-1 py-0.5">
 													<input
 														id="agents-add-search"
 														data-role="content-person-add-input"
