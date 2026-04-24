@@ -32,7 +32,7 @@
 				<label for="{{ $baseID }}-extent" class="inputlabel">Seite &amp; Paginierung</label>
 			</div>
 			<div class="grid grid-cols-[1fr_1px_20rem] gap-2 items-stretch">
-				<textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}extent" id="{{ $baseID }}-extent" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.Extent -}}</textarea></div>
 				<div class="bg-slate-400"></div>
 				<select name="{{ $prefix }}musenalm_pagination" id="{{ $baseID }}-pagination" class="inputselect">
 					{{- range $_, $p := $paginationValues -}}
@@ -47,14 +47,14 @@
 			<div class="inputlabelrow">
 				<label for="{{ $baseID }}-title" class="inputlabel">Titel</label>
 			</div>
-			<textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea>
+			<div class="inputshell"><textarea name="{{ $prefix }}title_statement" id="{{ $baseID }}-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.TitleStmt -}}</textarea></div>
 		</div>
 
 		<div class="inputwrapper">
 			<div class="inputlabelrow">
 				<label for="{{ $baseID }}-incipit" class="inputlabel">Incipit</label>
 			</div>
-			<textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea>
+			<div class="inputshell"><textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea></div>
 		</div>
 
 		<div class="flex flex-row gap-2 w-full items-start">
@@ -62,7 +62,7 @@
 				<div class="inputlabelrow">
 					<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
 				</div>
-				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea></div>
 			</div>
 			<div class="inputwrapper shrink-0">
 				<input type="hidden" name="{{ $prefix }}pseudonym" value="false" />
@@ -102,7 +102,7 @@
 						</button>
 					</div>
 				</div>
-				<textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea></div>
 			</div>
 
 			
@@ -116,7 +116,7 @@
 						</button>
 					</div>
 				</div>
-				<textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea></div>
 			</div>
 
 			<div class="inputwrapper {{ if eq $content.VariantTitle "" }}hidden{{ end }}">
@@ -128,7 +128,7 @@
 						</button>
 					</div>
 				</div>
-				<textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea></div>
 			</div>
 
 			<div class="inputwrapper {{ if eq $content.PlaceStmt "" }}hidden{{ end }}">
@@ -140,7 +140,7 @@
 						</button>
 					</div>
 				</div>
-				<textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea>
+				<div class="inputshell"><textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea></div>
 			</div>
 
 		</div-manager>

@@ -258,6 +258,12 @@ func Places_IDs(app core.App, ids []any) ([]*Place, error) {
 	return TableByIDs[*Place](app, PLACES_TABLE, ids)
 }
 
+func Places_All(app core.App) ([]*Place, error) {
+	places := make([]*Place, 0)
+	err := app.RecordQuery(PLACES_TABLE).All(&places)
+	return places, err
+}
+
 func Contents_IDs(app core.App, ids []any) ([]*Content, error) {
 	return TableByIDs[*Content](app, CONTENTS_TABLE, ids)
 }

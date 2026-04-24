@@ -4,15 +4,23 @@
 	}
 
 	.dbform .inputwrapper {
-		@apply rounded-xs transition-all duration-100 border-stone-300 border bg-white;
+		@apply rounded-xs transition-all duration-100;
 	}
 
-	.dbform .inputwrapper .inputlabel {
-		@apply pl-2 pr-0 text-gray-800 font-bold py-0.5;
+	.dbform .inputlabel {
+		@apply font-bold rounded-t px-0.5 text-sm;
 	}
 
-	.dbform .inputwrapper .inputinput {
-		@apply block w-full focus:border-none focus:outline-none px-2 py-0.5;
+	.dbform .inputinput {
+		@apply block w-full focus:outline-none px-2 py-1.5 bg-white border border-slate-300 focus:border-blue-300 rounded-sm;
+	}
+
+	.inputshell {
+		@apply bg-white border border-slate-300 rounded-xs focus-within:border-blue-300;
+	}
+
+	.inputshell .inputinput {
+		@apply bg-transparent border-none focus:border-none rounded-none;
 	}
 
 	.dbform .inputwrapper .te .dbform .inputwrapper .inputtextarea {
@@ -35,7 +43,7 @@
 	}
 
 	.inputlabelrow {
-		@apply bg-stone-200 border-b flex flex-row justify-between mb-1 align-middle items-center;
+		@apply flex flex-row justify-between align-middle items-center;
 	}
 
 	.dbform .inputwrapper .inputselect {
@@ -673,15 +681,15 @@
 	}
 
 	.lf-warn-icon {
-		@apply ml-1 mr-2;
+		@apply ml-1 mr-3;
 	}
 
 	.lf-link-button {
-		@apply ml-1 mr-2;
+		@apply ml-1 mr-3;
 	}
 
 	.lf-clear-button {
-		@apply ml-1 mr-2;
+		@apply ml-1 mr-3;
 	}
 
 	.lf-dup-warning {
@@ -1250,9 +1258,12 @@
 	}
 
 	.content-editor-meta-input,
-	.content-editor-meta-select,
-	.content-editor-meta-trigger {
+	.content-editor-meta-select {
 		@apply block w-full rounded-xs border border-slate-400 bg-stone-50 px-1.5 py-0.5 text-[0.98rem] font-normal text-slate-800 transition-colors duration-100 outline-none;
+	}
+
+	.content-editor-meta-trigger {
+		@apply block w-full rounded-sm border border-slate-300 bg-white px-2 py-1.5 text-[0.98rem] font-normal text-slate-800 transition-colors duration-100 outline-none;
 	}
 
 	content-type-select {
@@ -1272,10 +1283,14 @@
 	}
 
 	.content-editor-meta-input:focus,
-	.content-editor-meta-select:focus,
+	.content-editor-meta-select:focus {
+		@apply border-slate-700;
+		box-shadow: none;
+	}
+
 	.content-editor-meta-trigger:focus,
 	.content-editor-meta-trigger[data-open="true"] {
-		@apply border-slate-700;
+		@apply border-blue-300;
 		box-shadow: none;
 	}
 

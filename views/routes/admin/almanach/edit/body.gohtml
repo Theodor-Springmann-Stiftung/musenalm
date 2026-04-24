@@ -127,9 +127,6 @@ type AlmanachResult struct {
 				<div class="inputlabelrow">
 					<div class="flex items-center gap-1">
 						<label for="preferred-title-field-input" class="inputlabel">Kurztitel</label>
-						<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "preferred_title" }}'>
-							<i class="ri-question-line"></i>
-						</span>
 					</div>
 				</div>
 				<lookup-field
@@ -152,14 +149,6 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="preferred-series-field-input" class="inputlabel">Reihentitel</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "series" "Bevorzugter Reihentitel für diesen Almanach." }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-						<div class="flex items-center gap-3 ml-auto pr-2">
-							<a href="/admin/reihen/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-								<i class="ri-add-line"></i> Neue Reihe anlegen
-							</a>
 						</div>
 					</div>
 					<lookup-field
@@ -172,7 +161,6 @@ type AlmanachResult struct {
 						data-result-key="series"
 						data-minchars="1"
 						data-limit="15"
-						data-link-fn="lookupSeriesLink"
 						data-value-fn="lookupSeriesValue"
 						data-required="true"
 						data-initial-id="{{ $preferredSeriesId }}"
@@ -185,24 +173,18 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="year" class="inputlabel">Jahr</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "year" }}'>
-								<i class="ri-question-line"></i>
-							</span>
 						</div>
 					</div>
-					<input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" />
+					<div class="inputshell"><input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" /></div>
 				</div>
 
 				<div class="inputwrapper basis-[30%] min-w-0">
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 							<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "edition" "Hinweis zur Ausgabe oder Edition." }}'>
-								<i class="ri-question-line"></i>
-							</span>
 						</div>
 					</div>
-					<textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea>
+					<div class="inputshell"><textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea></div>
 				</div>
 			</div>
 
@@ -212,108 +194,94 @@ type AlmanachResult struct {
 				data-link-base="/reihe/"
 				data-error-duplicate="Diese Reihe ist bereits verknüpft."
 				class="block">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label class="inputlabel" for="series-section">Reihen</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "series" "Verknüpfte Reihen für diesen Almanach." }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-						<div class="flex items-center gap-3">
-							<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
-								<i class="ri-link"></i> Reihe verlinken
-							</button>
-						</div>
-					</div>
+				{{- $hasNonPreferredSeries := false -}}
+				{{- range $_, $s := $model.result.Series -}}
+					{{- $rel := index $model.result.EntriesSeries $s.Id -}}
+					{{- if $rel -}}{{- $hasNonPreferredSeries = true -}}{{- end -}}
+				{{- end -}}
 
-					<div id="series-section">
-						{{- $hasNonPreferredSeries := false -}}
-						<div class="overflow-hidden rounded-xs bg-white">
-							<table class="min-w-full table-fixed text-sm">
-								<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
-									{{- if $model.result.Series -}}
-										{{- range $_, $s := $model.result.Series -}}
-											{{- $rel := index $model.result.EntriesSeries $s.Id -}}
-											{{- if $rel -}}
-												{{- $hasNonPreferredSeries = true -}}
-												<tr data-role="content-series-row" data-kind="existing" class="align-middle">
-													<td class="px-3 py-2 align-middle">
-														<a
-															data-role="content-series-link"
-															href="/reihe/{{ $s.MusenalmID }}"
-															target="_blank"
-															rel="noreferrer"
-															class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-															<span data-role="content-series-name">{{ $s.Title }}</span>
-														</a>
-														<input type="hidden" name="entries_series_id[{{ $rel.Id }}]" value="{{ $rel.Id }}" />
-														<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
-														<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
-													</td>
-													<td class="px-3 py-2 text-right align-middle">
-														<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-															<i class="ri-delete-bin-line"></i>
-														</button>
-														<input data-role="content-series-delete-input" type="checkbox" class="hidden" name="entries_series_delete[{{ $rel.Id }}]" />
-													</td>
-												</tr>
-											{{- end -}}
-										{{- end -}}
-									{{- end -}}
-								</tbody>
-							</table>
-						</div>
-
-						<div data-role="content-series-empty" class="px-3 py-2 text-sm text-slate-600 {{ if $hasNonPreferredSeries }}hidden{{ end }}">
-							Keine Reihen verknüpft.
-						</div>
-						<div data-role="content-series-add-panel" class="hidden bg-stone-50 px-3 py-3">
-							<div class="relative flex items-start gap-2">
-								<div class="flex min-w-0 flex-1 items-start gap-2">
-									<div class="min-w-0 flex-1">
-										<label for="series-add-search" class="sr-only">Reihe suchen</label>
-										<input
-											id="series-add-search"
-											data-role="content-series-add-input"
-											type="text"
-											autocomplete="off"
-											class="h-9 w-full rounded-xs border border-stone-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none"
-											placeholder="Reihe suchen..." />
-										<div data-role="content-series-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
-										<div data-role="content-series-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
-									</div>
-									<a href="/admin/reihen/new/" target="_blank" rel="noreferrer" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 no-underline transition-colors hover:bg-stone-100" aria-label="Neue Reihe anlegen">
-										<i class="ri-add-line"></i>
-									</a>
-								</div>
-								<button type="button" data-role="content-series-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
-									<i class="ri-check-line"></i>
-								</button>
-								<button type="button" data-role="content-series-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
-									<i class="ri-close-line"></i>
-								</button>
-							</div>
-						</div>
-					</div>
-
-					<template data-role="content-series-new-row-template">
-						<tr data-role="content-series-row" data-kind="new" class="align-middle bg-orange-50/40">
-							<td class="px-3 py-2 align-middle">
-								<a data-role="content-series-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-									<span data-role="content-series-name"></span>
-								</a>
-								<input data-role="content-series-new-id" type="hidden" />
-								<input data-role="content-series-new-annotation" type="hidden" />
-							</td>
-							<td class="px-3 py-2 text-right align-middle">
-								<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-									<i class="ri-delete-bin-line"></i>
-								</button>
-							</td>
-						</tr>
-					</template>
+				<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} inputlabelrow mb-1">
+					<label class="inputlabel">Reihen</label>
 				</div>
+
+				<table class="min-w-full table-fixed text-sm">
+					<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
+						{{- range $_, $s := $model.result.Series -}}
+							{{- $rel := index $model.result.EntriesSeries $s.Id -}}
+							{{- if $rel -}}
+								<tr data-role="content-series-row" data-kind="existing" class="align-middle bg-white">
+									<td class="px-3 py-2 align-middle">
+										<a
+											data-role="content-series-link"
+											href="/reihe/{{ $s.MusenalmID }}"
+											target="_blank"
+											rel="noreferrer"
+											class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+											<span data-role="content-series-name">{{ $s.Title }}</span>
+										</a>
+										<input type="hidden" name="entries_series_id[{{ $rel.Id }}]" value="{{ $rel.Id }}" />
+										<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
+										<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
+									</td>
+									<td class="px-3 py-2 text-right align-middle">
+										<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+											<i class="ri-delete-bin-line"></i>
+										</button>
+										<input data-role="content-series-delete-input" type="checkbox" class="hidden" name="entries_series_delete[{{ $rel.Id }}]" />
+									</td>
+								</tr>
+							{{- end -}}
+						{{- end -}}
+					</tbody>
+				</table>
+
+				<div data-role="content-series-add-panel" class="hidden pt-1.5">
+					<div class="flex items-center gap-2">
+						<div class="relative min-w-0 flex-1">
+							<label for="series-add-search" class="sr-only">Reihe suchen</label>
+							<div class="inputshell">
+								<input
+									id="series-add-search"
+									data-role="content-series-add-input"
+									type="text"
+									autocomplete="off"
+									class="inputinput w-full text-sm"
+									placeholder="Reihe suchen..." />
+							</div>
+							<div data-role="content-series-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
+							<div data-role="content-series-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
+						</div>
+						<button type="button" data-role="content-series-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
+							<i class="ri-check-line"></i>
+						</button>
+						<button type="button" data-role="content-series-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
+							<i class="ri-close-line"></i>
+						</button>
+					</div>
+				</div>
+
+				<div class="flex justify-end">
+					<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
+						<i class="ri-add-line"></i> Reihe verlinken
+					</button>
+				</div>
+
+				<template data-role="content-series-new-row-template">
+					<tr data-role="content-series-row" data-kind="new" class="align-middle bg-white">
+						<td class="px-3 py-2 align-middle">
+							<a data-role="content-series-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+								<span data-role="content-series-name"></span>
+							</a>
+							<input data-role="content-series-new-id" type="hidden" />
+							<input data-role="content-series-new-annotation" type="hidden" />
+						</td>
+						<td class="px-3 py-2 text-right align-middle">
+							<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+								<i class="ri-delete-bin-line"></i>
+							</button>
+						</td>
+					</tr>
+				</template>
 			</content-series-relations>
 
 			<div>
@@ -321,13 +289,10 @@ type AlmanachResult struct {
 					<div class="inputlabelrow">
 						<div class="flex items-center gap-1">
 						<label for="title" class="inputlabel">Titel</label>
-						<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "title_statement" }}'>
-							<i class="ri-question-line"></i>
-						</span>
 					</div>
 					</div>
 
-					<textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea>
+					<div class="inputshell"><textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea></div>
 				</div>
 
 				<div class="almanach-title-optionals mt-2 flex flex-col gap-2">
@@ -343,9 +308,6 @@ type AlmanachResult struct {
 								<div class="flex items-center gap-1">
 									<label for="paralleltitle" class="inputlabel menu-label">Titel
 										(übersetzt)</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "parallel_title" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -354,16 +316,13 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ParallelTitle -}}</textarea>
+							<div class="inputshell"><textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ParallelTitle -}}</textarea></div>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "subtitle_statement" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -372,16 +331,13 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.SubtitleStmt -}}</textarea>
+							<div class="inputshell"><textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.SubtitleStmt -}}</textarea></div>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "variant_title" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -390,16 +346,13 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.VariantTitle -}}</textarea>
+							<div class="inputshell"><textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.VariantTitle -}}</textarea></div>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="incipit" class="inputlabel menu-label">Incipit</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "incipit_statement" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -408,16 +361,13 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea>
+							<div class="inputshell"><textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea></div>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="titles">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "publication_statement" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -426,31 +376,21 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="publication_statement" id="publication_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea>
+							<div class="inputshell"><textarea name="publication_statement" id="publication_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea></div>
 						</div>
 					</div-manager>
 
 				<div class="mt-3 grid w-full grid-cols-2 gap-4 items-start">
-					<div class="flex min-w-0 gap-2">
-						<div class="inputwrapper min-w-0 flex-1">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="responsibility_statement" class="inputlabel">Herausgeberangabe</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "responsibility_statement" }}'>
-										<i class="ri-question-line"></i>
-									</span>
-								</div>
-							</div>
-							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+					<div class="inputwrapper min-w-0">
+						<div class="inputlabelrow">
+							<label for="responsibility_statement" class="inputlabel">Herausgeberangabe</label>
 						</div>
-
-						<div class="inputwrapper shrink-0 self-end">
-							<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+						<div class="inputshell flex items-center">
+							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter flex-1" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+							<label class="flex shrink-0 cursor-pointer items-center gap-1.5 pl-2 pr-3 text-sm font-bold text-gray-700" for="pseudonym">
 								<input type="checkbox" name="pseudonym" id="pseudonym" {{ if $model.result.Entry.Pseudonym }}checked{{ end }} data-boolean-checkbox />
-								<label class="flex items-center gap-1 text-gray-700" for="pseudonym">
-									<span>Pseudonym</span>
-								</label>
-							</div>
+								<span>Pseudonym</span>
+							</label>
 						</div>
 					</div>
 
@@ -458,13 +398,10 @@ type AlmanachResult struct {
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 								<label for="place_statement" class="inputlabel">Ortsangabe</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "place_statement" }}'>
-									<i class="ri-question-line"></i>
-								</span>
 							</div>
 						</div>
 
-						<textarea name="place_statement" id="place_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea>
+						<div class="inputshell"><textarea name="place_statement" id="place_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea></div>
 					</div>
 				</div>
 
@@ -480,9 +417,6 @@ type AlmanachResult struct {
 								<div class="inputlabelrow">
 									<div class="flex items-center gap-1">
 										<label class="inputlabel" for="agents-section">Verknüpfte Personen</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ helpOr "entries" "agents" "Beteiligte Personen oder Körperschaften." }}'>
-											<i class="ri-question-line"></i>
-										</span>
 									</div>
 									<div class="flex items-center gap-3">
 										<button type="button" id="agents-add-toggle" data-role="content-person-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
@@ -498,7 +432,7 @@ type AlmanachResult struct {
 												{{- if $model.result.EntriesAgents -}}
 													{{- range $_, $r := $model.result.EntriesAgents -}}
 														{{- $a := index $model.result.Agents $r.Agent -}}
-														<tr data-role="content-person-row" data-kind="existing" class="align-middle">
+														<tr data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
 															<td class="px-3 py-2 align-middle">
 																{{- if $a -}}
 																	<a
@@ -527,12 +461,6 @@ type AlmanachResult struct {
 																	{{- end -}}
 																</select>
 															</td>
-															<td class="w-24 px-3 py-2 align-middle">
-																<label class="inline-flex items-center gap-1 text-sm text-slate-700">
-																	<input data-role="content-person-uncertain" type="checkbox" name="entries_agents_uncertain[{{ $r.Id }}]" {{ if $r.Uncertain }}checked{{ end }} />
-																	<span>Unsicher</span>
-																</label>
-															</td>
 															<td class="px-3 py-2 text-right align-middle">
 																<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
 																	<i class="ri-delete-bin-line"></i>
@@ -550,24 +478,21 @@ type AlmanachResult struct {
 										Keine Personen verknüpft.
 									</div>
 
-									<div data-role="content-person-add-panel" class="hidden bg-stone-50 px-3 py-3">
-										<div class="relative flex items-start gap-2">
-											<div class="flex min-w-0 flex-1 items-start gap-2">
-												<div class="min-w-0 flex-1">
-													<label for="agents-add-search" class="sr-only">Person suchen</label>
+									<div data-role="content-person-add-panel" class="hidden pt-1.5 px-1">
+										<div class="flex items-center gap-2">
+											<div class="relative min-w-0 flex-1">
+												<label for="agents-add-search" class="sr-only">Person suchen</label>
+												<div class="inputshell">
 													<input
 														id="agents-add-search"
 														data-role="content-person-add-input"
 														type="text"
 														autocomplete="off"
-														class="h-9 w-full rounded-xs border border-stone-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none"
+														class="inputinput w-full text-sm"
 														placeholder="Person suchen..." />
-													<div data-role="content-person-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
-													<div data-role="content-person-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
 												</div>
-												<a href="/admin/personen/new/" target="_blank" rel="noreferrer" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 no-underline transition-colors hover:bg-stone-100" aria-label="Neue Person anlegen">
-													<i class="ri-add-line"></i>
-												</a>
+												<div data-role="content-person-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
+												<div data-role="content-person-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
 											</div>
 											<button type="button" data-role="content-person-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
 												<i class="ri-check-line"></i>
@@ -580,7 +505,7 @@ type AlmanachResult struct {
 								</div>
 
 								<template data-role="content-person-new-row-template">
-									<tr data-role="content-person-row" data-kind="new" class="align-middle bg-orange-50/40">
+									<tr data-role="content-person-row" data-kind="new" class="align-middle bg-white">
 										<td class="px-3 py-2 align-middle">
 											<a data-role="content-person-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
 												<span data-role="content-person-name"></span>
@@ -594,12 +519,6 @@ type AlmanachResult struct {
 													<option value="{{ $t }}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{ $t }}</option>
 												{{- end -}}
 											</select>
-										</td>
-										<td class="w-24 px-3 py-2 align-middle">
-											<label class="inline-flex items-center gap-1 text-sm text-slate-700">
-												<input data-role="content-person-uncertain" type="checkbox" />
-												<span>Unsicher</span>
-											</label>
 										</td>
 										<td class="px-3 py-2 text-right align-middle">
 											<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
@@ -615,39 +534,16 @@ type AlmanachResult struct {
 					<div class="min-w-0">
 						<div class="inputwrapper">
 							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="places" class="inputlabel">Verknüpfte Orte</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "places" }}'>
-										<i class="ri-question-line"></i>
-									</span>
-								</div>
-								<div class="flex items-center gap-3">
-									<a href="/admin/orte/new/" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline" target="_blank" rel="noreferrer">
-										<i class="ri-add-line"></i> Neuer Ort
-									</a>
-									<button type="button" id="places-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
-										<i class="ri-link"></i> Ort verlinken
-									</button>
-								</div>
+								<label for="places" class="inputlabel">Verknüpfte Orte</label>
 							</div>
-							<div class="px-2">
-							<multi-select-simple
+							<content-type-select
 								id="places"
 								name="places[]"
-								data-external-toggle-id="places-add-toggle"
-								value='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}"{{ $place.Id }}"{{- end -}}]'
-									placeholder="Orte suchen..."
-										data-toggle-label='<i class="ri-add-circle-line"></i>'
-										data-empty-text="Keine Orte verknüpft"
-										show-create-button="false"
-										data-endpoint="/admin/api/places/search"
-										data-result-key="places"
-										data-minchars="1"
-										data-limit="15"
-										data-initial-options='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "{\"id\":%q,\"name\":%q,\"additional_data\":%q}" $place.Id $place.Name $place.Pseudonyms }}{{- end -}}]'
-										data-initial-values='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
-								</multi-select-simple>
-								</div>
+								data-placeholder="Orte auswählen"
+								data-searchable="true"
+								data-options='[{{- range $i, $place := $model.place_options -}}{{- if $i }},{{ end -}}{"value":{{ printf "%q" $place.Id }},"label":{{ printf "%q" $place.Name }}}{{- end -}}]'
+								data-selected='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
+							</content-type-select>
 						</div>
 					</div>
 				</div>
@@ -671,27 +567,16 @@ type AlmanachResult struct {
 					<!-- Languages -->
 					<div class="inputwrapper">
 						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="languages" class="inputlabel">Sprachen</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "language" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-							<button type="button" id="languages-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
-								<i class="ri-link"></i> Sprache verlinken
-							</button>
+							<label for="languages" class="inputlabel">Sprachen</label>
 						</div>
-						<div class="px-2">
-						<multi-select-simple
+						<content-type-select
 							id="languages"
 							name="languages[]"
-							show-create-button="false"
-							placeholder="Sprachen suchen..."
-							data-toggle-label='<i class="ri-add-circle-line"></i>'
-							data-empty-text="Keine Sprachen verknüpft"
-							data-external-toggle-id="languages-add-toggle"
-							value='[{{- range $i, $lang := $model.result.Entry.Language -}}{{- if $i }},{{ end -}}"{{ $lang }}"{{- end -}}]'></multi-select-simple>
-							</div>
+							data-placeholder="Sprachen auswählen"
+							data-searchable="true"
+							data-options='[{{- range $i, $lang := $model.language_options -}}{{- if $i }},{{ end -}}{"value":{{ printf "%q" $lang }},"label":{{ printf "%q" (LanguageNameGerman $lang) }}}{{- end -}}]'
+							data-selected='[{{- range $i, $lang := $model.result.Entry.Language -}}{{- if $i }},{{ end -}}{{ printf "%q" $lang }}{{- end -}}]'>
+						</content-type-select>
 					</div>
 
 					<!-- Nachweise - Always visible -->
@@ -699,12 +584,9 @@ type AlmanachResult struct {
 						<div class="inputlabelrow">
 							<div class="flex items-center gap-1">
 							<label for="refs" class="inputlabel">Nachweise</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "refs" }}'>
-								<i class="ri-question-line"></i>
-							</span>
 						</div>
 						</div>
-						<textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea>
+						<div class="inputshell"><textarea name="refs" id="refs" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.References -}}</textarea></div>
 					</div>
 
 					<div-manager class="flex flex-col gap-2">
@@ -712,9 +594,6 @@ type AlmanachResult struct {
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="extent" class="inputlabel menu-label">Struktur/Umfang</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "extent" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -723,16 +602,13 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="extent" id="extent" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea>
+							<div class="inputshell"><textarea name="extent" id="extent" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Extent -}}</textarea></div>
 						</div>
 
 						<div class="inputwrapper {{ if eq $model.result.Entry.Dimensions "" }}hidden{{ end }}">
 							<div class="inputlabelrow">
 								<div class="flex items-center gap-1">
 									<label for="dimensions" class="inputlabel menu-label">Maße</label>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "dimensions" }}'>
-										<i class="ri-question-line"></i>
-									</span>
 								</div>
 								<div class="pr-2">
 									<button class="dm-close-button font-bold input-label">
@@ -741,7 +617,7 @@ type AlmanachResult struct {
 								</div>
 							</div>
 
-							<textarea name="dimensions" id="dimensions" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea>
+							<div class="inputshell"><textarea name="dimensions" id="dimensions" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Dimensions -}}</textarea></div>
 						</div>
 
 						<button class="dm-menu-button order-last text-right w-full cursor-pointer"><i class="ri-add-line"></i>
@@ -856,30 +732,18 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "owner" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="{{ $item.Owner }}" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "identifier" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="{{ $item.Identifier }}" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "location" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="{{ $item.Location }}" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "media" }}'>
-											<i class="ri-question-line"></i>
-										</span>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
@@ -892,10 +756,7 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "uri" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" /></div>
 									</div>
 								</div>
 								<div class="flex justify-end gap-3 mt-3 px-3 py-2">
@@ -968,30 +829,18 @@ type AlmanachResult struct {
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "owner" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="owner" name="items_owner[]" autocomplete="off" value="" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="identifier">Signatur</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "identifier" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="identifier" name="items_identifier[]" autocomplete="off" value="" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="location">Standort</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "location" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="location" name="items_location[]" autocomplete="off" value="" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "media" }}'>
-											<i class="ri-question-line"></i>
-										</span>
 										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
 											{{- range $t := $model.item_types -}}
 												<option value="{{- $t -}}">{{- $t -}}</option>
@@ -1004,10 +853,7 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="uri">URI</label>
-										<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "items" "uri" }}'>
-											<i class="ri-question-line"></i>
-										</span>
-										<input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" />
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" /></div>
 									</div>
 								</div>
 								<div class="flex justify-end gap-3 mt-3 px-3 py-1">

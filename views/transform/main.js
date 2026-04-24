@@ -65,16 +65,16 @@ const ELEMENT_DEFINITIONS = [
 	["content-series-relations", ContentSeriesRelations],
 ];
 
+window.lookupSeriesValue = ({ item }) => item?.id || "";
+window.lookupSeriesLink = ({ item }) => (item?.musenalm_id ? `/reihe/${item.musenalm_id}` : "");
+window.lookupRequiredText = ({ displayValue }) => Boolean((displayValue || "").trim());
+window.lookupRequiredId = ({ hiddenValue }) => Boolean((hiddenValue || "").trim());
+
 for (const [name, elementClass] of ELEMENT_DEFINITIONS) {
 	if (!customElements.get(name)) {
 		customElements.define(name, elementClass);
 	}
 }
-
-window.lookupSeriesValue = ({ item }) => item?.id || "";
-window.lookupSeriesLink = ({ item }) => (item?.musenalm_id ? `/reihe/${item.musenalm_id}` : "");
-window.lookupRequiredText = ({ displayValue }) => Boolean((displayValue || "").trim());
-window.lookupRequiredId = ({ hiddenValue }) => Boolean((hiddenValue || "").trim());
 
 function getQRCodeWhenAvailable(timeout = 5000, interval = 100) {
 	return new Promise((resolve, reject) => {

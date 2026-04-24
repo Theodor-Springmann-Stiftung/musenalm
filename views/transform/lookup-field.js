@@ -139,7 +139,7 @@ export class LookupField extends HTMLElement {
 
 		this.innerHTML = `
 			<div class="${LF_WRAPPER_CLASS} relative">
-				<div class="flex items-center gap-2">
+				<div class="inputshell flex items-center gap-2">
 					${inputMarkup.replace(/(class="[^"]*)"/, `$1" ${textNameAttr}`)}
 					<a class="${LF_LINK_BUTTON_CLASS} hidden text-sm text-gray-600 hover:text-gray-900 no-underline" aria-label="Auswahl öffnen" target="_blank" rel="noopener">
 						<i class="ri-external-link-line"></i>
@@ -508,7 +508,14 @@ export class LookupField extends HTMLElement {
 		}
 
 		if (this._clearButton) {
-			this._clearButton.classList.toggle("hidden", displayValue.length === 0);
+			const hasValue = displayValue.length > 0;
+			this._clearButton.classList.toggle("hidden", !hasValue || !isValid);
+			const icon = this._clearButton.querySelector("i");
+			if (icon) {
+				icon.className = "ri-check-line";
+				this._clearButton.classList.add("text-green-600", "hover:text-green-800");
+				this._clearButton.classList.remove("text-gray-600", "hover:text-gray-900");
+			}
 		}
 	}
 

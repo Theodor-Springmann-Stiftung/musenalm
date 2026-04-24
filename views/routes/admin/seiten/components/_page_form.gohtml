@@ -21,21 +21,21 @@
 					<div class="inputlabelrow">
 						<label for="page-title" class="inputlabel">Titel</label>
 					</div>
-					<input type="text" id="page-title" name="title" class="inputinput" value="{{ $model.selected.Title }}" autocomplete="off" />
+					<div class="inputshell"><input type="text" id="page-title" name="title" class="inputinput" value="{{ $model.selected.Title }}" autocomplete="off" /></div>
 				</div>
 
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
 						<label for="page-description" class="inputlabel">Beschreibung</label>
 					</div>
-					<textarea id="page-description" name="description" class="inputinput" rows="3" autocomplete="off">{{ $model.selected.Description }}</textarea>
+					<div class="inputshell"><textarea id="page-description" name="description" class="inputinput" rows="3" autocomplete="off">{{ $model.selected.Description }}</textarea></div>
 				</div>
 
 				<div class="inputwrapper">
 					<div class="inputlabelrow">
 						<label for="page-keywords" class="inputlabel">Stichworte</label>
 					</div>
-					<input type="text" id="page-keywords" name="keywords" class="inputinput" value="{{ $model.selected.Keywords }}" autocomplete="off" />
+					<div class="inputshell"><input type="text" id="page-keywords" name="keywords" class="inputinput" value="{{ $model.selected.Keywords }}" autocomplete="off" /></div>
 				</div>
 
 				<div class="flex items-center gap-2 text-lg font-bold text-gray-700 mt-4">
@@ -64,12 +64,12 @@
 								</div>
 							</div>
 
-							<textarea
+							<div class="inputshell"><textarea
 								id="page-html-{{ $index }}"
 								name="html[{{ $section.Key }}]"
 								class="inputinput page-html-editor"
 								rows="12"
-								autocomplete="off">{{- $section.HTML -}}</textarea>
+								autocomplete="off">{{- $section.HTML -}}</textarea></div>
 						</div>
 					{{- end -}}
 				{{- end -}}

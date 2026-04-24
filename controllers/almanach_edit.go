@@ -61,6 +61,11 @@ func (p *AlmanachEditPage) GET(engine *templating.Engine, app core.App, ma pagem
 		data["csrf_token"] = req.Session().Token
 		data["item_types"] = dbmodels.ITEM_TYPE_VALUES
 		data["agent_relations"] = dbmodels.AGENT_RELATIONS
+		data["language_options"] = dbmodels.LANGUAGE_VALUES
+		if allPlaces, err := dbmodels.Places_All(app); err == nil {
+			dbmodels.Sort_Places_Name(allPlaces)
+			data["place_options"] = allPlaces
+		}
 		data["cancel_url"] = cancelURLFromHeader(e)
 
 		if msg := popFlashSuccess(e); msg != "" {
