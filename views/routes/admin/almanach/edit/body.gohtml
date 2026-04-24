@@ -35,6 +35,40 @@ type AlmanachResult struct {
 {{- if and $model.result $model.result.Contents -}}
 	{{- $contentCount = len $model.result.Contents -}}
 {{- end -}}
+{{- $bandActions := Arr -}}
+{{- if not $model.is_new -}}
+	{{- $publicDisabled := eq ($model.result.Entry.EditState) "ToDo" -}}
+	{{- $bandActions = Arr
+		(Dict "href" (printf "/admin/almanach/%d/contents/edit" $model.result.Entry.MusenalmID) "icon" "ri-article-line" "label" "Beiträge bearbeiten" "badge" $contentCount "tooltip" (printf "%d Beiträge bearbeiten" $contentCount))
+		(Dict "href" (printf "/almanach/%d" $model.result.Entry.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen" "disabled" $publicDisabled)
+		(Dict "href" (printf "/almanach/%d" $model.result.Entry.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true "disabled" $publicDisabled)
+		(Dict "href" "/admin/baende/" "icon" "ri-list-check-2" "tooltip" "Liste aller Bände")
+	-}}
+{{- end -}}
+{{- $bandPrevHref := "" -}}
+{{- $bandPrevLabel := "" -}}
+{{- if and (not $model.is_new) $model.result.PrevByTitle -}}
+	{{- $bandPrevHref = printf "/admin/almanach/%d/edit/" $model.result.PrevByTitle.MusenalmID -}}
+	{{- $bandPrevLabel = $model.result.PrevByTitle.PreferredTitle -}}
+{{- end -}}
+{{- $bandNextHref := "" -}}
+{{- $bandNextLabel := "" -}}
+{{- if and (not $model.is_new) $model.result.NextByTitle -}}
+	{{- $bandNextHref = printf "/admin/almanach/%d/edit/" $model.result.NextByTitle.MusenalmID -}}
+	{{- $bandNextLabel = $model.result.NextByTitle.PreferredTitle -}}
+{{- end -}}
+{{- $bandPrevMusenalmHref := "" -}}
+{{- $bandPrevMusenalmLabel := "" -}}
+{{- if and (not $model.is_new) $model.result.PrevByID -}}
+	{{- $bandPrevMusenalmHref = printf "/admin/almanach/%d/edit/" $model.result.PrevByID.MusenalmID -}}
+	{{- $bandPrevMusenalmLabel = printf "%d: %s" $model.result.PrevByID.MusenalmID $model.result.PrevByID.PreferredTitle -}}
+{{- end -}}
+{{- $bandNextMusenalmHref := "" -}}
+{{- $bandNextMusenalmLabel := "" -}}
+{{- if and (not $model.is_new) $model.result.NextByID -}}
+	{{- $bandNextMusenalmHref = printf "/admin/almanach/%d/edit/" $model.result.NextByID.MusenalmID -}}
+	{{- $bandNextMusenalmLabel = printf "%d: %s" $model.result.NextByID.MusenalmID $model.result.NextByID.PreferredTitle -}}
+{{- end -}}
 
 <almanach-edit-page>
 <duplicate-warning-checker></duplicate-warning-checker>
@@ -49,129 +83,24 @@ type AlmanachResult struct {
 		</span>
 		<h1 class="simple-entity-title">{{ $bandTitle }}</h1>
 	</div>
-
-	{{- if not $model.is_new -}}
-		<div class="admin-list-toolbar">
-			<div class="admin-list-toolbar-primary simple-entity-header-actions">
-				<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $contentCount }} Beiträge bearbeiten'>
-					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-chip" aria-label="Beiträge">
-						<i class="ri-article-line"></i>
-						<span>Beiträge bearbeiten</span>
-						<span class="admin-list-badge">{{ $contentCount }}</span>
-					</a>
-				</span>
-				{{- if eq ($model.result.Entry.EditState) "ToDo" -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="Anschauen (nicht öffentlich)" aria-disabled="true">
-						<i class="ri-eye-line"></i>
-					</span>
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
-						<i class="ri-external-link-line"></i>
-					</span>
-				{{- else -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content="Anschauen">
-						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
-							<i class="ri-eye-line"></i>
-						</a>
-					</span>
-					<span class="inline" data-tippy-placement="top" data-tippy-content="In neuem Tab öffnen">
-						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
-							<i class="ri-external-link-line"></i>
-						</a>
-					</span>
-				{{- end -}}
-				<span class="inline" data-tippy-placement="top" data-tippy-content="Liste aller Bände">
-					<a href="/admin/baende/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Liste aller Bände">
-						<i class="ri-list-check-2"></i>
-					</a>
-				</span>
-				{{- if $model.result.PrevByTitle -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByTitle.PreferredTitle }}'>
-						<a href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
-							<i class="ri-arrow-left-s-line"></i>
-						</a>
-					</span>
-				{{- else -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
-						<i class="ri-arrow-left-s-line"></i>
-					</span>
-				{{- end -}}
-				<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
-				{{- if $model.result.NextByTitle -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByTitle.PreferredTitle }}'>
-						<a href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
-							<i class="ri-arrow-right-s-line"></i>
-						</a>
-					</span>
-				{{- else -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
-						<i class="ri-arrow-right-s-line"></i>
-					</span>
-				{{- end -}}
-			</div>
-
-			<div class="admin-list-toolbar-secondary simple-entity-meta-inline" id="almanach-header-data">
-				<span class="simple-entity-meta-item">
-					{{- if $model.result.PrevByID -}}
-						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByID.MusenalmID }}: {{ $model.result.PrevByID.PreferredTitle }}'>
-							<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
-								<i class="ri-arrow-left-s-line"></i>
-							</a>
-						</span>
-					{{- else -}}
-						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
-							<i class="ri-arrow-left-s-line"></i>
-						</span>
-					{{- end -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "musenalm_id" }}'>
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-fingerprint-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.MusenalmID }}</span>
-					{{- if $model.result.NextByID -}}
-						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByID.MusenalmID }}: {{ $model.result.NextByID.PreferredTitle }}'>
-							<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/edit/" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
-								<i class="ri-arrow-right-s-line"></i>
-							</a>
-						</span>
-					{{- else -}}
-						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
-							<i class="ri-arrow-right-s-line"></i>
-						</span>
-					{{- end -}}
-				</span>
-				<span class="simple-entity-meta-sep">|</span>
-				<span class="simple-entity-meta-item">
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "id" }}'>
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-database-2-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.Id }}</span>
-				</span>
-				<span class="simple-entity-meta-sep">|</span>
-				<span class="simple-entity-meta-item">
-					<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet">
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-calendar-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums" id="almanach-updated-stamp">{{ GermanShortDateTime $model.result.Entry.Updated }}</span>
-				</span>
-				{{- if $model.result.User -}}
-					<span class="simple-entity-meta-sep">|</span>
-					<span class="simple-entity-meta-item {{ if not $model.result.User }}hidden{{ end }}" id="almanach-updated-user">
-						<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet von">
-							<span class="simple-entity-meta-icon" aria-hidden="true">
-								<i class="ri-user-line"></i>
-							</span>
-						</span>
-						<span class="simple-entity-meta-item-value" id="almanach-updated-user-name">{{ $model.result.User.Name }}</span>
-					</span>
-				{{- end -}}
-			</div>
-		</div>
-	{{- end -}}
+	{{ template "_admin_header_toolbar" (Dict
+		"is_new" $model.is_new
+		"actions" $bandActions
+		"show_az_nav" true
+		"prev_href" $bandPrevHref
+		"prev_label" $bandPrevLabel
+		"next_href" $bandNextHref
+		"next_label" $bandNextLabel
+		"header_data_id" "almanach-header-data"
+		"db_id" $model.result.Entry.Id
+		"musenalm_id" $model.result.Entry.MusenalmID
+		"updated" $model.result.Entry.Updated
+		"editor_user" $model.result.User
+		"prev_musenalm_href" $bandPrevMusenalmHref
+		"prev_musenalm_label" $bandPrevMusenalmLabel
+		"next_musenalm_href" $bandNextMusenalmHref
+		"next_musenalm_label" $bandNextMusenalmLabel
+	) }}
 </header>
 
 <div class="edit-content-shell">

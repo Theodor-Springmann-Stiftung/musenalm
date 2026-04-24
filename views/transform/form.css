@@ -15,7 +15,7 @@
 		@apply block w-full focus:border-none focus:outline-none px-2 py-0.5;
 	}
 
-	.dbform .inputwrapper .inputtextarea {
+	.dbform .inputwrapper .te .dbform .inputwrapper .inputtextarea {
 		@apply block w-full focus:border-none focus:outline-none resize-y px-2 py-0.5;
 	}
 

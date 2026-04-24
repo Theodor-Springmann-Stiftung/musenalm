@@ -611,7 +611,7 @@
 
 	.admin-layout-sidebar-collapsed .admin-sidebar-account-name,
 	.admin-layout-sidebar-collapsed .admin-sidebar-account-role {
-		@apply hidden;
+		@apply !hidden;
 	}
 
 	.admin-layout-sidebar-collapsed .admin-sidebar-account-links {

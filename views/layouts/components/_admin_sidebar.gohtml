@@ -273,8 +273,8 @@
 
 	<div class="admin-sidebar-account">
 		<a href="/admin/" class="block px-4 py-1 bg-slate-50 no-underline hover:bg-slate-100 border
-			border-slate-100 hover:border-slate-300 transition-all duration-150">
-			<div class="admin-sidebar-account-name no-underline">
+			border-slate-100 hover:border-slate-300 transition-all duration-150 admin-sidebar-account-name">
+			<div class="no-underline">
 				<i class="ri-user-2-line mr-1"></i>
 				{{- if and $model.request $model.request.user $model.request.user.Name -}}
 					{{ $model.request.user.Name }}

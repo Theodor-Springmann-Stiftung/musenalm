@@ -7,6 +7,40 @@
 {{- if and $model.result $model.result.Contents -}}
 	{{- $contentCount = len $model.result.Contents -}}
 {{- end -}}
+{{- $contentsActions := Arr -}}
+{{- if $model.result -}}
+	{{- $publicDisabled := eq ($model.result.Entry.EditState) "ToDo" -}}
+	{{- $contentsActions = Arr
+		(Dict "href" (printf "/admin/almanach/%d/edit/" $model.result.Entry.MusenalmID) "icon" "ri-book-line" "label" "Band bearbeiten" "tooltip" "Band bearbeiten")
+		(Dict "href" (printf "/almanach/%d" $model.result.Entry.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen" "disabled" $publicDisabled)
+		(Dict "href" (printf "/almanach/%d" $model.result.Entry.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true "disabled" $publicDisabled)
+		(Dict "href" "/admin/baende/" "icon" "ri-list-check-2" "tooltip" "Liste aller Bände")
+	-}}
+{{- end -}}
+{{- $contentsPrevHref := "" -}}
+{{- $contentsPrevLabel := "" -}}
+{{- if and $model.result $model.result.PrevByTitle -}}
+	{{- $contentsPrevHref = printf "/admin/almanach/%d/contents/edit" $model.result.PrevByTitle.MusenalmID -}}
+	{{- $contentsPrevLabel = $model.result.PrevByTitle.PreferredTitle -}}
+{{- end -}}
+{{- $contentsNextHref := "" -}}
+{{- $contentsNextLabel := "" -}}
+{{- if and $model.result $model.result.NextByTitle -}}
+	{{- $contentsNextHref = printf "/admin/almanach/%d/contents/edit" $model.result.NextByTitle.MusenalmID -}}
+	{{- $contentsNextLabel = $model.result.NextByTitle.PreferredTitle -}}
+{{- end -}}
+{{- $contentsPrevMusenalmHref := "" -}}
+{{- $contentsPrevMusenalmLabel := "" -}}
+{{- if and $model.result $model.result.PrevByID -}}
+	{{- $contentsPrevMusenalmHref = printf "/admin/almanach/%d/contents/edit" $model.result.PrevByID.MusenalmID -}}
+	{{- $contentsPrevMusenalmLabel = printf "%d: %s" $model.result.PrevByID.MusenalmID $model.result.PrevByID.PreferredTitle -}}
+{{- end -}}
+{{- $contentsNextMusenalmHref := "" -}}
+{{- $contentsNextMusenalmLabel := "" -}}
+{{- if and $model.result $model.result.NextByID -}}
+	{{- $contentsNextMusenalmHref = printf "/admin/almanach/%d/contents/edit" $model.result.NextByID.MusenalmID -}}
+	{{- $contentsNextMusenalmLabel = printf "%d: %s" $model.result.NextByID.MusenalmID $model.result.NextByID.PreferredTitle -}}
+{{- end -}}
 
 <edit-page>
 <div class="simple-entity-page">
@@ -21,127 +55,25 @@
 		</span>
 		<h1 class="simple-entity-title">{{ $bandTitle }}</h1>
 	</div>
-
 	{{- if $model.result -}}
-		<div class="admin-list-toolbar">
-			<div class="admin-list-toolbar-primary simple-entity-header-actions">
-				<span class="inline" data-tippy-placement="top" data-tippy-content="Band bearbeiten">
-					<a href="/admin/almanach/{{ $model.result.Entry.MusenalmID }}/edit/" class="simple-entity-header-button simple-entity-header-chip" aria-label="Band">
-						<i class="ri-book-line"></i>
-						<span>Band bearbeiten</span>
-					</a>
-				</span>
-				{{- if eq ($model.result.Entry.EditState) "ToDo" -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="Anschauen (nicht öffentlich)" aria-disabled="true">
-						<i class="ri-eye-line"></i>
-					</span>
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
-						<i class="ri-external-link-line"></i>
-					</span>
-				{{- else -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content="Anschauen">
-						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
-							<i class="ri-eye-line"></i>
-						</a>
-					</span>
-					<span class="inline" data-tippy-placement="top" data-tippy-content="In neuem Tab öffnen">
-						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
-							<i class="ri-external-link-line"></i>
-						</a>
-					</span>
-				{{- end -}}
-				<span class="inline" data-tippy-placement="top" data-tippy-content="Liste aller Bände">
-					<a href="/admin/baende/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Liste aller Bände">
-						<i class="ri-list-check-2"></i>
-					</a>
-				</span>
-				{{- if $model.result.PrevByTitle -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByTitle.PreferredTitle }}'>
-						<a href="/admin/almanach/{{ $model.result.PrevByTitle.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Vorheriger Eintrag">
-							<i class="ri-arrow-left-s-line"></i>
-						</a>
-					</span>
-				{{- else -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
-						<i class="ri-arrow-left-s-line"></i>
-					</span>
-				{{- end -}}
-				<span class="simple-entity-header-az">A&thinsp;&ndash;&thinsp;Z</span>
-				{{- if $model.result.NextByTitle -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByTitle.PreferredTitle }}'>
-						<a href="/admin/almanach/{{ $model.result.NextByTitle.MusenalmID }}/contents/edit" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Nächster Eintrag">
-							<i class="ri-arrow-right-s-line"></i>
-						</a>
-					</span>
-				{{- else -}}
-					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-hidden="true">
-						<i class="ri-arrow-right-s-line"></i>
-					</span>
-				{{- end -}}
-			</div>
-
-			<div class="admin-list-toolbar-secondary simple-entity-meta-inline" id="contents-header-data">
-				<span class="simple-entity-meta-item">
-					{{- if $model.result.PrevByID -}}
-						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.PrevByID.MusenalmID }}: {{ $model.result.PrevByID.PreferredTitle }}'>
-							<a href="/admin/almanach/{{ $model.result.PrevByID.MusenalmID }}/contents/edit" class="simple-entity-meta-nav" aria-label="Vorherige Musenalm-ID">
-								<i class="ri-arrow-left-s-line"></i>
-							</a>
-						</span>
-					{{- else -}}
-						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
-							<i class="ri-arrow-left-s-line"></i>
-						</span>
-					{{- end -}}
-					<span class="inline" data-tippy-placement="top" data-tippy-content='{{ help "entries" "musenalm_id" }}'>
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-fingerprint-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.MusenalmID }}</span>
-					{{- if $model.result.NextByID -}}
-						<span class="inline" data-tippy-placement="top" data-tippy-content='{{ $model.result.NextByID.MusenalmID }}: {{ $model.result.NextByID.PreferredTitle }}'>
-							<a href="/admin/almanach/{{ $model.result.NextByID.MusenalmID }}/contents/edit" class="simple-entity-meta-nav" aria-label="Nächste Musenalm-ID">
-								<i class="ri-arrow-right-s-line"></i>
-							</a>
-						</span>
-					{{- else -}}
-						<span class="simple-entity-meta-nav simple-entity-meta-nav-disabled" aria-hidden="true">
-							<i class="ri-arrow-right-s-line"></i>
-						</span>
-					{{- end -}}
-				</span>
-				<span class="simple-entity-meta-sep">|</span>
-				<span class="simple-entity-meta-item">
-					<span class="inline" data-tippy-placement="top" data-tippy-content="Datenbank-ID">
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-database-2-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums">{{ $model.result.Entry.Id }}</span>
-				</span>
-				<span class="simple-entity-meta-sep">|</span>
-				<span class="simple-entity-meta-item">
-					<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet">
-						<span class="simple-entity-meta-icon" aria-hidden="true">
-							<i class="ri-calendar-line"></i>
-						</span>
-					</span>
-					<span class="simple-entity-meta-item-value tabular-nums">{{ GermanShortDateTime $model.result.Entry.Updated }}</span>
-				</span>
-				{{- if $model.result.User -}}
-					<span class="simple-entity-meta-sep">|</span>
-					<span class="simple-entity-meta-item">
-						<span class="inline" data-tippy-placement="top" data-tippy-content="Zuletzt bearbeitet von">
-							<span class="simple-entity-meta-icon" aria-hidden="true">
-								<i class="ri-user-line"></i>
-							</span>
-						</span>
-						<span class="simple-entity-meta-item-value">{{ $model.result.User.Name }}</span>
-					</span>
-				{{- end -}}
-			</div>
-		</div>
+		{{ template "_admin_header_toolbar" (Dict
+			"is_new" false
+			"actions" $contentsActions
+			"show_az_nav" true
+			"prev_href" $contentsPrevHref
+			"prev_label" $contentsPrevLabel
+			"next_href" $contentsNextHref
+			"next_label" $contentsNextLabel
+			"header_data_id" "contents-header-data"
+			"db_id" $model.result.Entry.Id
+			"musenalm_id" $model.result.Entry.MusenalmID
+			"updated" $model.result.Entry.Updated
+			"editor_user" $model.result.User
+			"prev_musenalm_href" $contentsPrevMusenalmHref
+			"prev_musenalm_label" $contentsPrevMusenalmLabel
+			"next_musenalm_href" $contentsNextMusenalmHref
+			"next_musenalm_label" $contentsNextMusenalmLabel
+		) }}
 	{{- end -}}
 </header>
 
