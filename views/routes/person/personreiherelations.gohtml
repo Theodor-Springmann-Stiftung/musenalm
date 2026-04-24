@@ -10,7 +10,7 @@
 			{{- $bd := entryDisplay $entry.Id -}}
 			{{- $arels := index $relations $entry.Id -}}
 
-			{{- if $bd -}}
+			{{- if and $bd (ne $bd.EditState "ToDo") -}}
 				<div class="flex flex-row odd:bg-zinc-100 pr-3 py-0.5  w-full items-start">
 					{{- if $arels -}}
 						<div class="min-w-32">
@@ -51,7 +51,7 @@
 			{{- $bd := entryDisplay $rel.Entry -}}
 			{{- $arels := index $relations $rel.Entry -}}
 
-			{{- if $bd -}}
+			{{- if and $bd (ne $bd.EditState "ToDo") -}}
 				<div class="flex flex-row odd:bg-zinc-100 pr-3 py-0.5  w-full items-start">
 					{{- if $arels -}}
 						<div class="min-w-32">

@@ -158,18 +158,20 @@
 				{{- end -}}
 				{{- range $_, $srel := $srels -}}
 					{{- $series := seriesDisplay $srel.Series -}}
-					<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
-						<span class="border-r pr-2 border-gray-300">Reihentitel</span
-						><a
-							href="/reihe/{{ $series.MusenalmID }}"
-							class="no-underline pl-2 block {{ if
-								$isSeries
-							-}}
-								search-text
-							{{- end -}}">
-							<b>{{- $series.Name -}}</b>
-						</a>
-					</div>
+					{{- if ne $series.EditState "ToDo" -}}
+						<div class="inline-flex flex-row text-base font-sans px-2 bg-zinc-100 rounded mr-2">
+							<span class="border-r pr-2 border-gray-300">Reihentitel</span
+							><a
+								href="/reihe/{{ $series.MusenalmID }}"
+								class="no-underline pl-2 block {{ if
+									$isSeries
+								-}}
+									search-text
+								{{- end -}}">
+								<b>{{- $series.Name -}}</b>
+							</a>
+						</div>
+					{{- end -}}
 				{{- end -}}
 			</div>
 		{{- end -}}

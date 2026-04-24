@@ -78,6 +78,9 @@ func NewSearchBaende(app *musenalmapp.App, params SearchParameters) (*SearchResu
 		entries = e
 	}
 
+	entries = filterPublicEntries(entries)
+	entries = filterEntriesByPublicPreferredSeries(coreApp, entries)
+
 	resultids := []any{}
 	for _, entry := range entries {
 		resultids = append(resultids, entry.Id)

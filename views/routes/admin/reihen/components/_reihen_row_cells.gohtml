@@ -56,13 +56,22 @@
 				) -}}
 			</span>
 			<div class="admin-list-action-stack">
-				<div class="admin-list-chip-pair">
-					<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
-						<i class="ri-eye-line"></i>
-					</a>
-					<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
-						<i class="ri-external-link-line"></i>
-					</a>
+				<div class="admin-list-chip-pair" data-series-musenalm-id="{{ $series.MusenalmID }}">
+					{{- if eq $series.EditState "ToDo" -}}
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true">
+							<i class="ri-eye-line"></i>
+						</span>
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
+							<i class="ri-external-link-line"></i>
+						</span>
+					{{- else -}}
+						<a href="/reihe/{{ $series.MusenalmID }}/" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen">
+							<i class="ri-eye-line"></i>
+						</a>
+						<a href="/reihe/{{ $series.MusenalmID }}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen">
+							<i class="ri-external-link-line"></i>
+						</a>
+					{{- end -}}
 				</div>
 				{{- if .can_edit -}}
 					<a href="/admin/reihe/{{ $series.MusenalmID }}/edit" onclick="event.stopPropagation();" hx-target="body" class="admin-list-chip admin-list-chip-edit" title="Bearbeiten" aria-label="Bearbeiten">

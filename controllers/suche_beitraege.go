@@ -251,11 +251,12 @@ func NewSearchBeitraege(app core.App, params SearchParameters, filters Beitraege
 
 	filteredEntries := entries[:0]
 	for _, e := range entries {
-		if len(contentsmap[e.Id]) > 0 {
+		if len(contentsmap[e.Id]) > 0 && e.EditState() != "ToDo" {
 			filteredEntries = append(filteredEntries, e)
 		}
 	}
 	entries = filteredEntries
+	entries = filterEntriesByPublicPreferredSeries(app, entries)
 
 	entriesmap := make(map[string]*dbmodels.Entry)
 	years := make(map[int]bool)

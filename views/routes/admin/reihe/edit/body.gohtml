@@ -4,11 +4,12 @@
 {{- if $model.is_new -}}
 	{{- $seriesTitle = "Neue Reihe" -}}
 {{- end -}}
+{{- $noPublicPage := eq $series.EditState "ToDo" -}}
 {{- $seriesActions := Arr -}}
 {{- if not $model.is_new -}}
 	{{- $seriesActions = Arr
-		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen")
-		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true)
+		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-eye-line" "tooltip" "Anschauen" "disabled" $noPublicPage)
+		(Dict "href" (printf "/reihe/%d" $series.MusenalmID) "icon" "ri-external-link-line" "tooltip" "In neuem Tab öffnen" "target_blank" true "disabled" $noPublicPage)
 		(Dict "href" "/admin/reihen/" "icon" "ri-list-check-2" "tooltip" "Liste aller Reihen")
 	-}}
 {{- end -}}

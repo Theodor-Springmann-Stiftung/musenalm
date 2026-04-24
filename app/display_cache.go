@@ -54,6 +54,7 @@ type SeriesDisplay struct {
 	Id         string
 	MusenalmID int
 	Name       string
+	EditState  string
 }
 
 type EntryDisplay struct {
@@ -582,6 +583,7 @@ func buildSeriesDisplay(series *dbmodels.Series) *SeriesDisplay {
 		Id:         series.Id,
 		MusenalmID: series.MusenalmID(),
 		Name:       strings.TrimSpace(series.Title()),
+		EditState:  strings.TrimSpace(series.EditState()),
 	}
 }
 

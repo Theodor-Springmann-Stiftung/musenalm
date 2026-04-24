@@ -174,6 +174,37 @@ func (p *AgentResult) FilterEntriesByPerson(musenalmApp *app.App, id string, res
 		return err
 	}
 
+	series = filterPublicSeries(series)
+
+	publicSeriesSet := make(map[string]struct{}, len(series))
+	for _, s := range series {
+		publicSeriesSet[s.Id] = struct{}{}
+	}
+
+	preferredSeriesForEntry := make(map[string]string, len(fullEntries))
+	for _, e := range fullEntries {
+		preferredSeriesForEntry[e.Id] = e.Series()
+	}
+
+	for sid, rels := range entriesseriesmap {
+		filtered := rels[:0]
+		for _, rel := range rels {
+			esid := preferredSeriesForEntry[rel.Entry()]
+			if esid == "" {
+				filtered = append(filtered, rel)
+			} else if _, ok := publicSeriesSet[esid]; ok {
+				filtered = append(filtered, rel)
+			}
+		}
+		entriesseriesmap[sid] = filtered
+	}
+
+	for sid := range preferredEntries {
+		if _, ok := publicSeriesSet[sid]; !ok {
+			delete(preferredEntries, sid)
+		}
+	}
+
 	res.BResult = series
 
 	return nil
@@ -234,6 +265,8 @@ func (p *AgentResult) FilterContentsByEntry(app core.App, id string, res *AgentR
 	if err != nil {
 		return err
 	}
+	entries = filterPublicEntries(entries)
+	entries = filterEntriesByPublicPreferredSeries(app, entries)
 	dbmodels.Sort_Entries_Year_Title(entries)
 	res.CResult = entries
 

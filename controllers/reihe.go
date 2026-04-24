@@ -41,6 +41,9 @@ func (p *ReihePage) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 		if err != nil || reihe == nil || reihe.Id == "" {
 			return engine.Response404(e, err, data)
 		}
+		if reihe.EditState() == "ToDo" {
+			return engine.Response404(e, nil, data)
+		}
 		data["series"] = reihe
 
 		relations, err := seriesRelationsBySeriesIDs(pbApp, []any{reihe.Id})

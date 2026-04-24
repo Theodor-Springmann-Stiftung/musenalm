@@ -453,6 +453,56 @@ func filterPublicContents(contents []*dbmodels.Content) []*dbmodels.Content {
 	return out
 }
 
+func filterPublicEntries(entries []*dbmodels.Entry) []*dbmodels.Entry {
+	out := entries[:0]
+	for _, e := range entries {
+		if e.EditState() != "ToDo" {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+func filterPublicSeries(series []*dbmodels.Series) []*dbmodels.Series {
+	out := series[:0]
+	for _, s := range series {
+		if s.EditState() != "ToDo" {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func filterEntriesByPublicPreferredSeries(app core.App, entries []*dbmodels.Entry) []*dbmodels.Entry {
+	ids := []any{}
+	seen := map[string]struct{}{}
+	for _, e := range entries {
+		if sid := e.Series(); sid != "" {
+			if _, ok := seen[sid]; !ok {
+				seen[sid] = struct{}{}
+				ids = append(ids, sid)
+			}
+		}
+	}
+	if len(ids) == 0 {
+		return entries
+	}
+	publicIDs, err := dbmodels.PublicSeriesIDSet(app, ids)
+	if err != nil {
+		return entries
+	}
+	out := entries[:0]
+	for _, e := range entries {
+		sid := e.Series()
+		if sid == "" {
+			out = append(out, e)
+		} else if _, ok := publicIDs[sid]; ok {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
 func filterEntriesAgentsByPublicIDs(app core.App, rels []*dbmodels.REntriesAgents) []*dbmodels.REntriesAgents {
 	ids := make([]any, 0, len(rels))
 	for _, r := range rels {

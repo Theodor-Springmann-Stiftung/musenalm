@@ -189,9 +189,11 @@
 							{{- end -}}
 							{{- range $i, $rel := $model.result.SeriesRelations -}}
 								{{- $s := seriesDisplay $rel.Series -}}
-								<div>
-									<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Name }}</a>
-								</div>
+								{{- if ne $s.EditState "ToDo" -}}
+									<div>
+										<a href="/reihe/{{ $s.MusenalmID }}">{{ $s.Name }}</a>
+									</div>
+								{{- end -}}
 							{{- end -}}
 						</div>
 					</div>

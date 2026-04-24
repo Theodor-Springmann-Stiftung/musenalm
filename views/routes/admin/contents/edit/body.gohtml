@@ -31,16 +31,25 @@
 						<span>Band bearbeiten</span>
 					</a>
 				</span>
-				<span class="inline" data-tippy-placement="top" data-tippy-content="Anschauen">
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
+				{{- if eq ($model.result.Entry.EditState) "ToDo" -}}
+					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="Anschauen (nicht öffentlich)" aria-disabled="true">
 						<i class="ri-eye-line"></i>
-					</a>
-				</span>
-				<span class="inline" data-tippy-placement="top" data-tippy-content="In neuem Tab öffnen">
-					<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
+					</span>
+					<span class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip simple-entity-header-chip-disabled" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true">
 						<i class="ri-external-link-line"></i>
-					</a>
-				</span>
+					</span>
+				{{- else -}}
+					<span class="inline" data-tippy-placement="top" data-tippy-content="Anschauen">
+						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Anschauen">
+							<i class="ri-eye-line"></i>
+						</a>
+					</span>
+					<span class="inline" data-tippy-placement="top" data-tippy-content="In neuem Tab öffnen">
+						<a href="/almanach/{{ $model.result.Entry.MusenalmID }}" target="_blank" rel="noopener" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="In neuem Tab öffnen">
+							<i class="ri-external-link-line"></i>
+						</a>
+					</span>
+				{{- end -}}
 				<span class="inline" data-tippy-placement="top" data-tippy-content="Liste aller Bände">
 					<a href="/admin/baende/" class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip" aria-label="Liste aller Bände">
 						<i class="ri-list-check-2"></i>

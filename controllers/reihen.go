@@ -233,6 +233,7 @@ func NewSeriesListResult_Letter(musenalmApp *app.App, letter string) (*SeriesLis
 		return nil, err
 	}
 	sortSeriesByCachedOrder(musenalmApp, series)
+	series = filterPublicSeries(series)
 
 	relations, err := dbmodels.REntriesSeries_Seriess(pbApp, dbmodels.Ids(series))
 	if err != nil {
@@ -315,6 +316,7 @@ func NewSeriesResult_Agent(musenalmApp *app.App, person string) (*SeriesListResu
 	}
 
 	sortSeriesByCachedOrder(musenalmApp, series)
+	series = filterPublicSeries(series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -373,6 +375,7 @@ func NewSeriesResult_Year(musenalmApp *app.App, year int) (*SeriesListResult, er
 	}
 
 	sortSeriesByCachedOrder(musenalmApp, series)
+	series = filterPublicSeries(series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -434,6 +437,7 @@ func NewSeriesResult_Place(musenalmApp *app.App, place string) (*SeriesListResul
 	}
 
 	sortSeriesByCachedOrder(musenalmApp, series)
+	series = filterPublicSeries(series)
 	for _, r := range entriesseries {
 		sortSeriesRelationsByEntryYear(r, musenalmApp)
 	}
@@ -455,6 +459,8 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 
 	sortSeriesByCachedOrder(musenalmApp, series)
 	sortSeriesByCachedOrder(musenalmApp, altseries)
+	series = filterPublicSeries(series)
+	altseries = filterPublicSeries(altseries)
 
 	keys := []any{}
 	keys = append(keys, dbmodels.Ids(series)...)
@@ -502,6 +508,7 @@ func NewSeriesResult_Search(musenalmApp *app.App, search string) (*SeriesListRes
 			}
 
 			sortSeriesByCachedOrder(musenalmApp, idseries)
+			idseries = filterPublicSeries(idseries)
 			ret.IDSeries = idseries
 
 			for _, v := range idrelations {

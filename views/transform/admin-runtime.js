@@ -116,6 +116,8 @@ export function initAdminStatusPickers(root = document) {
 				updatePersonViewChips(picker, nextStatus);
 				updateOrtViewChips(picker, nextStatus);
 				updateBeitragViewChips(picker, nextStatus);
+				updateBandViewChips(picker, nextStatus);
+				updateReiheViewChips(picker, nextStatus);
 				menu.classList.add("hidden");
 				toggle.disabled = true;
 				toggle.classList.add("opacity-70", "pointer-events-none");
@@ -139,6 +141,8 @@ export function initAdminStatusPickers(root = document) {
 						updatePersonViewChips(picker, result.status);
 						updateOrtViewChips(picker, result.status);
 						updateBeitragViewChips(picker, result.status);
+						updateBandViewChips(picker, result.status);
+						updateReiheViewChips(picker, result.status);
 					}
 					if (result.last_edited) {
 						picker.dataset.lastEdited = result.last_edited;
@@ -152,6 +156,8 @@ export function initAdminStatusPickers(root = document) {
 					updatePersonViewChips(picker, previousStatus);
 					updateOrtViewChips(picker, previousStatus);
 					updateBeitragViewChips(picker, previousStatus);
+					updateBandViewChips(picker, previousStatus);
+					updateReiheViewChips(picker, previousStatus);
 					console.error(error);
 				} finally {
 					toggle.disabled = false;
@@ -193,6 +199,40 @@ function updateOrtViewChips(picker, status) {
 		chipPair.innerHTML =
 			`<a href="/reihen/?place=${id}" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen"><i class="ri-eye-line"></i></a>` +
 			`<a href="/reihen/?place=${id}" target="_blank" rel="noopener" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen"><i class="ri-external-link-line"></i></a>`;
+	}
+}
+
+function updateReiheViewChips(picker, status) {
+	const row = picker.closest("tr");
+	if (!row) return;
+	const chipPair = row.querySelector("[data-series-musenalm-id]");
+	if (!chipPair) return;
+	const id = chipPair.dataset.seriesMusenalmId;
+	if (status === "ToDo") {
+		chipPair.innerHTML =
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true"><i class="ri-eye-line"></i></span>` +
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true"><i class="ri-external-link-line"></i></span>`;
+	} else {
+		chipPair.innerHTML =
+			`<a href="/reihe/${id}/" onclick="event.stopPropagation();" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen"><i class="ri-eye-line"></i></a>` +
+			`<a href="/reihe/${id}/" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen"><i class="ri-external-link-line"></i></a>`;
+	}
+}
+
+function updateBandViewChips(picker, status) {
+	const row = picker.closest("tr");
+	if (!row) return;
+	const chipPair = row.querySelector("[data-entry-musenalm-id]");
+	if (!chipPair) return;
+	const id = chipPair.dataset.entryMusenalmId;
+	if (status === "ToDo") {
+		chipPair.innerHTML =
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true"><i class="ri-eye-line"></i></span>` +
+			`<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="In neuem Tab öffnen (nicht öffentlich)" aria-label="In neuem Tab öffnen (nicht öffentlich)" aria-disabled="true"><i class="ri-external-link-line"></i></span>`;
+	} else {
+		chipPair.innerHTML =
+			`<a href="/almanach/${id}" onclick="event.stopPropagation();" class="admin-list-chip" title="Anzeigen" aria-label="Anzeigen"><i class="ri-eye-line"></i></a>` +
+			`<a href="/almanach/${id}" target="_blank" rel="noopener" onclick="event.stopPropagation();" class="admin-list-chip" title="In neuem Tab öffnen" aria-label="In neuem Tab öffnen"><i class="ri-external-link-line"></i></a>`;
 	}
 }
 

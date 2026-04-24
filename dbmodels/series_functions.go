@@ -10,6 +10,26 @@ import (
 	"golang.org/x/text/language"
 )
 
+// PublicSeriesIDSet returns the subset of the given IDs that are publicly visible (not ToDo).
+func PublicSeriesIDSet(app core.App, ids []any) (map[string]struct{}, error) {
+	if len(ids) == 0 {
+		return map[string]struct{}{}, nil
+	}
+	series := []*Series{}
+	err := app.RecordQuery(SERIES_TABLE).
+		Where(dbx.HashExp{ID_FIELD: ids}).
+		AndWhere(dbx.Not(dbx.HashExp{EDITSTATE_FIELD: "ToDo"})).
+		All(&series)
+	if err != nil {
+		return nil, err
+	}
+	set := make(map[string]struct{}, len(series))
+	for _, s := range series {
+		set[s.Id] = struct{}{}
+	}
+	return set, nil
+}
+
 type SeriesEntries map[string][]*REntriesSeries
 
 func BasicSearchSeries(app core.App, query string) ([]*Series, []*Series, error) {
