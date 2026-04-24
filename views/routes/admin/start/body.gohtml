@@ -74,9 +74,9 @@
 					</div>
 				</div>
 				{{ if $model.recent_baende }}
-				<ul class="divide-y divide-slate-100 list-none my-0">
+				<ul class="divide-y divide-slate-100 list-none my-0 overflow-y-auto" style="max-height:25rem">
 					{{ range $model.recent_baende }}
-						<li class="ml-0 list-none px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
+						<li class="ml-0 list-none min-h-10 px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
 						<span class="shrink-0 inline-flex items-center {{ if eq .EditState "Edited" }}text-emerald-600{{ else if eq .EditState "Seen" }}text-blue-500{{ else if eq .EditState "Review" }}text-amber-500{{ else if eq .EditState "ToDo" }}text-orange-400{{ else }}text-slate-300{{ end }}" title="{{ if eq .EditState "Edited" }}Status: Vollständig Erfasst{{ else if eq .EditState "Seen" }}Status: Autopsiert{{ else if eq .EditState "Review" }}Status: Überprüfen{{ else if eq .EditState "ToDo" }}Status: Zu erledigen{{ else }}Status: Gesucht{{ end }}"><i class="text-xs {{ if eq .EditState "Edited" }}ri-checkbox-circle-line{{ else if eq .EditState "Seen" }}ri-information-line{{ else if eq .EditState "Review" }}ri-search-line{{ else if eq .EditState "ToDo" }}ri-list-check{{ else }}ri-forbid-2-line{{ end }}" aria-hidden="true"></i></span>
 						<span class="text-[0.8rem] text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 shrink-0 tabular-nums leading-5">{{ .MusenalmId }}</span>
 						<span class="text-sm font-semibold text-slate-800 truncate min-w-0 flex-1">{{ if .PreferredTitle }}{{ .PreferredTitle }}{{ else }}<em class="font-normal text-slate-400">Kein Titel</em>{{ end }}</span>
@@ -107,9 +107,9 @@
 					</div>
 				</div>
 				{{ if $model.recent_inhalte }}
-				<ul class="divide-y divide-slate-100 list-none my-0">
+				<ul class="divide-y divide-slate-100 list-none my-0 overflow-y-auto" style="max-height:25rem">
 					{{ range $model.recent_inhalte }}
-					<li class="ml-0 list-none px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
+					<li class="ml-0 list-none min-h-10 px-4 py-1.5 flex items-center gap-2 hover:bg-slate-100 transition-colors">
 						<span class="shrink-0 inline-flex items-center {{ if eq .EditState "Edited" }}text-emerald-600{{ else if eq .EditState "Seen" }}text-blue-500{{ else if eq .EditState "Review" }}text-amber-500{{ else if eq .EditState "ToDo" }}text-orange-400{{ else }}text-slate-300{{ end }}" title="{{ if eq .EditState "Edited" }}Status: Erfasst{{ else if eq .EditState "Seen" }}Status: Gesichtet{{ else if eq .EditState "Review" }}Status: Überprüfen{{ else if eq .EditState "ToDo" }}Status: Zu erledigen{{ else }}Status: Unbekannt{{ end }}"><i class="text-xs {{ if eq .EditState "Edited" }}ri-checkbox-circle-line{{ else if eq .EditState "Seen" }}ri-information-line{{ else if eq .EditState "Review" }}ri-search-line{{ else if eq .EditState "ToDo" }}ri-list-check{{ else }}ri-forbid-2-line{{ end }}" aria-hidden="true"></i></span>
 						<span class="text-[0.8rem] text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 shrink-0 tabular-nums leading-5">{{ .MusenalmId }}</span>
 						<span class="text-sm font-semibold text-slate-800 truncate min-w-0 flex-1">{{ if .PreferredTitle }}{{ .PreferredTitle }}{{ else }}<em class="font-normal text-slate-400">Kein Titel</em>{{ end }}</span>

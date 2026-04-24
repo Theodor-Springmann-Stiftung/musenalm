@@ -42,6 +42,7 @@ type BeitraegeAdminRow struct {
 	Content           *dbmodels.Content
 	AgentDisplays     []*ContentAgentDisplay
 	AnnotationPreview string
+	EditorName        string
 }
 
 type beitraegeFilterData struct {
@@ -426,6 +427,17 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 	}
 
 	pageDisplays := buildContentAgentDisplays(pageContents, contentRelations, displayApp)
+	editorIDs := make([]string, 0, len(pageContents))
+	for _, content := range pageContents {
+		if content == nil {
+			continue
+		}
+		editorIDs = append(editorIDs, content.Editor())
+	}
+	editorNames, err := loadAdminEditorNames(app, editorIDs)
+	if err != nil {
+		return data, err
+	}
 	groups := make([]*BeitraegeAdminGroup, 0, len(pageEntryIDs))
 	for _, entryID := range pageEntryIDs {
 		entry := entriesMap[entryID]
@@ -442,6 +454,7 @@ func (p *BeitraegeAdminPage) buildResultData(app core.App, ia pagemodels.IApp, e
 				Content:           content,
 				AgentDisplays:     pageDisplays[content.Id],
 				AnnotationPreview: adminBeitraegeAnnotationPreview(content.Annotation()),
+				EditorName:        editorNames[content.Editor()],
 			})
 		}
 

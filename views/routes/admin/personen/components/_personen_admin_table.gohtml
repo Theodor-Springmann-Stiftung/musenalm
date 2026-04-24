@@ -7,7 +7,8 @@
 				<col class="admin-col-stretch" />
 				<col class="col-life admin-col-life" />
 				<col class="col-profession admin-col-profession" />
-				<col class="admin-col-tight" />
+				<col class="col-modified admin-col-modified-personen" />
+				<col class="admin-col-tight" style="width:1%" />
 			</colgroup>
 		<thead class="admin-list-head">
 			<tr>
@@ -32,6 +33,12 @@
 						<span class="font-semibold tracking-wide">Beruf</span>
 					</div>
 				</th>
+				<th class="col-modified admin-col-modified-personen py-2 pr-4 align-bottom">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<span class="font-semibold tracking-wide">Bearbeitet</span>
+						<span class="font-semibold tracking-wide">Vermerk</span>
+					</div>
+				</th>
 				<th class="whitespace-nowrap py-2 pr-4 text-right align-bottom"></th>
 			</tr>
 		</thead>
@@ -39,7 +46,7 @@
 			{{ template "_personen_admin_rows" $model }}
 			{{- if not (len $model.result.Agents) -}}
 				<tr>
-					<td colspan="5" class="py-6 text-center text-base text-gray-500">
+					<td colspan="6" class="py-6 text-center text-base text-gray-500">
 						Keine Personen gefunden.
 					</td>
 				</tr>

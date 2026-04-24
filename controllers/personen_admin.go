@@ -27,6 +27,7 @@ type PersonenAdminResult struct {
 	Agents        []*dbmodels.Agent
 	BandCounts    map[string]int
 	ContentCounts map[string]int
+	EditorNames   map[string]string
 }
 
 type PersonenAdminProfessionFilter struct {
@@ -214,6 +215,7 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 			Agents:        []*dbmodels.Agent{},
 			BandCounts:    map[string]int{},
 			ContentCounts: map[string]int{},
+			EditorNames:   map[string]string{},
 		}
 		data["offset"] = offset
 		data["total_count"] = 0
@@ -264,6 +266,7 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 
 	bandCounts := map[string]int{}
 	contentCounts := map[string]int{}
+	editorIDs := make([]string, 0, len(pageAgents))
 	if len(ids) > 0 {
 		var err error
 		bandCounts, err = dbmodels.CountAgentsBaende(app, ids)
@@ -275,11 +278,22 @@ func (p *PersonenAdminPage) buildResultData(app core.App, e *core.RequestEvent, 
 			return data, err
 		}
 	}
+	for _, agent := range pageAgents {
+		if agent == nil {
+			continue
+		}
+		editorIDs = append(editorIDs, agent.Editor())
+	}
+	editorNames, err := loadAdminEditorNames(app, editorIDs)
+	if err != nil {
+		return data, err
+	}
 
 	data["result"] = &PersonenAdminResult{
 		Agents:        pageAgents,
 		BandCounts:    bandCounts,
 		ContentCounts: contentCounts,
+		EditorNames:   editorNames,
 	}
 	data["offset"] = offset
 	data["total_count"] = totalCount

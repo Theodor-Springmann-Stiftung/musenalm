@@ -1,4 +1,11 @@
 {{ $series := .series }}
+{{ $editorName := "" }}
+{{ if .editor_user }}
+	{{ $editorName = .editor_user.Name }}
+	{{ if not $editorName }}
+		{{ $editorName = .editor_user.Email }}
+	{{ end }}
+{{ end }}
 <td data-role="reihen-status-reference-cell" class="col-reference pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 admin-col-nachweis-reihen admin-col-wrap">
 		<div class="flex flex-col">
 			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Nr {{ $series.MusenalmID }}</div>
@@ -15,8 +22,8 @@
 </td>
 <td class="pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 col-modified admin-col-modified-reihen">
 	{{ template "_modified_notes_cell" (Dict
-		"updated" $series.Updated
-		"editor_user" .editor_user
+		"time" $series.Updated
+		"user" $editorName
 		"comment" $series.Comment
 	) }}
 </td>

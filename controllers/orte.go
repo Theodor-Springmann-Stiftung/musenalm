@@ -34,7 +34,8 @@ type OrtePage struct {
 }
 
 type OrteResult struct {
-	Places []*dbmodels.Place
+	Places      []*dbmodels.Place
+	EditorNames map[string]string
 }
 
 func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
@@ -172,6 +173,7 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 	}
 
 	bcount := map[string]int{}
+	editorIDs := make([]string, 0, len(pagePlaces))
 	if len(countIDs) > 0 {
 		counts, err := dbmodels.CountPlacesBaende(app, countIDs)
 		if err != nil {
@@ -179,8 +181,18 @@ func (p *OrtePage) buildResultData(app core.App, e *core.RequestEvent, req *temp
 		}
 		bcount = counts
 	}
+	for _, place := range pagePlaces {
+		if place == nil {
+			continue
+		}
+		editorIDs = append(editorIDs, place.Editor())
+	}
+	editorNames, err := loadAdminEditorNames(app, editorIDs)
+	if err != nil {
+		return data, err
+	}
 
-	data["result"] = &OrteResult{Places: pagePlaces}
+	data["result"] = &OrteResult{Places: pagePlaces, EditorNames: editorNames}
 	data["bcount"] = bcount
 	data["offset"] = offset
 	data["total_count"] = totalCount

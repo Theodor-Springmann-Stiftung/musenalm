@@ -52,14 +52,14 @@
 	<div class="divide-y divide-stone-200" data-role="beitraege-group-body">
 		{{- range $_, $row := $group.Rows -}}
 			{{ $content := $row.Content }}
-			<div data-role="beitraege-row" class="grid grid-cols-[5.5rem_3.5rem_8rem_minmax(0,1fr)_5.5rem_auto_auto] gap-x-3 px-4 py-2.5 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
-				<div data-role="beitraege-col-reference" class="min-w-0 text-sm leading-snug text-slate-700">
+			<div data-role="beitraege-row" class="grid grid-cols-[5.5rem_3.5rem_8rem_minmax(0,1fr)_5.5rem_auto_auto] gap-x-3 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
+				<div data-role="beitraege-status-reference-cell" class="flex min-w-0 items-start pl-4 py-2.5 text-sm leading-snug text-slate-700">
 					<div data-role="beitraege-ref-number" class="inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-stone-200 bg-white px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
 						{{ $content.MusenalmID }}
 					</div>
 				</div>
 
-				<div data-role="beitraege-col-page" class="self-start mt-0.5 flex w-[3.5rem] min-w-0 items-start justify-center">
+				<div data-role="beitraege-col-page" class="mt-0.5 flex w-[3.5rem] min-w-0 items-start justify-center py-2.5">
 					{{- if $content.Extent -}}
 						<span data-role="beitraege-page-pill" class="inline-flex w-[3.5rem] items-center justify-center rounded-xs border border-blue-900 bg-blue-900 px-1 py-0.5 text-[0.9rem] font-semibold leading-none text-white">
 							S.&thinsp;{{ $content.Extent }}
@@ -67,7 +67,7 @@
 					{{- end -}}
 				</div>
 
-				<div data-role="beitraege-col-type" class="beitraege-admin-search-text min-w-0 text-sm leading-snug text-slate-700">
+				<div data-role="beitraege-col-type" class="beitraege-admin-search-text min-w-0 py-2.5 text-sm leading-snug text-slate-700">
 					{{- if $content.MusenalmType -}}
 						<div data-role="beitraege-type-group" class="flex flex-wrap items-start gap-1">
 							{{- range $_, $type := $content.MusenalmType -}}
@@ -77,7 +77,7 @@
 					{{- end -}}
 				</div>
 
-				<div class="min-w-0">
+				<div class="min-w-0 py-2.5">
 					<div class="beitraege-admin-search-text min-w-0 text-[1rem] leading-snug text-slate-900">
 						<a href="/beitrag/{{ $content.MusenalmID }}" class="font-semibold no-underline hover:text-slate-700">
 							{{- if $content.PreferredTitle -}}
@@ -121,7 +121,7 @@
 					{{- end -}}
 				</div>
 
-				<div data-role="beitraege-col-scans" class="self-start mt-1 flex min-w-0 items-center justify-end">
+				<div data-role="beitraege-col-scans" class="mt-1 flex min-w-0 items-center justify-end py-2.5">
 					{{- $scans := $content.ImagePaths -}}
 					{{- if $scans -}}
 						<span class="inline-flex items-center justify-end gap-1">
@@ -142,7 +142,7 @@
 					{{- end -}}
 				</div>
 
-				<div data-role="beitraege-col-status" class="flex shrink-0 items-start">
+				<div data-role="beitraege-col-status" class="flex shrink-0 items-start py-2.5">
 					{{- template "_status_picker" (Dict
 						"status" $content.EditState
 						"endpoint" (printf "/admin/almanach/%v/contents/status/%v" $entry.MusenalmID $content.MusenalmID)
@@ -152,7 +152,7 @@
 					) -}}
 				</div>
 
-					<div class="flex shrink-0 items-start gap-2">
+					<div class="flex shrink-0 items-start gap-2 pr-4 py-2.5">
 						<div class="admin-list-chip-pair" data-content-musenalm-id="{{ $content.MusenalmID }}">
 							{{- if eq $content.EditState "ToDo" -}}
 								<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Anzeigen (nicht öffentlich)" aria-label="Anzeigen (nicht öffentlich)" aria-disabled="true">

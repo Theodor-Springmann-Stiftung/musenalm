@@ -287,10 +287,17 @@
 		</div>
 	{{- end -}}
 </td>
+{{ $editorName := "" }}
+{{ if .editor_user }}
+	{{ $editorName = .editor_user.Name }}
+	{{ if not $editorName }}
+		{{ $editorName = .editor_user.Email }}
+	{{ end }}
+{{ end }}
 <td class="pt-2 pb-2 pr-4 col-modified admin-col-modified-baende">
 	{{ template "_modified_notes_cell" (Dict
-		"updated" $entry.Updated
-		"editor_user" .editor_user
+		"time" $entry.Updated
+		"user" $editorName
 		"comment" $entry.Comment
 	) }}
 </td>

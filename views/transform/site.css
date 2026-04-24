@@ -541,6 +541,10 @@
 		@apply px-0 pt-3;
 	}
 
+	.admin-layout-sidebar-collapsed hr {
+		@apply hidden;
+	}
+
 	.admin-layout-sidebar-collapsed .admin-sidebar-collapsed-create {
 		@apply mx-2 mt-2 mb-2 flex justify-center;
 	}
@@ -788,9 +792,9 @@
 	}
 
 	.admin-col-nachweis-personen {
-		width: 14rem;
-		min-width: 14rem;
-		max-width: 14rem;
+		width: 11rem;
+		min-width: 11rem;
+		max-width: 11rem;
 	}
 
 	.admin-col-modified-reihen {
@@ -842,15 +846,21 @@
 	}
 
 	.admin-col-life {
-		width: 12rem;
-		min-width: 12rem;
-		max-width: 12rem;
+		width: 10rem;
+		min-width: 10rem;
+		max-width: 10rem;
 	}
 
 	.admin-col-profession {
-		width: 24rem;
-		min-width: 24rem;
-		max-width: 24rem;
+		width: 8rem;
+		min-width: 8rem;
+		max-width: 8rem;
+	}
+
+	.admin-col-modified-personen {
+		width: 14rem;
+		min-width: 14rem;
+		max-width: 14rem;
 	}
 
 	.admin-col-wrap {
@@ -1044,6 +1054,30 @@
 	}
 
 	[data-role="baende-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="baende-status-reference-cell"] {
+		@apply border-l-4 border-amber-500;
+	}
+
+	[data-role="orte-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) [data-role="orte-status-reference-cell"] {
+		@apply border-l-4 border-red-500;
+	}
+
+	[data-role="orte-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="orte-status-reference-cell"] {
+		@apply border-l-4 border-amber-500;
+	}
+
+	[data-role="personen-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) [data-role="personen-status-reference-cell"] {
+		@apply border-l-4 border-red-500;
+	}
+
+	[data-role="personen-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="personen-status-reference-cell"] {
+		@apply border-l-4 border-amber-500;
+	}
+
+	[data-role="beitraege-row"]:has(.admin-list-status-trigger[data-status="ToDo"]) [data-role="beitraege-status-reference-cell"] {
+		@apply border-l-4 border-red-500;
+	}
+
+	[data-role="beitraege-row"]:has(.admin-list-status-trigger[data-status="Review"]) [data-role="beitraege-status-reference-cell"] {
 		@apply border-l-4 border-amber-500;
 	}
 

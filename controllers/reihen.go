@@ -14,6 +14,8 @@ import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -663,37 +665,74 @@ func Series_Entries(app core.App, entries []*dbmodels.Entry) ([]*dbmodels.Series
 }
 
 func loadCommonReihenFilterOptions(musenalmApp *app.App) ([]map[string]any, []map[string]any, error) {
-	agentIDs, err := musenalmApp.GetEntryAgentOrderIDs()
-	if err != nil {
-		return nil, nil, err
-	}
-	placeIDs, err := musenalmApp.GetPlaceOrderIDs()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	publicAgentIDs := agentIDs[:0]
-	for _, id := range agentIDs {
-		display := musenalmApp.GetAgentDisplay(id)
-		if display != nil && display.EditState != "ToDo" {
-			publicAgentIDs = append(publicAgentIDs, id)
-		}
-	}
-
-	agentOptions, _, err := buildBaendeAgentOptions(musenalmApp.Core(), musenalmApp, publicAgentIDs)
-	if err != nil {
-		return nil, nil, err
-	}
-	publicPlaceIDs := placeIDs[:0]
-	for _, id := range placeIDs {
-		display := musenalmApp.GetPlaceDisplay(id)
-		if display != nil && display.EditState != "ToDo" {
-			publicPlaceIDs = append(publicPlaceIDs, id)
-		}
-	}
-	placeOptions, _ := buildBaendePlaceOptions(musenalmApp, publicPlaceIDs)
+	agentOptions := buildReihenAgentOptionsFromCache(musenalmApp.GetAllAgentDisplays())
+	placeOptions := buildReihenPlaceOptionsFromCache(musenalmApp.GetAllPlaceDisplays())
 
 	return reihenAgentItems(musenalmApp, agentOptions), reihenPlaceItems(musenalmApp, placeOptions), nil
+}
+
+func buildReihenAgentOptionsFromCache(displays []*app.AgentDisplay) []baendeLazyFilterOption {
+	options := make([]baendeLazyFilterOption, 0, len(displays))
+	for _, display := range displays {
+		if display == nil || display.EditState == "ToDo" {
+			continue
+		}
+
+		label := strings.TrimSpace(display.Name)
+		if label == "" {
+			label = display.ID
+		}
+
+		option := baendeLazyFilterOption{
+			Value: display.ID,
+			Label: label,
+		}
+		if display.CorporateBody {
+			option.Meta = "ORG"
+			option.MetaIsBadge = true
+		} else if bio := strings.TrimSpace(display.LifeDates); bio != "" {
+			option.Meta = bio
+		}
+
+		options = append(options, option)
+	}
+
+	collator := collate.New(language.German)
+	slices.SortFunc(options, func(a, b baendeLazyFilterOption) int {
+		if cmp := collator.CompareString(a.Label, b.Label); cmp != 0 {
+			return cmp
+		}
+		return strings.Compare(a.Value, b.Value)
+	})
+
+	return options
+}
+
+func buildReihenPlaceOptionsFromCache(displays []*app.PlaceDisplay) []baendeLazyFilterOption {
+	options := make([]baendeLazyFilterOption, 0, len(displays))
+	for _, display := range displays {
+		if display == nil || display.EditState == "ToDo" {
+			continue
+		}
+		label := strings.TrimSpace(display.Name)
+		if label == "" {
+			label = display.ID
+		}
+		options = append(options, baendeLazyFilterOption{
+			Value: display.ID,
+			Label: label,
+		})
+	}
+
+	collator := collate.New(language.German)
+	slices.SortFunc(options, func(a, b baendeLazyFilterOption) int {
+		if cmp := collator.CompareString(a.Label, b.Label); cmp != 0 {
+			return cmp
+		}
+		return strings.Compare(a.Value, b.Value)
+	})
+
+	return options
 }
 
 func reihenAgentItems(musenalmApp *app.App, options []baendeLazyFilterOption) []map[string]any {

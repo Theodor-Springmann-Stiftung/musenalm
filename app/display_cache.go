@@ -40,13 +40,14 @@ type displayRefreshPlan struct {
 }
 
 type AgentDisplay struct {
-	ID         string
-	Id         string
-	MusenalmID int
-	Name       string
-	LifeDates  string
-	Fictional  bool
-	EditState  string
+	ID            string
+	Id            string
+	MusenalmID    int
+	Name          string
+	LifeDates     string
+	CorporateBody bool
+	Fictional     bool
+	EditState     string
 }
 
 type SeriesDisplay struct {
@@ -556,6 +557,30 @@ func (app *App) GetPlaceDisplay(id string) *PlaceDisplay {
 	return fallbackPlaceDisplay(id)
 }
 
+func (app *App) GetAllAgentDisplays() []*AgentDisplay {
+	agents := make([]*AgentDisplay, 0)
+	app.displayCache.Agents.Range(func(_, value any) bool {
+		display, ok := value.(*AgentDisplay)
+		if ok && display != nil {
+			agents = append(agents, display)
+		}
+		return true
+	})
+	return agents
+}
+
+func (app *App) GetAllPlaceDisplays() []*PlaceDisplay {
+	places := make([]*PlaceDisplay, 0)
+	app.displayCache.Places.Range(func(_, value any) bool {
+		display, ok := value.(*PlaceDisplay)
+		if ok && display != nil {
+			places = append(places, display)
+		}
+		return true
+	})
+	return places
+}
+
 func (app *App) GetContentDisplay(id string) *ContentDisplay {
 	if display, ok := app.displayCache.Contents.Load(id); ok {
 		if casted, ok := display.(*ContentDisplay); ok && casted != nil {
@@ -567,13 +592,14 @@ func (app *App) GetContentDisplay(id string) *ContentDisplay {
 
 func buildAgentDisplay(agent *dbmodels.Agent) *AgentDisplay {
 	return &AgentDisplay{
-		ID:         agent.Id,
-		Id:         agent.Id,
-		MusenalmID: agent.MusenalmID(),
-		Name:       strings.TrimSpace(agent.Name()),
-		LifeDates:  strings.TrimSpace(agent.BiographicalData()),
-		Fictional:  agent.Fictional(),
-		EditState:  strings.TrimSpace(agent.EditState()),
+		ID:            agent.Id,
+		Id:            agent.Id,
+		MusenalmID:    agent.MusenalmID(),
+		Name:          strings.TrimSpace(agent.Name()),
+		LifeDates:     strings.TrimSpace(agent.BiographicalData()),
+		CorporateBody: agent.CorporateBody(),
+		Fictional:     agent.Fictional(),
+		EditState:     strings.TrimSpace(agent.EditState()),
 	}
 }
 

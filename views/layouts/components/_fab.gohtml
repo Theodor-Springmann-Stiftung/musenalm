@@ -72,10 +72,13 @@
 		</div>
 
 		<div class="border-t border-stone-200">
-			<a href="/admin/" class="flex items-center gap-2.5 px-3 py-2.5 text-slate-800 no-underline transition-colors hover:bg-stone-100">
-				<div class="min-w-0">
-						<i class="ri-user-3-line text-slate-600 shrink-0 mr-2" aria-hidden="true"></i>{{ $displayName }} <i class="ri-arrow-right-double-line"></i>
+			<a href="/admin/" class="flex items-center gap-3 px-3 py-2.5 text-slate-800 no-underline transition-colors hover:bg-stone-100">
+				<i class="ri-user-3-line shrink-0 text-[1rem] text-slate-600" aria-hidden="true"></i>
+				<div class="min-w-0 flex-1">
+					<div class="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-stone-500">Adminbereich</div>
+					<div class="truncate text-[0.95rem] text-slate-800">{{ $displayName }}</div>
 				</div>
+				<i class="ri-arrow-right-s-line shrink-0 text-[1rem] text-slate-400" aria-hidden="true"></i>
 			</a>
 		</div>
 	</div>

@@ -3,19 +3,21 @@
 {{- range $_, $agent := $model.result.Agents -}}
 	{{- $bandCount := index $model.result.BandCounts $agent.Id -}}
 	{{- $contentCount := index $model.result.ContentCounts $agent.Id -}}
+	{{- $editorName := index $model.result.EditorNames $agent.Editor -}}
 	<tr
+		data-role="personen-row"
 		data-agent-id="{{ $agent.Id }}"
 		class="admin-list-row">
-		<td class="col-reference admin-col-nachweis-personen admin-col-wrap py-2 pr-4 pl-4">
+		<td data-role="personen-status-reference-cell" class="col-reference admin-col-nachweis-personen admin-col-wrap py-2 pr-4 pl-4">
 			<div class="flex flex-col gap-1">
 				{{- if $agent.References -}}
 					<span class="agent-admin-search-text admin-list-reference" title="{{ $agent.References }}">{{ $agent.References }}</span>
 				{{- end -}}
 			</div>
 		</td>
-		<td class="col-title py-2 pr-4">
+		<td class="col-title admin-col-wrap py-2 pr-4">
 			<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-				<div class="agent-admin-search-text text-lg font-semibold leading-snug text-slate-900">{{ $agent.Name }}</div>
+				<div class="agent-admin-search-text break-words text-lg font-semibold leading-snug text-slate-900">{{ $agent.Name }}</div>
 				{{- if $agent.CorporateBody -}}
 					<span class="admin-list-badge">Körperschaft</span>
 				{{- end -}}
@@ -33,6 +35,13 @@
 			{{- if $agent.Profession -}}
 				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</div>
 			{{- end -}}
+		</td>
+		<td class="col-modified admin-col-modified-personen py-2 pr-4">
+			{{ template "_modified_notes_cell" (Dict
+				"time" $agent.Updated
+				"user" $editorName
+				"comment" $agent.Comment
+			) }}
 		</td>
 			<td class="py-2 pr-4 whitespace-nowrap text-right w-px">
 				<div class="admin-list-actions items-center gap-3">

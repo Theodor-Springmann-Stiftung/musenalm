@@ -1,23 +1,30 @@
-{{ $updated := .updated }}
-{{ $editorUser := .editor_user }}
+{{ $time := .time }}
+{{ $user := .user }}
 {{ $comment := .comment }}
 
-<div class="admin-list-meta flex flex-col gap-1.5">
-	{{- if or $updated $editorUser -}}
+<div class="admin-list-meta flex flex-col" >
+	{{- if or $time $user -}}
 		<div>
-			<div class="text-base font-semibold text-gray-500">Bearbeitet</div>
-			{{- if $updated -}}
-				<div class="tabular-nums mt-0.5 font-medium text-slate-800">{{ GermanShortDateTime $updated }}</div>
+			{{- if $time -}}
+				<div class="tabular-nums mt-0.5 font-medium text-slate-800">
+				<i class="ri-calendar-line"></i>
+				{{ GermanShortDateTime $time }}
+				</div>
 			{{- end -}}
-			{{- if $editorUser -}}
-				<div class="font-semibold text-slate-900">{{ $editorUser.Name }}</div>
+			{{- if $user -}}
+				<div class="text-slate-900">
+				<i class="ri-user-line"></i>
+				{{ $user }}
+				</div>
 			{{- end -}}
 		</div>
 	{{- end -}}
 	{{- if $comment -}}
 		<div>
-			<div class="text-base font-semibold text-gray-500">Vermerk</div>
-			<div class="annotation-content mt-0.5 hyphens-auto font-sans text-base leading-snug italic text-gray-700">{{- Safe (ReplaceSlashParen $comment) -}}</div>
+			<div class="text-sm annotation-content hyphens-auto font-sans text-base leading-snug text-gray-700">
+			<i class="ri-edit-box-line mr-1"></i>
+			{{- Safe (ReplaceSlashParen $comment) -}}
+			</div>
 		</div>
 	{{- end -}}
 </div>

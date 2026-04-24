@@ -91,6 +91,74 @@ func TestFallbackDisplaysAreSafe(t *testing.T) {
 	}
 }
 
+func TestGetAllPlaceDisplaysIncludesToDoPlaces(t *testing.T) {
+	t.Parallel()
+
+	app := &App{displayCache: NewDisplayCache()}
+	app.displayCache.Places.Store("place-visible", &PlaceDisplay{
+		ID:        "place-visible",
+		Name:      "Augsburg",
+		EditState: "Edited",
+	})
+	app.displayCache.Places.Store("place-todo", &PlaceDisplay{
+		ID:        "place-todo",
+		Name:      "Berlin",
+		EditState: "ToDo",
+	})
+
+	displays := app.GetAllPlaceDisplays()
+	if len(displays) != 2 {
+		t.Fatalf("expected both cached places, got %d", len(displays))
+	}
+
+	gotStates := map[string]string{}
+	for _, display := range displays {
+		gotStates[display.ID] = display.EditState
+	}
+
+	if gotStates["place-visible"] != "Edited" {
+		t.Fatalf("expected visible place in cache, got %q", gotStates["place-visible"])
+	}
+	if gotStates["place-todo"] != "ToDo" {
+		t.Fatalf("expected ToDo place to remain in cache, got %q", gotStates["place-todo"])
+	}
+}
+
+func TestGetAllAgentDisplaysIncludesToDoAgents(t *testing.T) {
+	t.Parallel()
+
+	app := &App{displayCache: NewDisplayCache()}
+	app.displayCache.Agents.Store("agent-visible", &AgentDisplay{
+		ID:        "agent-visible",
+		Name:      "Anna Example",
+		EditState: "Edited",
+		LifeDates: "1770-1830",
+	})
+	app.displayCache.Agents.Store("agent-todo", &AgentDisplay{
+		ID:            "agent-todo",
+		Name:          "Botanische Gesellschaft",
+		EditState:     "ToDo",
+		CorporateBody: true,
+	})
+
+	displays := app.GetAllAgentDisplays()
+	if len(displays) != 2 {
+		t.Fatalf("expected both cached agents, got %d", len(displays))
+	}
+
+	gotStates := map[string]string{}
+	for _, display := range displays {
+		gotStates[display.ID] = display.EditState
+	}
+
+	if gotStates["agent-visible"] != "Edited" {
+		t.Fatalf("expected visible agent in cache, got %q", gotStates["agent-visible"])
+	}
+	if gotStates["agent-todo"] != "ToDo" {
+		t.Fatalf("expected ToDo agent to remain in cache, got %q", gotStates["agent-todo"])
+	}
+}
+
 func TestDisplayRefreshPlanFromEffects(t *testing.T) {
 	empty := displayRefreshPlanFromEffects(canonical.MutationEffects{})
 	if empty.hasWork() {

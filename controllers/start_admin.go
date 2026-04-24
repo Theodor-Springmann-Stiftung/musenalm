@@ -126,7 +126,7 @@ func loadScanPaths(appInstance core.App, random bool) []string {
 func loadRecentBaende(appInstance core.App, todoOnly bool) ([]startEntryView, error) {
 	q := appInstance.RecordQuery(dbmodels.ENTRIES_TABLE).
 		OrderBy(dbmodels.UPDATED_FIELD + " DESC").
-		Limit(10)
+		Limit(30)
 	if todoOnly {
 		q = q.AndWhere(dbx.In(dbmodels.EDITSTATE_FIELD, "ToDo", "Review"))
 	}
@@ -153,7 +153,7 @@ func loadRecentBaende(appInstance core.App, todoOnly bool) ([]startEntryView, er
 func loadRecentInhalte(appInstance core.App, todoOnly bool) ([]startContentView, error) {
 	q := appInstance.RecordQuery(dbmodels.CONTENTS_TABLE).
 		OrderBy(dbmodels.UPDATED_FIELD + " DESC").
-		Limit(10)
+		Limit(30)
 	if todoOnly {
 		q = q.AndWhere(dbx.In(dbmodels.EDITSTATE_FIELD, "ToDo", "Review"))
 	}

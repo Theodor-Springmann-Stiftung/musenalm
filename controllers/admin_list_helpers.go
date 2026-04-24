@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -190,4 +191,53 @@ func (t *adminRequestTimer) Finish(err error, extra ...any) {
 	}
 	t.fields = append(t.fields, extra...)
 	t.app.Logger().Info("admin list timing", t.fields...)
+}
+
+func adminEditorDisplayName(user *dbmodels.User) string {
+	if user == nil {
+		return ""
+	}
+	if name := strings.TrimSpace(user.Name()); name != "" {
+		return name
+	}
+	return strings.TrimSpace(user.Email())
+}
+
+func loadAdminEditorNames(app core.App, editorIDs []string) (map[string]string, error) {
+	names := map[string]string{}
+	if len(editorIDs) == 0 {
+		return names, nil
+	}
+
+	seen := map[string]struct{}{}
+	ids := make([]any, 0, len(editorIDs))
+	for _, editorID := range editorIDs {
+		editorID = strings.TrimSpace(editorID)
+		if editorID == "" {
+			continue
+		}
+		if _, ok := seen[editorID]; ok {
+			continue
+		}
+		seen[editorID] = struct{}{}
+		ids = append(ids, editorID)
+	}
+	if len(ids) == 0 {
+		return names, nil
+	}
+
+	users := []*dbmodels.User{}
+	if err := app.RecordQuery(dbmodels.USERS_TABLE).
+		Where(dbx.In(dbmodels.ID_FIELD, ids...)).
+		All(&users); err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		names[user.Id] = adminEditorDisplayName(user)
+	}
+	return names, nil
 }
