@@ -333,6 +333,15 @@ export class ContentSeriesRelations extends HTMLElement {
 		const isDeleted = deleteInput.checked;
 		row.classList.toggle("bg-red-50", isDeleted);
 		row.classList.toggle("opacity-70", isDeleted);
+
+		const deleteButton = row.querySelector(ROLE_DELETE);
+		if (deleteButton) {
+			const icon = deleteButton.querySelector("i");
+			if (icon) {
+				icon.className = isDeleted ? "ri-arrow-go-back-line" : "ri-delete-bin-line";
+			}
+			deleteButton.setAttribute("aria-label", isDeleted ? "Rückgängig" : "Entfernen");
+		}
 	}
 
 	_syncUi() {

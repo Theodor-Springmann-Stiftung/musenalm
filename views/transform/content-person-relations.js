@@ -332,6 +332,15 @@ export class ContentPersonRelations extends HTMLElement {
 		row.querySelectorAll(`${ROLE_TYPE}, ${ROLE_UNCERTAIN}`).forEach((field) => {
 			field.disabled = isDeleted;
 		});
+
+		const deleteButton = row.querySelector(ROLE_DELETE);
+		if (deleteButton) {
+			const icon = deleteButton.querySelector("i");
+			if (icon) {
+				icon.className = isDeleted ? "ri-arrow-go-back-line" : "ri-delete-bin-line";
+			}
+			deleteButton.setAttribute("aria-label", isDeleted ? "Rückgängig" : "Entfernen");
+		}
 	}
 
 	_syncUi() {
