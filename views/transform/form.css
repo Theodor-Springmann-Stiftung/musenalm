@@ -56,41 +56,41 @@
 	}
 
 	.status-select-real {
-		@apply block w-full rounded-xs border px-3 py-1.5 pl-9 pr-8 text-base font-medium focus:outline-none;
+		@apply block w-full appearance-none rounded-xs border border-slate-300 bg-white px-3 py-1.5 pl-9 pr-7 text-base font-medium focus:outline-none focus:border-slate-400;
 	}
 
-	/* Status select color coding */
+	/* Status select: colored text only, neutral background */
 	.status-select-real[data-status="Edited"] {
-		@apply border-green-400 bg-green-100 text-green-900;
+		@apply text-green-800;
 	}
 	.status-select-real[data-status="Seen"] {
-		@apply border-blue-400 bg-blue-100 text-blue-900;
+		@apply text-blue-800;
 	}
 	.status-select-real[data-status="Review"] {
-		@apply border-orange-400 bg-orange-100 text-orange-900;
+		@apply text-orange-700;
 	}
 	.status-select-real[data-status="ToDo"] {
-		@apply border-red-400 bg-red-100 text-red-900;
+		@apply text-red-700;
 	}
 	.status-select-real[data-status="Unknown"] {
-		@apply border-stone-400 bg-stone-200 text-stone-700;
+		@apply text-stone-600;
 	}
 
-	/* Status icon colors to match status */
+	/* Status icon colors to match text */
 	.status-select-real[data-status="Edited"] + .status-icon {
-		@apply text-green-900;
+		@apply text-green-800;
 	}
 	.status-select-real[data-status="Seen"] + .status-icon {
-		@apply text-blue-900;
+		@apply text-blue-800;
 	}
 	.status-select-real[data-status="Review"] + .status-icon {
-		@apply text-orange-900;
+		@apply text-orange-700;
 	}
 	.status-select-real[data-status="ToDo"] + .status-icon {
-		@apply text-red-900;
+		@apply text-red-700;
 	}
 	.status-select-real[data-status="Unknown"] + .status-icon {
-		@apply text-stone-700;
+		@apply text-stone-600;
 	}
 
 	/* Status badge display (read-only view) */
@@ -282,26 +282,6 @@
 		box-shadow: none;
 	}
 
-	.status-select-real[data-status="Edited"]:focus {
-		@apply border-green-500 bg-green-100;
-	}
-
-	.status-select-real[data-status="Seen"]:focus {
-		@apply border-blue-500 bg-blue-100;
-	}
-
-	.status-select-real[data-status="Review"]:focus {
-		@apply border-orange-500 bg-orange-100;
-	}
-
-	.status-select-real[data-status="ToDo"]:focus {
-		@apply border-red-500 bg-red-100;
-	}
-
-	.status-select-real[data-status="Unknown"]:focus {
-		@apply border-stone-500 bg-stone-200;
-	}
-
 	edit-page,
 	almanach-edit-page {
 		@apply block h-full min-h-0;
@@ -487,6 +467,19 @@
 
 	.simple-entity-form {
 		@apply flex flex-col gap-6;
+	}
+
+	.edit-form-grid {
+		@apply grid gap-x-5 gap-y-2.5 items-start;
+		grid-template-columns: 10rem 1fr 2.5rem 5.5rem;
+	}
+
+	.edit-form-label {
+		@apply self-start pt-1.5 text-sm font-bold text-slate-700 leading-snug;
+	}
+
+	.edit-form-field {
+		@apply min-w-0;
 	}
 
 	.simple-entity-common-card,
@@ -1260,11 +1253,11 @@
 
 	.content-editor-meta-input,
 	.content-editor-meta-select {
-		@apply block w-full rounded-xs border border-slate-400 bg-stone-50 px-1.5 py-0.5 text-[0.98rem] font-normal text-slate-800 transition-colors duration-100 outline-none;
+		@apply block w-full rounded-xs border border-slate-300 bg-white px-2 py-1.5 text-base font-normal text-slate-800 transition-colors duration-100 outline-none;
 	}
 
 	.content-editor-meta-trigger {
-		@apply block w-full rounded-sm border border-slate-300 bg-white px-2 py-1.5 text-[0.98rem] font-normal text-slate-800 transition-colors duration-100 outline-none;
+		@apply block w-full rounded-xs border border-slate-300 bg-white px-2 py-1.5 text-base font-normal text-slate-800 transition-colors duration-100 outline-none;
 	}
 
 	content-type-select {
@@ -1276,7 +1269,7 @@
 	}
 
 	.content-editor-meta-select {
-		@apply pr-0;
+		@apply appearance-none pr-7;
 	}
 
 	.content-editor-meta-trigger {
@@ -1285,7 +1278,7 @@
 
 	.content-editor-meta-input:focus,
 	.content-editor-meta-select:focus {
-		@apply border-slate-700;
+		@apply border-slate-400;
 		box-shadow: none;
 	}
 

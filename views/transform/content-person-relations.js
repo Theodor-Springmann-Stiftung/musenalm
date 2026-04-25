@@ -49,6 +49,7 @@ export class ContentPersonRelations extends HTMLElement {
 		this._addResults = this.querySelector(ROLE_ADD_RESULTS);
 		this._addError = this.querySelector(ROLE_ADD_ERROR);
 		this._emptyState = this.querySelector(ROLE_EMPTY);
+		this._sectionHeader = this.querySelector("[data-role='content-person-section-header']");
 		this._template = this.querySelector(ROLE_TEMPLATE);
 
 		if (!this._tableBody || !this._addPanel || !this._addInput || !this._addConfirm || !this._addAbort || !this._addResults || !this._template) {
@@ -336,6 +337,7 @@ export class ContentPersonRelations extends HTMLElement {
 	_syncUi() {
 		const rowCount = this.querySelectorAll(ROLE_ROW).length;
 		this._emptyState?.classList.toggle("hidden", rowCount > 0);
+		this._sectionHeader?.classList.toggle("hidden", rowCount === 0);
 	}
 
 	_updateConfirmState() {

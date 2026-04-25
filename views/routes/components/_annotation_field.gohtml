@@ -17,12 +17,18 @@
 		{{- $editorClass = index . 3 -}}
 	{{- end -}}
 {{- end -}}
+{{- $noHeader := false -}}
+{{- if gt (len .) 4 -}}
+	{{- $noHeader = index . 4 -}}
+{{- end -}}
 {{- $toolbarID := printf "%s-toolbar" $fieldID -}}
 
+{{- if not $noHeader -}}
 <div class="inputwrapper">
 	<div class="inputlabelrow">
 		<label for="{{ $fieldID }}" class="inputlabel">{{ $label }}</label>
 	</div>
+{{- end -}}
 
 	<div class="trixwrapper">
 	<trix-toolbar id="{{ $toolbarID }}">
@@ -104,4 +110,7 @@
 	<textarea hidden id="{{ $fieldID }}" name="{{ $fieldID }}" autocomplete="off">{{- $annotation -}}</textarea>
 	<trix-editor input="{{ $fieldID }}" toolbar="{{ $toolbarID }}"{{ if $editorClass }} class="{{ $editorClass }}"{{ end }}></trix-editor>
 	</div>
+
+{{- if not $noHeader -}}
 </div>
+{{- end -}}

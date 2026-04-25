@@ -15,12 +15,7 @@
 	<!-- Status -->
 	<div class="inputwrapper">
 		<div class="inputlabelrow">
-		<div class="flex items-center gap-1">
-			<label for="{{ $fieldId }}" class="inputlabel">Status</label>
-			<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help $tableName "edit_state" }}'>
-				<i class="ri-question-line"></i>
-			</span>
-		</div>
+		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
 		</div>
 		<div class="relative">
 			<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="status-select status-select-real" data-status="{{ $entity.EditState }}">
@@ -35,6 +30,7 @@
 				{{- end -}}
 			</select>
 			<i class="status-icon absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none {{- if eq $entity.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $entity.EditState "Seen" }} ri-information-line{{- else if eq $entity.EditState "Review" }} ri-search-line{{- else if eq $entity.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}"></i>
+			<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
 		</div>
 	</div>
 

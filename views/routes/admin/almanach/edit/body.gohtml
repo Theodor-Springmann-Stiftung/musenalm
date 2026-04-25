@@ -121,14 +121,11 @@ type AlmanachResult struct {
 
 		<div class="flex gap-8">
 		<!-- Left Column -->
-		<div class="flex-1 flex flex-col gap-2">
-			<!-- Kurztitel -->
-			<div class="inputwrapper">
-				<div class="inputlabelrow">
-					<div class="flex items-center gap-1">
-						<label for="preferred-title-field-input" class="inputlabel">Kurztitel</label>
-					</div>
-				</div>
+		<div class="flex-1 edit-form-grid">
+
+			<!-- Kurztitel + Jahr (same row) -->
+			<label for="preferred-title-field-input" class="edit-form-label">Kurztitel</label>
+			<div class="edit-form-field">
 				<lookup-field
 					id="preferred-title-field"
 					name="preferred_title"
@@ -143,414 +140,331 @@ type AlmanachResult struct {
 					value="{{- $model.result.Entry.PreferredTitle -}}">
 				</lookup-field>
 			</div>
-
-			<div class="flex items-start gap-2">
-				<div class="inputwrapper basis-[70%] min-w-0">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="preferred-series-field-input" class="inputlabel">Reihentitel</label>
-						</div>
-					</div>
-					<lookup-field
-						id="preferred-series-field"
-						name="preferred_series_id"
-						data-value-name="preferred_series_id"
-						data-text-name=""
-						data-valid-fn="lookupRequiredId"
-						data-endpoint="/admin/api/series/search"
-						data-result-key="series"
-						data-minchars="1"
-						data-limit="15"
-						data-value-fn="lookupSeriesValue"
-						data-required="true"
-						data-initial-id="{{ $preferredSeriesId }}"
-						data-initial-name="{{ $preferredSeriesTitle }}"
-						data-initial-musenalm-id="{{ $preferredSeriesMusenalmID }}">
-					</lookup-field>
-				</div>
-
-				<div class="inputwrapper basis-[10%] min-w-[4.5rem]">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="year" class="inputlabel">Jahr</label>
-						</div>
-					</div>
-					<div class="inputshell"><input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" /></div>
-				</div>
-
-				<div class="inputwrapper basis-[30%] min-w-0">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="edition" class="inputlabel">Ausgabebezeichnung</label>
-						</div>
-					</div>
-					<div class="inputshell"><textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea></div>
-				</div>
+			<label for="year" class="edit-form-label text-right">Jahr</label>
+			<div class="edit-form-field">
+				<div class="inputshell"><input type="number" name="year" id="year" class="inputinput" placeholder="" autocomplete="off" value="{{ if not $model.is_new }}{{ $model.result.Entry.Year }}{{ end }}" /></div>
 			</div>
 
-			<content-series-relations
-				data-prefix="entries_series"
-				data-endpoint="/admin/api/series/search"
-				data-link-base="/reihe/"
-				data-error-duplicate="Diese Reihe ist bereits verknüpft."
-				class="block">
+			<!-- Reihentitel -->
+			<label for="preferred-series-field-input" class="edit-form-label">Reihentitel</label>
+			<div class="edit-form-field col-span-3">
+				<lookup-field
+					id="preferred-series-field"
+					name="preferred_series_id"
+					data-value-name="preferred_series_id"
+					data-text-name=""
+					data-valid-fn="lookupRequiredId"
+					data-endpoint="/admin/api/series/search"
+					data-result-key="series"
+					data-minchars="1"
+					data-limit="15"
+					data-value-fn="lookupSeriesValue"
+					data-required="true"
+					data-initial-id="{{ $preferredSeriesId }}"
+					data-initial-name="{{ $preferredSeriesTitle }}"
+					data-initial-musenalm-id="{{ $preferredSeriesMusenalmID }}">
+				</lookup-field>
+			</div>
+
+			<!-- Reihen (below Reihentitel; label + table hidden when no rows) -->
+			<div class="col-span-4">
 				{{- $hasNonPreferredSeries := false -}}
 				{{- range $_, $s := $model.result.Series -}}
 					{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 					{{- if $rel -}}{{- $hasNonPreferredSeries = true -}}{{- end -}}
 				{{- end -}}
-
-				<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} inputlabelrow">
-					<label class="inputlabel">Reihen</label>
-				</div>
-
-				<table class="min-w-full table-fixed text-sm mb-2 border border-slate-300 rounded-xs">
-					<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
-						{{- range $_, $s := $model.result.Series -}}
-							{{- $rel := index $model.result.EntriesSeries $s.Id -}}
-							{{- if $rel -}}
-								<tr data-role="content-series-row" data-kind="existing" class="align-middle bg-white">
-									<td class="px-3 py-2 align-middle">
-										<a
-											data-role="content-series-link"
-											href="/reihe/{{ $s.MusenalmID }}"
-											target="_blank"
-											rel="noreferrer"
-											class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-											<span data-role="content-series-name">{{ $s.Title }}</span>
-										</a>
-										<input type="hidden" name="entries_series_id[{{ $rel.Id }}]" value="{{ $rel.Id }}" />
-										<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
-										<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
-									</td>
-									<td class="px-3 py-2 text-right align-middle">
-										<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-											<i class="ri-delete-bin-line"></i>
-										</button>
-										<input data-role="content-series-delete-input" type="checkbox" class="hidden" name="entries_series_delete[{{ $rel.Id }}]" />
-									</td>
-								</tr>
-							{{- end -}}
-						{{- end -}}
-					</tbody>
-				</table>
-
-				<div data-role="content-series-add-panel" class="hidden pt-1.5 mb-2">
-					<div class="flex items-center gap-2">
-						<div class="relative min-w-0 flex-1">
-							<label for="series-add-search" class="sr-only">Reihe suchen</label>
-							<div class="inputshell py-0.5 px-1.5">
-								<input
-									id="series-add-search"
-									data-role="content-series-add-input"
-									type="text"
-									autocomplete="off"
-									class="inputinput w-full text-sm"
-									placeholder="Reihe suchen..." />
-							</div>
-							<div data-role="content-series-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
-							<div data-role="content-series-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
+				<content-series-relations
+					data-prefix="entries_series"
+					data-endpoint="/admin/api/series/search"
+					data-link-base="/reihe/"
+					data-error-duplicate="Diese Reihe ist bereits verknüpft."
+					class="block">
+					<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} grid gap-x-5 items-start mb-1 [grid-template-columns:10rem_1fr_2.5rem_5.5rem]">
+						<span class="edit-form-label">Reihen</span>
+						<div class="col-span-3">
+							<table class="min-w-full table-fixed text-sm border border-slate-300 rounded-xs">
+								<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
+									{{- range $_, $s := $model.result.Series -}}
+										{{- $rel := index $model.result.EntriesSeries $s.Id -}}
+										{{- if $rel -}}
+											<tr data-role="content-series-row" data-kind="existing" class="align-middle bg-white">
+												<td class="px-3 py-2 align-middle">
+													<a
+														data-role="content-series-link"
+														href="/reihe/{{ $s.MusenalmID }}"
+														target="_blank"
+														rel="noreferrer"
+														class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+														<span data-role="content-series-name">{{ $s.Title }}</span>
+													</a>
+													<input type="hidden" name="entries_series_id[{{ $rel.Id }}]" value="{{ $rel.Id }}" />
+													<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
+													<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
+												</td>
+												<td class="px-3 py-2 text-right align-middle">
+													<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+														<i class="ri-delete-bin-line"></i>
+													</button>
+													<input data-role="content-series-delete-input" type="checkbox" class="hidden" name="entries_series_delete[{{ $rel.Id }}]" />
+												</td>
+											</tr>
+										{{- end -}}
+									{{- end -}}
+								</tbody>
+							</table>
 						</div>
-						<button type="button" data-role="content-series-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
-							<i class="ri-check-line"></i>
-						</button>
-						<button type="button" data-role="content-series-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
-							<i class="ri-close-line"></i>
-						</button>
 					</div>
-				</div>
 
-				<div class="flex justify-end">
-					<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
-						<i class="ri-add-line"></i> Reihe verlinken
-					</button>
-				</div>
-
-				<template data-role="content-series-new-row-template">
-					<tr data-role="content-series-row" data-kind="new" class="align-middle bg-white">
-						<td class="px-3 py-2 align-middle">
-							<a data-role="content-series-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-								<span data-role="content-series-name"></span>
-							</a>
-							<input data-role="content-series-new-id" type="hidden" />
-							<input data-role="content-series-new-annotation" type="hidden" />
-						</td>
-						<td class="px-3 py-2 text-right align-middle">
-							<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-								<i class="ri-delete-bin-line"></i>
+					<div data-role="content-series-add-panel" class="hidden pt-1.5 mb-2 pl-[11.25rem]">
+						<div class="flex items-center gap-2">
+							<div class="relative min-w-0 flex-1">
+								<label for="series-add-search" class="sr-only">Reihe suchen</label>
+								<div class="inputshell py-0.5 px-1.5">
+									<input
+										id="series-add-search"
+										data-role="content-series-add-input"
+										type="text"
+										autocomplete="off"
+										class="inputinput w-full text-sm"
+										placeholder="Reihe suchen..." />
+								</div>
+								<div data-role="content-series-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
+								<div data-role="content-series-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
+							</div>
+							<button type="button" data-role="content-series-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
+								<i class="ri-check-line"></i>
 							</button>
-						</td>
-					</tr>
-				</template>
-			</content-series-relations>
-
-			<div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-						<label for="title" class="inputlabel">Titel</label>
-					</div>
+							<button type="button" data-role="content-series-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
+								<i class="ri-close-line"></i>
+							</button>
+						</div>
 					</div>
 
-					<div class="inputshell"><textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea></div>
+					<div class="flex justify-end pl-[11.25rem]">
+						<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
+							<i class="ri-add-line"></i> Reihe verlinken
+						</button>
+					</div>
+
+					<template data-role="content-series-new-row-template">
+						<tr data-role="content-series-row" data-kind="new" class="align-middle bg-white">
+							<td class="px-3 py-2 align-middle">
+								<a data-role="content-series-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+									<span data-role="content-series-name"></span>
+								</a>
+								<input data-role="content-series-new-id" type="hidden" />
+								<input data-role="content-series-new-annotation" type="hidden" />
+							</td>
+							<td class="px-3 py-2 text-right align-middle">
+								<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+									<i class="ri-delete-bin-line"></i>
+								</button>
+							</td>
+						</tr>
+					</template>
+				</content-series-relations>
+			</div>
+
+			<!-- Ausgabebezeichnung -->
+			<label for="edition" class="edit-form-label">Ausgabebezeichnung</label>
+			<div class="edit-form-field col-span-3">
+				<div class="inputshell"><textarea name="edition" id="edition" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.Edition -}}</textarea></div>
+			</div>
+
+			<!-- Titel -->
+			<label for="title" class="edit-form-label">Titel</label>
+			<div class="edit-form-field col-span-3">
+				<div class="inputshell"><textarea name="title" id="title" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.TitleStmt -}}</textarea></div>
+			</div>
+
+			<!-- Optional title fields via div-manager -->
+			<div class="col-span-4">
+				<div id="titles" class="flex flex-col gap-2"></div>
+				<div-manager dm-target="titles" class="flex justify-end mt-1">
+					<button class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i> Felder hinzufügen</button>
+
+					<div class="w-full grid gap-x-5 items-baseline [grid-template-columns:10rem_1fr] {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}" data-dm-target="titles">
+						<label for="paralleltitle" class="edit-form-label">Titel (übersetzt)</label>
+						<div class="inputshell"><textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ParallelTitle -}}</textarea></div>
+					</div>
+
+					<div class="w-full grid gap-x-5 items-baseline [grid-template-columns:10rem_1fr] {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
+						<label for="subtitle" class="edit-form-label">Untertitel</label>
+						<div class="inputshell"><textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.SubtitleStmt -}}</textarea></div>
+					</div>
+
+					<div class="w-full grid gap-x-5 items-baseline [grid-template-columns:10rem_1fr] {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
+						<label for="varianttitle" class="edit-form-label">Titelvarianten</label>
+						<div class="inputshell"><textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.VariantTitle -}}</textarea></div>
+					</div>
+
+					<div class="w-full grid gap-x-5 items-baseline [grid-template-columns:10rem_1fr] {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
+						<label for="incipit" class="edit-form-label">Incipit</label>
+						<div class="inputshell"><textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea></div>
+					</div>
+
+					<div class="w-full grid gap-x-5 items-baseline [grid-template-columns:10rem_1fr] {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="titles">
+						<label for="publication_statement" class="edit-form-label">Publikationsangabe</label>
+						<div class="inputshell"><textarea name="publication_statement" id="publication_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea></div>
+					</div>
+				</div-manager>
+			</div>
+
+			<!-- Herausgeberangabe -->
+			<label for="responsibility_statement" class="edit-form-label">Herausgeberangabe</label>
+			<div class="edit-form-field col-span-3">
+				<div class="inputshell flex items-center">
+					<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter flex-1" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
+					<label class="flex shrink-0 cursor-pointer items-center gap-1.5 pl-2 pr-3 text-sm font-bold text-gray-700" for="pseudonym">
+						<input type="checkbox" name="pseudonym" id="pseudonym" {{ if $model.result.Entry.Pseudonym }}checked{{ end }} data-boolean-checkbox />
+						<span>Pseudonym</span>
+					</label>
 				</div>
+			</div>
 
-				<div class="almanach-title-optionals mt-2 flex flex-col gap-2">
-					<div id="titles"></div>
-				</div>
-
-				<div-manager dm-target="titles" class="flex flex-col items-end gap-2">
-						<button class="dm-menu-button inline-flex items-center self-end leading-none text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
-							Felder hinzufügen</button>
-
-						<div class="inputwrapper {{ if eq $model.result.Entry.ParallelTitle "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="paralleltitle" class="inputlabel menu-label">Titel
-										(übersetzt)</label>
-								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="inputshell"><textarea name="paralleltitle" id="paralleltitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ParallelTitle -}}</textarea></div>
-						</div>
-
-						<div class="inputwrapper {{ if eq $model.result.Entry.SubtitleStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="subtitle" class="inputlabel menu-label">Untertitel</label>
-								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="inputshell"><textarea name="subtitle" id="subtitle" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.SubtitleStmt -}}</textarea></div>
-						</div>
-
-						<div class="inputwrapper {{ if eq $model.result.Entry.VariantTitle "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="varianttitle" class="inputlabel menu-label">Titelvarianten</label>
-								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="inputshell"><textarea name="varianttitle" id="varianttitle" class="inputinput" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.VariantTitle -}}</textarea></div>
-						</div>
-
-						<div class="inputwrapper {{ if eq $model.result.Entry.IncipitStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="incipit" class="inputlabel menu-label">Incipit</label>
-								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="inputshell"><textarea name="incipit" id="incipit" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.IncipitStmt -}}</textarea></div>
-						</div>
-
-						<div class="inputwrapper {{ if eq $model.result.Entry.PublicationStmt "" }}hidden{{ end }}" data-dm-target="titles">
-							<div class="inputlabelrow">
-								<div class="flex items-center gap-1">
-									<label for="publication_statement" class="inputlabel menu-label">Publikationsangabe</label>
-								</div>
-								<div class="pr-2">
-									<button class="dm-close-button font-bold input-label">
-										<i class="ri-close-line"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="inputshell"><textarea name="publication_statement" id="publication_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PublicationStmt -}}</textarea></div>
-						</div>
-					</div-manager>
-
-				<div class="mt-3 grid w-full grid-cols-2 gap-4 items-start">
-					<div class="inputwrapper min-w-0">
-						<div class="inputlabelrow">
-							<label for="responsibility_statement" class="inputlabel">Herausgeberangabe</label>
-						</div>
-						<div class="inputshell flex items-center">
-							<textarea name="responsibility_statement" id="responsibility_statement" class="inputinput no-enter flex-1" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.ResponsibilityStmt -}}</textarea>
-							<label class="flex shrink-0 cursor-pointer items-center gap-1.5 pl-2 pr-3 text-sm font-bold text-gray-700" for="pseudonym">
-								<input type="checkbox" name="pseudonym" id="pseudonym" {{ if $model.result.Entry.Pseudonym }}checked{{ end }} data-boolean-checkbox />
-								<span>Pseudonym</span>
-							</label>
-						</div>
-					</div>
-
-					<div class="inputwrapper min-w-0">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="place_statement" class="inputlabel">Ortsangabe</label>
-							</div>
-						</div>
-
-						<div class="inputshell"><textarea name="place_statement" id="place_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea></div>
-					</div>
-				</div>
-
-				<div class="mt-3 grid w-full grid-cols-2 gap-4 items-start">
-					<div class="min-w-0">
-						<content-person-relations
-							data-prefix="entries_agents"
-							data-endpoint="/admin/api/agents/search"
-							data-link-base="/person/"
-							data-default-relation="Herausgeber:in"
-							class="block">
-							<div class="inputwrapper">
-								<div class="inputlabelrow">
-									<div class="flex items-center gap-1">
-										<label class="inputlabel" for="agents-section">Verknüpfte Personen</label>
-									</div>
-									<div class="flex items-center gap-3">
-										<button type="button" id="agents-add-toggle" data-role="content-person-add-toggle" class="text-sm font-bold text-gray-700 hover:text-slate-950 no-underline pr-3">
-											<i class="ri-link"></i> Person verlinken
-										</button>
-									</div>
-								</div>
-
-								<div id="agents-section">
-									<div class="overflow-hidden rounded-xs bg-white">
-										<table class="min-w-full table-fixed text-sm border rounded-xs border-slate-300">
-											<tbody data-role="content-person-table-body" class="divide-y divide-stone-200">
-												{{- if $model.result.EntriesAgents -}}
-													{{- range $_, $r := $model.result.EntriesAgents -}}
-														{{- $a := index $model.result.Agents $r.Agent -}}
-														<tr data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
-															<td class="px-3 py-2 align-middle">
-																{{- if $a -}}
-																	<a
-																		data-role="content-person-link"
-																		href="/person/{{ $a.MusenalmID }}"
-																		target="_blank"
-																		rel="noreferrer"
-																		class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-																		<span data-role="content-person-name">{{ $a.Name }}</span>
-																	</a>
-																{{- else -}}
-																	<span data-role="content-person-name" class="font-semibold text-slate-900">Unbekannte Person</span>
-																{{- end -}}
-																{{- if and $a $a.BiographicalData -}}
-																	<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600">{{ $a.BiographicalData }}</span>
-																{{- else -}}
-																	<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
-																{{- end -}}
-																<input type="hidden" name="entries_agents_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
-																<input type="hidden" name="entries_agents_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
-															</td>
-															<td class="px-3 py-2 align-middle">
-																<select data-role="content-person-type" name="entries_agents_type[{{ $r.Id }}]" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
-																	{{- range $t := $model.agent_relations -}}
-																		<option value="{{ $t }}" {{ if eq $r.Type $t }}selected{{ end }}>{{ $t }}</option>
-																	{{- end -}}
-																</select>
-															</td>
-															<td class="px-3 py-2 text-right align-middle">
-																<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-																	<i class="ri-delete-bin-line"></i>
-																</button>
-																<input data-role="content-person-delete-input" type="checkbox" class="hidden" name="entries_agents_delete[{{ $r.Id }}]" />
-															</td>
-														</tr>
-													{{- end -}}
+			<!-- Verknüpfte Personen (label + table hidden when no rows) -->
+			<div class="col-span-4">
+				<content-person-relations
+					data-prefix="entries_agents"
+					data-endpoint="/admin/api/agents/search"
+					data-link-base="/person/"
+					data-default-relation="Herausgeber:in"
+					class="block">
+					<div data-role="content-person-section-header" class="{{ if not $model.result.EntriesAgents }}hidden{{ end }} grid gap-x-5 items-start mb-1 [grid-template-columns:10rem_1fr_2.5rem_5.5rem]">
+						<span class="edit-form-label">Verknüpfte Personen</span>
+						<div class="col-span-3">
+							<table class="min-w-full table-fixed text-sm border rounded-xs border-slate-300">
+								<tbody data-role="content-person-table-body" class="divide-y divide-stone-200">
+									{{- range $_, $r := $model.result.EntriesAgents -}}
+										{{- $a := index $model.result.Agents $r.Agent -}}
+										<tr data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
+											<td class="px-3 py-2 align-middle">
+												{{- if $a -}}
+													<a
+														data-role="content-person-link"
+														href="/person/{{ $a.MusenalmID }}"
+														target="_blank"
+														rel="noreferrer"
+														class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+														<span data-role="content-person-name">{{ $a.Name }}</span>
+													</a>
+												{{- else -}}
+													<span data-role="content-person-name" class="font-semibold text-slate-900">Unbekannte Person</span>
 												{{- end -}}
-											</tbody>
-										</table>
-									</div>
-
-									<div data-role="content-person-empty" class="px-3 py-2 text-sm text-slate-600 {{ if $model.result.EntriesAgents }}hidden{{ end }}">
-										Keine Personen verknüpft.
-									</div>
-
-									<div data-role="content-person-add-panel" class="hidden pt-1.5 px-1">
-										<div class="flex items-center gap-2">
-											<div class="relative min-w-0 flex-1">
-												<label for="agents-add-search" class="sr-only">Person suchen</label>
-												<div class="inputshell px-1 py-0.5">
-													<input
-														id="agents-add-search"
-														data-role="content-person-add-input"
-														type="text"
-														autocomplete="off"
-														class="inputinput w-full text-sm"
-														placeholder="Person suchen..." />
+												{{- if and $a $a.BiographicalData -}}
+													<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600">{{ $a.BiographicalData }}</span>
+												{{- else -}}
+													<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
+												{{- end -}}
+												<input type="hidden" name="entries_agents_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
+												<input type="hidden" name="entries_agents_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
+											</td>
+											<td class="px-3 py-2 align-middle">
+												<div class="relative">
+													<select data-role="content-person-type" name="entries_agents_type[{{ $r.Id }}]" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
+														{{- range $t := $model.agent_relations -}}
+															<option value="{{ $t }}" {{ if eq $r.Type $t }}selected{{ end }}>{{ $t }}</option>
+														{{- end -}}
+													</select>
+													<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
 												</div>
-												<div data-role="content-person-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
-												<div data-role="content-person-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
-											</div>
-											<button type="button" data-role="content-person-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
-												<i class="ri-check-line"></i>
-											</button>
-											<button type="button" data-role="content-person-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
-												<i class="ri-close-line"></i>
-											</button>
-										</div>
-									</div>
-								</div>
-
-								<template data-role="content-person-new-row-template">
-									<tr data-role="content-person-row" data-kind="new" class="align-middle bg-white">
-										<td class="px-3 py-2 align-middle">
-											<a data-role="content-person-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-												<span data-role="content-person-name"></span>
-											</a>
-											<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
-											<input data-role="content-person-new-id" type="hidden" />
-										</td>
-										<td class="px-3 py-2 align-middle">
-											<select data-role="content-person-type" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
-												{{- range $t := $model.agent_relations -}}
-													<option value="{{ $t }}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{ $t }}</option>
-												{{- end -}}
-											</select>
-										</td>
-										<td class="px-3 py-2 text-right align-middle">
-											<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
-												<i class="ri-delete-bin-line"></i>
-											</button>
-										</td>
-									</tr>
-								</template>
-							</div>
-						</content-person-relations>
-					</div>
-
-					<div class="min-w-0">
-						<div class="inputwrapper">
-							<div class="inputlabelrow">
-								<label for="places" class="inputlabel">Verknüpfte Orte</label>
-							</div>
-							<content-type-select
-								id="places"
-								name="places[]"
-								data-placeholder="Orte auswählen"
-								data-searchable="true"
-								data-options='[{{- range $i, $place := $model.place_options -}}{{- if $i }},{{ end -}}{"value":{{ printf "%q" $place.Id }},"label":{{ printf "%q" $place.Name }}}{{- end -}}]'
-								data-selected='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
-							</content-type-select>
+											</td>
+											<td class="px-3 py-2 text-right align-middle">
+												<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+													<i class="ri-delete-bin-line"></i>
+												</button>
+												<input data-role="content-person-delete-input" type="checkbox" class="hidden" name="entries_agents_delete[{{ $r.Id }}]" />
+											</td>
+										</tr>
+									{{- end -}}
+								</tbody>
+							</table>
 						</div>
 					</div>
-				</div>
-				<div class="flex flex-col gap-2 mt-4">
-					<!-- Annotationen -->
-					{{ template "_annotation_field" (Arr $model.result.Entry.Annotation "Annotationen") }}
-				</div>
+
+					<div data-role="content-person-add-panel" class="hidden pt-1.5 pl-[11.25rem]">
+						<div class="flex items-center gap-2">
+							<div class="relative min-w-0 flex-1">
+								<label for="agents-add-search" class="sr-only">Person suchen</label>
+								<div class="inputshell px-1 py-0.5">
+									<input
+										id="agents-add-search"
+										data-role="content-person-add-input"
+										type="text"
+										autocomplete="off"
+										class="inputinput w-full text-sm"
+										placeholder="Person suchen..." />
+								</div>
+								<div data-role="content-person-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
+								<div data-role="content-person-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
+							</div>
+							<button type="button" data-role="content-person-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
+								<i class="ri-check-line"></i>
+							</button>
+							<button type="button" data-role="content-person-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
+								<i class="ri-close-line"></i>
+							</button>
+						</div>
+					</div>
+
+					<div class="flex justify-end mt-1 pl-[11.25rem]">
+						<button type="button" id="agents-add-toggle" data-role="content-person-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
+							<i class="ri-link"></i> Person verlinken
+						</button>
+					</div>
+
+					<template data-role="content-person-new-row-template">
+						<tr data-role="content-person-row" data-kind="new" class="align-middle bg-white">
+							<td class="px-3 py-2 align-middle">
+								<a data-role="content-person-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
+									<span data-role="content-person-name"></span>
+								</a>
+								<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
+								<input data-role="content-person-new-id" type="hidden" />
+							</td>
+							<td class="px-3 py-2 align-middle">
+								<div class="relative">
+									<select data-role="content-person-type" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
+										{{- range $t := $model.agent_relations -}}
+											<option value="{{ $t }}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{ $t }}</option>
+										{{- end -}}
+									</select>
+									<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+								</div>
+							</td>
+							<td class="px-3 py-2 text-right align-middle">
+								<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-300 bg-red-50 px-2.5 py-1.5 text-red-700 transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-900" aria-label="Entfernen">
+									<i class="ri-delete-bin-line"></i>
+								</button>
+							</td>
+						</tr>
+					</template>
+				</content-person-relations>
+			</div>
+
+			<!-- Ortsangabe -->
+			<label for="place_statement" class="edit-form-label">Ortsangabe</label>
+			<div class="edit-form-field col-span-3">
+				<div class="inputshell"><textarea name="place_statement" id="place_statement" class="inputinput no-enter" placeholder="" autocomplete="off" rows="1">{{- $model.result.Entry.PlaceStmt -}}</textarea></div>
+			</div>
+
+			<!-- Verknüpfte Orte -->
+			<label for="places" class="edit-form-label">Verknüpfte Orte</label>
+			<div class="edit-form-field col-span-3">
+				<content-type-select
+					id="places"
+					name="places[]"
+					data-placeholder="Orte auswählen"
+					data-searchable="true"
+					data-options='[{{- range $i, $place := $model.place_options -}}{{- if $i }},{{ end -}}{"value":{{ printf "%q" $place.Id }},"label":{{ printf "%q" $place.Name }}}{{- end -}}]'
+					data-selected='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
+				</content-type-select>
+			</div>
+
+			<!-- Annotationen -->
+			<label for="annotation" class="edit-form-label">Annotationen</label>
+			<div class="edit-form-field col-span-3">
+				{{ template "_annotation_field" (Arr $model.result.Entry.Annotation "Annotationen" "annotation" "" true) }}
 			</div>
 
 		</div>
