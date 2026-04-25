@@ -78,66 +78,43 @@
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $place.Updated }}{{ end }}" />
 
 		<div class="simple-entity-form-grid">
-			<div class="simple-entity-main-column">
-				<div class="flex flex-row gap-2 items-start">
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="name" class="inputlabel">Name</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "places" "name" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<lookup-field
-							id="place-name-field"
-							name="name"
-							data-multiline="true"
-							data-no-enter="true"
-							data-required="true"
-							data-autocomplete="false"
-							data-valid-fn="lookupRequiredText"
-							data-dup-endpoint="/admin/api/places/search"
-							data-dup-result-key="places"
-							data-dup-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}"
-							value="{{- $place.Name -}}">
-						</lookup-field>
-					</div>
-					<div class="inputwrapper shrink-0">
-						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-							<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />
-							<label class="flex items-center gap-1 text-gray-700" for="fictional">
-								<span>Fiktional</span>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "places" "fictional" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</label>
-						</div>
-					</div>
+			<div class="edit-form-grid min-w-0">
+				<label for="place-name-field" class="edit-form-label">Name</label>
+				<div class="edit-form-field col-span-3 flex items-start gap-3">
+					<lookup-field
+						class="flex-1 min-w-0"
+						id="place-name-field"
+						name="name"
+						data-multiline="true"
+						data-no-enter="true"
+						data-required="true"
+						data-autocomplete="false"
+						data-valid-fn="lookupRequiredText"
+						data-dup-endpoint="/admin/api/places/search"
+						data-dup-result-key="places"
+						data-dup-current-id="{{ if not $model.is_new }}{{ $place.Id }}{{ end }}"
+						value="{{- $place.Name -}}">
+					</lookup-field>
+					<label class="flex shrink-0 cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700 pt-2" for="fictional">
+						<input type="checkbox" name="fictional" id="fictional" {{ if $place.Fictional }}checked{{ end }} data-boolean-checkbox />
+						<span>Fiktional</span>
+					</label>
 				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="pseudonyms" class="inputlabel">Alternativnamen</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "places" "pseudonyms" }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-					</div>
-					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea>
+
+				<label for="pseudonyms" class="edit-form-label">Alternativnamen</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $place.Pseudonyms -}}</textarea></div>
 				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="uri" class="inputlabel">URL</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "places" "uri" }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-					</div>
-					<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" />
+
+				<label for="uri" class="edit-form-label">URL</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $place.URI }}" /></div>
 				</div>
-				{{ template "_annotation_field" (Arr $place.Annotation "Annotation") }}
+
+				<label for="annotation" class="edit-form-label">Annotation</label>
+				<div class="edit-form-field col-span-3">
+					{{ template "_annotation_field" (Arr $place.Annotation "Annotation" "annotation" "" true) }}
+				</div>
 			</div>
 
 			<div class="simple-entity-side-column">

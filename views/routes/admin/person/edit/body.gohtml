@@ -81,115 +81,64 @@
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $agent.Updated }}{{ end }}" />
 
 		<div class="simple-entity-form-grid">
-			<div class="simple-entity-main-column">
-				<div class="flex flex-row gap-2 items-start">
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="name" class="inputlabel">Name</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "name" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<lookup-field
-							id="person-name-field"
-							name="name"
-							data-multiline="true"
-							data-no-enter="true"
-							data-required="true"
-							data-autocomplete="false"
-							data-valid-fn="lookupRequiredText"
-							data-dup-endpoint="/admin/api/agents/search"
-							data-dup-result-key="agents"
-							data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
-							value="{{- $agent.Name -}}">
-						</lookup-field>
-					</div>
-					<div class="inputwrapper shrink-0">
-						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-								<input type="checkbox" name="corporate_body" id="corporate_body" {{ if
-								$agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
-								<label class="flex items-center gap-1 text-gray-700" for="corporate_body">
-									<span>Verlag, Druck od. Vertrieb</span>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "corporate_body" }}'>
-										<i class="ri-question-line"></i>
-									</span>
-								</label>
-						</div>
-					</div>
-					<div class="inputwrapper shrink-0">
-						<div class="px-3 py-2 flex flex-row gap-2 font-bold">
-								<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
-								<label class="flex items-center gap-1 text-gray-700" for="fictional">
-									<span>Fiktional</span>
-									<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "fictional" }}'>
-										<i class="ri-question-line"></i>
-									</span>
-								</label>
-						</div>
-					</div>
+			<div class="edit-form-grid min-w-0">
+				<label for="person-name-field" class="edit-form-label">Name</label>
+				<div class="edit-form-field col-span-3">
+					<lookup-field
+						id="person-name-field"
+						name="name"
+						data-multiline="true"
+						data-no-enter="true"
+						data-required="true"
+						data-autocomplete="false"
+						data-valid-fn="lookupRequiredText"
+						data-dup-endpoint="/admin/api/agents/search"
+						data-dup-result-key="agents"
+						data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
+						value="{{- $agent.Name -}}">
+					</lookup-field>
 				</div>
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="pseudonyms" class="inputlabel">Pseudonyme</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "pseudonyms" }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-					</div>
-					<textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea>
+
+				<div class="col-start-2 col-span-3 flex items-center gap-4">
+					<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700" for="corporate_body">
+						<input type="checkbox" name="corporate_body" id="corporate_body" {{ if $agent.CorporateBody }}checked{{ end }} data-boolean-checkbox />
+						<span>Verlag, Druck od. Vertrieb</span>
+					</label>
+					<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700" for="fictional">
+						<input type="checkbox" name="fictional" id="fictional" {{ if $agent.Fictional }}checked{{ end }} data-boolean-checkbox />
+						<span>Fiktional</span>
+					</label>
 				</div>
-				<div class="flex flex-row gap-2 w-full">
-					<div class="inputwrapper w-3/4 grow-0">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="biographical_data" class="inputlabel">Biografische Angaben</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "biographical_data" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea>
-					</div>
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="profession" class="inputlabel">Profession</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "profession" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" />
-					</div>
+
+				<label for="pseudonyms" class="edit-form-label">Pseudonyme</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><textarea name="pseudonyms" id="pseudonyms" class="inputinput" autocomplete="off" rows="1">{{- $agent.Pseudonyms -}}</textarea></div>
 				</div>
-				<div class="flex flex-row gap-2 w-full">
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="uri" class="inputlabel">URL</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "uri" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" />
-					</div>
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="references" class="inputlabel">Nachweise</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "agents" "refs" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea>
-					</div>
+
+				<label for="biographical_data" class="edit-form-label">Biografie</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><textarea name="biographical_data" id="biographical_data" class="inputinput" autocomplete="off" rows="2">{{- $agent.BiographicalData -}}</textarea></div>
 				</div>
-				{{ template "_annotation_field" (Arr $agent.Annotation "Annotation") }}
+
+				<label for="profession" class="edit-form-label">Profession</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><input name="profession" id="profession" class="inputinput" autocomplete="off" value="{{ $agent.Profession }}" /></div>
+				</div>
+
+				<label for="uri" class="edit-form-label">URL</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" /></div>
+				</div>
+
+				<label for="references" class="edit-form-label">Nachweise</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $agent.References -}}</textarea></div>
+				</div>
+
+				<label for="annotation" class="edit-form-label">Annotation</label>
+				<div class="edit-form-field col-span-3">
+					{{ template "_annotation_field" (Arr $agent.Annotation "Annotation" "annotation" "" true) }}
+				</div>
 			</div>
 
 			<div class="simple-entity-side-column">

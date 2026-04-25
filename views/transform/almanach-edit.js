@@ -582,6 +582,7 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	_collectNewRelations(prefix) {
+		const isSeriesRelation = prefix === "entries_series";
 		const container =
 			this.querySelector(`content-person-relations[data-prefix='${prefix}']`) ||
 			this.querySelector(`content-series-relations[data-prefix='${prefix}']`);

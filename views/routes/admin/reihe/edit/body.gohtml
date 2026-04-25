@@ -81,16 +81,9 @@
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $series.Updated }}{{ end }}" />
 
 		<div class="simple-entity-form-grid">
-			<div class="simple-entity-main-column">
-				<div class="inputwrapper">
-					<div class="inputlabelrow">
-						<div class="flex items-center gap-1">
-							<label for="title" class="inputlabel">Reihentitel</label>
-							<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "title" }}'>
-								<i class="ri-question-line"></i>
-							</span>
-						</div>
-					</div>
+			<div class="edit-form-grid min-w-0">
+				<label for="series-title-field" class="edit-form-label">Reihentitel</label>
+				<div class="edit-form-field col-span-3">
 					<lookup-field
 						id="series-title-field"
 						name="title"
@@ -105,31 +98,21 @@
 						value="{{- $series.Title -}}">
 					</lookup-field>
 				</div>
-				<div class="flex flex-row gap-3">
-					<div class="inputwrapper grow">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="references" class="inputlabel">Nachweise</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "refs" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea>
-					</div>
-					<div class="inputwrapper w-1/4 grow-0">
-						<div class="inputlabelrow">
-							<div class="flex items-center gap-1">
-								<label for="frequency" class="inputlabel">Erscheinungsfrequenz</label>
-								<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help "series" "frequency" }}'>
-									<i class="ri-question-line"></i>
-								</span>
-							</div>
-						</div>
-						<input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" />
-					</div>
+
+				<label for="references" class="edit-form-label">Nachweise</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><textarea name="references" id="references" class="inputinput no-enter" autocomplete="off" rows="1">{{- $series.References -}}</textarea></div>
 				</div>
-				{{ template "_annotation_field" (Arr $series.Annotation "Annotation") }}
+
+				<label for="frequency" class="edit-form-label">Erscheinungsfrequenz</label>
+				<div class="edit-form-field col-span-3">
+					<div class="inputshell"><input name="frequency" id="frequency" class="inputinput" autocomplete="off" value="{{ $series.Frequency }}" /></div>
+				</div>
+
+				<label for="annotation" class="edit-form-label">Annotation</label>
+				<div class="edit-form-field col-span-3">
+					{{ template "_annotation_field" (Arr $series.Annotation "Annotation" "annotation" "" true) }}
+				</div>
 			</div>
 
 			<div class="simple-entity-side-column">

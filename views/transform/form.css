@@ -804,19 +804,16 @@
 	}
 
 	/* Diagonal hatching pattern for deleted relations, items, and pills */
-	[data-rel-row],
 	.items-row,
 	.mss-selected-item-pill.bg-red-100 {
 		position: relative;
 	}
 
-	[data-rel-row].bg-red-50 > td,
 	.items-row.bg-red-50,
 	.mss-selected-item-pill.bg-red-100 {
 		position: relative;
 	}
 
-	[data-rel-row].bg-red-50 > td::before,
 	.items-row.bg-red-50::before,
 	.mss-selected-item-pill.bg-red-100::before {
 		content: "";
@@ -831,11 +828,20 @@
 		z-index: 1;
 	}
 
-	[data-rel-row] > *,
 	.items-row > *,
 	.mss-selected-item-pill.bg-red-100 > * {
 		position: relative;
 		z-index: 2;
+	}
+
+	/* Table relation rows: stripe via background-image on the tr itself */
+	[data-rel-row].bg-red-50 {
+		background-image: repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(220, 38, 38, 0.18) 6px, rgba(220, 38, 38, 0.18) 10px);
+	}
+
+	/* Keep the action cell (delete/undo button) unstriped */
+	[data-rel-row].bg-red-50 > td:last-child {
+		background-color: white;
 	}
 
 	/* Apply hatching to items heading when row is deleted */
@@ -863,7 +869,6 @@
 	}
 
 	/* Ensure buttons are above the hatching */
-	[data-rel-row] button,
 	.items-row button {
 		position: relative;
 		z-index: 10;
@@ -901,6 +906,7 @@
 	.items-row.bg-red-50 .items-remove-button * {
 		@apply text-white;
 	}
+
 
 	/* Multi-Select-Role example styles */
 	.msr-selected-items-container {

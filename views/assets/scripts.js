@@ -7704,32 +7704,32 @@ class Qd extends HTMLElement {
     return { relations: s, deleted: r };
   }
   _collectNewRelations(t) {
-    const e = this.querySelector(`content-person-relations[data-prefix='${t}']`) || this.querySelector(`content-series-relations[data-prefix='${t}']`);
-    if (!e)
+    const e = t === "entries_series", i = this.querySelector(`content-person-relations[data-prefix='${t}']`) || this.querySelector(`content-series-relations[data-prefix='${t}']`);
+    if (!i)
       return [];
-    const i = e.querySelectorAll("[data-kind='new']"), s = [];
-    return i.forEach((r) => {
-      const o = r.querySelector(`input[name='${t}_new_id']`);
-      if (!o)
-        return;
-      const a = o.value.trim();
+    const s = i.querySelectorAll("[data-kind='new']"), r = [];
+    return s.forEach((o) => {
+      const a = o.querySelector(`input[name='${t}_new_id']`);
       if (!a)
         return;
-      if (isSeriesRelation) {
-        const h = r.querySelector(`input[name='${t}_new_annotation'], textarea[name='${t}_new_annotation']`);
-        s.push({
-          target_id: a,
-          annotation: (h?.value || "").trim()
+      const l = a.value.trim();
+      if (!l)
+        return;
+      if (e) {
+        const g = o.querySelector(`input[name='${t}_new_annotation'], textarea[name='${t}_new_annotation']`);
+        r.push({
+          target_id: l,
+          annotation: (g?.value || "").trim()
         });
         return;
       }
-      const l = r.querySelector(`select[name='${t}_new_type']`), c = r.querySelector(`input[name='${t}_new_uncertain']`);
-      s.push({
-        target_id: a,
-        type: (l?.value || "").trim(),
-        uncertain: !!c?.checked
+      const c = o.querySelector(`select[name='${t}_new_type']`), h = o.querySelector(`input[name='${t}_new_uncertain']`);
+      r.push({
+        target_id: l,
+        type: (c?.value || "").trim(),
+        uncertain: !!h?.checked
       });
-    }), s;
+    }), r;
   }
   _readValue(t, e) {
     const i = t.get(e);

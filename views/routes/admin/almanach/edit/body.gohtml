@@ -187,7 +187,7 @@ type AlmanachResult struct {
 									{{- range $_, $s := $model.result.Series -}}
 										{{- $rel := index $model.result.EntriesSeries $s.Id -}}
 										{{- if $rel -}}
-											<tr data-role="content-series-row" data-kind="existing" class="align-middle bg-white">
+											<tr data-rel-row data-role="content-series-row" data-kind="existing" class="align-middle bg-white">
 												<td class="px-3 py-2 align-middle">
 													<a
 														data-role="content-series-link"
@@ -201,7 +201,7 @@ type AlmanachResult struct {
 													<input type="hidden" name="entries_series_series[{{ $rel.Id }}]" value="{{ $rel.Series }}" />
 													<input type="hidden" name="entries_series_annotation[{{ $rel.Id }}]" value="{{ $rel.Annotation }}" />
 												</td>
-												<td class="px-3 py-2 text-right align-middle">
+												<td class="px-2 py-2 text-right align-middle w-10">
 													<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
 														<i class="ri-delete-bin-line"></i>
 													</button>
@@ -247,7 +247,7 @@ type AlmanachResult struct {
 					</div>
 
 					<template data-role="content-series-new-row-template">
-						<tr data-role="content-series-row" data-kind="new" class="align-middle bg-white">
+						<tr data-rel-row data-role="content-series-row" data-kind="new" class="align-middle bg-white">
 							<td class="px-3 py-2 align-middle">
 								<a data-role="content-series-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
 									<span data-role="content-series-name"></span>
@@ -255,7 +255,7 @@ type AlmanachResult struct {
 								<input data-role="content-series-new-id" type="hidden" />
 								<input data-role="content-series-new-annotation" type="hidden" />
 							</td>
-							<td class="px-3 py-2 text-right align-middle">
+							<td class="px-2 py-2 text-right align-middle w-10">
 								<button type="button" data-role="content-series-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
 									<i class="ri-delete-bin-line"></i>
 								</button>
@@ -337,7 +337,7 @@ type AlmanachResult struct {
 								<tbody data-role="content-person-table-body" class="divide-y divide-stone-200">
 									{{- range $_, $r := $model.result.EntriesAgents -}}
 										{{- $a := index $model.result.Agents $r.Agent -}}
-										<tr data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
+										<tr data-rel-row data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
 											<td class="px-3 py-2 align-middle">
 												{{- if $a -}}
 													<a
@@ -359,9 +359,9 @@ type AlmanachResult struct {
 												<input type="hidden" name="entries_agents_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
 												<input type="hidden" name="entries_agents_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
 											</td>
-											<td class="px-3 py-2 align-middle">
+											<td class="px-3 py-2 align-middle w-[30%]">
 												<div class="relative">
-													<select data-role="content-person-type" name="entries_agents_type[{{ $r.Id }}]" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
+													<select data-role="content-person-type" name="entries_agents_type[{{ $r.Id }}]" autocomplete="off" class="content-editor-meta-select w-full">
 														{{- range $t := $model.agent_relations -}}
 															<option value="{{ $t }}" {{ if eq $r.Type $t }}selected{{ end }}>{{ $t }}</option>
 														{{- end -}}
@@ -369,7 +369,7 @@ type AlmanachResult struct {
 													<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
 												</div>
 											</td>
-											<td class="px-3 py-2 text-right align-middle">
+											<td class="px-2 py-2 text-right align-middle w-10">
 												<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
 													<i class="ri-delete-bin-line"></i>
 												</button>
@@ -414,7 +414,7 @@ type AlmanachResult struct {
 					</div>
 
 					<template data-role="content-person-new-row-template">
-						<tr data-role="content-person-row" data-kind="new" class="align-middle bg-white">
+						<tr data-rel-row data-role="content-person-row" data-kind="new" class="align-middle bg-white">
 							<td class="px-3 py-2 align-middle">
 								<a data-role="content-person-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
 									<span data-role="content-person-name"></span>
@@ -422,9 +422,9 @@ type AlmanachResult struct {
 								<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
 								<input data-role="content-person-new-id" type="hidden" />
 							</td>
-							<td class="px-3 py-2 align-middle">
+							<td class="px-3 py-2 align-middle w-[30%]">
 								<div class="relative">
-									<select data-role="content-person-type" autocomplete="off" class="content-editor-meta-select min-w-[12rem] w-full">
+									<select data-role="content-person-type" autocomplete="off" class="content-editor-meta-select w-full">
 										{{- range $t := $model.agent_relations -}}
 											<option value="{{ $t }}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{ $t }}</option>
 										{{- end -}}
@@ -432,7 +432,7 @@ type AlmanachResult struct {
 									<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
 								</div>
 							</td>
-							<td class="px-3 py-2 text-right align-middle">
+							<td class="px-2 py-2 text-right align-middle w-10">
 								<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
 									<i class="ri-delete-bin-line"></i>
 								</button>
