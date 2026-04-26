@@ -5,6 +5,7 @@ services:
       - "8090"
     volumes:
       - musenalm:/app/data
+      - ./musenalm-data:/app/musenalm-data:ro
     networks:
       - caddynet
 

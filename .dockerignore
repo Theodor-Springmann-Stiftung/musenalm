@@ -1,0 +1,29 @@
+# data / runtime
+pb_data/
+musenalm-data/
+data_bilder/
+import/
+backup/
+
+# build artifacts
+tmp/
+_tmp/
+bin/
+out.log
+*.log
+*.zip
+*.out
+
+# editor / tooling
+.git/
+.claude/
+.codex/
+.gocache/
+.gomodcache/
+.playwright-cli/
+node_modules/
+
+# misc large files
+views/
+pageevalues.txt
+cache/
