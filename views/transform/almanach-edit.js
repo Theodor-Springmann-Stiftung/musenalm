@@ -1,3 +1,5 @@
+import { showToast } from "./ui-runtime.js";
+
 export class AlmanachEditPage extends HTMLElement {
 	constructor() {
 		super();
@@ -143,7 +145,6 @@ export class AlmanachEditPage extends HTMLElement {
 		this._deleteDialog = this.querySelector("[data-role='almanach-delete-dialog']");
 		this._deleteConfirmButton = this.querySelector("[data-role='almanach-delete-confirm']");
 		this._deleteCancelButton = this.querySelector("[data-role='almanach-delete-cancel']");
-		this._statusEl = this.querySelector("#almanach-save-feedback");
 		if (!this._form || !this._saveButton) {
 			return;
 		}
@@ -222,7 +223,7 @@ export class AlmanachEditPage extends HTMLElement {
 		if (this._isSaving) {
 			return;
 		}
-		this._clearStatus();
+		
 		let payload;
 		try {
 			payload = this._buildPayload();
@@ -274,7 +275,7 @@ export class AlmanachEditPage extends HTMLElement {
 		if (!redirectUrl) {
 			return;
 		}
-		this._clearStatus();
+		
 		let payload;
 		try {
 			payload = this._buildPayload();
@@ -318,7 +319,7 @@ export class AlmanachEditPage extends HTMLElement {
 		if (this._isSaving) {
 			return;
 		}
-		this._clearStatus();
+		
 		try {
 			await this._reloadForm("");
 		} catch (error) {
@@ -353,7 +354,7 @@ export class AlmanachEditPage extends HTMLElement {
 		if (this._deleteDialog && this._deleteDialog.open) {
 			this._deleteDialog.close();
 		}
-		this._clearStatus();
+		
 		this._setSavingState(true);
 		try {
 			const formData = new FormData(this._form);
@@ -651,46 +652,8 @@ export class AlmanachEditPage extends HTMLElement {
 		}
 	}
 
-	_clearStatus() {
-		if (!this._statusEl) {
-			return;
-		}
-		this._statusEl.textContent = "";
-		this._statusEl.classList.remove("text-red-700", "text-green-700", "save-feedback-error", "save-feedback-success");
-		this._statusEl.classList.remove("is-hidden");
-		this._statusEl.classList.add("hidden");
-	}
-
 	_showStatus(message, type) {
-		if (!this._statusEl) {
-			return;
-		}
-		this._clearStatus();
-		this._statusEl.textContent = message;
-		this._statusEl.classList.remove("hidden");
-		this._statusEl.classList.remove("is-hidden");
-		if (type === "success") {
-			this._statusEl.classList.add("text-green-700", "save-feedback-success");
-		} else if (type === "error") {
-			this._statusEl.classList.add("text-red-700", "save-feedback-error");
-		}
-		if (type === "success") {
-			const el = this._statusEl;
-			if (el) {
-				if (el.dataset.autohideScheduled === "true") {
-					return;
-				}
-				el.dataset.autohideScheduled = "true";
-				setTimeout(() => {
-					el.classList.add("is-hiding");
-					setTimeout(() => {
-						el.classList.add("is-hidden");
-						el.classList.remove("is-hiding");
-						delete el.dataset.autohideScheduled;
-					}, 320);
-				}, 4000);
-			}
-		}
+		showToast(message, type);
 	}
 
 	async _reloadForm(successMessage) {
@@ -724,12 +687,6 @@ export class AlmanachEditPage extends HTMLElement {
 		currentForm.replaceWith(newForm);
 		this._form = newForm;
 
-		const newMessage = doc.querySelector("#user-message");
-		const currentMessage = this.querySelector("#user-message");
-		if (newMessage && currentMessage) {
-			currentMessage.replaceWith(newMessage);
-		}
-
 		const newHeader = doc.querySelector("#almanach-header-data");
 		const currentHeader = this.querySelector("#almanach-header-data");
 		if (newHeader && currentHeader) {
@@ -739,6 +696,10 @@ export class AlmanachEditPage extends HTMLElement {
 		this._initForm();
 		this._initPlaces();
 		this._initSaveHandling();
+
+		if (successMessage) {
+			showToast(successMessage, "success");
+		}
 
 		// Resize all textareas after reload
 		if (typeof window.TextareaAutoResize === "function") {

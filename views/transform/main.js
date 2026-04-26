@@ -35,7 +35,7 @@ import {
 } from "./admin-runtime.js";
 import { FormLoad, TextareaAutoResize } from "./form-runtime.js";
 import { initStatusTooltips } from "./status-tooltips.js";
-import { InitGlobalHtmxNotice, InitStickyActionBars, InitTimedMessages } from "./ui-runtime.js";
+import { InitGlobalHtmxNotice, InitStickyActionBars, InitTimedMessages, showToast } from "./ui-runtime.js";
 
 document.addEventListener("trix-file-accept", (event) => {
 	event.preventDefault();
@@ -160,6 +160,9 @@ function initAdminRuntime(root = document) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+	document.querySelectorAll("[data-toast]").forEach((el) => {
+		window.showToast?.(el.dataset.toastMessage, el.dataset.toast);
+	});
 	markHashNavigationCurrent();
 	pruneAdminSidebarDetails();
 	initAdminRuntime(document);
@@ -197,6 +200,7 @@ document.addEventListener("keydown", (event) => {
 	}
 });
 
+window.showToast = showToast;
 window.ShowBoostedErrors = ShowBoostedErrors;
 window.GenQRCode = GenQRCode;
 window.SelectableInput = SelectableInput;
@@ -204,6 +208,14 @@ window.HookupRBChange = HookupRBChange;
 window.FormLoad = FormLoad;
 window.TextareaAutoResize = TextareaAutoResize;
 window.initAdminStatusPickers = initAdminStatusPickers;
+
+// Ensure #global-toast exists for HTMX OOB swaps
+if (!document.getElementById("global-toast")) {
+	const t = document.createElement("div");
+	t.id = "global-toast";
+	t.className = "fixed bottom-3 z-50 max-w-sm pointer-events-none";
+	document.body?.appendChild(t);
+}
 
 InitGlobalHtmxNotice(() => {
 	pruneAdminSidebarDetails();

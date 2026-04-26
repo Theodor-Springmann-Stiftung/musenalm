@@ -16,6 +16,7 @@
 		},
 		fictional: '{{ $model.fictional }}',
 		fictionalOpen: false,
+		loading: false,
 		offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
 		hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
 		currentCount: {{ if $model.current_count }}{{ $model.current_count }}{{ else }}0{{ end }},

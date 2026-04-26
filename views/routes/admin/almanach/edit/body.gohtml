@@ -694,20 +694,6 @@ type AlmanachResult struct {
 		</div>
 		<div class="form-action-bar">
 			<div class="form-action-bar-inner simple-entity-action-bar-inner">
-				<div id="user-message" class="form-action-bar-message">
-					<p
-						id="almanach-save-feedback"
-						class="save-feedback {{ if $model.error }}save-feedback-error text-red-700{{ else if $model.success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
-						{{ if $model.success }}data-autohide="true"{{ end }}
-						aria-live="polite">
-						{{- if $model.error -}}
-							{{ $model.error }}
-						{{- else if $model.success -}}
-							{{ $model.success }}
-						{{- end -}}
-					</p>
-					<div id="contents-save-toast"></div>
-				</div>
 				<div class="form-action-bar-actions">
 					<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
 						<i class="ri-close-line"></i>

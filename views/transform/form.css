@@ -212,6 +212,24 @@
 		}
 	}
 
+	#global-toast {
+		left: 1.5rem;
+	}
+
+	.admin-layout #global-toast {
+		left: calc(17rem + 1.5rem);
+	}
+
+	.admin-layout-sidebar-collapsed #global-toast {
+		left: calc(4.75rem + 1.5rem);
+	}
+
+	@media (max-width: 1024px) {
+		.admin-layout #global-toast {
+			left: 1.5rem;
+		}
+	}
+
 	.content-action-button {
 		@apply inline-flex items-center justify-center gap-2 rounded-xs border border-slate-300 bg-white px-3 py-1.5 text-base font-semibold text-gray-800 shadow-sm transition-all duration-75 hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
 	}
@@ -626,7 +644,7 @@
 	}
 
 	.save-feedback {
-		@apply text-sm font-semibold px-3 py-2 rounded-md border bg-stone-50 text-gray-700 transition-all duration-300 relative overflow-hidden;
+		@apply text-sm font-semibold px-3 py-2 rounded-xs border bg-stone-50 text-gray-700 transition-all duration-300 relative overflow-hidden;
 		transform-origin: center left;
 	}
 

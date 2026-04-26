@@ -102,7 +102,11 @@ export class EditPage extends HTMLElement {
 				window.history.replaceState(null, "", response.url);
 			}
 
+			const toastEl = replacement.querySelector("[data-toast]");
 			this.replaceWith(replacement);
+			if (toastEl) {
+				window.showToast?.(toastEl.dataset.toastMessage, toastEl.dataset.toast);
+			}
 		} catch (error) {
 			console.error("EditPage save failed", error);
 			window.location.assign(form.action || window.location.href);

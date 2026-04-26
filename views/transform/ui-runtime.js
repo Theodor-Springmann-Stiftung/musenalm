@@ -244,3 +244,20 @@ export function InitTimedMessages() {
 	});
 	observer.observe(document.body, { childList: true, subtree: true });
 }
+
+export function showToast(message, type) {
+	let toast = document.getElementById("global-toast");
+	if (!toast) {
+		toast = document.createElement("div");
+		toast.id = "global-toast";
+		toast.className = "fixed bottom-3 z-50 max-w-sm pointer-events-none";
+		document.body?.appendChild(toast);
+	}
+	const isSuccess = type === "success";
+	const p = document.createElement("p");
+	p.className = `save-feedback pointer-events-auto ${isSuccess ? "save-feedback-success text-green-700" : "save-feedback-error text-red-700"}`;
+	p.setAttribute("aria-live", "polite");
+	if (isSuccess) p.setAttribute("data-autohide", "true");
+	p.innerHTML = `<i class="ri-${isSuccess ? "checkbox-circle-fill" : "error-warning-fill"}"></i> ${message}`;
+	toast.replaceChildren(p);
+}

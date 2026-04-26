@@ -1,4 +1,3 @@
-{{- $messageID := index . "message_id" -}}
 {{- $error := index . "error" -}}
 {{- $success := index . "success" -}}
 {{- $cancelHref := index . "cancel_href" -}}
@@ -7,19 +6,13 @@
 {{- $deleteLabel := index . "delete_label" -}}
 {{- $showViewAction := index . "show_view_action" -}}
 
+{{- if $success -}}
+<div data-toast="success" data-toast-message="{{ $success }}" class="hidden"></div>
+{{- else if $error -}}
+<div data-toast="error" data-toast-message="{{ $error }}" class="hidden"></div>
+{{- end -}}
 <div class="form-action-bar">
 	<div class="form-action-bar-inner simple-entity-action-bar-inner">
-		<p
-			id="{{ $messageID }}"
-			class="form-action-bar-message save-feedback {{ if $error }}save-feedback-error text-red-700{{ else if $success }}save-feedback-success text-green-700{{ else }}hidden{{ end }}"
-			{{ if $success }}data-autohide="true"{{ end }}
-			aria-live="polite">
-			{{- if $error -}}
-				{{ $error }}
-			{{- else if $success -}}
-				{{ $success }}
-			{{- end -}}
-		</p>
 		<div class="form-action-bar-actions">
 			<a href="{{ $cancelHref }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $cancelURL }}">
 				<i class="ri-close-line"></i>
