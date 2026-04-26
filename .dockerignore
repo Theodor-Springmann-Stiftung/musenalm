@@ -25,6 +25,5 @@ node_modules/
 
 # misc large files
 views/node_modules/
-views/public/
 pageevalues.txt
 cache/
