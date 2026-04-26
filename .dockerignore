@@ -24,6 +24,7 @@ out.log
 node_modules/
 
 # misc large files
-views/
+views/node_modules/
+views/public/
 pageevalues.txt
 cache/
