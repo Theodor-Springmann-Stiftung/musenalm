@@ -18,6 +18,7 @@ const (
 	URL_API_ENTRIES_SEARCH = "/search"
 	URL_API_PLACES         = "/admin/api/places"
 	URL_API_PLACES_SEARCH  = "/search"
+	URL_API_PLACES_ALL     = "/all"
 	URL_API_SERIES         = "/admin/api/series"
 	URL_API_SERIES_SEARCH  = "/search"
 )

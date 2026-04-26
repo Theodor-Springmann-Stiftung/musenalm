@@ -10,7 +10,7 @@ export class ContentTypeSelect extends HTMLElement {
 	}
 
 	static get observedAttributes() {
-		return ["data-options", "data-selected", "data-placeholder", "name"];
+		return ["data-options", "data-selected", "data-placeholder", "name", "data-endpoint"];
 	}
 
 	connectedCallback() {
@@ -193,6 +193,50 @@ export class ContentTypeSelect extends HTMLElement {
 			this.searchInput.value = "";
 			this.handleSearchInput();
 			this.searchInput.focus();
+		}
+		this.refreshOptions();
+	}
+
+	async refreshOptions() {
+		const endpoint = this.getAttribute("data-endpoint");
+		if (!endpoint) return;
+
+		try {
+			const response = await fetch(endpoint);
+			if (!response.ok) return;
+			const newOptions = await response.json();
+			if (!Array.isArray(newOptions)) return;
+
+			const checkedValues = new Set(
+				this.checkboxes.filter((cb) => cb.checked).map((cb) => cb.value)
+			);
+
+			const name = this.getAttribute("name") || "content_type[]";
+			const list = this.querySelector("[data-role='content-type-select-list']");
+			if (!list) return;
+
+			list.innerHTML = newOptions
+				.map(
+					(option) => `
+				<label class="content-editor-meta-option">
+					<input
+						type="checkbox"
+						name="${name}"
+						value="${this.escapeAttribute(option.value)}"
+						${checkedValues.has(option.value) ? "checked" : ""} />
+					<span class="truncate">${this.escapeHtml(option.label)}</span>
+				</label>`
+				)
+				.join("");
+
+			this.checkboxes = Array.from(this.querySelectorAll("input[type='checkbox']"));
+			this.checkboxes.forEach((cb) => cb.addEventListener("change", this.handleOptionChange));
+
+			if (this.searchInput?.value) {
+				this.handleSearchInput();
+			}
+		} catch {
+			// keep existing options on error
 		}
 	}
 

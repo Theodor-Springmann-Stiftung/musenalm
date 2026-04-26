@@ -180,7 +180,7 @@ type AlmanachResult struct {
 					data-error-duplicate="Diese Reihe ist bereits verknüpft."
 					class="block">
 					<div data-role="content-series-section-header" class="{{ if not $hasNonPreferredSeries }}hidden{{ end }} grid gap-x-5 items-start mb-1 [grid-template-columns:10rem_1fr_2.5rem_5.5rem]">
-						<span class="edit-form-label">Reihen</span>
+						<span class="edit-form-label">Zusätzliche Reihen</span>
 						<div class="col-span-3">
 							<table class="min-w-full table-fixed text-sm border border-slate-300 rounded-xs">
 								<tbody data-role="content-series-table-body" class="divide-y divide-stone-200">
@@ -242,7 +242,7 @@ type AlmanachResult struct {
 
 					<div class="flex justify-end pl-[11.25rem]">
 						<button type="button" id="series-add-toggle" data-role="content-series-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
-							<i class="ri-add-line"></i> Reihe verlinken
+							<i class="ri-add-line"></i> Zusätzliche Reihe verlinken
 						</button>
 					</div>
 
@@ -350,6 +350,7 @@ type AlmanachResult struct {
 					name="places[]"
 					data-placeholder="Orte auswählen"
 					data-searchable="true"
+					data-endpoint="/admin/api/places/all"
 					data-options='[{{- range $i, $place := $model.place_options -}}{{- if $i }},{{ end -}}{"value":{{ printf "%q" $place.Id }},"label":{{ printf "%q" $place.Name }}}{{- end -}}]'
 					data-selected='[{{- range $i, $place := $model.result.Places -}}{{- if $i }},{{ end -}}{{ printf "%q" $place.Id }}{{- end -}}]'>
 				</content-type-select>

@@ -35,6 +35,7 @@ func (p *PlacesAPI) Setup(router *router.Router[*core.RequestEvent], ia pagemode
 	rg.BindFunc(middleware.Authenticated(app))
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_API_PLACES_SEARCH, p.searchHandler(app))
+	rg.GET(URL_API_PLACES_ALL, p.allHandler(app))
 	return nil
 }
 
@@ -97,6 +98,27 @@ func (p *PlacesAPI) searchHandler(app core.App) HandleFunc {
 		return e.JSON(http.StatusOK, map[string]any{
 			"places": response,
 		})
+	}
+}
+
+func (p *PlacesAPI) allHandler(app core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		places, err := dbmodels.Places_All(app)
+		if err != nil {
+			return e.JSON(http.StatusInternalServerError, map[string]any{"error": "failed to load places"})
+		}
+		dbmodels.Sort_Places_Name(places)
+		options := make([]map[string]string, 0, len(places))
+		for _, place := range places {
+			if place == nil {
+				continue
+			}
+			options = append(options, map[string]string{
+				"value": place.Id,
+				"label": place.Name(),
+			})
+		}
+		return e.JSON(http.StatusOK, options)
 	}
 }
 

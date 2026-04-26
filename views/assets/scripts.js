@@ -8977,7 +8977,7 @@ class pu extends HTMLElement {
     super(), this.handleDocumentClick = this.handleDocumentClick.bind(this), this.handleDocumentKeydown = this.handleDocumentKeydown.bind(this), this.handleTriggerClick = this.handleTriggerClick.bind(this), this.handleOptionChange = this.handleOptionChange.bind(this), this.handleSearchInput = this.handleSearchInput.bind(this), this._bound = !1;
   }
   static get observedAttributes() {
-    return ["data-options", "data-selected", "data-placeholder", "name"];
+    return ["data-options", "data-selected", "data-placeholder", "name", "data-endpoint"];
   }
   connectedCallback() {
     this.render(), this.bindEvents(), this.syncSummary(), this.close();
@@ -9085,7 +9085,33 @@ class pu extends HTMLElement {
     return this.dataset.open === "true";
   }
   open() {
-    this.dataset.open = "true", this.trigger?.setAttribute("data-open", "true"), this.trigger?.setAttribute("aria-expanded", "true"), this.menu?.classList.remove("hidden"), this.icon?.classList.add("rotate-180"), this.searchInput && (this.searchInput.value = "", this.handleSearchInput(), this.searchInput.focus());
+    this.dataset.open = "true", this.trigger?.setAttribute("data-open", "true"), this.trigger?.setAttribute("aria-expanded", "true"), this.menu?.classList.remove("hidden"), this.icon?.classList.add("rotate-180"), this.searchInput && (this.searchInput.value = "", this.handleSearchInput(), this.searchInput.focus()), this.refreshOptions();
+  }
+  async refreshOptions() {
+    const t = this.getAttribute("data-endpoint");
+    if (t)
+      try {
+        const e = await fetch(t);
+        if (!e.ok) return;
+        const i = await e.json();
+        if (!Array.isArray(i)) return;
+        const r = new Set(
+          this.checkboxes.filter((o) => o.checked).map((o) => o.value)
+        ), s = this.getAttribute("name") || "content_type[]", a = this.querySelector("[data-role='content-type-select-list']");
+        if (!a) return;
+        a.innerHTML = i.map(
+          (o) => `
+				<label class="content-editor-meta-option">
+					<input
+						type="checkbox"
+						name="${s}"
+						value="${this.escapeAttribute(o.value)}"
+						${r.has(o.value) ? "checked" : ""} />
+					<span class="truncate">${this.escapeHtml(o.label)}</span>
+				</label>`
+        ).join(""), this.checkboxes = Array.from(this.querySelectorAll("input[type='checkbox']")), this.checkboxes.forEach((o) => o.addEventListener("change", this.handleOptionChange)), this.searchInput?.value && this.handleSearchInput();
+      } catch {
+      }
   }
   close() {
     this.dataset.open = "false", this.trigger?.setAttribute("data-open", "false"), this.trigger?.setAttribute("aria-expanded", "false"), this.menu?.classList.add("hidden"), this.icon?.classList.remove("rotate-180");
