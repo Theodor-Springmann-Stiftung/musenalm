@@ -16,5 +16,6 @@ FROM debian:bookworm-slim
 WORKDIR /app
 COPY --from=builder /app/musenalm ./
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/views/public ./views/public
 EXPOSE 8090
 CMD ["./scripts/run.sh"]
