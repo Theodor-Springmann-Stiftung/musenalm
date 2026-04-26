@@ -14,9 +14,9 @@
 <div class="flex flex-col gap-2">
 	<!-- Status -->
 	<div class="inputwrapper">
-		<div class="inputlabelrow">
-		<label for="{{ $fieldId }}" class="inputlabel">Status</label>
-		</div>
+		<!-- <div class="inputlabelrow"> -->
+		<!-- <label for="{{ $fieldId }}" class="inputlabel">Status</label> -->
+		<!-- </div> -->
 		<div class="relative">
 			<select name="{{ $fieldName }}" id="{{ $fieldId }}" autocomplete="off" class="status-select status-select-real" data-status="{{ $entity.EditState }}">
 				<option value="Unknown" {{ if eq $entity.EditState "Unknown" }}selected{{ end }}>{{ if $isAlmanach }}Gesucht{{ else }}Unbekannt{{ end }}</option>
@@ -44,9 +44,6 @@
 			<div class="inputlabelrow">
 				<div class="flex items-center gap-1">
 					<label for="edit_comment" class="inputlabel menu-label">Bearbeitungsvermerk</label>
-					<span class="!inline" data-tippy-placement="top" data-tippy-content='{{ help $tableName "edit_comment" }}'>
-						<i class="ri-question-line"></i>
-					</span>
 				</div>
 				<div class="pr-2">
 					<button class="dm-close-button font-bold input-label">

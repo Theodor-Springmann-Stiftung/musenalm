@@ -541,7 +541,7 @@
 		@apply px-0 pt-3;
 	}
 
-	.admin-layout-sidebar-collapsed hr {
+	.admin-layout-sidebar-collapsed .admin-sidebar-nav hr {
 		@apply hidden;
 	}
 

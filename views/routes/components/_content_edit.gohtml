@@ -22,7 +22,7 @@
 {{- $hideExtentRow := index . "hide_extent_row" -}}
 {{- $relationsAfterAuthor := index . "relations_after_author" -}}
 
-<div class="bg-white" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
+<div class="bg-stone-50" data-role="content-card" data-content-id="{{ $contentID }}" data-content-order="{{ $content.Numbering }}">
 	<input type="hidden" name="{{ $prefix }}numbering" class="content-numbering" value="{{- $content.Numbering -}}" />
 	<input type="hidden" name="{{ $prefix }}entries" value="{{ $entry.Id }}" />
 	<div class="flex flex-col gap-3">
@@ -57,21 +57,17 @@
 			<div class="inputshell"><textarea name="{{ $prefix }}incipit_statement" id="{{ $baseID }}-incipit" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.IncipitStmt -}}</textarea></div>
 		</div>
 
-		<div class="flex flex-row gap-2 w-full items-start">
-			<div class="inputwrapper flex-1 min-w-0">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
-				</div>
-				<div class="inputshell"><textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea></div>
+		<div class="inputwrapper">
+			<div class="inputlabelrow">
+				<label for="{{ $baseID }}-responsibility" class="inputlabel">Autorangabe</label>
 			</div>
-			<div class="inputwrapper shrink-0">
-				<input type="hidden" name="{{ $prefix }}pseudonym" value="false" />
-				<div class="px-3 py-2 flex flex-row gap-2 font-bold">
+			<input type="hidden" name="{{ $prefix }}pseudonym" value="false" />
+			<div class="inputshell flex items-center">
+				<textarea name="{{ $prefix }}responsibility_statement" id="{{ $baseID }}-responsibility" class="inputinput flex-1 no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ResponsibilityStmt -}}</textarea>
+				<label class="flex shrink-0 cursor-pointer items-center gap-1.5 pl-2 pr-3 text-sm font-bold text-gray-700" for="{{ $baseID }}-pseudonym">
 					<input type="checkbox" name="{{ $prefix }}pseudonym" id="{{ $baseID }}-pseudonym" value="true" {{ if $content.Pseudonym }}checked{{ end }} data-boolean-checkbox />
-					<label class="flex items-center gap-1 text-gray-700" for="{{ $baseID }}-pseudonym">
-						<span>Pseudonym</span>
-					</label>
-				</div>
+					<span>Pseudonym</span>
+				</label>
 			</div>
 		</div>
 
@@ -85,65 +81,10 @@
 				"agents_prefix" $agentsPrefix
 				"agents_add_toggle_id" $agentsAddToggleID
 				"agents_section_id" $agentsSectionID
+				"stacked_label" true
 			) -}}
 		{{- end -}}
 
-		<div id="{{ $baseID }}-edit-fields" class="mt-2 flex flex-col gap-2"></div>
-		<div-manager dm-target="{{ $baseID }}-edit-fields" class="flex items-center justify-end">
-			<button class="dm-menu-button text-right cursor-pointer whitespace-nowrap"><i class="ri-add-line"></i>
-				Felder hinzufügen</button>
-
-			<div class="inputwrapper {{ if eq $content.SubtitleStmt "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-subtitle" class="inputlabel menu-label">Untertitel</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<div class="inputshell"><textarea name="{{ $prefix }}subtitle_statement" id="{{ $baseID }}-subtitle" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.SubtitleStmt -}}</textarea></div>
-			</div>
-
-			
-
-			<div class="inputwrapper {{ if eq $content.ParallelTitle "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-parallel-title" class="inputlabel menu-label">Paralleltitel</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<div class="inputshell"><textarea name="{{ $prefix }}parallel_title" id="{{ $baseID }}-parallel-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.ParallelTitle -}}</textarea></div>
-			</div>
-
-			<div class="inputwrapper {{ if eq $content.VariantTitle "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-variant-title" class="inputlabel menu-label">Titelvarianten</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<div class="inputshell"><textarea name="{{ $prefix }}variant_title" id="{{ $baseID }}-variant-title" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.VariantTitle -}}</textarea></div>
-			</div>
-
-			<div class="inputwrapper {{ if eq $content.PlaceStmt "" }}hidden{{ end }}">
-				<div class="inputlabelrow">
-					<label for="{{ $baseID }}-place" class="inputlabel menu-label">Ortsangabe</label>
-					<div class="pr-2">
-						<button class="dm-close-button font-bold input-label">
-							<i class="ri-close-line"></i>
-						</button>
-					</div>
-				</div>
-				<div class="inputshell"><textarea name="{{ $prefix }}place_statement" id="{{ $baseID }}-place" class="inputinput no-enter whitespace-normal" autocomplete="off" rows="1">{{- $content.PlaceStmt -}}</textarea></div>
-			</div>
-
-		</div-manager>
 		{{- $annotationEditorClass := "" -}}
 		{{- if index . "compact_annotation" -}}
 			{{- $annotationEditorClass = "content-editor-annotation-compact" -}}
@@ -160,6 +101,7 @@
 			"agents_prefix" $agentsPrefix
 			"agents_add_toggle_id" $agentsAddToggleID
 			"agents_section_id" $agentsSectionID
+			"stacked_label" true
 		) -}}
 	{{- end -}}
 </div>

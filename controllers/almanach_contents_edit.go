@@ -461,7 +461,7 @@ func (p *AlmanachContentsEditPage) POSTSave(engine *templating.Engine, app core.
 				app.Logger().Error("Failed to render contents panel", "entry_id", entry.Id, "error", err)
 				return e.String(http.StatusInternalServerError, "")
 			}
-			success := `<div hx-swap-oob="outerHTML:#user-message"><div id="user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> ` + html.EscapeString(savedMessage) + `</div></div></div>`
+			success := `<div hx-swap-oob="innerHTML:#contents-save-toast"><p class="save-feedback save-feedback-success text-green-700" data-autohide="true" aria-live="polite"><i class="ri-checkbox-circle-fill"></i> ` + html.EscapeString(savedMessage) + `</p></div>`
 			return e.HTML(http.StatusOK, panelHTML+workspaceHTML+success)
 		}
 
@@ -755,7 +755,7 @@ func (p *AlmanachContentsEditPage) POSTDelete(engine *templating.Engine, app cor
 				app.Logger().Error("Failed to render contents workspace after delete", "entry_id", entry.Id, "content_id", contentID, "error", err)
 				return e.String(http.StatusInternalServerError, "")
 			}
-			success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Beitrag gelöscht.</div></div>`
+			success := `<div hx-swap-oob="innerHTML:#contents-save-toast"><p class="save-feedback save-feedback-success text-green-700" data-autohide="true" aria-live="polite"><i class="ri-checkbox-circle-fill"></i> Beitrag gelöscht.</p></div>`
 			return e.HTML(http.StatusOK, workspaceHTML+success)
 		}
 
@@ -841,7 +841,7 @@ func (p *AlmanachContentsEditPage) POSTUploadScans(engine *templating.Engine, ap
 			return e.String(http.StatusInternalServerError, "")
 		}
 
-		success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Digitalisat gespeichert.</div></div>`
+		success := `<div hx-swap-oob="innerHTML:#contents-save-toast"><p class="save-feedback save-feedback-success text-green-700" data-autohide="true" aria-live="polite"><i class="ri-checkbox-circle-fill"></i> Digitalisat gespeichert.</p></div>`
 		countOOB := renderContentImagesCountOOB(content)
 		return e.HTML(http.StatusOK, builder.String()+success+countOOB)
 	}
@@ -921,7 +921,7 @@ func (p *AlmanachContentsEditPage) POSTDeleteScan(engine *templating.Engine, app
 			return e.String(http.StatusInternalServerError, "")
 		}
 
-		success := `<div hx-swap-oob="innerHTML:#user-message"><div class="text-green-800 text-sm mt-2 rounded-xs bg-green-200 p-2 font-bold border-green-700 shadow border mb-3"><i class="ri-checkbox-circle-fill"></i> Digitalisat geloescht.</div></div>`
+		success := `<div hx-swap-oob="innerHTML:#contents-save-toast"><p class="save-feedback save-feedback-success text-green-700" data-autohide="true" aria-live="polite"><i class="ri-checkbox-circle-fill"></i> Digitalisat gelöscht.</p></div>`
 		countOOB := renderContentImagesCountOOB(content)
 		return e.HTML(http.StatusOK, builder.String()+success+countOOB)
 	}
@@ -950,7 +950,7 @@ func renderContentsImagesHTMXError(e *core.RequestEvent, message string, isHTMX 
 	}
 	e.Response.Header().Set("HX-Reswap", "none")
 	payload := fmt.Sprintf(
-		`<div hx-swap-oob="innerHTML:#user-message"><div class="text-red-800 text-sm mt-2 rounded-xs bg-red-200 p-2 font-bold border-red-700 shadow border mb-3"><i class="ri-error-warning-fill"></i> %s</div></div>`,
+		`<div hx-swap-oob="innerHTML:#contents-save-toast"><p class="save-feedback save-feedback-error text-red-700" aria-live="polite"><i class="ri-error-warning-fill"></i> %s</p></div>`,
 		message,
 	)
 	return e.HTML(http.StatusBadRequest, payload)

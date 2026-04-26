@@ -216,13 +216,18 @@ export function InitTimedMessages() {
 		}, 320);
 	};
 
+	const scheduleEl = (el) => {
+		if (el.dataset.autohideScheduled === "true") return;
+		el.dataset.autohideScheduled = "true";
+		setTimeout(() => hide(el), duration);
+	};
+
 	const schedule = (root) => {
 		const scope = root || document;
-		scope.querySelectorAll("[data-autohide='true']").forEach((el) => {
-			if (el.dataset.autohideScheduled === "true") return;
-			el.dataset.autohideScheduled = "true";
-			setTimeout(() => hide(el), duration);
-		});
+		if (scope !== document && scope.matches?.("[data-autohide='true']")) {
+			scheduleEl(scope);
+		}
+		scope.querySelectorAll("[data-autohide='true']").forEach(scheduleEl);
 	};
 
 	schedule(document);

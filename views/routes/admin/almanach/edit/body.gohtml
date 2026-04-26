@@ -322,124 +322,18 @@ type AlmanachResult struct {
 				</div>
 			</div>
 
-			<!-- Verknüpfte Personen (label + table hidden when no rows) -->
+			<!-- Verknüpfte Personen -->
 			<div class="col-span-4">
-				<content-person-relations
-					data-prefix="entries_agents"
-					data-endpoint="/admin/api/agents/search"
-					data-link-base="/person/"
-					data-default-relation="Herausgeber:in"
-					class="block">
-					<div data-role="content-person-section-header" class="{{ if not $model.result.EntriesAgents }}hidden{{ end }} grid gap-x-5 items-start mb-1 [grid-template-columns:10rem_1fr_2.5rem_5.5rem]">
-						<span class="edit-form-label">Verknüpfte Personen</span>
-						<div class="col-span-3">
-							<table class="min-w-full table-fixed text-sm border rounded-xs border-slate-300">
-								<tbody data-role="content-person-table-body" class="divide-y divide-stone-200">
-									{{- range $_, $r := $model.result.EntriesAgents -}}
-										{{- $a := index $model.result.Agents $r.Agent -}}
-										<tr data-rel-row data-role="content-person-row" data-kind="existing" class="align-middle bg-white">
-											<td class="px-3 py-2 align-middle">
-												{{- if $a -}}
-													<a
-														data-role="content-person-link"
-														href="/person/{{ $a.MusenalmID }}"
-														target="_blank"
-														rel="noreferrer"
-														class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-														<span data-role="content-person-name">{{ $a.Name }}</span>
-													</a>
-												{{- else -}}
-													<span data-role="content-person-name" class="font-semibold text-slate-900">Unbekannte Person</span>
-												{{- end -}}
-												{{- if and $a $a.BiographicalData -}}
-													<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600">{{ $a.BiographicalData }}</span>
-												{{- else -}}
-													<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
-												{{- end -}}
-												<input type="hidden" name="entries_agents_id[{{ $r.Id }}]" value="{{ $r.Id }}" />
-												<input type="hidden" name="entries_agents_agent[{{ $r.Id }}]" value="{{ $r.Agent }}" />
-											</td>
-											<td class="px-3 py-2 align-middle w-[30%]">
-												<div class="relative">
-													<select data-role="content-person-type" name="entries_agents_type[{{ $r.Id }}]" autocomplete="off" class="content-editor-meta-select w-full">
-														{{- range $t := $model.agent_relations -}}
-															<option value="{{ $t }}" {{ if eq $r.Type $t }}selected{{ end }}>{{ $t }}</option>
-														{{- end -}}
-													</select>
-													<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
-												</div>
-											</td>
-											<td class="px-2 py-2 text-right align-middle w-10">
-												<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
-													<i class="ri-delete-bin-line"></i>
-												</button>
-												<input data-role="content-person-delete-input" type="checkbox" class="hidden" name="entries_agents_delete[{{ $r.Id }}]" />
-											</td>
-										</tr>
-									{{- end -}}
-								</tbody>
-							</table>
-						</div>
-					</div>
-
-					<div data-role="content-person-add-panel" class="hidden pt-1.5 pl-[11.25rem]">
-						<div class="flex items-center gap-2">
-							<div class="relative min-w-0 flex-1">
-								<label for="agents-add-search" class="sr-only">Person suchen</label>
-								<div class="inputshell px-1 py-0.5">
-									<input
-										id="agents-add-search"
-										data-role="content-person-add-input"
-										type="text"
-										autocomplete="off"
-										class="inputinput w-full text-sm"
-										placeholder="Person suchen..." />
-								</div>
-								<div data-role="content-person-add-results" class="absolute left-0 right-0 top-full z-20 mt-1 hidden overflow-hidden rounded-xs border border-stone-200 bg-white shadow-lg"></div>
-								<div data-role="content-person-add-error" class="mt-2 hidden text-xs font-semibold text-red-700"></div>
-							</div>
-							<button type="button" data-role="content-person-add-confirm" class="inline-flex h-9 items-center justify-center rounded-xs bg-slate-800 px-3 text-base text-stone-50 transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Bestätigen" disabled>
-								<i class="ri-check-line"></i>
-							</button>
-							<button type="button" data-role="content-person-add-abort" class="inline-flex h-9 items-center justify-center rounded-xs border border-stone-300 bg-white px-3 text-base text-slate-700 transition-colors hover:bg-stone-100" aria-label="Abbrechen">
-								<i class="ri-close-line"></i>
-							</button>
-						</div>
-					</div>
-
-					<div class="flex justify-end mt-1 pl-[11.25rem]">
-						<button type="button" id="agents-add-toggle" data-role="content-person-add-toggle" class="dm-menu-button inline-flex items-center leading-none cursor-pointer whitespace-nowrap">
-							<i class="ri-link"></i> Person verlinken
-						</button>
-					</div>
-
-					<template data-role="content-person-new-row-template">
-						<tr data-rel-row data-role="content-person-row" data-kind="new" class="align-middle bg-white">
-							<td class="px-3 py-2 align-middle">
-								<a data-role="content-person-link" target="_blank" rel="noreferrer" class="font-semibold text-slate-900 no-underline hover:text-slate-700">
-									<span data-role="content-person-name"></span>
-								</a>
-								<span data-role="content-person-life" class="ml-1.5 inline-block whitespace-nowrap italic text-slate-600"></span>
-								<input data-role="content-person-new-id" type="hidden" />
-							</td>
-							<td class="px-3 py-2 align-middle w-[30%]">
-								<div class="relative">
-									<select data-role="content-person-type" autocomplete="off" class="content-editor-meta-select w-full">
-										{{- range $t := $model.agent_relations -}}
-											<option value="{{ $t }}" {{ if eq $t "Herausgeber:in" }}selected{{ end }}>{{ $t }}</option>
-										{{- end -}}
-									</select>
-									<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
-								</div>
-							</td>
-							<td class="px-2 py-2 text-right align-middle w-10">
-								<button type="button" data-role="content-person-delete" class="inline-flex items-center justify-center rounded-xs border border-red-200 bg-transparent px-1.5 py-0.5 text-base text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" aria-label="Entfernen">
-									<i class="ri-delete-bin-line"></i>
-								</button>
-							</td>
-						</tr>
-					</template>
-				</content-person-relations>
+				{{ template "_content_relations_editor" (Dict
+					"agents"              $model.result.Agents
+					"content_agents"      $model.result.EntriesAgents
+					"agent_relations"     $model.agent_relations
+					"agents_prefix"       "entries_agents"
+					"agents_add_toggle_id" "agents-add-toggle"
+					"label"               "Verknüpfte Personen"
+					"default_relation"    "Herausgeber:in"
+					"show_uncertain"      false
+				) }}
 			</div>
 
 			<!-- Ortsangabe -->
@@ -590,7 +484,7 @@ type AlmanachResult struct {
 
 					<div class="items-list flex flex-col gap-3">
 						{{- range $i, $item := $model.result.Items -}}
-							<div class="items-row border border-stone-200 rounded-xs bg-stone-50 flex flex-col gap-3 shadow-sm" data-item-id="{{ $item.Id }}">
+							<div class="items-row border rounded-xs flex flex-col gap-3" data-item-id="{{ $item.Id }}">
 								<input type="hidden" name="items_id[]" value="{{ $item.Id }}" />
 								<div class="items-summary flex flex-col gap-2">
 									<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
@@ -802,6 +696,7 @@ type AlmanachResult struct {
 							{{ $model.success }}
 						{{- end -}}
 					</p>
+					<div id="contents-save-toast"></div>
 				</div>
 				<div class="form-action-bar-actions">
 					<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">

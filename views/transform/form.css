@@ -670,7 +670,7 @@
 	}
 
 	.save-feedback.is-hidden {
-		@apply opacity-0 pointer-events-none;
+		@apply opacity-0 pointer-events-none hidden;
 	}
 
 	.lf-warn-icon {
@@ -1284,7 +1284,7 @@
 
 	.content-editor-meta-input:focus,
 	.content-editor-meta-select:focus {
-		@apply border-slate-400;
+		@apply border-blue-300;
 		box-shadow: none;
 	}
 

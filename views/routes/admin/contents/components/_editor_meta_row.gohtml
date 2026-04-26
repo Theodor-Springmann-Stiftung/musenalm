@@ -9,7 +9,7 @@
 			</span>
 		</div>
 	</div>
-	<div class="grid grid-cols-[5.5rem_12rem_minmax(0,1fr)] items-stretch gap-2 px-2 py-1">
+	<div class="grid grid-cols-[5.5rem_12rem_minmax(0,1fr)] items-stretch gap-2">
 		<input
 			type="text"
 			name="content_{{ $model.content_id }}_extent"
@@ -21,15 +21,18 @@
 			placeholder="Seite"
 			data-role="contents-editor-page-input"
 			value="{{- $model.content.Extent -}}" />
-		<select
-			name="content_{{ $model.content_id }}_musenalm_pagination"
-			id="content-{{ $model.content_id }}-pagination"
-			class="content-editor-meta-select">
-			<option value="" disabled {{ if eq $model.content.MusenalmPagination "" }}selected{{ end }}>Paginierung</option>
-			{{- range $_, $p := $model.pagination_values -}}
-				<option value="{{- $p -}}" {{ if eq $model.content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
-			{{- end -}}
-		</select>
+		<div class="relative">
+			<select
+				name="content_{{ $model.content_id }}_musenalm_pagination"
+				id="content-{{ $model.content_id }}-pagination"
+				class="content-editor-meta-select w-full">
+				<option value="" disabled {{ if eq $model.content.MusenalmPagination "" }}selected{{ end }}>Paginierung</option>
+				{{- range $_, $p := $model.pagination_values -}}
+					<option value="{{- $p -}}" {{ if eq $model.content.MusenalmPagination $p }}selected{{ end }}>{{- $p -}}</option>
+				{{- end -}}
+			</select>
+			<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
+		</div>
 		{{- template "_type_dropdown" (Dict
 			"content_id" $model.content_id
 			"selected" $model.content.MusenalmType

@@ -38,24 +38,24 @@
 		{{/* Stats row */}}
 		{{ $stats := $model.stats }}
 		<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-			<a href="/admin/reihen/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+			<a href="/admin/reihen/" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
 				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Reihen }}</span>
 				<span class="text-sm text-slate-500 flex items-center gap-1"><i class="ri-book-shelf-fill" aria-hidden="true"></i> Reihen</span>
 			</a>
-			<a href="/admin/baende/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+			<a href="/admin/baende/" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
 				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Baende }}</span>
 				<span class="text-sm text-slate-500 flex items-center gap-1"><i class="ri-book-line" aria-hidden="true"></i> Bände</span>
 			</a>
-			<a href="/admin/beitraege/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+			<a href="/admin/beitraege/" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
 				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Inhalte }}</span>
 				<span class="text-sm text-slate-500 flex items-center gap-1"><i
 						class="ri-article-line" aria-hidden="true"></i> Beiträge</span>
 			</a>
-			<a href="/admin/beitraege/?offset=0&scans=with" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+			<a href="/admin/beitraege/?offset=0&scans=with" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
 				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Scans }}</span>
 				<span class="text-sm text-slate-500 flex items-center gap-1"><i class="ri-image-line" aria-hidden="true"></i> Scans</span>
 			</a>
-			<a href="/admin/personen/" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
+			<a href="/admin/personen/" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex flex-col gap-1 hover:bg-slate-100 transition-colors no-underline">
 				<span class="text-2xl font-semibold text-slate-900 tabular-nums">{{ GermanInt $stats.Persons }}</span>
 				<span class="text-sm text-slate-500 flex items-center gap-1"><i class="ri-user-line" aria-hidden="true"></i> Personen</span>
 			</a>
@@ -65,7 +65,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
 			{{/* Bände */}}
-			<div id="baende-list-card" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200">
+			<div id="baende-list-card" class="bg-slate-50 rounded-xs border border-slate-200">
 				<div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
 					<h2 class="text-sm font-semibold text-slate-900">Zuletzt bearbeitete Bände</h2>
 					<div class="inline-flex gap-0.5">
@@ -98,7 +98,7 @@
 			</div>
 
 			{{/* Inhalte */}}
-			<div id="inhalte-list-card" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200">
+			<div id="inhalte-list-card" class="bg-slate-50 rounded-xs border border-slate-200">
 				<div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
 					<h2 class="text-sm font-semibold text-slate-900">Zuletzt bearbeitete Einträge</h2>
 					<div class="inline-flex gap-0.5">
@@ -118,7 +118,7 @@
 							{{- range $i, $src := .ImagePaths -}}
 							{{- if lt $i 3 -}}
 							<popup-image data-image-url="{{ $src }}?thumb=0x300" data-full-image-url="{{ $src }}" class="inline-flex items-center">
-								<img src="{{ $src }}?thumb=0x300" alt="Scan" class="h-5 w-5 rounded-full border border-slate-400 object-cover shadow-sm" />
+								<img src="{{ $src }}?thumb=0x300" alt="Scan" class="h-5 w-5 rounded-full border border-slate-400 object-cover" />
 							</popup-image>
 							{{- end -}}
 							{{- end -}}
@@ -144,7 +144,7 @@
 
 		{{/* Recent scans strip */}}
 		{{ if $model.recent_scan_paths }}
-		<div id="scan-strip" class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 px-4 py-3 flex items-center gap-4 mb-6 overflow-hidden">
+		<div id="scan-strip" class="bg-slate-50 rounded-xs border border-slate-200 px-4 py-3 flex items-center gap-4 mb-6 overflow-hidden">
 			<div class="flex items-center gap-2 shrink-0">
 				<span class="font-serif font-bold text-base text-slate-800 whitespace-nowrap">Letzte Scans</span>
 				<button
@@ -162,7 +162,7 @@
 			<div class="flex items-center gap-1 flex-wrap overflow-hidden" style="max-height:1.75rem">
 				{{- range $model.recent_scan_paths -}}
 				<popup-image data-image-url="{{ . }}?thumb=0x300" data-full-image-url="{{ . }}" class="inline-flex items-center shrink-0">
-					<img src="{{ . }}?thumb=0x300" alt="Scan" class="h-7 w-7 rounded-full border border-slate-300 object-cover shadow-sm" />
+					<img src="{{ . }}?thumb=0x300" alt="Scan" class="h-7 w-7 rounded-full border border-slate-300 object-cover" />
 				</popup-image>
 				{{- end -}}
 			</div>
@@ -170,7 +170,7 @@
 		{{ end }}
 
 		{{/* System status */}}
-		<div class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 p-6">
+		<div class="bg-slate-50 rounded-xs border border-slate-200 p-6">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
 				{{/* Backup */}}

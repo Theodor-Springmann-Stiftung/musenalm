@@ -26,7 +26,7 @@
 	data-loading="false"
 	data-content-musenalm-id="{{ $model.content.MusenalmID }}"
 	{{- if $oob }} hx-swap-oob="outerHTML"{{- end -}}
-	class="contents-editor-panel-shell flex min-h-0 w-full flex-col overflow-hidden rounded-xs border border-stone-400 bg-white lg:h-full lg:max-h-full">
+	class="contents-editor-panel-shell flex min-h-0 w-full flex-col overflow-hidden rounded-xs border border-stone-400 bg-stone-50 lg:h-full lg:max-h-full">
 	<div class="flex shrink-0 items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
 		<div class="min-w-0 flex items-center gap-3 text-base text-slate-900">
 			{{- if not $model.is_new -}}
@@ -90,7 +90,7 @@
 					{{- if $model.error -}}{{ $model.error }}{{- end -}}
 				</div>
 
-				<div class="flex flex-col gap-4">
+				<div class="flex flex-col gap-3">
 					{{- template "_editor_meta_row" $model -}}
 
 					{{- template "_content_edit" (Dict
@@ -142,7 +142,7 @@
 					</button>
 					<button
 						type="button"
-						class="admin-list-chip-danger shrink-0"
+						class="simple-entity-header-button simple-entity-header-button-icon simple-entity-header-chip shrink-0 border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-900"
 						data-role="contents-editor-delete"
 						aria-label="Beitrag löschen">
 						<i class="ri-delete-bin-line"></i>
@@ -160,6 +160,7 @@
 							<option value="Edited" {{ if eq $model.content.EditState "Edited" }}selected{{ end }}>Erfasst</option>
 						</select>
 						<i class="status-icon absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none {{- if eq $model.content.EditState "Edited" }} ri-checkbox-circle-line{{- else if eq $model.content.EditState "Review" }} ri-search-line{{- else if eq $model.content.EditState "ToDo" }} ri-list-check{{- else }} ri-forbid-2-line{{- end }}" data-role="contents-editor-footer-state-icon"></i>
+						<i class="ri-arrow-down-s-line absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"></i>
 					</div>
 				</div>
 				<div class="flex items-center justify-end gap-3">

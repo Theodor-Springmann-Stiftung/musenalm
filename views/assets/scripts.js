@@ -11275,23 +11275,24 @@ function Ms() {
   n(), window.addEventListener("scroll", n, { passive: !0 }), window.addEventListener("resize", n), document.addEventListener("htmx:afterSwap", n);
 }
 function Om() {
-  const t = (s) => {
-    !s || s.classList.contains("hidden") || s.classList.contains("is-hidden") || (requestAnimationFrame(() => {
-      s.classList.add("is-hiding");
+  const t = (r) => {
+    !r || r.classList.contains("hidden") || r.classList.contains("is-hidden") || (requestAnimationFrame(() => {
+      r.classList.add("is-hiding");
     }), setTimeout(() => {
-      s.classList.add("is-hidden"), s.classList.remove("is-hiding"), delete s.dataset.autohideScheduled;
+      r.classList.add("is-hidden"), r.classList.remove("is-hiding"), delete r.dataset.autohideScheduled;
     }, 320));
-  }, e = (s) => {
-    (s || document).querySelectorAll("[data-autohide='true']").forEach((o) => {
-      o.dataset.autohideScheduled !== "true" && (o.dataset.autohideScheduled = "true", setTimeout(() => t(o), 2e3));
-    });
+  }, e = (r) => {
+    r.dataset.autohideScheduled !== "true" && (r.dataset.autohideScheduled = "true", setTimeout(() => t(r), 2e3));
+  }, i = (r) => {
+    const o = r || document;
+    o !== document && o.matches?.("[data-autohide='true']") && e(o), o.querySelectorAll("[data-autohide='true']").forEach(e);
   };
-  e(document), document.addEventListener("htmx:afterSwap", (s) => {
-    e(s.target);
-  }), new MutationObserver((s) => {
-    for (const r of s)
-      for (const o of r.addedNodes)
-        o.nodeType === Node.ELEMENT_NODE && e(o);
+  i(document), document.addEventListener("htmx:afterSwap", (r) => {
+    i(r.target);
+  }), new MutationObserver((r) => {
+    for (const o of r)
+      for (const a of o.addedNodes)
+        a.nodeType === Node.ELEMENT_NODE && i(a);
   }).observe(document.body, { childList: !0, subtree: !0 });
 }
 document.addEventListener("trix-file-accept", (n) => {
