@@ -70,6 +70,7 @@
 		class="w-full dbform form-with-action-bar simple-entity-form"
 		id="changeplaceform"
 		method="POST"
+		hx-boost="false"
 		action="{{ if $model.is_new }}/admin/orte/new/{{ else }}/admin/ort/{{ $place.Id }}/edit{{ end }}"
 		{{- if not $model.is_new -}}
 			data-delete-endpoint="/admin/ort/{{ $place.Id }}/edit/delete"

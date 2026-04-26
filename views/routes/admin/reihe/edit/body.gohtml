@@ -73,6 +73,7 @@
 		class="w-full dbform form-with-action-bar simple-entity-form"
 		id="changeseriesform"
 		method="POST"
+		hx-boost="false"
 		action="{{ if $model.is_new }}/admin/reihen/new/{{ else }}/admin/reihe/{{ $series.MusenalmID }}/edit{{ end }}"
 		{{- if not $model.is_new -}}
 			data-delete-endpoint="/admin/reihe/{{ $series.MusenalmID }}/edit/delete"
