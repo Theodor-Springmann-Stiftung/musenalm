@@ -49,7 +49,7 @@
 							   }"
 							   aria-hidden="true"></i>
 						</button>
-						<span class="col-annotations hidden font-semibold tracking-wide">Anmerkungen</span>
+						<span class="col-annotations font-semibold tracking-wide">Anmerkungen</span>
 					</div>
 				</th>
 				<th class="py-2 pr-4 whitespace-nowrap col-year hidden admin-col-year align-bottom"
@@ -106,7 +106,7 @@
 					<button type="button"
 						class="baende-sort-button flex w-full items-center justify-between gap-1 text-left text-base"
 						@click="changeSort('signatur', $event)">
-						<span class="font-semibold tracking-wide">Signaturen</span>
+						<span class="font-semibold tracking-wide">Exemplare</span>
 						<i class="text-xs opacity-70 transition-colors"
 						   :class="{
 								'ri-arrow-up-line text-blue-600': sortField === 'signatur' && sortOrder === 'asc',

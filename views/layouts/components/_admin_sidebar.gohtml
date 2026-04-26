@@ -144,14 +144,14 @@
 	</div>
 
 	<div class="admin-sidebar-collapsed-create" x-data="{ open: false }" @click.outside="open = false">
-		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" data-admin-sidebar-tooltip="Neu" @click="open = !open">
-			<i class="ri-add-circle-line" aria-hidden="true"></i>
+		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" data-admin-sidebar-tooltip="Erstellen" @click="open = !open">
+			<i class="ri-asterisk" aria-hidden="true"></i>
 		</button>
 		<div x-cloak x-show="open" class="admin-sidebar-collapsed-create-popout">
-			<a href="/admin/almanach-new/" class="admin-sidebar-collapsed-create-link{{ if $isNewBandActive }} active{{ end }}">Neuer Band</a>
-			<a href="/admin/reihen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewSeriesActive }} active{{ end }}">Neue Reihe</a>
-			<a href="/admin/orte/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPlaceActive }} active{{ end }}">Neuer Ort</a>
-			<a href="/admin/personen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPersonActive }} active{{ end }}">Neue Person</a>
+			<a href="/admin/almanach-new/" class="admin-sidebar-collapsed-create-link{{ if $isNewBandActive }} active{{ end }}">Band erstellen</a>
+			<a href="/admin/reihen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewSeriesActive }} active{{ end }}">Reihe erstellen</a>
+			<a href="/admin/orte/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPlaceActive }} active{{ end }}">Ort erstellen</a>
+			<a href="/admin/personen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPersonActive }} active{{ end }}">Person erstellen</a>
 		</div>
 	</div>
 	{{- end -}}
@@ -227,14 +227,14 @@
 
 		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-create-section" {{ if $isCreateSectionActive }}open data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
-				<span>Neu</span>
+				<span class="inline-flex items-center gap-1.5"><i class="ri-asterisk" aria-hidden="true"></i><span>Erstellen</span></span>
 				<i class="ri-arrow-down-s-line admin-sidebar-section-state-icon" aria-hidden="true"></i>
 			</summary>
 			<div class="admin-sidebar-sub">
-				<a href="/admin/almanach-new/" data-admin-sidebar-tooltip="Neuer Band" class="admin-sidebar-link" {{ if $isNewBandActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Band</span></span></a>
-				<a href="/admin/reihen/new/" data-admin-sidebar-tooltip="Neue Reihe" class="admin-sidebar-link" {{ if $isNewSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Reihe</span></span></a>
-				<a href="/admin/orte/new/" data-admin-sidebar-tooltip="Neuer Ort" class="admin-sidebar-link" {{ if $isNewPlaceActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neuer Ort</span></span></a>
-				<a href="/admin/personen/new/" data-admin-sidebar-tooltip="Neue Person" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-add-circle-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Neue Person</span></span></a>
+				<a href="/admin/almanach-new/" data-admin-sidebar-tooltip="Band erstellen" class="admin-sidebar-link" {{ if $isNewBandActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><span>Band erstellen</span></span></a>
+				<a href="/admin/reihen/new/" data-admin-sidebar-tooltip="Reihe erstellen" class="admin-sidebar-link" {{ if $isNewSeriesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><span>Reihe erstellen</span></span></a>
+				<a href="/admin/orte/new/" data-admin-sidebar-tooltip="Ort erstellen" class="admin-sidebar-link" {{ if $isNewPlaceActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><span>Ort erstellen</span></span></a>
+				<a href="/admin/personen/new/" data-admin-sidebar-tooltip="Person erstellen" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><span>Person erstellen</span></span></a>
 			</div>
 		</details>
 

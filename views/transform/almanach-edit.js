@@ -482,13 +482,6 @@ export class AlmanachEditPage extends HTMLElement {
 	}
 
 	_collectItems(formData) {
-		const ids = formData.getAll("items_id[]").map((value) => value.trim());
-		const owners = formData.getAll("items_owner[]");
-		const identifiers = formData.getAll("items_identifier[]");
-		const locations = formData.getAll("items_location[]");
-		const media = formData.getAll("items_media[]");
-		const annotations = formData.getAll("items_annotation[]");
-		const uris = formData.getAll("items_uri[]");
 		const removed = new Set(
 			formData
 				.getAll("items_removed[]")
@@ -496,22 +489,23 @@ export class AlmanachEditPage extends HTMLElement {
 				.filter(Boolean),
 		);
 		const items = [];
-		for (let index = 0; index < ids.length; index += 1) {
-			const id = ids[index] || "";
+		const rows = Array.from(this.querySelectorAll(".items-row"));
+		for (let index = 0; index < rows.length; index += 1) {
+			const row = rows[index];
+			const id = (row.querySelector('input[name="items_id[]"]')?.value || "").trim();
 			if (id && removed.has(id)) {
 				continue;
 			}
-			const owner = (owners[index] || "").trim();
-			const identifier = (identifiers[index] || "").trim();
-			const location = (locations[index] || "").trim();
-			const annotation = (annotations[index] || "").trim();
-			const uri = (uris[index] || "").trim();
-			const mediaValue = (media[index] || "").trim();
+			const owner = (row.querySelector('[name="items_owner[]"]')?.value || "").trim();
+			const identifier = (row.querySelector('[name="items_identifier[]"]')?.value || "").trim();
+			const location = (row.querySelector('[name="items_location[]"]')?.value || "").trim();
+			const annotation = (row.querySelector('[name="items_annotation[]"]')?.value || "").trim();
+			const uri = (row.querySelector('[name="items_uri[]"]')?.value || "").trim();
+			const mediaValue = (row.querySelector('[name="items_media[]"]')?.value || "").trim();
 			const hasValues = id || owner || identifier || location || annotation || uri || mediaValue;
 			if (!hasValues) {
 				continue;
 			}
-			// Validate that media field is not empty
 			if (!mediaValue) {
 				throw new Error(`Exemplar ${index + 1}: "Vorhanden als" muss ausgefüllt werden.`);
 			}

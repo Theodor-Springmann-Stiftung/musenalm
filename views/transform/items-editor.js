@@ -38,6 +38,7 @@ export class ItemsEditor extends HTMLElement {
 		this._wireEditButtons();
 		this._refreshRowIds();
 		this._syncAllSummaries();
+		this._syncAddButtonVisibility();
 	}
 
 	disconnectedCallback() {
@@ -269,6 +270,17 @@ export class ItemsEditor extends HTMLElement {
 			editor.classList.add("hidden");
 			this._syncSummary(row);
 		}
+		this._syncAddButtonVisibility();
+	}
+
+	_syncAddButtonVisibility() {
+		if (!this._addButton) {
+			return;
+		}
+		const hasOpenEditor = Array.from(this.querySelectorAll(`.${EDIT_PANEL_CLASS}`)).some(
+			(panel) => !panel.classList.contains("hidden"),
+		);
+		this._addButton.classList.toggle("hidden", hasOpenEditor);
 	}
 
 	_captureAllOriginals() {

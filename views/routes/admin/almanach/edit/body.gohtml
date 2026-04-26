@@ -119,7 +119,7 @@ type AlmanachResult struct {
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
 		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $model.result.Entry.Updated }}{{ end }}" />
 
-		<div class="flex gap-8">
+		<div class="flex items-start gap-8">
 		<!-- Left Column -->
 		<div class="flex-1 edit-form-grid">
 
@@ -535,7 +535,7 @@ type AlmanachResult struct {
 										</div>
 									</div>
 								</div>
-								<div class="items-edit-panel hidden">
+								<div class="items-edit-panel hidden px-3 pb-3">
 								<!-- This gets used when editing an item -->
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
@@ -552,22 +552,27 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
-											{{- range $t := $model.item_types -}}
-												<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
-											{{- end -}}
-										</select>
+										<div class="relative">
+											<select class="content-editor-meta-select" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
+												{{- range $t := $model.item_types -}}
+													<option value="{{- $t -}}" {{ if Contains $item.Media $t }}selected{{ end }}>{{- $t -}}</option>
+												{{- end -}}
+											</select>
+											<i class="ri-arrow-down-s-line pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"></i>
+										</div>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="uri">URL</label>
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="annotation">Annotationen</label>
-										<textarea class="inputtextarea min-h-[8rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off">{{- $item.Annotation -}}</textarea>
-									</div>
-									<div class="inputwrapper">
-										<label class="inputlabel" data-field-label="uri">URI</label>
-										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="{{ $item.Uri }}" /></div>
+										<div class="inputshell">
+											<textarea class="inputinput min-h-[4.5rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off" rows="2">{{- $item.Annotation -}}</textarea>
+										</div>
 									</div>
 								</div>
-								<div class="flex justify-end gap-3 mt-3 px-3 py-2">
+								<div class="flex justify-end gap-3 mt-3 py-2">
 									<button type="button" class="items-close-button resetbutton w-auto px-2 py-1 text-base">
 										<i class="ri-check-line mr-2"></i> Fertig
 									</button>
@@ -633,7 +638,7 @@ type AlmanachResult struct {
 									</div>
 								</div>
 							</div>
-							<div class="items-edit-panel">
+							<div class="items-edit-panel px-3 pb-3">
 								<div class="flex flex-col gap-3 mt-3">
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="owner">Besitzer</label>
@@ -649,22 +654,27 @@ type AlmanachResult struct {
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="media">Vorhanden als</label>
-										<select class="inputselect" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
-											{{- range $t := $model.item_types -}}
-												<option value="{{- $t -}}">{{- $t -}}</option>
-											{{- end -}}
-										</select>
+										<div class="relative">
+											<select class="content-editor-meta-select" data-items-strike data-field="media" name="items_media[]" autocomplete="off" required>
+												{{- range $t := $model.item_types -}}
+													<option value="{{- $t -}}">{{- $t -}}</option>
+												{{- end -}}
+											</select>
+											<i class="ri-arrow-down-s-line pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"></i>
+										</div>
+									</div>
+									<div class="inputwrapper">
+										<label class="inputlabel" data-field-label="uri">URL</label>
+										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" /></div>
 									</div>
 									<div class="inputwrapper">
 										<label class="inputlabel" data-field-label="annotation">Annotationen</label>
-										<textarea class="inputtextarea min-h-[8rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off"></textarea>
-									</div>
-									<div class="inputwrapper">
-										<label class="inputlabel" data-field-label="uri">URI</label>
-										<div class="inputshell"><input class="inputinput" data-items-strike data-field="uri" name="items_uri[]" autocomplete="off" value="" /></div>
+										<div class="inputshell">
+											<textarea class="inputinput min-h-[4.5rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off" rows="2"></textarea>
+										</div>
 									</div>
 								</div>
-								<div class="flex justify-end gap-3 mt-3 px-3 py-1">
+								<div class="flex justify-end gap-3 mt-3 py-1">
 									<button type="button" class="items-close-button resetbutton w-auto px-2 py-1 text-base">
 										<i class="ri-check-line mr-2"></i> Fertig
 									</button>

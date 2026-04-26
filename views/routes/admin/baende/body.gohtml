@@ -460,21 +460,21 @@ class="admin-page-shell font-sans pt-0 pb-8">
 				<div class="relative" x-data="{ open: false }">
 					<details class="font-sans text-base list-none" data-role="baende-column-toggle" @toggle="open = $el.open; if ($el.open) { closeOtherDropdowns($el); }">
 						<summary class="admin-list-secondary-trigger flex items-center gap-2">
-							<i class="ri-eye-line"></i>
+							<i class="ri-list-settings-line"></i>
 							<span>Anzeige</span>
 							<i class="ri-arrow-down-s-line transform origin-center transition-transform" :class="{ 'rotate-180': open }"></i>
 						</summary>
 						<div class="absolute right-0 mt-2 w-56 z-10 bg-white rounded-md shadow-lg border border-gray-200">
 							<div class="p-4 flex flex-col gap-2 text-sm text-gray-700">
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="title" checked /> Titel</label>
-								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotations" /> Anmerkungen</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="annotations" checked /> Anmerkungen</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="appearance" checked /> Erscheinungsdaten</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="year" /> Jahr</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="extent" checked /> Struktur / Maße</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="series" /> Verknüpfte Reihen</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-places" /> Verknüpfte Orte</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="linked-persons" /> Verknüpfte Personen</label>
-								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Signaturen</label>
+								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="signatures" checked /> Exemplare</label>
 								<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" checked /> Bearbeitet / Vermerk</label>
 							</div>
 						</div>

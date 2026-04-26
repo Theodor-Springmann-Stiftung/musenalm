@@ -5,7 +5,7 @@
 			(() => {
 				try {
 					const storedValue = window.localStorage.getItem('admin-sidebar-collapsed');
-					if (storedValue !== 'false') {
+					if (storedValue === 'true') {
 						document.documentElement.classList.add('admin-layout-sidebar-collapsed');
 					}
 				} catch {}
