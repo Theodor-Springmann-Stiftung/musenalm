@@ -155,9 +155,6 @@ func enrichAgentsWithGND(app core.App) error {
 				}
 
 				result := enrichAgentWithGND(ctx, agent)
-				if result.Err != nil {
-					cancel()
-				}
 				results <- result
 			}
 		}()
@@ -182,7 +179,6 @@ func enrichAgentsWithGND(app core.App) error {
 
 	updates := make([]gndMatchResult, 0, len(agents))
 	stats := gndStats{}
-	var firstErr error
 	failureSamples := []string{}
 	weakSamples := []string{}
 
@@ -193,9 +189,6 @@ func enrichAgentsWithGND(app core.App) error {
 		}
 		if result.Err != nil {
 			stats.Failures++
-			if firstErr == nil {
-				firstErr = result.Err
-			}
 			if len(failureSamples) < 5 {
 				failureSamples = append(failureSamples, fmt.Sprintf("%d %s: %v", result.MusenalmID, result.Name, result.Err))
 			}
@@ -216,9 +209,12 @@ func enrichAgentsWithGND(app core.App) error {
 		}
 	}
 
-	if firstErr != nil {
-		app.Logger().Error("GND enrichment failed after retries", "samples", strings.Join(failureSamples, " | "))
-		return firstErr
+	if stats.Failures > 0 {
+		app.Logger().Warn(
+			"GND enrichment skipped failed lookups",
+			"failures", stats.Failures,
+			"samples", strings.Join(failureSamples, " | "),
+		)
 	}
 
 	for _, update := range updates {
@@ -356,9 +352,7 @@ func searchLobidGND(ctx context.Context, name string, hints gndBiographicalHints
 }
 
 func shouldRetryGNDStatus(status int) bool {
-	return status == http.StatusTooManyRequests ||
-		status == http.StatusNotFound ||
-		status >= 500
+	return status < 200 || status >= 300
 }
 
 func gndBackoffDuration(attempt int) time.Duration {
