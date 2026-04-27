@@ -267,7 +267,6 @@ export class EditPage extends HTMLElement {
 			const formData = new FormData(form);
 			const payload = {
 				csrf_token: formData.get("csrf_token") || "",
-				last_edited: formData.get("last_edited") || "",
 			};
 			const response = await fetch(deleteEndpoint, {
 				method: "POST",

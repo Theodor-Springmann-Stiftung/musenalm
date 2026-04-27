@@ -6,6 +6,7 @@
 				<col class="col-reference admin-col-nachweis-personen" />
 				<col class="admin-col-stretch" />
 				<col class="col-life admin-col-life" />
+				<col class="col-url hidden" />
 				<col class="col-profession admin-col-profession" />
 				<col class="col-modified admin-col-modified-personen" />
 				<col class="admin-col-tight" style="width:1%" />
@@ -28,6 +29,11 @@
 						<span class="font-semibold tracking-wide">Lebensdaten</span>
 					</div>
 				</th>
+				<th class="col-url hidden whitespace-nowrap py-2 pr-4 align-bottom">
+					<div class="flex flex-col items-start gap-0.5 leading-tight">
+						<span class="font-semibold tracking-wide">URL</span>
+					</div>
+				</th>
 				<th class="col-profession admin-col-profession whitespace-nowrap py-2 pr-4 align-bottom">
 					<div class="flex flex-col items-start gap-0.5 leading-tight">
 						<span class="font-semibold tracking-wide">Beruf</span>
@@ -46,7 +52,7 @@
 			{{ template "_personen_admin_rows" $model }}
 			{{- if not (len $model.result.Agents) -}}
 				<tr>
-					<td colspan="6" class="py-6 text-center text-base text-gray-500">
+					<td colspan="7" class="py-6 text-center text-base text-gray-500">
 						Keine Personen gefunden.
 					</td>
 				</tr>

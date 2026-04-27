@@ -31,6 +31,18 @@
 				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.BiographicalData }}</div>
 			{{- end -}}
 		</td>
+		<td class="col-url hidden py-2 pr-4 text-base text-gray-700">
+			{{- if $agent.URI -}}
+				<a
+					href="{{ $agent.URI }}"
+					target="_blank"
+					rel="noopener"
+					class="block max-w-64 truncate font-sans text-sm text-slate-700 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-slate-950 hover:decoration-slate-700"
+					title="{{ $agent.URI }}">
+					{{ $agent.URI }}
+				</a>
+			{{- end -}}
+		</td>
 		<td class="col-profession admin-col-profession py-2 pr-4 text-base text-gray-700">
 			{{- if $agent.Profession -}}
 				<div class="agent-admin-search-text text-base leading-snug">{{ $agent.Profession }}</div>

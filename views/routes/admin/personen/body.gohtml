@@ -395,6 +395,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="reference" checked /> Nachweis</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="title" checked /> Name</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="life" checked /> Lebensdaten</label>
+									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="url" /> URL</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="profession" checked /> Beruf</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="modified" checked /> Bearbeitet / Vermerk</label>
 									<label class="inline-flex items-center gap-2"><input type="checkbox" data-col="status" checked /> Status</label>
@@ -491,7 +492,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 		let currentAgentId = "";
 		let currentDeleteEndpoint = "";
-		let currentLastEdited = "";
 
 		const closeDialog = (event) => {
 			if (event) event.preventDefault();
@@ -521,7 +521,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 			currentAgentId = button.getAttribute("data-agent-id") || "";
 			currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
-			currentLastEdited = button.getAttribute("data-last-edited") || "";
 			const currentTitle = button.getAttribute("data-agent-title") || "";
 
 			if (titleEl) titleEl.textContent = currentTitle;
@@ -559,7 +558,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						},
 						body: JSON.stringify({
 							csrf_token: csrfInput?.value || "",
-							last_edited: currentLastEdited,
 						}),
 					});
 					let data = null;

@@ -1613,7 +1613,6 @@
 
 		const saveItemStatus = async (item, status, picker) => {
 			const endpoint = picker?.dataset.statusEndpoint || "";
-			const lastEdited = picker?.dataset.lastEdited || item?.dataset.lastEdited || "";
 			if (!endpoint || !csrfToken) {
 				return;
 			}
@@ -1627,7 +1626,6 @@
 
 			const payload = new URLSearchParams();
 			payload.set("csrf_token", csrfToken);
-			payload.set("last_edited", lastEdited);
 			payload.set("status", status);
 
 			try {
@@ -1643,7 +1641,6 @@
 					throw new Error("status save failed");
 				}
 				if (result.last_edited) {
-					picker.dataset.lastEdited = result.last_edited;
 					if (item) {
 						item.dataset.lastEdited = result.last_edited;
 					}

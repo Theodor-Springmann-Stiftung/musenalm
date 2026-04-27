@@ -4,7 +4,6 @@
 {{- $scope := .scope -}}
 {{- $endpoint := .endpoint -}}
 {{- $csrfToken := .csrf_token -}}
-{{- $lastEdited := .last_edited -}}
 {{- $label := "Unbekannt" -}}
 {{- $icon := "ri-forbid-2-line" -}}
 {{- if and (eq $scope "entry") (eq $status "Unknown") -}}
@@ -36,8 +35,7 @@
 	data-role="content-status-picker"
 	{{- if $scope }} data-status-scope="{{ $scope }}"{{ end -}}
 	{{- if $endpoint }} data-status-endpoint="{{ $endpoint }}"{{ end -}}
-	{{- if $csrfToken }} data-status-csrf-token="{{ $csrfToken }}"{{ end -}}
-	{{- if $lastEdited }} data-last-edited="{{ $lastEdited }}"{{ end -}}>
+	{{- if $csrfToken }} data-status-csrf-token="{{ $csrfToken }}"{{ end -}}>
 	<button
 		type="button"
 		class="{{ $toggleClass }}"

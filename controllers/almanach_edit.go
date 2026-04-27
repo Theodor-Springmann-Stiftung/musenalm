@@ -206,18 +206,10 @@ func (p *AlmanachEditPage) POSTSave(engine *templating.Engine, app core.App, ma 
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		user := req.User()
 		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := req.EditorUserID()
 			entryInput := canonicalEntryInput(&payload, editorID)
-			entryInput.ExpectedUpdatedAt = expectedUpdatedAt
 			if err := store.UpdateEntry(tx, entry, entryInput, effects); err != nil {
 				return err
 			}
@@ -286,15 +278,8 @@ func (p *AlmanachEditPage) POSTStatus(app core.App, ma pagemodels.IApp, store *c
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.UpdateEntryStatus(tx, entry, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+			return store.UpdateEntryStatus(tx, entry, payload.Status, req.EditorUserID(), effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update almanach status", "entry_id", entry.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -340,15 +325,8 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, m
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ma, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.DeleteEntry(tx, entry, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
+			return store.DeleteEntry(tx, entry, canonical.DeleteOptions{}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete almanach entry", "entry_id", entry.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -365,7 +343,6 @@ func (p *AlmanachEditPage) POSTDelete(engine *templating.Engine, app core.App, m
 
 type almanachEditPayload struct {
 	CSRFToken                string                             `json:"csrf_token"`
-	LastEdited               string                             `json:"last_edited"`
 	Entry                    almanachEntryPayload               `json:"entry"`
 	Languages                []string                           `json:"languages"`
 	Places                   []string                           `json:"places"`
@@ -381,8 +358,7 @@ type almanachEditPayload struct {
 }
 
 type almanachDeletePayload struct {
-	CSRFToken  string `json:"csrf_token" form:"csrf_token"`
-	LastEdited string `json:"last_edited" form:"last_edited"`
+	CSRFToken string `json:"csrf_token" form:"csrf_token"`
 }
 
 type almanachEntryPayload struct {

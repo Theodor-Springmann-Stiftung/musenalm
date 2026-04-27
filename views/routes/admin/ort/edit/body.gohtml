@@ -76,7 +76,6 @@
 			data-delete-endpoint="/admin/ort/{{ $place.Id }}/edit/delete"
 		{{- end -}}>
 		<input type="hidden" name="csrf_token" value="{{ $model.csrf_token }}" />
-		<input type="hidden" name="last_edited" value="{{ if not $model.is_new }}{{ $place.Updated }}{{ end }}" />
 
 		<div class="simple-entity-form-grid">
 			<div class="edit-form-grid min-w-0 content-start">

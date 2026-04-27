@@ -544,7 +544,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 		let currentSeriesId = "";
 		let currentDeleteEndpoint = "";
-		let currentLastEdited = "";
 
 		const closeDialog = (event) => {
 			if (event) event.preventDefault();
@@ -584,7 +583,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 
 			currentSeriesId = button.getAttribute("data-series-id") || "";
 			currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
-			currentLastEdited = button.getAttribute("data-last-edited") || "";
 			const seriesTitle = button.getAttribute("data-series-title") || "";
 
 			if (titleEl) {
@@ -628,7 +626,6 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						},
 						body: JSON.stringify({
 							csrf_token: csrfInput.value || "",
-							last_edited: currentLastEdited,
 						}),
 					});
 					let data = null;

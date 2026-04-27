@@ -3,10 +3,8 @@ package controllers
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func canonicalErrorMessage(err error, fallback string) string {
@@ -21,18 +19,6 @@ func canonicalErrorMessage(err error, fallback string) string {
 	}
 
 	return fallback
-}
-
-func parseExpectedUpdatedAt(value string) (*time.Time, error) {
-	if value == "" {
-		return nil, nil
-	}
-	parsed, err := types.ParseDateTime(value)
-	if err != nil {
-		return nil, err
-	}
-	expected := parsed.Time()
-	return &expected, nil
 }
 
 func canonicalHTTPStatus(err error, fallback int) int {

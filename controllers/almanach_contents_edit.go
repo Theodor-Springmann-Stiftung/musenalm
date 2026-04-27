@@ -524,15 +524,8 @@ func (p *AlmanachContentsEditPage) POSTUpdateStatus(app core.App, ia pagemodels.
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.UpdateContentStatus(tx, content, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+			return store.UpdateContentStatus(tx, content, payload.Status, req.EditorUserID(), effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update content status", "entry_id", entry.Id, "content_id", content.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
