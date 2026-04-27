@@ -1,7 +1,8 @@
 {{ $model := . }}
 
 <div x-data="{
-	search: '{{ $model.search }}',
+	searchApplied: {{ printf "%q" $model.search }},
+	searchDraft: {{ printf "%q" $model.search }},
 	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
 	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
 	loading: false,
@@ -34,7 +35,7 @@
 	buildResultsUrl(overrides = {}) {
 		const params = new URLSearchParams();
 		const next = {
-			search: this.search,
+			search: this.searchApplied,
 			letter: this.selectedLetter,
 			status: this.status,
 			person: this.person,
@@ -55,7 +56,7 @@
 	buildPageUrl(overrides = {}) {
 		const params = new URLSearchParams();
 		const next = {
-			search: this.search,
+			search: this.searchApplied,
 			letter: this.selectedLetter,
 			status: this.status,
 			person: this.person,
@@ -77,7 +78,7 @@
 	},
 	buildMoreVals() {
 		const values = { offset: this.offset };
-		if (this.search) values.search = this.search;
+		if (this.searchApplied) values.search = this.searchApplied;
 		if (this.selectedLetter) values.letter = this.selectedLetter;
 		if (this.status) values.status = this.status;
 		if (this.person) values.person = this.person;
@@ -125,9 +126,10 @@
 	},
 	clearAllFilters(sourceEl = null) {
 		this.clearFilters();
-		this.search = '';
+		this.searchApplied = '';
+		this.searchDraft = '';
 		this.selectedLetter = '';
-		this.searchOpen = false;
+		this.closeSearch(false);
 		this.offset = 0;
 		this.hasMore = true;
 		htmx.ajax('GET', this.buildResultsUrl({
@@ -146,8 +148,15 @@
 		});
 	},
 	openSearch() {
+		this.searchDraft = this.searchApplied;
 		this.searchOpen = true;
 		this.$nextTick(() => this.$refs.reihenSearchInput?.focus());
+	},
+	closeSearch(discardDraft = true) {
+		if (discardDraft) {
+			this.searchDraft = this.searchApplied;
+		}
+		this.searchOpen = false;
 	},
 	closeOtherDropdowns(current) {
 		const scope = current?.closest('.admin-page-shell') || document;
@@ -176,7 +185,7 @@
 		params.set('sort', this.sortField);
 		params.set('order', this.sortOrder);
 		this.appendFilters(params);
-		if (this.search) params.set('search', this.search);
+		if (this.searchApplied) params.set('search', this.searchApplied);
 		if (this.selectedLetter) params.set('letter', this.selectedLetter);
 		const query = params.toString();
 		const newUrl = query ? `/admin/reihen/?${query}` : '/admin/reihen/';
@@ -194,7 +203,8 @@
 		place = params.get('place') || '';
 		year = params.get('year') || '';
 		entry = params.get('entry') || '';
-		search = params.get('search') || '';
+		searchApplied = params.get('search') || '';
+		searchDraft = searchApplied;
 		selectedLetter = params.get('letter') || '';
 		updateUrl();
 	}
@@ -208,7 +218,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<button
 						type="button"
 						x-cloak
-						x-show="search || selectedLetter || status || person || place || year || entry"
+						x-show="searchApplied || selectedLetter || status || person || place || year || entry"
 						@click="clearAllFilters($el)"
 						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
 						<i class="ri-filter-off-line text-sm"></i>
@@ -333,14 +343,14 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
-				<div class="relative" @click.outside="searchOpen = false">
+				<div class="relative">
 					<button
 						type="button"
 						x-show="!searchOpen"
 						@click="openSearch()"
 						class="admin-list-filter-trigger flex items-center gap-2"
-						:class="search ? 'admin-list-filter-trigger-active' : ''">
-						<span class="max-w-[18rem] truncate" x-text="search ? `Suche: ${search}` : 'Suche'"></span>
+						:class="searchApplied ? 'admin-list-filter-trigger-active' : ''">
+						<span class="max-w-[18rem] truncate" x-text="searchApplied ? `Suche: ${searchApplied}` : 'Suche'"></span>
 						<i class="ri-search-line"></i>
 					</button>
 
@@ -355,8 +365,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						hx-swap="outerHTML"
 						hx-target="#reihenresults"
 						role="search"
-						@submit="searchOpen = false; offset = 0; hasMore = true"
-						@keydown.escape.prevent.stop="searchOpen = false"
+						@submit="searchApplied = searchDraft; searchOpen = false; offset = 0; hasMore = true"
 						aria-label="Reihensuche"
 						class="admin-list-search-form">
 						<input type="hidden" name="sort" :value="sortField" />
@@ -374,7 +383,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 								name="search"
 								value="{{ $model.search }}"
 								placeholder="Reihentitel oder Suchbegriff"
-								x-model="search"
+								x-model="searchDraft"
 								autocomplete="off" />
 							<span id="reihen-search-spinner" class="htmx-indicator absolute right-0 top-1/2 -translate-y-1/2 text-slate-900">
 								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
@@ -383,7 +392,8 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<button
 							type="button"
 							@click="
-								search = '';
+								searchApplied = '';
+								searchDraft = '';
 								searchOpen = false;
 								offset = 0;
 								hasMore = true;

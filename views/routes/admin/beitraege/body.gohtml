@@ -1,7 +1,8 @@
 {{ $model := . }}
 
 <div x-data="{
-	search: {{ printf "%q" $model.search }},
+	searchApplied: {{ printf "%q" $model.search }},
+	searchDraft: {{ printf "%q" $model.search }},
 	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
 	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
 	loading: false,
@@ -27,7 +28,7 @@
 	buildResultsUrl(overrides = {}) {
 		const params = new URLSearchParams();
 		const next = {
-			search: this.search,
+			search: this.searchApplied,
 			entry: this.entry,
 			year: this.year,
 			person: this.person,
@@ -48,7 +49,7 @@
 	buildPageUrl(overrides = {}) {
 		const params = new URLSearchParams();
 		const next = {
-			search: this.search,
+			search: this.searchApplied,
 			entry: this.entry,
 			year: this.year,
 			person: this.person,
@@ -118,7 +119,8 @@
 	},
 	clearAllFilters(sourceEl = null) {
 		this.clearFilters();
-		this.search = '';
+		this.searchApplied = '';
+		this.searchDraft = '';
 		this.searchOpen = false;
 		this.offset = 0;
 		this.hasMore = true;
@@ -138,8 +140,15 @@
 		});
 	},
 	openSearch() {
+		this.searchDraft = this.searchApplied;
 		this.searchOpen = true;
 		this.$nextTick(() => this.$refs.beitraegeSearchInput?.focus());
+	},
+	closeSearch(discardDraft = true) {
+		if (discardDraft) {
+			this.searchDraft = this.searchApplied;
+		}
+		this.searchOpen = false;
 	},
 	closeOtherDropdowns(current) {
 		const scope = current?.closest('.admin-page-shell') || document;
@@ -150,7 +159,7 @@
 	updateUrl() {
 		const params = new URLSearchParams();
 		params.set('offset', this.offset);
-		if (this.search) params.set('search', this.search);
+		if (this.searchApplied) params.set('search', this.searchApplied);
 		if (this.entry) params.set('entry', this.entry);
 		if (this.year) params.set('year', this.year);
 		if (this.person) params.set('person', this.person);
@@ -167,7 +176,8 @@
 	if ($event.detail.target && $event.detail.target.id === 'admin-beitraege-results') {
 		const responseUrl = $event.detail.xhr?.responseURL || window.location.href;
 		const params = new URL(responseUrl).searchParams;
-		search = params.get('search') || '';
+		searchApplied = params.get('search') || '';
+		searchDraft = searchApplied;
 		entry = params.get('entry') || '';
 		year = params.get('year') || '';
 		person = params.get('person') || '';
@@ -187,7 +197,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					<button
 						type="button"
 						x-cloak
-						x-show="search || entry || year || person || type || status || scans"
+						x-show="searchApplied || entry || year || person || type || status || scans"
 						@click="clearAllFilters($el)"
 						class="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.75 text-[0.85rem] font-semibold text-orange-800 transition-colors hover:bg-orange-200">
 						<i class="ri-filter-off-line text-sm"></i>
@@ -342,14 +352,14 @@ class="admin-page-shell font-sans pt-0 pb-8">
 					</details>
 				</div>
 
-				<div class="relative" @click.outside="searchOpen = false">
+				<div class="relative">
 					<button
 						type="button"
 						x-show="!searchOpen"
 						@click="openSearch()"
 						class="admin-list-filter-trigger flex items-center gap-2"
-						:class="search ? 'admin-list-filter-trigger-active' : ''">
-						<span class="max-w-[18rem] truncate" x-text="search ? `Suche: ${search}` : 'Suche'"></span>
+						:class="searchApplied ? 'admin-list-filter-trigger-active' : ''">
+						<span class="max-w-[18rem] truncate" x-text="searchApplied ? `Suche: ${searchApplied}` : 'Suche'"></span>
 						<i class="ri-search-line"></i>
 					</button>
 
@@ -364,8 +374,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						hx-swap="outerHTML"
 						hx-target="#admin-beitraege-results"
 						role="search"
-						@submit="searchOpen = false; offset = 0; hasMore = true"
-						@keydown.escape.prevent.stop="searchOpen = false"
+						@submit="searchApplied = searchDraft; searchOpen = false; offset = 0; hasMore = true"
 						aria-label="Beitragssuche"
 						class="admin-list-search-form">
 						<input type="hidden" name="entry" :value="entry" />
@@ -383,7 +392,7 @@ class="admin-page-shell font-sans pt-0 pb-8">
 								name="search"
 								value="{{ $model.search }}"
 								placeholder="Titel oder Suchbegriff"
-								x-model="search"
+								x-model="searchDraft"
 								autocomplete="off" />
 							<span id="beitraege-search-spinner" class="htmx-indicator absolute right-0 top-1/2 -translate-y-1/2 text-slate-900">
 								<i class="ri-loader-4-line spinning" aria-hidden="true"></i>
@@ -392,7 +401,8 @@ class="admin-page-shell font-sans pt-0 pb-8">
 						<button
 							type="button"
 							@click="
-								search = '';
+								searchApplied = '';
+								searchDraft = '';
 								searchOpen = false;
 								offset = 0;
 								hasMore = true;
