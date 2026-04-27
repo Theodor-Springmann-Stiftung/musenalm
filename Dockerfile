@@ -14,6 +14,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM debian:bookworm-slim
 WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/musenalm ./
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/views/public ./views/public
