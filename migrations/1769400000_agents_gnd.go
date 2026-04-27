@@ -31,6 +31,8 @@ const (
 	gndMatchStrategyKey  = "gnd_match_strategy"
 	gndCandidateCountKey = "gnd_candidate_count"
 	gndMatchedAtKey      = "gnd_matched_at"
+	gndWeakMatchScoreMin = 110
+	gndWeakMatchNote     = "DNB: weak Match"
 )
 
 var (
@@ -224,6 +226,9 @@ func enrichAgentsWithGND(app core.App) error {
 		}
 		record.SetURI(update.URI)
 		record.SetData(update.Data)
+		if update.WeakMatch {
+			markAgentWeakGNDMatch(record)
+		}
 		if err := app.Save(record); err != nil {
 			return fmt.Errorf("save agent %s GND enrichment: %w", update.AgentID, err)
 		}
@@ -528,8 +533,40 @@ func chooseGNDCandidate(queryName string, hints gndBiographicalHints, members []
 		strategy = "ascii_name"
 	}
 
-	weak := best.Score < 250
+	weak := best.Score < gndWeakMatchScoreMin
 	return best.Record, strategy, weak
+}
+
+func markAgentWeakGNDMatch(agent *dbmodels.Agent) {
+	if agent == nil {
+		return
+	}
+
+	agent.SetEditState("Review")
+	appendAgentComment(agent, gndWeakMatchNote)
+}
+
+func appendAgentComment(agent *dbmodels.Agent, note string) {
+	if agent == nil {
+		return
+	}
+
+	note = strings.TrimSpace(note)
+	if note == "" {
+		return
+	}
+
+	current := strings.TrimSpace(agent.Comment())
+	if current == "" {
+		agent.SetComment(note)
+		return
+	}
+
+	if strings.Contains(current, note) {
+		return
+	}
+
+	agent.SetComment(current + "\n" + note)
 }
 
 func scoreGNDCandidate(queryName string, hints gndBiographicalHints, record map[string]any) gndCandidate {

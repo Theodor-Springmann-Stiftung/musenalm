@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 func TestParseGNDBiographicalHints(t *testing.T) {
@@ -77,6 +80,52 @@ func TestChooseGNDCandidatePrefersExactYearAndName(t *testing.T) {
 	}
 	if weak {
 		t.Fatal("expected strong match")
+	}
+}
+
+func TestChooseGNDCandidateVariantOnlyIsWeak(t *testing.T) {
+	queryName := "Barth, Karl"
+	members := []map[string]any{
+		{
+			"gndIdentifier": "1",
+			"id":            "https://d-nb.info/gnd/1",
+			"preferredName": "Barth, Carl",
+			"variantName":   []any{"Barth, Karl"},
+		},
+	}
+
+	got, strategy, weak := chooseGNDCandidate(queryName, gndBiographicalHints{}, members)
+	if got == nil {
+		t.Fatal("expected a candidate")
+	}
+	if strategy != "variant_name" {
+		t.Fatalf("unexpected strategy %q", strategy)
+	}
+	if !weak {
+		t.Fatal("expected weak match")
+	}
+}
+
+func TestMarkAgentWeakGNDMatchSetsReviewAndCommentOnce(t *testing.T) {
+	collection := core.NewBaseCollection(dbmodels.AGENTS_TABLE)
+	collection.Fields = core.NewFieldsList(
+		&core.SelectField{Name: dbmodels.EDITSTATE_FIELD},
+		&core.TextField{Name: dbmodels.COMMENT_FIELD},
+	)
+
+	record := core.NewRecord(collection)
+	agent := dbmodels.NewAgent(record)
+	agent.SetEditState("Unknown")
+	agent.SetComment("Existing")
+
+	markAgentWeakGNDMatch(agent)
+	markAgentWeakGNDMatch(agent)
+
+	if agent.EditState() != "Review" {
+		t.Fatalf("expected Review state, got %q", agent.EditState())
+	}
+	if agent.Comment() != "Existing\nDNB: weak Match" {
+		t.Fatalf("unexpected comment %q", agent.Comment())
 	}
 }
 
