@@ -1,8 +1,10 @@
 package dbmodels
 
 import (
+	"log/slog"
 	"strings"
 
+	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
@@ -114,6 +116,34 @@ func (a *Agent) References() string {
 
 func (a *Agent) SetReferences(references string) {
 	a.Set(REFERENCES_FIELD, references)
+}
+
+func (a *Agent) Data() map[string]interface{} {
+	val := a.Get(DATA_FIELD)
+	if val == nil {
+		return nil
+	}
+	if data, ok := val.(map[string]interface{}); ok {
+		return data
+	}
+
+	data := make(map[string]interface{})
+	if err := a.UnmarshalJSONField(DATA_FIELD, &data); err != nil {
+		slog.Error("Error unmarshalling agent data", "error", err)
+		return nil
+	}
+	if len(data) == 0 {
+		return nil
+	}
+	return data
+}
+
+func (a *Agent) SetData(data map[string]interface{}) {
+	a.Set(DATA_FIELD, data)
+}
+
+func (a *Agent) GND() *gndprovider.Person {
+	return gndprovider.FromData(a.URI(), a.Data())
 }
 
 func (a *Agent) Annotation() string {

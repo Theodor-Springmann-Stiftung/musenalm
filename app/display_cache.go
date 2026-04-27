@@ -7,6 +7,7 @@ import (
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
 )
 
 type DisplayCache struct {
@@ -48,6 +49,14 @@ type AgentDisplay struct {
 	CorporateBody bool
 	Fictional     bool
 	EditState     string
+	gnd           *gndprovider.Person
+}
+
+func (a *AgentDisplay) GND() *gndprovider.Person {
+	if a == nil {
+		return nil
+	}
+	return a.gnd
 }
 
 type SeriesDisplay struct {
@@ -600,6 +609,7 @@ func buildAgentDisplay(agent *dbmodels.Agent) *AgentDisplay {
 		CorporateBody: agent.CorporateBody(),
 		Fictional:     agent.Fictional(),
 		EditState:     strings.TrimSpace(agent.EditState()),
+		gnd:           agent.GND(),
 	}
 }
 

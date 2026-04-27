@@ -155,6 +155,7 @@ func agentsFields() core.FieldsList {
 		&core.TextField{Name: dbmodels.AGENTS_PROFESSION_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.AGENTS_PSEUDONYMS_FIELD, Required: false},
 		&core.TextField{Name: dbmodels.REFERENCES_FIELD, Required: false},
+		&core.JSONField{Name: dbmodels.DATA_FIELD, Required: false},
 	)
 
 	dbmodels.SetCreatedUpdatedFields(&fields)

@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 func TestBuildContentDisplayTitleFromFields(t *testing.T) {
@@ -156,6 +158,36 @@ func TestGetAllAgentDisplaysIncludesToDoAgents(t *testing.T) {
 	}
 	if gotStates["agent-todo"] != "ToDo" {
 		t.Fatalf("expected ToDo agent to remain in cache, got %q", gotStates["agent-todo"])
+	}
+}
+
+func TestBuildAgentDisplayIncludesTypedGND(t *testing.T) {
+	collection := core.NewBaseCollection(dbmodels.AGENTS_TABLE)
+	collection.Fields = core.NewFieldsList(
+		&core.TextField{Name: dbmodels.AGENTS_NAME_FIELD},
+		&core.URLField{Name: dbmodels.URI_FIELD},
+		&core.JSONField{Name: dbmodels.DATA_FIELD},
+		&core.TextField{Name: dbmodels.AGENTS_BIOGRAPHICAL_DATA_FIELD},
+	)
+
+	record := core.NewRecord(collection)
+	record.Set(dbmodels.AGENTS_NAME_FIELD, "Barth, Karl")
+	record.Set(dbmodels.URI_FIELD, "https://d-nb.info/gnd/116267968")
+	record.Set(dbmodels.DATA_FIELD, map[string]any{
+		"gnd": map[string]any{
+			"id":            "https://d-nb.info/gnd/116267968",
+			"gndIdentifier": "116267968",
+			"preferredName": "Barth, Carl",
+		},
+	})
+
+	agent := dbmodels.NewAgent(record)
+	display := buildAgentDisplay(agent)
+	if display.GND() == nil {
+		t.Fatal("expected typed GND data on display")
+	}
+	if display.GND().PreferredName != "Barth, Carl" {
+		t.Fatalf("expected typed preferred name, got %q", display.GND().PreferredName)
 	}
 }
 
