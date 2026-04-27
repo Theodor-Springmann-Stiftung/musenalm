@@ -105,7 +105,6 @@ export function initAdminStatusPickers(root = document) {
 				event.stopPropagation();
 				const nextStatus = (option.dataset.status || "").trim();
 				const csrfToken = (picker.dataset.statusCsrfToken || document.querySelector("[data-role='global-csrf-token']")?.value || "").trim();
-				const lastEdited = (picker.dataset.lastEdited || "").trim();
 				if (!nextStatus || !csrfToken) {
 					menu.classList.add("hidden");
 					return;
@@ -128,7 +127,6 @@ export function initAdminStatusPickers(root = document) {
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify({
 							csrf_token: csrfToken,
-							last_edited: lastEdited,
 							status: nextStatus,
 						}),
 					});
@@ -145,7 +143,6 @@ export function initAdminStatusPickers(root = document) {
 						updateReiheViewChips(picker, result.status);
 					}
 					if (result.last_edited) {
-						picker.dataset.lastEdited = result.last_edited;
 						const row = picker.closest("tr, [data-role='reihen-row'], [data-role='content-item']");
 						if (row instanceof HTMLElement) {
 							updateAdminStatusTimestamps(row, result.last_edited);

@@ -147,7 +147,6 @@ func (p *OrtEditPage) renderError(engine *templating.Engine, app core.App, e *co
 
 type ortEditForm struct {
 	CSRFToken  string `form:"csrf_token"`
-	LastEdited string `form:"last_edited"`
 	SaveAction string `form:"save_action"`
 	Name       string `form:"name"`
 	Pseudonyms string `form:"pseudonyms"`
@@ -191,23 +190,17 @@ func (p *OrtEditPage) POST(engine *templating.Engine, app core.App, ia pagemodel
 			return engine.Response404(e, err, nil)
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
-		if err != nil {
-			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := req.EditorUserID()
 			return store.UpdatePlace(tx, place, canonical.PlaceInput{
-				Name:              formdata.Name,
-				Pseudonyms:        formdata.Pseudonyms,
-				Annotation:        formdata.Annotation,
-				URI:               formdata.URI,
-				Fictional:         formdata.Fictional,
-				Status:            formdata.Status,
-				Comment:           formdata.Comment,
-				EditorID:          editorID,
-				ExpectedUpdatedAt: expectedUpdatedAt,
+				Name:       formdata.Name,
+				Pseudonyms: formdata.Pseudonyms,
+				Annotation: formdata.Annotation,
+				URI:        formdata.URI,
+				Fictional:  formdata.Fictional,
+				Status:     formdata.Status,
+				Comment:    formdata.Comment,
+				EditorID:   editorID,
 			}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to save place", "place_id", place.Id, "error", err)
@@ -248,15 +241,8 @@ func (p *OrtEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *canoni
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.UpdatePlaceStatus(tx, place, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+			return store.UpdatePlaceStatus(tx, place, payload.Status, req.EditorUserID(), effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update place status", "place_id", place.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -278,8 +264,7 @@ func (p *OrtEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *canoni
 }
 
 type ortDeletePayload struct {
-	CSRFToken  string `json:"csrf_token"`
-	LastEdited string `json:"last_edited"`
+	CSRFToken string `json:"csrf_token"`
 }
 
 func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
@@ -307,15 +292,8 @@ func (p *OrtEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pag
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.DeletePlace(tx, place, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
+			return store.DeletePlace(tx, place, canonical.DeleteOptions{}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete place", "place_id", place.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{

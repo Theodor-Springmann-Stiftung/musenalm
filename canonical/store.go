@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/pocketbase/dbx"
@@ -33,47 +32,43 @@ func (e *ConflictError) Error() string {
 }
 
 type DeleteOptions struct {
-	ExpectedUpdatedAt *time.Time
 }
 
 type AgentInput struct {
-	Name              string
-	Pseudonyms        string
-	BiographicalData  string
-	Profession        string
-	References        string
-	Annotation        string
-	URI               string
-	CorporateBody     bool
-	Fictional         bool
-	Status            string
-	Comment           string
-	EditorID          string
-	ExpectedUpdatedAt *time.Time
+	Name             string
+	Pseudonyms       string
+	BiographicalData string
+	Profession       string
+	References       string
+	Annotation       string
+	URI              string
+	CorporateBody    bool
+	Fictional        bool
+	Status           string
+	Comment          string
+	EditorID         string
 }
 
 type PlaceInput struct {
-	Name              string
-	Pseudonyms        string
-	Annotation        string
-	URI               string
-	Fictional         bool
-	Status            string
-	Comment           string
-	EditorID          string
-	ExpectedUpdatedAt *time.Time
+	Name       string
+	Pseudonyms string
+	Annotation string
+	URI        string
+	Fictional  bool
+	Status     string
+	Comment    string
+	EditorID   string
 }
 
 type SeriesInput struct {
-	Title             string
-	Pseudonyms        string
-	Annotation        string
-	References        string
-	Frequency         string
-	Status            string
-	Comment           string
-	EditorID          string
-	ExpectedUpdatedAt *time.Time
+	Title      string
+	Pseudonyms string
+	Annotation string
+	References string
+	Frequency  string
+	Status     string
+	Comment    string
+	EditorID   string
 }
 
 type EntryInput struct {
@@ -99,7 +94,6 @@ type EntryInput struct {
 	Places            []string
 	PreferredSeriesID string
 	EditorID          string
-	ExpectedUpdatedAt *time.Time
 }
 
 type ItemInput struct {
@@ -126,26 +120,25 @@ type EntrySeriesRelationInput struct {
 }
 
 type ContentInput struct {
-	PreferredTitle    string
-	VariantTitle      string
-	ParallelTitle     string
-	Title             string
-	Subtitle          string
-	Incipit           string
-	Responsibility    string
-	Pseudonym         bool
-	PlaceStatement    string
-	Extent            string
-	Annotation        string
-	Comment           string
-	Language          []string
-	ContentTypes      []string
-	MusenalmTypes     []string
-	Pagination        string
-	Status            string
-	Numbering         float64
-	EditorID          string
-	ExpectedUpdatedAt *time.Time
+	PreferredTitle string
+	VariantTitle   string
+	ParallelTitle  string
+	Title          string
+	Subtitle       string
+	Incipit        string
+	Responsibility string
+	Pseudonym      bool
+	PlaceStatement string
+	Extent         string
+	Annotation     string
+	Comment        string
+	Language       []string
+	ContentTypes   []string
+	MusenalmTypes  []string
+	Pagination     string
+	Status         string
+	Numbering      float64
+	EditorID       string
 }
 
 type ContentScansInput struct {
@@ -191,9 +184,6 @@ func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput
 	if err := validateAgentInput(input); err != nil {
 		return err
 	}
-	if err := checkExpectedUpdatedAt(agent.Updated().Time(), input.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	nameChanged := agent.Name() != strings.TrimSpace(input.Name)
 	s.applyAgentInput(agent, input)
 	if err := tx.Save(agent); err != nil {
@@ -217,11 +207,8 @@ func (s *Store) UpdateAgent(tx core.App, agent *dbmodels.Agent, input AgentInput
 	return nil
 }
 
-func (s *Store) UpdateAgentStatus(tx core.App, agent *dbmodels.Agent, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+func (s *Store) UpdateAgentStatus(tx core.App, agent *dbmodels.Agent, status string, editorID string, effects *MutationEffects) error {
 	if err := validateStatus(status); err != nil {
-		return err
-	}
-	if err := checkExpectedUpdatedAt(agent.Updated().Time(), expectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
 	agent.SetEditState(strings.TrimSpace(status))
@@ -238,9 +225,6 @@ func (s *Store) UpdateAgentStatus(tx core.App, agent *dbmodels.Agent, status str
 }
 
 func (s *Store) DeleteAgent(tx core.App, agent *dbmodels.Agent, opts DeleteOptions, effects *MutationEffects) error {
-	if err := checkExpectedUpdatedAt(agent.Updated().Time(), opts.ExpectedUpdatedAt, "Die Person wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	hasEntryRelations, err := agentHasEntryRelations(tx, agent.Id)
 	if err != nil {
 		return err
@@ -300,9 +284,6 @@ func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput
 	if err := validatePlaceInput(input); err != nil {
 		return err
 	}
-	if err := checkExpectedUpdatedAt(place.Updated().Time(), input.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	nameChanged := place.Name() != strings.TrimSpace(input.Name)
 	s.applyPlaceInput(place, input)
 	if err := tx.Save(place); err != nil {
@@ -315,11 +296,8 @@ func (s *Store) UpdatePlace(tx core.App, place *dbmodels.Place, input PlaceInput
 	return nil
 }
 
-func (s *Store) UpdatePlaceStatus(tx core.App, place *dbmodels.Place, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+func (s *Store) UpdatePlaceStatus(tx core.App, place *dbmodels.Place, status string, editorID string, effects *MutationEffects) error {
 	if err := validateStatus(status); err != nil {
-		return err
-	}
-	if err := checkExpectedUpdatedAt(place.Updated().Time(), expectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
 	place.SetEditState(strings.TrimSpace(status))
@@ -336,9 +314,6 @@ func (s *Store) UpdatePlaceStatus(tx core.App, place *dbmodels.Place, status str
 }
 
 func (s *Store) DeletePlace(tx core.App, place *dbmodels.Place, opts DeleteOptions, effects *MutationEffects) error {
-	if err := checkExpectedUpdatedAt(place.Updated().Time(), opts.ExpectedUpdatedAt, "Der Ort wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	entries, err := s.PlaceEntries(tx, place.Id)
 	if err != nil {
 		return err
@@ -406,9 +381,6 @@ func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesI
 	if err := validateSeriesInput(input); err != nil {
 		return err
 	}
-	if err := checkExpectedUpdatedAt(series.Updated().Time(), input.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	titleChanged := series.Title() != strings.TrimSpace(input.Title)
 	s.applySeriesInput(series, input)
 	if err := tx.Save(series); err != nil {
@@ -421,11 +393,8 @@ func (s *Store) UpdateSeries(tx core.App, series *dbmodels.Series, input SeriesI
 	return nil
 }
 
-func (s *Store) UpdateSeriesStatus(tx core.App, series *dbmodels.Series, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+func (s *Store) UpdateSeriesStatus(tx core.App, series *dbmodels.Series, status string, editorID string, effects *MutationEffects) error {
 	if err := validateStatus(status); err != nil {
-		return err
-	}
-	if err := checkExpectedUpdatedAt(series.Updated().Time(), expectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
 	series.SetEditState(strings.TrimSpace(status))
@@ -442,9 +411,6 @@ func (s *Store) UpdateSeriesStatus(tx core.App, series *dbmodels.Series, status 
 }
 
 func (s *Store) DeleteSeries(tx core.App, series *dbmodels.Series, opts DeleteOptions, effects *MutationEffects) error {
-	if err := checkExpectedUpdatedAt(series.Updated().Time(), opts.ExpectedUpdatedAt, "Die Reihe wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	preferredEntries, err := s.preferredSeriesEntries(tx, series.Id)
 	if err != nil {
 		return err
@@ -520,9 +486,6 @@ func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput
 	if err := validateEntryInput(input); err != nil {
 		return err
 	}
-	if err := checkExpectedUpdatedAt(entry.Updated().Time(), input.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	updateMode := EntryFTSEntryOnly
 	if entry.PreferredTitle() != strings.TrimSpace(input.PreferredTitle) || entry.Year() != *input.Year {
 		updateMode = EntryFTSEntryAndContents
@@ -539,11 +502,8 @@ func (s *Store) UpdateEntry(tx core.App, entry *dbmodels.Entry, input EntryInput
 	return nil
 }
 
-func (s *Store) UpdateEntryStatus(tx core.App, entry *dbmodels.Entry, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+func (s *Store) UpdateEntryStatus(tx core.App, entry *dbmodels.Entry, status string, editorID string, effects *MutationEffects) error {
 	if err := validateStatus(status); err != nil {
-		return err
-	}
-	if err := checkExpectedUpdatedAt(entry.Updated().Time(), expectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
 	entry.SetEditState(strings.TrimSpace(status))
@@ -796,9 +756,6 @@ func (s *Store) SaveEntryAgentRelations(tx core.App, entry *dbmodels.Entry, rela
 }
 
 func (s *Store) DeleteEntry(tx core.App, entry *dbmodels.Entry, opts DeleteOptions, effects *MutationEffects) error {
-	if err := checkExpectedUpdatedAt(entry.Updated().Time(), opts.ExpectedUpdatedAt, "Der Eintrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
-		return err
-	}
 	if err := s.deleteEntryRelations(tx, entry.Id); err != nil {
 		return err
 	}
@@ -934,11 +891,8 @@ func (s *Store) UpdateContent(tx core.App, content *dbmodels.Content, entry *dbm
 	return nil
 }
 
-func (s *Store) UpdateContentStatus(tx core.App, content *dbmodels.Content, status string, editorID string, expectedUpdatedAt *time.Time, effects *MutationEffects) error {
+func (s *Store) UpdateContentStatus(tx core.App, content *dbmodels.Content, status string, editorID string, effects *MutationEffects) error {
 	if err := validateStatus(status); err != nil {
-		return err
-	}
-	if err := checkExpectedUpdatedAt(content.Updated().Time(), expectedUpdatedAt, "Der Beitrag wurde inzwischen geändert. Bitte Seite neu laden."); err != nil {
 		return err
 	}
 	content.SetEditState(strings.TrimSpace(status))
@@ -1450,16 +1404,6 @@ func validationErrorf(format string, args ...any) error {
 
 func conflictErrorf(format string, args ...any) error {
 	return &ConflictError{Message: fmt.Sprintf(format, args...)}
-}
-
-func checkExpectedUpdatedAt(current time.Time, expected *time.Time, message string) error {
-	if expected == nil {
-		return nil
-	}
-	if !current.Equal(*expected) {
-		return conflictErrorf("%s", message)
-	}
-	return nil
 }
 
 func validateStatus(status string) error {

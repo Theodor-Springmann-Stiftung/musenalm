@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musenalmapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
+	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -24,7 +26,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(pnp)
+	musenalmapp.Register(pnp)
 }
 
 type PersonNewPage struct {
@@ -104,7 +106,7 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemod
 				Profession:       formdata.Profession,
 				References:       formdata.References,
 				Annotation:       formdata.Annotation,
-				URI:              formdata.URI,
+				URI:              gndprovider.NormalizeURI(strings.TrimSpace(formdata.URI)),
 				CorporateBody:    formdata.CorporateBody,
 				Fictional:        formdata.Fictional,
 				Status:           formdata.Status,
@@ -123,6 +125,10 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemod
 
 		if createdAgent == nil {
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
+		}
+
+		if musenalmApp, ok := ia.(*musenalmapp.App); ok {
+			musenalmApp.ScheduleAgentGNDRefresh(createdAgent.Id)
 		}
 
 		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, strconv.Itoa(createdAgent.MusenalmID()))

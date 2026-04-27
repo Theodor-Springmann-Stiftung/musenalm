@@ -57,6 +57,7 @@
 			<span class="">{{ $model.result.Agent.Pseudonyms }}</span>
 		</p>
 	{{- end -}}
+	{{- $gnd := $model.result.Agent.GND -}}
 	<div class="mt-1">
 		<span class="">
 			{{ $model.result.Agent.BiographicalData }}
@@ -66,6 +67,31 @@
 				{{ $model.result.Agent.References }}
 			</span>
 		{{ end }}
+		{{- if and $model.result.Agent.URI $gnd -}}
+			<a
+				href="{{ $model.result.Agent.URI }}"
+				target="_blank"
+				rel="noopener"
+				class="inline-block bg-stone-200 px-2 mx-1 font-sans text-sm rounded align-middle text-inherit underline decoration-dotted underline-offset-3 hover:text-slate-900 hover:decoration-solid"
+				title="DNB-Eintrag öffnen">
+				DNB
+			</a>
+		{{- end -}}
+		{{- if $gnd -}}
+			{{- if gt (len $gnd.Wikipedia) 0 -}}
+				{{- $wikipedia := index $gnd.Wikipedia 0 -}}
+				{{- if $wikipedia.ID -}}
+					<a
+						href="{{ $wikipedia.ID }}"
+						target="_blank"
+						rel="noopener"
+						class="inline-block bg-stone-200 px-2 mx-1 font-sans text-sm rounded align-middle text-inherit underline decoration-dotted underline-offset-3 hover:text-slate-900 hover:decoration-solid"
+						title="Wikipedia-Eintrag öffnen">
+						Wikipedia
+					</a>
+				{{- end -}}
+			{{- end -}}
+		{{- end -}}
 		<span class="">
 			{{- $arr := $model.result.Agent.ProfessionArray -}}
 			{{- if $arr -}}

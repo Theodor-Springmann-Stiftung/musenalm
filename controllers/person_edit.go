@@ -8,11 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	musenalmapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/middleware"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/pagemodels"
+	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/templating"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -27,7 +28,7 @@ func init() {
 			Layout:   pagemodels.LAYOUT_LOGIN_PAGES,
 		},
 	}
-	app.Register(pep)
+	musenalmapp.Register(pep)
 }
 
 type PersonEditPage struct {
@@ -278,7 +279,6 @@ func agentContentsDetails(app core.App, agentID string) ([]*dbmodels.Content, ma
 
 type personEditForm struct {
 	CSRFToken        string `form:"csrf_token"`
-	LastEdited       string `form:"last_edited"`
 	SaveAction       string `form:"save_action"`
 	Name             string `form:"name"`
 	Pseudonyms       string `form:"pseudonyms"`
@@ -294,8 +294,7 @@ type personEditForm struct {
 }
 
 type personDeletePayload struct {
-	CSRFToken  string `json:"csrf_token"`
-	LastEdited string `json:"last_edited"`
+	CSRFToken string `json:"csrf_token"`
 }
 
 func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string, status string, user *dbmodels.FixedUser) {
@@ -335,31 +334,29 @@ func (p *PersonEditPage) POST(engine *templating.Engine, app core.App, ia pagemo
 			return engine.Response404(e, err, nil)
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
-		if err != nil {
-			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := req.EditorUserID()
 			return store.UpdateAgent(tx, agent, canonical.AgentInput{
-				Name:              formdata.Name,
-				Pseudonyms:        formdata.Pseudonyms,
-				BiographicalData:  formdata.BiographicalData,
-				Profession:        formdata.Profession,
-				References:        formdata.References,
-				Annotation:        formdata.Annotation,
-				URI:               formdata.URI,
-				CorporateBody:     formdata.CorporateBody,
-				Fictional:         formdata.Fictional,
-				Status:            formdata.Status,
-				Comment:           formdata.Comment,
-				EditorID:          editorID,
-				ExpectedUpdatedAt: expectedUpdatedAt,
+				Name:             formdata.Name,
+				Pseudonyms:       formdata.Pseudonyms,
+				BiographicalData: formdata.BiographicalData,
+				Profession:       formdata.Profession,
+				References:       formdata.References,
+				Annotation:       formdata.Annotation,
+				URI:              gndprovider.NormalizeURI(strings.TrimSpace(formdata.URI)),
+				CorporateBody:    formdata.CorporateBody,
+				Fictional:        formdata.Fictional,
+				Status:           formdata.Status,
+				Comment:          formdata.Comment,
+				EditorID:         editorID,
 			}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to save agent", "agent_id", agent.Id, "error", err)
 			return p.renderError(engine, app, e, canonicalErrorMessage(err, "Speichern fehlgeschlagen."), &formdata)
+		}
+
+		if musenalmApp, ok := ia.(*musenalmapp.App); ok {
+			musenalmApp.ScheduleAgentGNDRefresh(agent.Id)
 		}
 
 		if strings.TrimSpace(formdata.SaveAction) == "view" {
@@ -396,15 +393,8 @@ func (p *PersonEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *can
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.UpdateAgentStatus(tx, agent, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+			return store.UpdateAgentStatus(tx, agent, payload.Status, req.EditorUserID(), effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update agent status", "agent_id", agent.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -450,15 +440,8 @@ func (p *PersonEditPage) POSTDelete(engine *templating.Engine, app core.App, ia 
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.DeleteAgent(tx, agent, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
+			return store.DeleteAgent(tx, agent, canonical.DeleteOptions{}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete agent", "agent_id", agent.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{

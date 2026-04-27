@@ -359,7 +359,6 @@ export class AlmanachEditPage extends HTMLElement {
 			const formData = new FormData(this._form);
 			const payload = {
 				csrf_token: this._readValue(formData, "csrf_token"),
-				last_edited: this._readValue(formData, "last_edited"),
 			};
 			const response = await fetch(this._deleteEndpoint, {
 				method: "POST",
@@ -465,7 +464,6 @@ export class AlmanachEditPage extends HTMLElement {
 
 		return {
 			csrf_token: this._readValue(formData, "csrf_token"),
-			last_edited: this._readValue(formData, "last_edited"),
 			entry,
 			preferred_series_id: preferredSeriesId,
 			languages,

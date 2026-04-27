@@ -418,7 +418,6 @@
 
 		let currentPlaceId = "";
 		let currentDeleteEndpoint = "";
-		let currentLastEdited = "";
 
 		const setError = (message) => {
 			if (!errorEl) return;
@@ -451,7 +450,6 @@
 			event.preventDefault();
 			currentPlaceId = button.getAttribute("data-place-id") || "";
 			currentDeleteEndpoint = button.getAttribute("data-delete-endpoint") || "";
-			currentLastEdited = button.getAttribute("data-place-updated") || "";
 			if (titleEl) {
 				titleEl.textContent = button.getAttribute("data-place-name") || "Unbekannter Ort";
 			}
@@ -475,7 +473,6 @@
 						},
 						body: JSON.stringify({
 							csrf_token: csrfInput.value || "",
-							last_edited: currentLastEdited,
 						}),
 					});
 					let data = null;

@@ -1,0 +1,221 @@
+package app
+
+import (
+	"io"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
+	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
+	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tests"
+)
+
+func TestRefreshAgentGNDUpdatesDataForDNBURI(t *testing.T) {
+	testApp, musenalmApp := newTestMusenalmApp(t)
+	defer testApp.Cleanup()
+
+	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
+
+	origClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body: io.NopCloser(strings.NewReader(
+				`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
+			)),
+			Header:  make(http.Header),
+			Request: req,
+		}, nil
+	}))
+	defer origClient()
+
+	musenalmApp.refreshAgentGND(agent.Id)
+
+	stored, err := dbmodels.Agents_ID(testApp, agent.Id)
+	if err != nil {
+		t.Fatalf("reload agent: %v", err)
+	}
+	if stored.URI() != "https://d-nb.info/gnd/116267968" {
+		t.Fatalf("expected normalized URI, got %q", stored.URI())
+	}
+	if stored.Data()["custom"] != "keep" {
+		t.Fatalf("expected custom data preserved, got %#v", stored.Data())
+	}
+	if stored.GND() == nil || stored.GND().PreferredName != "Barth, Carl" {
+		t.Fatalf("expected refreshed GND payload, got %#v", stored.Data())
+	}
+}
+
+func TestRefreshAgentGNDClearsStaleDataOnFetchFailure(t *testing.T) {
+	testApp, musenalmApp := newTestMusenalmApp(t)
+	defer testApp.Cleanup()
+
+	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{
+		"gnd":    map[string]any{"preferredName": "Old"},
+		"custom": "keep",
+	})
+
+	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body:       io.NopCloser(strings.NewReader("boom")),
+			Header:     make(http.Header),
+			Request:    req,
+		}, nil
+	}))
+	defer restoreClient()
+
+	restoreSleep := gndproviderTestSwapSleep(t)
+	defer restoreSleep()
+
+	musenalmApp.refreshAgentGND(agent.Id)
+
+	stored, err := dbmodels.Agents_ID(testApp, agent.Id)
+	if err != nil {
+		t.Fatalf("reload agent: %v", err)
+	}
+	if stored.URI() != "https://d-nb.info/gnd/116267968" {
+		t.Fatalf("expected URI preserved, got %q", stored.URI())
+	}
+	if stored.Data()["custom"] != "keep" {
+		t.Fatalf("expected custom data preserved, got %#v", stored.Data())
+	}
+	if stored.GND() != nil {
+		t.Fatalf("expected stale GND data to be cleared, got %#v", stored.Data())
+	}
+}
+
+func TestRefreshAgentGNDSkipsStaleWorkerResult(t *testing.T) {
+	testApp, musenalmApp := newTestMusenalmApp(t)
+	defer testApp.Cleanup()
+
+	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{
+		"gnd": map[string]any{"preferredName": "Old"},
+	})
+
+	release := make(chan struct{})
+	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		<-release
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body: io.NopCloser(strings.NewReader(
+				`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
+			)),
+			Header:  make(http.Header),
+			Request: req,
+		}, nil
+	}))
+	defer restoreClient()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		musenalmApp.refreshAgentGND(agent.Id)
+	}()
+
+	time.Sleep(20 * time.Millisecond)
+	stale, err := dbmodels.Agents_ID(testApp, agent.Id)
+	if err != nil {
+		t.Fatalf("reload stale agent: %v", err)
+	}
+	stale.SetURI("https://example.com/person/1")
+	stale.SetData(map[string]any{"custom": "new"})
+	if err := testApp.Save(stale); err != nil {
+		t.Fatalf("save changed URI: %v", err)
+	}
+
+	close(release)
+	<-done
+
+	stored, err := dbmodels.Agents_ID(testApp, agent.Id)
+	if err != nil {
+		t.Fatalf("reload agent: %v", err)
+	}
+	if stored.URI() != "https://example.com/person/1" {
+		t.Fatalf("expected newer URI to win, got %q", stored.URI())
+	}
+	if stored.Data()["custom"] != "new" {
+		t.Fatalf("expected newer data to win, got %#v", stored.Data())
+	}
+	if stored.GND() != nil {
+		t.Fatalf("expected stale worker to be ignored, got %#v", stored.Data())
+	}
+}
+
+func newTestMusenalmApp(t *testing.T) (*tests.TestApp, *App) {
+	t.Helper()
+
+	testApp, err := tests.NewTestApp()
+	if err != nil {
+		t.Fatalf("NewTestApp: %v", err)
+	}
+	if err := testApp.Save(testAgentsCollection()); err != nil {
+		testApp.Cleanup()
+		t.Fatalf("save agents collection: %v", err)
+	}
+
+	musenalmApp := &App{
+		PB:                      &pocketbase.PocketBase{App: testApp},
+		displayCache:            NewDisplayCache(),
+		displayCacheRefreshPlan: newDisplayRefreshPlan(),
+	}
+	return testApp, musenalmApp
+}
+
+func createTestAgent(t *testing.T, app core.App, uri string, data map[string]any) *dbmodels.Agent {
+	t.Helper()
+
+	collection, err := app.FindCollectionByNameOrId(dbmodels.AGENTS_TABLE)
+	if err != nil {
+		t.Fatalf("find agents collection: %v", err)
+	}
+
+	agent := dbmodels.NewAgent(core.NewRecord(collection))
+	agent.SetName("Karl Barth")
+	agent.SetURI(uri)
+	agent.SetData(data)
+	if err := app.Save(agent); err != nil {
+		t.Fatalf("save agent: %v", err)
+	}
+	return agent
+}
+
+func testAgentsCollection() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.AGENTS_TABLE)
+	collection.Fields = core.NewFieldsList(
+		&core.TextField{Name: dbmodels.AGENTS_NAME_FIELD, Required: true},
+		&core.BoolField{Name: dbmodels.AGENTS_CORP_FIELD},
+		&core.BoolField{Name: dbmodels.AGENTS_FICTIONAL_FIELD},
+		&core.URLField{Name: dbmodels.URI_FIELD},
+		&core.TextField{Name: dbmodels.AGENTS_BIOGRAPHICAL_DATA_FIELD},
+		&core.TextField{Name: dbmodels.AGENTS_PROFESSION_FIELD},
+		&core.TextField{Name: dbmodels.AGENTS_PSEUDONYMS_FIELD},
+		&core.TextField{Name: dbmodels.REFERENCES_FIELD},
+		&core.JSONField{Name: dbmodels.DATA_FIELD},
+		&core.NumberField{Name: dbmodels.MUSENALMID_FIELD},
+		&core.TextField{Name: dbmodels.EDITSTATE_FIELD},
+		&core.TextField{Name: dbmodels.COMMENT_FIELD},
+		&core.TextField{Name: dbmodels.ANNOTATION_FIELD},
+		&core.TextField{Name: dbmodels.EDITOR_FIELD},
+	)
+	return collection
+}
+
+func gndproviderTestSwapClient(t *testing.T, transport http.RoundTripper) func() {
+	t.Helper()
+	return gndprovider.SetHTTPClientForTesting(&http.Client{Transport: transport})
+}
+
+func gndproviderTestSwapSleep(t *testing.T) func() {
+	t.Helper()
+	return gndprovider.SetSleepForTesting(func(time.Duration) {})
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}

@@ -168,8 +168,7 @@ func (p *ReiheEditPage) renderError(engine *templating.Engine, app core.App, e *
 }
 
 type reiheDeletePayload struct {
-	CSRFToken  string `json:"csrf_token"`
-	LastEdited string `json:"last_edited"`
+	CSRFToken string `json:"csrf_token"`
 }
 
 func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, ia pagemodels.IApp, store *canonical.Store) HandleFunc {
@@ -197,15 +196,8 @@ func (p *ReiheEditPage) POSTDelete(engine *templating.Engine, app core.App, ia p
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.DeleteSeries(tx, series, canonical.DeleteOptions{ExpectedUpdatedAt: expectedUpdatedAt}, effects)
+			return store.DeleteSeries(tx, series, canonical.DeleteOptions{}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to delete series", "series_id", series.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
@@ -305,7 +297,6 @@ func preferredSeriesEntries(app core.App, seriesID string) ([]*dbmodels.Entry, e
 
 type reiheEditForm struct {
 	CSRFToken  string `form:"csrf_token"`
-	LastEdited string `form:"last_edited"`
 	SaveAction string `form:"save_action"`
 	Title      string `form:"title"`
 	Pseudonyms string `form:"pseudonyms"`
@@ -349,23 +340,17 @@ func (p *ReiheEditPage) POST(engine *templating.Engine, app core.App, ia pagemod
 			return engine.Response404(e, err, nil)
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(formdata.LastEdited)
-		if err != nil {
-			return p.renderError(engine, app, e, "Ungültiger Bearbeitungszeitstempel.", &formdata)
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
 			editorID := req.EditorUserID()
 			return store.UpdateSeries(tx, series, canonical.SeriesInput{
-				Title:             formdata.Title,
-				Pseudonyms:        formdata.Pseudonyms,
-				Annotation:        formdata.Annotation,
-				References:        formdata.References,
-				Frequency:         formdata.Frequency,
-				Status:            formdata.Status,
-				Comment:           formdata.Comment,
-				EditorID:          editorID,
-				ExpectedUpdatedAt: expectedUpdatedAt,
+				Title:      formdata.Title,
+				Pseudonyms: formdata.Pseudonyms,
+				Annotation: formdata.Annotation,
+				References: formdata.References,
+				Frequency:  formdata.Frequency,
+				Status:     formdata.Status,
+				Comment:    formdata.Comment,
+				EditorID:   editorID,
 			}, effects)
 		}); err != nil {
 			app.Logger().Error("Failed to save series", "series_id", series.Id, "error", err)
@@ -406,15 +391,8 @@ func (p *ReiheEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *cano
 			})
 		}
 
-		expectedUpdatedAt, err := parseExpectedUpdatedAt(payload.LastEdited)
-		if err != nil {
-			return e.JSON(http.StatusBadRequest, map[string]any{
-				"error": "Ungültiger Bearbeitungszeitstempel.",
-			})
-		}
-
 		if err := runCanonicalMutation(app, ia, func(tx core.App, effects *canonical.MutationEffects) error {
-			return store.UpdateSeriesStatus(tx, series, payload.Status, req.EditorUserID(), expectedUpdatedAt, effects)
+			return store.UpdateSeriesStatus(tx, series, payload.Status, req.EditorUserID(), effects)
 		}); err != nil {
 			app.Logger().Error("Failed to update series status", "series_id", series.Id, "error", err)
 			return e.JSON(canonicalHTTPStatus(err, http.StatusInternalServerError), map[string]any{
