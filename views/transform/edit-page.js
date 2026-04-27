@@ -2,14 +2,17 @@ export class EditPage extends HTMLElement {
 	constructor() {
 		super();
 		this._isSaving = false;
+		this._statusEl = null;
 		this._handleFormSubmit = this._handleFormSubmit.bind(this);
 	}
 
 	connectedCallback() {
 		setTimeout(() => {
+			this._statusEl = this.querySelector(".save-feedback");
 			this._initializeForms();
 			this._setupCancelLinks();
 			this._setupDelete();
+			this._setupLinkedDataRefresh();
 			this._setupStatusSelect();
 		}, 0);
 	}
@@ -224,6 +227,47 @@ export class EditPage extends HTMLElement {
 		}
 	}
 
+	_clearStatus() {
+		if (!this._statusEl) {
+			return;
+		}
+		this._statusEl.textContent = "";
+		this._statusEl.classList.remove("text-red-700", "text-green-700", "save-feedback-error", "save-feedback-success");
+		this._statusEl.classList.remove("is-hidden", "is-hiding");
+		delete this._statusEl.dataset.autohideScheduled;
+		this._statusEl.classList.add("hidden");
+	}
+
+	_showStatus(message, type) {
+		if (!this._statusEl) {
+			return;
+		}
+		this._clearStatus();
+		this._statusEl.textContent = message;
+		this._statusEl.classList.remove("hidden");
+		this._statusEl.classList.remove("is-hidden");
+		if (type === "success") {
+			this._statusEl.classList.add("text-green-700", "save-feedback-success");
+		} else if (type === "error") {
+			this._statusEl.classList.add("text-red-700", "save-feedback-error");
+		}
+		if (type === "success") {
+			const el = this._statusEl;
+			if (el.dataset.autohideScheduled === "true") {
+				return;
+			}
+			el.dataset.autohideScheduled = "true";
+			setTimeout(() => {
+				el.classList.add("is-hiding");
+				setTimeout(() => {
+					el.classList.add("is-hidden");
+					el.classList.remove("is-hiding");
+					delete el.dataset.autohideScheduled;
+				}, 320);
+			}, 2000);
+		}
+	}
+
 	_setupDelete() {
 		const form = this.querySelector("form");
 		if (!form) {
@@ -283,5 +327,111 @@ export class EditPage extends HTMLElement {
 			const redirect = data?.redirect || "/";
 			window.location.assign(redirect);
 		});
+	}
+
+	_setupLinkedDataRefresh() {
+		const form = this.querySelector("form.form-with-action-bar");
+		const button = this.querySelector("[data-role='linked-data-refresh']");
+		const uriInput = this.querySelector("[data-role='linked-data-uri-input']");
+		if (!(form instanceof HTMLFormElement) || !(button instanceof HTMLButtonElement) || !(uriInput instanceof HTMLInputElement)) {
+			return;
+		}
+		if (button.dataset.refreshBound === "true") {
+			return;
+		}
+		button.dataset.refreshBound = "true";
+
+		const endpoint = (button.getAttribute("data-refresh-endpoint") || "").trim();
+		const csrfInput = form.querySelector("[name='csrf_token']");
+		if (!(csrfInput instanceof HTMLInputElement) || !endpoint) {
+			button.classList.add("hidden");
+			return;
+		}
+
+		let originalURI = (button.getAttribute("data-original-uri") || "").trim();
+		const supportsRefresh = () => button.getAttribute("data-supported") === "true";
+		const syncVisibility = () => {
+			const currentURI = (uriInput.value || "").trim();
+			const shouldShow = supportsRefresh() && currentURI === originalURI;
+			button.classList.toggle("hidden", !shouldShow);
+		};
+		const setLoading = (isLoading) => {
+			button.disabled = isLoading;
+			button.classList.toggle("is-refreshing", isLoading);
+			button.classList.toggle("opacity-70", isLoading);
+			button.classList.toggle("pointer-events-none", isLoading);
+			const icon = button.querySelector("i");
+			if (!(icon instanceof HTMLElement)) {
+				return;
+			}
+			if (isLoading) {
+				if (!icon.dataset.originalClass) {
+					icon.dataset.originalClass = icon.className;
+				}
+				icon.className = "ri-loader-4-line spinning";
+				return;
+			}
+			if (icon.dataset.originalClass) {
+				icon.className = icon.dataset.originalClass;
+				delete icon.dataset.originalClass;
+			}
+		};
+
+		const handleURIChange = () => {
+			syncVisibility();
+		};
+
+		uriInput.addEventListener("input", handleURIChange);
+		uriInput.addEventListener("change", handleURIChange);
+
+		button.addEventListener("click", async (event) => {
+			event.preventDefault();
+			if (this._isSaving || button.classList.contains("hidden")) {
+				return;
+			}
+
+			const requestOriginalURI = originalURI;
+			this._clearStatus();
+			setLoading(true);
+
+			try {
+				const response = await fetch(endpoint, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+					body: JSON.stringify({
+						csrf_token: csrfInput.value || "",
+					}),
+					credentials: "same-origin",
+				});
+				const data = await response.json().catch(() => null);
+				if (!response.ok || !data?.success) {
+					throw new Error(data?.error || "Verknüpfte Daten konnten nicht aktualisiert werden.");
+				}
+
+				const refreshedURI = typeof data.uri === "string" ? data.uri.trim() : requestOriginalURI;
+				const currentURI = (uriInput.value || "").trim();
+				if (currentURI === requestOriginalURI) {
+					uriInput.value = refreshedURI;
+				}
+
+				originalURI = refreshedURI;
+				button.setAttribute("data-original-uri", refreshedURI);
+				if (typeof data.can_refresh_linked_data === "boolean") {
+					button.setAttribute("data-supported", data.can_refresh_linked_data ? "true" : "false");
+				}
+				syncVisibility();
+				this._showStatus(data.message || "Verknüpfte Daten aktualisiert.", "success");
+			} catch (error) {
+				this._showStatus(error instanceof Error ? error.message : "Verknüpfte Daten konnten nicht aktualisiert werden.", "error");
+			} finally {
+				setLoading(false);
+				syncVisibility();
+			}
+		});
+
+		syncVisibility();
 	}
 }

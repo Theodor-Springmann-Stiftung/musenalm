@@ -254,6 +254,26 @@
 		@apply min-w-8 px-2 py-1.5 text-base;
 	}
 
+	.linked-data-refresh-button {
+		@apply border-transparent bg-transparent text-slate-500 shadow-none hover:bg-transparent hover:text-slate-800;
+	}
+
+	.linked-data-refresh-button.is-refreshing {
+		animation: linked-data-refresh-pulse 900ms ease-in-out infinite;
+	}
+
+	@keyframes linked-data-refresh-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		50% {
+			transform: scale(1.08);
+			opacity: 0.72;
+		}
+	}
+
 	.simple-entity-header-button {
 		@apply inline-flex items-center justify-center gap-2 select-none rounded-xs border border-stone-200 bg-gray-100 px-3 py-1.5 text-[0.98rem] font-semibold text-slate-700 no-underline transition-colors duration-100 hover:bg-stone-200 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-400/30;
 	}

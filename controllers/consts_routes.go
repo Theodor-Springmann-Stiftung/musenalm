@@ -121,6 +121,7 @@ const (
 	URL_PERSON_EDIT        = "edit"
 	URL_PERSON_EDIT_SLASH  = "edit/"
 	URL_PERSON_STATUS      = "edit/status"
+	URL_PERSON_REFRESH     = "edit/refresh-linked-data"
 	URL_PERSON_DELETE      = "edit/delete"
 	TEMPLATE_PERSON_EDIT   = "/admin/person/edit/"
 	URL_PERSON_VIEW_FORMAT = "/person/%s"

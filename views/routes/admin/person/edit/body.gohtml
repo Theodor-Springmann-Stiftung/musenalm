@@ -127,7 +127,30 @@
 
 				<label for="uri" class="edit-form-label">URL</label>
 				<div class="edit-form-field col-span-3">
-					<div class="inputshell"><input name="uri" id="uri" class="inputinput" autocomplete="off" value="{{ $agent.URI }}" /></div>
+					<div class="inputshell flex items-center gap-2 pr-1">
+						<input
+							name="uri"
+							id="uri"
+							class="inputinput"
+							autocomplete="off"
+							value="{{ $agent.URI }}"
+							data-role="linked-data-uri-input" />
+						{{- if and (not $model.is_new) $model.result.CanRefreshData -}}
+							<button
+								type="button"
+								class="simple-entity-button simple-entity-button-secondary simple-entity-button-icon linked-data-refresh-button shrink-0"
+								data-role="linked-data-refresh"
+								data-refresh-endpoint="/admin/person/{{ $agent.Id }}/edit/refresh-linked-data"
+								data-original-uri="{{ $agent.URI }}"
+								data-supported="true"
+								data-tippy-placement="top"
+								data-tippy-content="Verknüpfte Daten aktualisieren"
+								aria-label="Verknüpfte Daten aktualisieren"
+								>
+								<i class="ri-refresh-line"></i>
+							</button>
+						{{- end -}}
+					</div>
 				</div>
 
 				<label for="references" class="edit-form-label">Nachweise</label>

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -16,7 +17,7 @@ import (
 
 func TestRefreshAgentGNDUpdatesDataForDNBURI(t *testing.T) {
 	testApp, musenalmApp := newTestMusenalmApp(t)
-	defer testApp.Cleanup()
+	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
 
 	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
 
@@ -49,9 +50,54 @@ func TestRefreshAgentGNDUpdatesDataForDNBURI(t *testing.T) {
 	}
 }
 
+func TestRefreshAgentLinkedDataUpdatesDataForDNBURI(t *testing.T) {
+	testApp, musenalmApp := newTestMusenalmApp(t)
+	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
+
+	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
+
+	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body: io.NopCloser(strings.NewReader(
+				`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
+			)),
+			Header:  make(http.Header),
+			Request: req,
+		}, nil
+	}))
+	defer restoreClient()
+
+	refreshed, err := musenalmApp.RefreshAgentLinkedData(agent.Id)
+	if err != nil {
+		t.Fatalf("RefreshAgentLinkedData: %v", err)
+	}
+	if refreshed.URI() != "https://d-nb.info/gnd/116267968" {
+		t.Fatalf("expected normalized URI, got %q", refreshed.URI())
+	}
+	if refreshed.GND() == nil || refreshed.GND().PreferredName != "Barth, Carl" {
+		t.Fatalf("expected refreshed GND payload, got %#v", refreshed.Data())
+	}
+}
+
+func TestRefreshAgentLinkedDataRejectsUnsupportedURI(t *testing.T) {
+	testApp, musenalmApp := newTestMusenalmApp(t)
+	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
+
+	agent := createTestAgent(t, testApp, "https://example.com/person/1", map[string]any{"custom": "keep"})
+
+	_, err := musenalmApp.RefreshAgentLinkedData(agent.Id)
+	if err == nil {
+		t.Fatal("expected unsupported URI error")
+	}
+	if !errors.Is(err, ErrLinkedDataRefreshUnsupportedURI) {
+		t.Fatalf("expected ErrLinkedDataRefreshUnsupportedURI, got %v", err)
+	}
+}
+
 func TestRefreshAgentGNDClearsStaleDataOnFetchFailure(t *testing.T) {
 	testApp, musenalmApp := newTestMusenalmApp(t)
-	defer testApp.Cleanup()
+	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
 
 	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{
 		"gnd":    map[string]any{"preferredName": "Old"},
@@ -90,7 +136,7 @@ func TestRefreshAgentGNDClearsStaleDataOnFetchFailure(t *testing.T) {
 
 func TestRefreshAgentGNDSkipsStaleWorkerResult(t *testing.T) {
 	testApp, musenalmApp := newTestMusenalmApp(t)
-	defer testApp.Cleanup()
+	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
 
 	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{
 		"gnd": map[string]any{"preferredName": "Old"},
@@ -163,6 +209,15 @@ func newTestMusenalmApp(t *testing.T) (*tests.TestApp, *App) {
 		displayCacheRefreshPlan: newDisplayRefreshPlan(),
 	}
 	return testApp, musenalmApp
+}
+
+func cleanupTestMusenalmApp(t *testing.T, testApp *tests.TestApp, musenalmApp *App) {
+	t.Helper()
+
+	waitForCondition(t, time.Second, func() bool {
+		return !musenalmApp.displayCacheRefreshRun
+	}, "display cache refresh loop shutdown")
+	testApp.Cleanup()
 }
 
 func createTestAgent(t *testing.T, app core.App, uri string, data map[string]any) *dbmodels.Agent {

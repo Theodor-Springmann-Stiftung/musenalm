@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -45,6 +46,7 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	rg.POST(URL_PERSON_EDIT, p.POST(engine, app, ia, store))
 	rg.POST(URL_PERSON_EDIT_SLASH, p.POST(engine, app, ia, store))
 	rg.POST(URL_PERSON_STATUS, p.POSTStatus(app, ia, store))
+	rg.POST(URL_PERSON_REFRESH, p.POSTRefreshLinkedData(app, ia))
 	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, ia, store))
 	return nil
 }
@@ -52,6 +54,7 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 type PersonEditResult struct {
 	Agent          *dbmodels.Agent
 	User           *dbmodels.User
+	CanRefreshData bool
 	Prev           *dbmodels.Agent
 	Next           *dbmodels.Agent
 	PrevMusenalm   *dbmodels.Agent
@@ -107,6 +110,7 @@ func NewPersonEditResult(app core.App, id string) (*PersonEditResult, error) {
 	return &PersonEditResult{
 		Agent:          agent,
 		User:           user,
+		CanRefreshData: gndprovider.IsGNDURI(agent.URI()),
 		Prev:           prev,
 		Next:           next,
 		PrevMusenalm:   prevMusenalm,
@@ -297,6 +301,10 @@ type personDeletePayload struct {
 	CSRFToken string `json:"csrf_token"`
 }
 
+type personRefreshLinkedDataPayload struct {
+	CSRFToken string `json:"csrf_token"`
+}
+
 func applyPersonForm(agent *dbmodels.Agent, formdata personEditForm, name string, status string, user *dbmodels.FixedUser) {
 	agent.SetName(name)
 	agent.SetPseudonyms(strings.TrimSpace(formdata.Pseudonyms))
@@ -411,6 +419,73 @@ func (p *PersonEditPage) POSTStatus(app core.App, ia pagemodels.IApp, store *can
 			"success":     true,
 			"status":      agent.EditState(),
 			"last_edited": agent.Updated().Time().Format(time.RFC3339Nano),
+		})
+	}
+}
+
+func (p *PersonEditPage) POSTRefreshLinkedData(app core.App, ia pagemodels.IApp) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+		req := templating.NewRequest(e)
+
+		payload := personRefreshLinkedDataPayload{}
+		if err := e.BindBody(&payload); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Ungültige Formulardaten.",
+			})
+		}
+
+		if err := req.CheckCSRF(payload.CSRFToken); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": err.Error(),
+			})
+		}
+
+		musenalmApp, ok := ia.(*musenalmapp.App)
+		if !ok {
+			app.Logger().Error("Person linked data refresh unavailable: app type mismatch")
+			return e.JSON(http.StatusInternalServerError, map[string]any{
+				"error": "Verknüpfte Daten konnten nicht aktualisiert werden.",
+			})
+		}
+
+		agent, err := dbmodels.Agents_ID(app, id)
+		if err != nil {
+			return e.JSON(http.StatusNotFound, map[string]any{
+				"error": "Person wurde nicht gefunden.",
+			})
+		}
+
+		if !musenalmApp.CanRefreshAgentLinkedDataURI(agent.URI()) {
+			return e.JSON(http.StatusBadRequest, map[string]any{
+				"error": "Für diese URL ist kein Datenabgleich verfügbar.",
+			})
+		}
+
+		refreshedAgent, err := musenalmApp.RefreshAgentLinkedData(agent.Id)
+		if err != nil {
+			switch {
+			case errors.Is(err, musenalmapp.ErrLinkedDataRefreshUnsupportedURI):
+				return e.JSON(http.StatusBadRequest, map[string]any{
+					"error": "Für diese URL ist kein Datenabgleich verfügbar.",
+				})
+			case errors.Is(err, musenalmapp.ErrLinkedDataRefreshStaleURI):
+				return e.JSON(http.StatusConflict, map[string]any{
+					"error": "Die URL wurde inzwischen geändert. Bitte Seite neu laden.",
+				})
+			default:
+				app.Logger().Error("Failed to refresh person linked data", "agent_id", agent.Id, "error", err)
+				return e.JSON(http.StatusInternalServerError, map[string]any{
+					"error": "Verknüpfte Daten konnten nicht aktualisiert werden.",
+				})
+			}
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"success":                 true,
+			"message":                 "Verknüpfte Daten aktualisiert.",
+			"uri":                     refreshedAgent.URI(),
+			"can_refresh_linked_data": musenalmApp.CanRefreshAgentLinkedDataURI(refreshedAgent.URI()),
 		})
 	}
 }
