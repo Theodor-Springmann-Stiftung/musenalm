@@ -3,8 +3,8 @@
 <div
 	class="admin-page-shell"
 	x-data="{
-		searchApplied: {{ printf "%q" $model.search }},
-		searchDraft: {{ printf "%q" $model.search }},
+		searchApplied: {{ printf "%q" (or $model.search "") }},
+		searchDraft: {{ printf "%q" (or $model.search "") }},
 		searchOpen: false,
 		alphabetOpen: false,
 		selectedLetter: '{{ $model.letter }}',

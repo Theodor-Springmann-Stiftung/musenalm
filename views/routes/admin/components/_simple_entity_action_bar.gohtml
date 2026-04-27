@@ -5,6 +5,49 @@
 {{- $showDelete := index . "show_delete" -}}
 {{- $deleteLabel := index . "delete_label" -}}
 {{- $showViewAction := index . "show_view_action" -}}
+{{- $saveButtonType := index . "save_button_type" -}}
+{{- if not $saveButtonType -}}
+	{{- $saveButtonType = "submit" -}}
+{{- end -}}
+{{- $saveButtonRole := index . "save_button_role" -}}
+{{- $saveButtonClass := index . "save_button_class" -}}
+{{- if not $saveButtonClass -}}
+	{{- $saveButtonClass = "simple-entity-button simple-entity-button-primary" -}}
+{{- end -}}
+{{- $saveButtonName := index . "save_button_name" -}}
+{{- if not $saveButtonName -}}
+	{{- $saveButtonName = "save_action" -}}
+{{- end -}}
+{{- $saveButtonValue := index . "save_button_value" -}}
+{{- if not $saveButtonValue -}}
+	{{- $saveButtonValue = "stay" -}}
+{{- end -}}
+{{- $viewButtonType := index . "view_button_type" -}}
+{{- if not $viewButtonType -}}
+	{{- $viewButtonType = "submit" -}}
+{{- end -}}
+{{- $viewButtonRole := index . "view_button_role" -}}
+{{- $viewButtonClass := index . "view_button_class" -}}
+{{- if not $viewButtonClass -}}
+	{{- $viewButtonClass = "simple-entity-button simple-entity-button-primary" -}}
+{{- end -}}
+{{- $viewButtonName := index . "view_button_name" -}}
+{{- if not $viewButtonName -}}
+	{{- $viewButtonName = "save_action" -}}
+{{- end -}}
+{{- $viewButtonValue := index . "view_button_value" -}}
+{{- if not $viewButtonValue -}}
+	{{- $viewButtonValue = "view" -}}
+{{- end -}}
+{{- $viewRedirectURL := index . "view_redirect_url" -}}
+{{- $deleteButtonRole := index . "delete_button_role" -}}
+{{- if not $deleteButtonRole -}}
+	{{- $deleteButtonRole = "edit-delete" -}}
+{{- end -}}
+{{- $deleteButtonClass := index . "delete_button_class" -}}
+{{- if not $deleteButtonClass -}}
+	{{- $deleteButtonClass = "simple-entity-button simple-entity-button-secondary simple-entity-button-danger w-40" -}}
+{{- end -}}
 
 {{- if $success -}}
 <div data-toast="success" data-toast-message="{{ $success }}" class="hidden"></div>
@@ -21,22 +64,27 @@
 			{{- if $showDelete -}}
 				<button
 					type="button"
-					class="simple-entity-button simple-entity-button-secondary simple-entity-button-danger w-40"
-					data-role="edit-delete">
+					class="{{ $deleteButtonClass }}"
+					data-role="{{ $deleteButtonRole }}">
 					<i class="ri-delete-bin-line"></i>
 					<span>{{ $deleteLabel }}</span>
 				</button>
 			{{- end -}}
-			<button type="submit" name="save_action" value="stay" class="simple-entity-button simple-entity-button-primary">
+			<button
+				type="{{ $saveButtonType }}"
+				class="{{ $saveButtonClass }}"
+				{{- if $saveButtonRole }} data-role="{{ $saveButtonRole }}"{{ end -}}
+				{{- if eq $saveButtonType "submit" }} name="{{ $saveButtonName }}" value="{{ $saveButtonValue }}"{{ end -}}>
 				<i class="ri-save-line"></i>
 				<span>Speichern</span>
 			</button>
 			{{- if $showViewAction -}}
 				<button
-					type="submit"
-					name="save_action"
-					value="view"
-					class="simple-entity-button simple-entity-button-primary">
+					type="{{ $viewButtonType }}"
+					class="{{ $viewButtonClass }}"
+					{{- if $viewButtonRole }} data-role="{{ $viewButtonRole }}"{{ end -}}
+					{{- if $viewRedirectURL }} data-redirect-url="{{ $viewRedirectURL }}"{{ end -}}
+					{{- if eq $viewButtonType "submit" }} name="{{ $viewButtonName }}" value="{{ $viewButtonValue }}"{{ end -}}>
 					<i class="ri-eye-line"></i>
 					<span>Speichern &amp; Anzeigen</span>
 				</button>

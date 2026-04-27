@@ -1,8 +1,8 @@
 {{ $model := . }}
 
 <div x-data="{
-	searchApplied: {{ printf "%q" $model.search }},
-	searchDraft: {{ printf "%q" $model.search }},
+	searchApplied: {{ printf "%q" (or $model.search "") }},
+	searchDraft: {{ printf "%q" (or $model.search "") }},
 	offset: {{ if $model.next_offset }}{{ $model.next_offset }}{{ else }}0{{ end }},
 	hasMore: {{ if $model.has_more }}true{{ else }}false{{ end }},
 	loading: false,

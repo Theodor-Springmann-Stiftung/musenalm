@@ -692,45 +692,24 @@ type AlmanachResult struct {
 		</div>
 		<!-- End Right Column -->
 		</div>
-		<div class="form-action-bar">
-			<div class="form-action-bar-inner simple-entity-action-bar-inner">
-				<div class="form-action-bar-actions">
-					<a href="{{ if $model.is_new }}/suche/baende{{ else }}/almanach/{{ $model.result.Entry.MusenalmID }}{{ end }}" class="simple-entity-button simple-entity-button-secondary w-40" data-role="cancel-link" data-cancel-url="{{ $model.cancel_url }}">
-						<i class="ri-close-line"></i>
-						<span>Abbrechen</span>
-					</a>
-					{{- if not $model.is_new -}}
-						<button
-							type="button"
-							class="simple-entity-button simple-entity-button-danger w-40"
-							data-role="almanach-delete">
-							<i class="ri-delete-bin-line"></i>
-							<span>Eintrag löschen</span>
-						</button>
-					{{- end -}}
-					{{- if not $model.is_new -}}
-						<button type="button" class="simple-entity-button simple-entity-button-primary w-40" data-role="almanach-save">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-						<button
-							type="button"
-							class="simple-entity-button simple-entity-button-primary"
-							data-role="almanach-save-view"
-							data-redirect-url="/almanach/{{ $model.result.Entry.MusenalmID }}">
-							<i class="ri-eye-line"></i>
-							<span>Speichern &amp; Anzeigen</span>
-						</button>
-					{{- end -}}
-					{{- if $model.is_new -}}
-						<button type="button" class="simple-entity-button simple-entity-button-primary w-40" data-role="almanach-save">
-							<i class="ri-save-line"></i>
-							<span>Speichern</span>
-						</button>
-					{{- end -}}
-				</div>
-			</div>
-		</div>
+		{{ template "_simple_entity_action_bar" (Dict
+			"error" $model.error
+			"success" $model.success
+			"cancel_href" "/admin/baende/"
+			"cancel_url" $model.cancel_url
+			"show_delete" (not $model.is_new)
+			"delete_label" "Eintrag löschen"
+			"delete_button_role" "almanach-delete"
+			"delete_button_class" "simple-entity-button simple-entity-button-danger w-40"
+			"save_button_type" "button"
+			"save_button_role" "almanach-save"
+			"save_button_class" "simple-entity-button simple-entity-button-primary w-40"
+			"show_view_action" (not $model.is_new)
+			"view_button_type" "button"
+			"view_button_role" "almanach-save-view"
+			"view_button_class" "simple-entity-button simple-entity-button-primary"
+			"view_redirect_url" (printf "/almanach/%d" $model.result.Entry.MusenalmID)
+		) }}
 		{{- if not $model.is_new -}}
 		<dialog data-role="almanach-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">
 			<div class="p-5 w-[22rem]">
