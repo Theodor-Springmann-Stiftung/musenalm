@@ -1,4 +1,5 @@
-{{ $group := . }}
+{{ $group := .group }}
+{{- $canEdit := .can_edit -}}
 {{ $entry := $group.Entry }}
 
 <section
@@ -40,12 +41,21 @@
 			<span class="inline-flex items-center rounded-xs border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-base font-semibold text-slate-700">
 				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
 			</span>
+				{{- if $canEdit -}}
 				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
 					<i class="ri-article-line"></i>
 				</a>
-				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip" title="Band bearbeiten" aria-label="Band bearbeiten">
+				<a href="/admin/almanach/{{ $entry.MusenalmID }}/edit/" class="admin-list-chip admin-list-chip-edit" title="Band bearbeiten" aria-label="Band bearbeiten">
 					<i class="ri-book-line"></i>
 				</a>
+				{{- else -}}
+				<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+					<i class="ri-article-line"></i>
+				</span>
+				<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+					<i class="ri-book-line"></i>
+				</span>
+				{{- end -}}
 		</div>
 	</div>
 
@@ -149,6 +159,7 @@
 						"last_edited" $content.Updated
 						"picker_class" ""
 						"toggle_class" "admin-list-status-trigger"
+						"readonly" (not $canEdit)
 					) -}}
 				</div>
 
@@ -170,6 +181,7 @@
 								</a>
 							{{- end -}}
 						</div>
+						{{- if $canEdit -}}
 						<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit/{{ $content.MusenalmID }}" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip admin-list-chip-edit" title="Beitrag bearbeiten" aria-label="Beitrag bearbeiten">
 							<i class="ri-edit-line"></i>
 						</a>
@@ -184,6 +196,14 @@
 							aria-label="Beitrag löschen">
 							<i class="ri-delete-bin-line"></i>
 						</button>
+						{{- else -}}
+						<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+							<i class="ri-edit-line"></i>
+						</span>
+						<span class="admin-list-chip-danger pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+							<i class="ri-delete-bin-line"></i>
+						</span>
+						{{- end -}}
 					</div>
 				</div>
 			{{- end -}}

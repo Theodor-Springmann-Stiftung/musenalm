@@ -1,4 +1,4 @@
-{{- if and .request.user (IsAdminOrEditor .request.user) -}}
+{{- if .request.user -}}
 {{- $displayName := .request.user.Email -}}
 {{- if .request.user.Name -}}
 	{{- $displayName = .request.user.Name -}}
@@ -15,6 +15,7 @@
 		x-show="open"
 		x-transition.opacity.scale.origin.bottom.left.duration.150ms
 		class="absolute bottom-14 left-0 w-[17rem] overflow-hidden rounded-xs border border-stone-300 bg-white shadow-lg">
+		{{- if (IsAdminOrEditor .request.user) -}}
 		<div class="border-b border-stone-200 px-3 pt-2 pb-1.5">
 			<div class="leading-none text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-stone-500">Neu</div>
 		</div>
@@ -36,6 +37,7 @@
 				<span>Neuer Ort</span>
 			</a>
 		</div>
+		{{- end -}}
 
 		<div class="border-b border-stone-200 px-3 pt-2 pb-1.5">
 			<div class="leading-none text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-stone-500">Entitäten</div>
@@ -61,6 +63,7 @@
 				<i class="ri-map-pin-line text-[1rem] text-slate-600" aria-hidden="true"></i>
 				<span>Orte</span>
 			</a>
+			{{- if (IsAdminOrEditor .request.user) -}}
 			<a href="/admin/abkuerzungen/" class="flex items-center gap-2.5 px-3 py-2 text-[0.95rem] text-slate-800 no-underline transition-colors hover:bg-stone-100">
 				<i class="ri-text text-[1rem] text-slate-600" aria-hidden="true"></i>
 				<span>Abkürzungen</span>
@@ -69,6 +72,7 @@
 				<i class="ri-pages-line text-[1rem] text-slate-600" aria-hidden="true"></i>
 				<span>Seiten</span>
 			</a>
+			{{- end -}}
 		</div>
 
 		<div class="border-t border-stone-200">

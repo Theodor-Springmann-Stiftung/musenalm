@@ -59,6 +59,7 @@
 							"last_edited" $place.Updated
 							"picker_class" ""
 							"toggle_class" "admin-list-status-trigger"
+							"readonly" (not (IsAdminOrEditor $model.request.user))
 						) -}}
 					</span>
 					<div class="admin-list-action-stack">
@@ -95,6 +96,13 @@
 								aria-label="Löschen">
 								<i class="ri-delete-bin-line"></i>
 							</button>
+						{{- else -}}
+							<span class="admin-list-chip pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+								<i class="ri-edit-line"></i>
+							</span>
+							<span class="admin-list-chip-danger pointer-events-none border-stone-200 bg-stone-100 text-stone-400 opacity-60" title="Keine Berechtigung" aria-disabled="true">
+								<i class="ri-delete-bin-line"></i>
+							</span>
 						{{- end -}}
 					</div>
 				</div>

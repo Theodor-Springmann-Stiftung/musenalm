@@ -29,7 +29,6 @@ func (p *AdminStartPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	appInstance := ia.Core()
 	rg := router.Group(URL_ADMIN_START)
 	rg.BindFunc(middleware.Authenticated(appInstance))
-	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.pageHandler(engine, appInstance))
 	rg.GET(URL_ADMIN_START_SCANS, p.scansHandler(engine, appInstance))
 	rg.GET(URL_ADMIN_START_BAENDE, p.baendeHandler(engine, appInstance))

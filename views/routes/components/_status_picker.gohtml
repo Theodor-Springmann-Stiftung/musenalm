@@ -4,6 +4,7 @@
 {{- $scope := .scope -}}
 {{- $endpoint := .endpoint -}}
 {{- $csrfToken := .csrf_token -}}
+{{- $readonly := .readonly -}}
 {{- $label := "Unbekannt" -}}
 {{- $icon := "ri-forbid-2-line" -}}
 {{- if and (eq $scope "entry") (eq $status "Unknown") -}}
@@ -30,6 +31,17 @@
 	{{- end -}}
 	{{- $icon = "ri-checkbox-circle-line" -}}
 {{- end -}}
+{{- if $readonly -}}
+<div class="relative{{ if $pickerClass }} {{ $pickerClass }}{{ end }}">
+	<span
+		class="{{ $toggleClass }} pointer-events-none cursor-default"
+		data-status="{{ $status }}"
+		aria-label="Status: {{ $label }}"
+		title="Status: {{ $label }}">
+		<i class="{{ $icon }}"></i>
+	</span>
+</div>
+{{- else -}}
 <div
 	class="relative{{ if $pickerClass }} {{ $pickerClass }}{{ end }}"
 	data-role="content-status-picker"
@@ -65,3 +77,4 @@
 		</button>
 	</div>
 </div>
+{{- end -}}

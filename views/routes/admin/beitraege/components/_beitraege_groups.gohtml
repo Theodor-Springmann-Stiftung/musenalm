@@ -1,5 +1,5 @@
 {{ $model := . }}
 
 {{- range $_, $group := $model.result.Groups -}}
-	{{ template "_beitraege_group" $group }}
+	{{ template "_beitraege_group" (Dict "group" $group "can_edit" (IsAdminOrEditor $model.request.user)) }}
 {{- end -}}

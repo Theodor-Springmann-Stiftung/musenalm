@@ -3,6 +3,7 @@
 {{- $profilePathPrefix := "" -}}
 {{- $canEditAccount := false -}}
 {{- $isAdminUser := and $model.request $model.request.user (eq $model.request.user.Role "Admin") -}}
+{{- $isAdminOrEditor := and $model.request $model.request.user (or (eq $model.request.user.Role "Admin") (eq $model.request.user.Role "Editor")) -}}
 {{- $path := "" -}}
 {{- $isVisitorSidebar := .visitor_sidebar -}}
 {{- if and $model.request $model.request.user (not $model.request.user.IsSuperuser) -}}
@@ -143,6 +144,7 @@
 		</div>
 	</div>
 
+	{{- if $isAdminOrEditor -}}
 	<div class="admin-sidebar-collapsed-create" x-data="{ open: false }" @click.outside="open = false">
 		<button type="button" class="admin-sidebar-collapsed-create-trigger" :class="{ 'is-open': open }" data-admin-sidebar-tooltip="Erstellen" @click="open = !open">
 			<i class="ri-asterisk" aria-hidden="true"></i>
@@ -154,6 +156,7 @@
 			<a href="/admin/personen/new/" class="admin-sidebar-collapsed-create-link{{ if $isNewPersonActive }} active{{ end }}">Person erstellen</a>
 		</div>
 	</div>
+	{{- end -}}
 	{{- end -}}
 
 	<nav class="admin-sidebar-nav" aria-label="Administration Navigation">
@@ -225,6 +228,7 @@
 			</div>
 		</details>
 
+		{{- if $isAdminOrEditor -}}
 		<details class="admin-sidebar-section admin-sidebar-section-collapsible admin-sidebar-create-section" {{ if $isCreateSectionActive }}open data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
 				<span class="inline-flex items-center gap-1.5"><i class="ri-asterisk" aria-hidden="true"></i><span>Erstellen</span></span>
@@ -237,6 +241,7 @@
 				<a href="/admin/personen/new/" data-admin-sidebar-tooltip="Person erstellen" class="admin-sidebar-link" {{ if $isNewPersonActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><span>Person erstellen</span></span></a>
 			</div>
 		</details>
+		{{- end -}}
 
 		<details class="admin-sidebar-section admin-sidebar-section-collapsible" open {{ if $isListsSectionActive }}data-section-current="true"{{ end }}>
 			<summary class="admin-sidebar-section-title">
@@ -249,9 +254,11 @@
 				<a href="/admin/beitraege/" data-admin-sidebar-tooltip="Beiträge" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/beitraege/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isContentsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-article-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Beitr&auml;ge</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $contentsSidebarDetail }}</span></a>
 				<a href="/admin/personen/" data-admin-sidebar-tooltip="Personen" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/personen/|/admin/person/|/personen/|/person/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPersonsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-user-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Personen</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $personSidebarDetail }}</span></a>
 				<a href="/admin/orte/" data-admin-sidebar-tooltip="Orte" class="admin-sidebar-link" {{ if not $isVisitorSidebar }}data-admin-main-link data-admin-active-prefixes="/admin/orte/|/admin/ort/" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}'{{ end }} {{ if $isPlacesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-map-pin-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Orte</span></span><span class="admin-sidebar-link-detail" data-role="admin-sidebar-link-detail">{{ $placeSidebarDetail }}</span></a>
+				{{- if $isAdminOrEditor -}}
 				<hr class="border-slate-300">
 				<a href="/admin/abkuerzungen/" data-admin-sidebar-tooltip="Abkürzungen" class="admin-sidebar-link" {{ if $isAbbreviationsActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-text admin-sidebar-link-icon" aria-hidden="true"></i><span>Abk&uuml;rzungen</span></span></a>
 				<a href="/admin/seiten/" data-admin-sidebar-tooltip="Seiten" hx-boost="false" class="admin-sidebar-link" {{ if $isPagesActive }}aria-current="page"{{ end }}><span class="admin-sidebar-link-label"><i class="ri-pages-line admin-sidebar-link-icon" aria-hidden="true"></i><span>Seiten</span></span></a>
+				{{- end -}}
 			</div>
 		</details>
 

@@ -41,7 +41,7 @@ type OrteResult struct {
 func (p *OrtePage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_ORTE)
-	rg.BindFunc(middleware.IsAdmin())
+	rg.BindFunc(middleware.Authenticated(app))
 	rg.GET("", p.handlePage(engine, app))
 	rg.GET("results/", p.handleResults(engine, app))
 	rg.GET("more/", p.handleMore(engine, app))

@@ -47,7 +47,7 @@ type AbkuerzungenResult struct {
 func (p *AbkuerzungenPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	rg := router.Group(URL_ABKUERZUNGEN)
-	rg.BindFunc(middleware.IsAdmin())
+	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET("", p.GET(engine, app))
 	rg.POST("", p.POST(engine, ia))
 
