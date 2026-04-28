@@ -8,7 +8,7 @@
 {{ end }}
 <td data-role="reihen-status-reference-cell" class="col-reference pt-2 {{ if .expanded }}pb-0{{ else }}pb-2{{ end }} pr-4 pl-4 admin-col-nachweis-reihen admin-col-wrap">
 		<div class="flex flex-col">
-			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">Nr {{ $series.MusenalmID }}</div>
+			<div class="px-2.5 text-base font-semibold leading-snug text-slate-900">{{ $series.MusenalmID }}</div>
 			{{- if $series.References -}}
 				<div class="reihen-admin-text mt-1 px-2.5 font-sans text-base leading-snug text-gray-700" title="{{ $series.References }}">{{ $series.References }}</div>
 			{{- end -}}

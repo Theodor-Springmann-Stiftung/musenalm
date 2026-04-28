@@ -7,17 +7,17 @@
 	data-band-id="{{ $entry.MusenalmID }}"
 	data-collapsed="false">
 	<div
-		class="flex items-center justify-between gap-4 border-b border-stone-400 bg-stone-200/60 px-4 py-2.5"
+		class="flex items-center justify-between gap-4 border-b border-stone-400 bg-stone-200/60 px-4 py-1"
 		data-role="beitraege-group-header">
 		<div class="min-w-0 flex items-center gap-3">
 				<button
 					type="button"
-					class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xs text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-900"
+					class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-xs text-slate-700 transition-colors hover:bg-stone-100 hover:text-slate-900"
 					data-role="beitraege-group-toggle"
 					aria-expanded="true"
 					aria-label="Band einklappen"
 				title="Band einklappen">
-				<i class="ri-arrow-down-s-line text-lg" data-role="beitraege-group-toggle-icon"></i>
+				<i class="ri-arrow-down-s-line text-sm" data-role="beitraege-group-toggle-icon"></i>
 			</button>
 			<button
 				type="button"
@@ -25,7 +25,7 @@
 				aria-expanded="true"
 				aria-label="Band einklappen"
 				title="Band einklappen"
-				class="beitraege-admin-search-text min-w-0 truncate font-serif text-left text-lg font-semibold text-slate-900 transition-colors hover:text-slate-700">
+				class="beitraege-admin-search-text min-w-0 truncate text-left text-base font-semibold text-slate-900 transition-colors hover:text-slate-700">
 				{{- if $entry.PreferredTitle -}}
 					{{- $entry.PreferredTitle -}}
 				{{- else -}}
@@ -34,10 +34,10 @@
 			</button>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<span class="inline-flex h-8 items-center rounded-xs border border-stone-300 bg-white px-2.5 py-0 text-sm font-semibold text-slate-700">
+			<span class="text-base font-bold text-slate-700">
 				Alm {{ $entry.MusenalmID }}
 			</span>
-			<span class="inline-flex h-8 items-center rounded-xs border border-stone-300 bg-white px-2.5 py-0 text-sm font-semibold text-slate-700">
+			<span class="inline-flex items-center rounded-xs border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-base font-semibold text-slate-700">
 				{{ len $group.Rows }} {{ if eq (len $group.Rows) 1 }}Beitrag{{ else }}Beiträge{{ end }}
 			</span>
 				<a href="/admin/almanach/{{ $entry.MusenalmID }}/contents/edit" hx-target="#admin-main-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#admin-main-loading" hx-headers='{"X-Admin-Main-Nav":"true"}' data-admin-main-link class="admin-list-chip" title="Beiträge des Bandes" aria-label="Beiträge des Bandes">
@@ -54,7 +54,7 @@
 			{{ $content := $row.Content }}
 			<div data-role="beitraege-row" class="grid grid-cols-[5.5rem_3.5rem_8rem_minmax(0,1fr)_5.5rem_auto_auto] gap-x-3 transition-colors odd:bg-white even:bg-stone-50/50 hover:bg-stone-50">
 				<div data-role="beitraege-status-reference-cell" class="flex min-w-0 items-start pl-4 py-2.5 text-sm leading-snug text-slate-700">
-					<div data-role="beitraege-ref-number" class="inline-flex w-[4.5rem] items-center justify-center rounded-xs border border-stone-200 bg-white px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
+					<div data-role="beitraege-ref-number" class="inline-flex w-[4.5rem] items-center justify-center px-1.5 py-0 text-[0.9rem] font-semibold text-slate-700">
 						{{ $content.MusenalmID }}
 					</div>
 				</div>

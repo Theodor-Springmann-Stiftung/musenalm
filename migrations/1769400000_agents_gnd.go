@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -316,10 +317,18 @@ func searchLobidGND(ctx context.Context, name string, hints gndBiographicalHints
 	params.Set("q", rawQuery)
 	params.Set("format", "json")
 
+	fullURL := gndLobidBaseURL + "?" + params.Encode()
+
 	var lastErr error
 	retried := false
 	for attempt := 0; attempt < 5; attempt++ {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, gndLobidBaseURL+"?"+params.Encode(), nil)
+		if attempt == 0 {
+			log.Printf("GND lookup %q  %s", name, fullURL)
+		} else {
+			log.Printf("GND retry %d/4 %q  %s", attempt, name, fullURL)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
 		if err != nil {
 			return nil, retried, err
 		}
@@ -335,14 +344,17 @@ func searchLobidGND(ctx context.Context, name string, hints gndBiographicalHints
 				if err := json.Unmarshal(body, out); err != nil {
 					return nil, retried, err
 				}
+				log.Printf("GND ok    %q  hits=%d", name, out.TotalItems)
 				return out, retried, nil
 			} else if !shouldRetryGNDStatus(resp.StatusCode) {
 				return nil, retried, fmt.Errorf("unexpected status %d", resp.StatusCode)
 			} else {
 				lastErr = fmt.Errorf("transient status %d", resp.StatusCode)
+				log.Printf("GND error %q  status=%d", name, resp.StatusCode)
 			}
 		} else {
 			lastErr = err
+			log.Printf("GND error %q  err=%v", name, err)
 		}
 
 		if attempt == 4 {
@@ -604,17 +616,17 @@ func scoreGNDCandidate(queryName string, hints gndBiographicalHints, record map[
 		}
 	}
 
-	if hints.BirthYear != "" && containsString(candidate.BirthYears, hints.BirthYear) {
+	if hints.BirthYear != "" && containsStringPrefix(candidate.BirthYears, hints.BirthYear) {
 		candidate.ExactYearHits++
 		candidate.Score += 220
 	}
-	if hints.DeathYear != "" && containsString(candidate.DeathYears, hints.DeathYear) {
+	if hints.DeathYear != "" && containsStringPrefix(candidate.DeathYears, hints.DeathYear) {
 		candidate.ExactYearHits++
 		candidate.Score += 220
 	}
 
 	for _, year := range hints.Extracted {
-		if containsString(candidate.BirthYears, year) || containsString(candidate.DeathYears, year) {
+		if containsStringPrefix(candidate.BirthYears, year) || containsStringPrefix(candidate.DeathYears, year) {
 			candidate.PartialYearHits++
 			candidate.Score += 20
 		}
@@ -771,6 +783,15 @@ func removeString(values []string, remove string) []string {
 func containsString(values []string, want string) bool {
 	for _, value := range values {
 		if value == want {
+			return true
+		}
+	}
+	return false
+}
+
+func containsStringPrefix(values []string, prefix string) bool {
+	for _, value := range values {
+		if value == prefix || strings.HasPrefix(value, prefix+"-") {
 			return true
 		}
 	}

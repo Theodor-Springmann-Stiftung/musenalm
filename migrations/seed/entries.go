@@ -75,20 +75,32 @@ func RecordsFromBände(
 		}
 
 		contentCount := contentCounts[band.ID]
-		record.SetEditState(determineEntryEditState(record, band, match, hasLegacy, contentCount))
 
 		hasAutopsieFromData := entryHasAutopsieFromData(band)
+		needsReview := false
 		if band.BiblioID != 0 && !band.Erfasst && !(band.Gesichtet || hasAutopsieFromData) {
 			appendEntryComment(record, "Weder erfasst noch autopsiert, obwohl eine Biblio-ID vergeben wurde; bitte überprüfen.")
+			needsReview = true
 		}
 		if band.BiblioID == 0 && len(band.Status.Value) > 0 && !band.Erfasst && !(band.Gesichtet || hasAutopsieFromData) {
 			appendEntryComment(record, "Band ist als vorhanden markiert aber nicht autospiert.")
+			needsReview = true
 		}
 		if band.BiblioID == 0 && len(band.Status.Value) == 0 && (band.Erfasst || band.Gesichtet || hasAutopsieFromData) {
 			appendEntryComment(record, "Quelle für autopsiert oder Erfassung fehlt.")
+			needsReview = true
 		}
 
-		handlePreferredTitleEntry(record, band, rmap, relmap, match, hasLegacy)
+		if handlePreferredTitleEntry(record, band, rmap, relmap, match, hasLegacy) {
+			needsReview = true
+		}
+
+		if needsReview {
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[5])
+		} else {
+			record.SetEditState(determineEntryEditState(record, band, match, hasLegacy, contentCount))
+		}
+
 		handleDeprecated(record, band, match, hasLegacy)
 		applyLegacyUpdatedToEntry(record, match, hasLegacy)
 		handleOrte(record, band, omap, app, ocoll, places)
@@ -106,11 +118,11 @@ func handlePreferredTitleEntry(
 	rrelmap map[int][]xmlmodels.Relation_Band_Reihe,
 	legacy LegacyBandMatch,
 	hasLegacy bool,
-) {
+) bool {
 	if hasLegacy {
 		if oldTitle := normalizeLegacyEntryPreferredTitle(legacy.LegacyAlm.Reihentitel); oldTitle != "" {
 			record.SetPreferredTitle(oldTitle)
-			return
+			return false
 		}
 	}
 
@@ -118,7 +130,7 @@ func handlePreferredTitleEntry(
 	if len(rels) == 0 {
 		record.SetPreferredTitle(NormalizeString(band.ReihentitelALT))
 		appendEntryComment(record, "Kein Reihentitel-Bezug; Reihentitel ALT verwendet.")
-		return
+		return true
 	}
 
 	jahr := strconv.Itoa(band.Jahr)
@@ -130,7 +142,7 @@ func handlePreferredTitleEntry(
 	if bevti != -1 {
 		bevt := rmap[rels[bevti].Reihe]
 		record.SetPreferredTitle(NormalizeString(bevt.Titel) + " " + jahr)
-		return
+		return false
 	}
 
 	slices.SortFunc(rels, func(a, b xmlmodels.Relation_Band_Reihe) int {
@@ -138,6 +150,7 @@ func handlePreferredTitleEntry(
 	})
 
 	record.SetPreferredTitle(NormalizeString(rmap[rels[0].Reihe].Titel) + jahr)
+	return false
 }
 
 func entryHasAutopsieFromData(band xmlmodels.Band) bool {

@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	BEITRAEGE_ADMIN_PAGE_SIZE = 80
+	BEITRAEGE_ADMIN_PAGE_SIZE = 240
 )
 
 var adminBeitraegeAnnotationTags = regexp.MustCompile(`<[^>]+>`)
