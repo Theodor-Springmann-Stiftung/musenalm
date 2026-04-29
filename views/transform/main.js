@@ -20,6 +20,7 @@ import { EditPage } from "./edit-page.js";
 import { DuplicateWarningChecker } from "./duplicate-warning.js";
 import { ContentImages } from "./content-images.js";
 import { LookupField } from "./lookup-field.js";
+import { GndNameLookup } from "./gnd-name-lookup.js";
 import { ExportManager } from "./export-manager.js";
 import { ContentTypeSelect } from "./content-type-select.js";
 import { ContentPersonRelations } from "./content-person-relations.js";
@@ -59,6 +60,7 @@ const ELEMENT_DEFINITIONS = [
 	["duplicate-warning-checker", DuplicateWarningChecker],
 	["content-images", ContentImages],
 	["lookup-field", LookupField],
+	["gnd-name-lookup", GndNameLookup],
 	["export-manager", ExportManager],
 	["content-type-select", ContentTypeSelect],
 	["content-person-relations", ContentPersonRelations],

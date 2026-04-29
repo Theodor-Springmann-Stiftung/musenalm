@@ -73,3 +73,41 @@ func (p Person) String() string {
 func (p Person) Name() string {
 	return p.PreferredName
 }
+
+func (p Person) SameAsDeduped() []CrossReferences {
+	seen := make(map[string]struct{}, len(p.SameAs))
+	result := make([]CrossReferences, 0, len(p.SameAs))
+	for _, ref := range p.SameAs {
+		key := ref.Items.Abbr
+		if key == "" {
+			key = ref.ID
+		}
+		if _, exists := seen[key]; !exists {
+			seen[key] = struct{}{}
+			result = append(result, ref)
+		}
+	}
+	return result
+}
+
+var sameAsPriority = map[string]int{"ADB": 0, "NDB": 1, "dewiki": 2}
+
+func (p Person) SameAsSorted() []CrossReferences {
+	deduped := p.SameAsDeduped()
+	priority := make([]CrossReferences, 3)
+	rest := make([]CrossReferences, 0, len(deduped))
+	for _, ref := range deduped {
+		if i, ok := sameAsPriority[ref.Items.Abbr]; ok {
+			priority[i] = ref
+		} else {
+			rest = append(rest, ref)
+		}
+	}
+	result := make([]CrossReferences, 0, len(deduped))
+	for _, ref := range priority {
+		if ref.ID != "" {
+			result = append(result, ref)
+		}
+	}
+	return append(result, rest...)
+}

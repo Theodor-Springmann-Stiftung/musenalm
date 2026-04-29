@@ -84,19 +84,14 @@
 			<div class="edit-form-grid min-w-0 content-start">
 				<label for="person-name-field" class="edit-form-label">Name</label>
 				<div class="edit-form-field col-span-3">
-					<lookup-field
+					<gnd-name-lookup
 						id="person-name-field"
 						name="name"
-						data-multiline="true"
-						data-no-enter="true"
 						data-required="true"
-						data-autocomplete="false"
-						data-valid-fn="lookupRequiredText"
-						data-dup-endpoint="/admin/api/agents/search"
-						data-dup-result-key="agents"
-						data-dup-current-id="{{ if not $model.is_new }}{{ $agent.Id }}{{ end }}"
-						value="{{- $agent.Name -}}">
-					</lookup-field>
+						data-bio-field="biographical_data"
+						data-uri-field="uri"
+		value="{{- $agent.Name -}}">
+					</gnd-name-lookup>
 				</div>
 
 				<div class="col-start-2 col-span-3 flex items-center gap-4">
