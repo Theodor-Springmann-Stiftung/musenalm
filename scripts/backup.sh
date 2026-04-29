@@ -5,9 +5,7 @@ SSH_HOST="admin@musenalm.de"
 SSH_KEY="$HOME/.ssh/tss_admin"
 SSH_PORT="2222"
 
-VOLUME_NAME="musenalm"
-
-REMOTE_TMP="/tmp/musenalm-backup"
+REMOTE_TMP="/home/admin/backup"
 
 LOCAL_TMP="/tmp/musenalm-backup-download"
 DISK_DEVICE="/dev/disk/by-label/STUFF"
@@ -25,11 +23,12 @@ set -euo pipefail
 REMOTE_TMP="$REMOTE_TMP"
 ARCHIVE_NAME="$ARCHIVE_NAME"
 
-rm -rf "\$REMOTE_TMP"
+echo "[server 1/4] Preparing remote backup directory..."
+mkdir -p "\$REMOTE_TMP"
+rm -rf "\$REMOTE_TMP"/*
 mkdir -p "\$REMOTE_TMP/db"
-mkdir -p "\$REMOTE_TMP/files"
 
-echo "[server 1/4] Creating consistent SQLite backups..."
+echo "[server 2/4] Creating consistent SQLite backups..."
 
 docker run --rm \
   -v musenalm:/data \
@@ -45,25 +44,20 @@ docker run --rm \
     ls -lh /backup/auxiliary.sqlite
   "
 
-echo "[server 2/4] Archiving storage folder..."
+echo "[server 3/4] Creating final archive with DB backups and storage folder..."
 
 docker run --rm \
   -v musenalm:/data:ro \
-  -v "\$REMOTE_TMP/files":/backup \
+  -v "\$REMOTE_TMP":/backup \
   alpine \
   sh -c "
     cd /data/pb_data &&
-    echo '  - storage size before compression:' &&
+    echo '  - storage size:' &&
     du -sh storage &&
-    echo '  - creating storage.tar.gz...' &&
-    tar -czvf /backup/storage.tar.gz storage &&
-    echo '  - compressed storage size:' &&
-    ls -lh /backup/storage.tar.gz
+    tar -czvf /backup/\$ARCHIVE_NAME \
+      -C /backup db \
+      -C /data/pb_data storage
   "
-
-echo "[server 3/4] Creating final archive..."
-
-tar -czvf "\$REMOTE_TMP/\$ARCHIVE_NAME" -C "\$REMOTE_TMP" db files
 
 echo "[server 4/4] Final archive size:"
 ls -lh "\$REMOTE_TMP/\$ARCHIVE_NAME"
@@ -76,7 +70,7 @@ echo "[2/7] Downloading backup archive..."
 rm -rf "$LOCAL_TMP"
 mkdir -p "$LOCAL_TMP"
 
-scp -v -i "$SSH_KEY" -P "$SSH_PORT" \
+scp -i "$SSH_KEY" -P "$SSH_PORT" \
   "$SSH_HOST:$REMOTE_TMP/$ARCHIVE_NAME" \
   "$LOCAL_TMP/$ARCHIVE_NAME"
 
@@ -112,7 +106,7 @@ echo "[7/7] Cleaning temporary files..."
 rm -rf "$LOCAL_TMP"
 
 ssh -i "$SSH_KEY" -p "$SSH_PORT" "$SSH_HOST" \
-  "rm -rf '$REMOTE_TMP'"
+  "rm -rf '$REMOTE_TMP'/*"
 
 echo "Done."
 echo "Backup saved as: $ARCHIVE_NAME"
