@@ -501,6 +501,7 @@ export class AlmanachEditPage extends HTMLElement {
 			const annotation = (row.querySelector('[name="items_annotation[]"]')?.value || "").trim();
 			const uri = (row.querySelector('[name="items_uri[]"]')?.value || "").trim();
 			const mediaValue = (row.querySelector('[name="items_media[]"]')?.value || "").trim();
+			const isPublic = row.querySelector('[name="items_public[]"]')?.checked || false;
 			const hasValues = id || owner || identifier || location || annotation || uri || mediaValue;
 			if (!hasValues) {
 				continue;
@@ -516,6 +517,7 @@ export class AlmanachEditPage extends HTMLElement {
 				annotation,
 				uri,
 				media: mediaValue ? [mediaValue] : [],
+				public: isPublic,
 			});
 		}
 		return {

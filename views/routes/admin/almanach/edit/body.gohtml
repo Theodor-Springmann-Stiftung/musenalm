@@ -571,6 +571,12 @@ type AlmanachResult struct {
 											<textarea class="inputinput min-h-[4.5rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off" rows="2">{{- $item.Annotation -}}</textarea>
 										</div>
 									</div>
+									<div class="inputwrapper">
+										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700" for="items_public">
+											<input type="checkbox" name="items_public[]" {{ if $item.Public }}checked{{ end }} />
+											<span>Öffentlich zugänglich</span>
+										</label>
+									</div>
 								</div>
 								<div class="flex justify-end gap-3 mt-3 py-2">
 									<button type="button" class="items-close-button resetbutton w-auto px-2 py-1 text-base">
@@ -672,6 +678,12 @@ type AlmanachResult struct {
 										<div class="inputshell">
 											<textarea class="inputinput min-h-[4.5rem]" data-items-strike data-field="annotation" name="items_annotation[]" autocomplete="off" rows="2"></textarea>
 										</div>
+									</div>
+									<div class="inputwrapper">
+										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700">
+											<input type="checkbox" name="items_public[]" />
+											<span>Öffentlich zugänglich</span>
+										</label>
 									</div>
 								</div>
 								<div class="flex justify-end gap-3 mt-3 py-1">

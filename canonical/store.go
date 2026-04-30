@@ -104,6 +104,7 @@ type ItemInput struct {
 	Media      []string
 	Annotation string
 	URI        string
+	Public     bool
 }
 
 type RelationInput struct {
@@ -1334,6 +1335,7 @@ func (s *Store) applyItemInput(item *dbmodels.Item, entryID string, input ItemIn
 	item.SetAnnotation(strings.TrimSpace(input.Annotation))
 	item.SetUri(strings.TrimSpace(input.URI))
 	item.SetMedia(sanitizeStrings(input.Media))
+	item.SetPublic(input.Public)
 }
 
 func (s *Store) applyEntrySeriesRelation(proxy *dbmodels.REntriesSeries, entryID string, input EntrySeriesRelationInput) {

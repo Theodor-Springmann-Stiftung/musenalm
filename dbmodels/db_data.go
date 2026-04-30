@@ -414,6 +414,7 @@ var AGENT_RELATIONS = []string{
 	"Redakteur:in",
 	"Kartograf:in",
 	"Kupferstecher:in",
+	"Dargestellt",
 }
 
 var PUBLIC_VIEW_RULE = types.Pointer("")
@@ -516,6 +517,7 @@ const (
 	ITEMS_MEDIA_FIELD      = "media"
 	ITEMS_CONDITION_FIELD  = "condition"
 	ITEMS_IDENTIFIER_FIELD = "identifier"
+	ITEMS_PUBLIC_FIELD     = "public"
 
 	SESSIONS_TOKEN_FIELD       = "token"
 	SESSIONS_CSRF_FIELD        = "csrf"

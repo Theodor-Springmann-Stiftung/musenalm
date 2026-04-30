@@ -148,3 +148,11 @@ func (a *Item) Editor() string {
 func (a *Item) SetEditor(editor string) {
 	a.Set(EDITOR_FIELD, editor)
 }
+
+func (a *Item) Public() bool {
+	return a.GetBool(ITEMS_PUBLIC_FIELD)
+}
+
+func (a *Item) SetPublic(public bool) {
+	a.Set(ITEMS_PUBLIC_FIELD, public)
+}

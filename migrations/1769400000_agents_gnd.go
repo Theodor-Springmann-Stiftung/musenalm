@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"runtime"
 	"slices"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -780,15 +779,6 @@ func removeString(values []string, remove string) []string {
 	return out
 }
 
-func containsString(values []string, want string) bool {
-	for _, value := range values {
-		if value == want {
-			return true
-		}
-	}
-	return false
-}
-
 func containsStringPrefix(values []string, prefix string) bool {
 	for _, value := range values {
 		if value == prefix || strings.HasPrefix(value, prefix+"-") {
@@ -796,20 +786,4 @@ func containsStringPrefix(values []string, prefix string) bool {
 		}
 	}
 	return false
-}
-
-func intValue(v any) int {
-	switch typed := v.(type) {
-	case int:
-		return typed
-	case int64:
-		return int(typed)
-	case float64:
-		return int(typed)
-	case string:
-		n, _ := strconv.Atoi(typed)
-		return n
-	default:
-		return 0
-	}
 }

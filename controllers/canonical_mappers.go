@@ -40,6 +40,7 @@ func canonicalItemInputs(items []almanachItemPayload) []canonical.ItemInput {
 			Media:      item.Media,
 			Annotation: item.Annotation,
 			URI:        item.URI,
+			Public:     item.Public,
 		})
 	}
 	return result

@@ -390,6 +390,7 @@ type almanachItemPayload struct {
 	Media      []string `json:"media"`
 	Annotation string   `json:"annotation"`
 	URI        string   `json:"uri"`
+	Public     bool     `json:"public"`
 }
 
 type almanachRelationPayload struct {

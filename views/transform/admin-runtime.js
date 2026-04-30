@@ -36,6 +36,25 @@ export function closeAdminStatusMenus(except = null) {
 	});
 }
 
+function positionStatusMenu(menu, toggle) {
+	const rect = toggle.getBoundingClientRect();
+	const picker = menu.closest("[data-role='content-status-picker']");
+	const isLeftAligned = picker?.classList.contains("content-status-picker-menu-right");
+	const menuHeight = menu.offsetHeight;
+	const gap = 4;
+	const opensAbove = rect.bottom + gap + menuHeight > window.innerHeight;
+	menu.style.position = "fixed";
+	menu.style.marginTop = "0";
+	menu.style.top = opensAbove ? (rect.top - gap - menuHeight) + "px" : (rect.bottom + gap) + "px";
+	if (isLeftAligned) {
+		menu.style.left = rect.left + "px";
+		menu.style.right = "auto";
+	} else {
+		menu.style.left = "auto";
+		menu.style.right = (window.innerWidth - rect.right) + "px";
+	}
+}
+
 function applyAdminStatusPickerState(picker, status) {
 	if (!(picker instanceof HTMLElement)) {
 		return;
@@ -75,6 +94,11 @@ function updateAdminStatusTimestamps(container, value) {
 }
 
 export function initAdminStatusPickers(root = document) {
+	if (!document.body.dataset.statusScrollBound) {
+		document.body.dataset.statusScrollBound = "true";
+		document.querySelector(".admin-layout-main")?.addEventListener("scroll", () => closeAdminStatusMenus(), { passive: true });
+		window.addEventListener("resize", () => closeAdminStatusMenus(), { passive: true });
+	}
 	const scope = root instanceof HTMLElement || root instanceof Document ? root : document;
 	scope.querySelectorAll("[data-role='content-status-picker'][data-status-endpoint]").forEach((picker) => {
 		if (!(picker instanceof HTMLElement) || picker.dataset.statusBound === "true") {
@@ -94,6 +118,9 @@ export function initAdminStatusPickers(root = document) {
 			const willOpen = menu.classList.contains("hidden");
 			closeAdminStatusMenus(willOpen ? picker : null);
 			menu.classList.toggle("hidden", !willOpen);
+			if (willOpen) {
+				positionStatusMenu(menu, toggle);
+			}
 		});
 
 		picker.querySelectorAll("[data-role='content-status-option']").forEach((option) => {
