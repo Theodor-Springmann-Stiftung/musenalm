@@ -81,6 +81,7 @@ type AlmanachResult struct {
 	Contents                       []*dbmodels.Content
 	Items                          []*dbmodels.Item
 	PublicItems                    []*dbmodels.Item
+	NonPublicItems                 []*dbmodels.Item
 	EntriesSeries                  map[string]*dbmodels.REntriesSeries // <- Key is series id
 	EntriesAgents                  []*dbmodels.REntriesAgents
 	ContentsAgents                 map[string][]*dbmodels.RContentsAgents // <- Key is content id
@@ -219,9 +220,12 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 	}
 
 	publicItems := []*dbmodels.Item{}
+	nonPublicItems := []*dbmodels.Item{}
 	for _, item := range items {
 		if item.Public() {
 			publicItems = append(publicItems, item)
+		} else {
+			nonPublicItems = append(nonPublicItems, item)
 		}
 	}
 
@@ -232,6 +236,7 @@ func NewAlmanachEntryResult(app core.App, id string) (*AlmanachResult, error) {
 		EntriesAgents:   entriesagents,
 		HasContents:     hasContents,
 		PublicItems:     publicItems,
+		NonPublicItems:  nonPublicItems,
 		PrevByTitle:     prevByTitle,
 		NextByTitle:     nextByTitle,
 	}
@@ -335,9 +340,12 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 	}
 
 	publicItems := []*dbmodels.Item{}
+	nonPublicItems := []*dbmodels.Item{}
 	for _, item := range items {
 		if item.Public() {
 			publicItems = append(publicItems, item)
+		} else {
+			nonPublicItems = append(nonPublicItems, item)
 		}
 	}
 
@@ -398,6 +406,7 @@ func NewAlmanachResult(app core.App, id string, params BeitraegeFilterParameters
 		Contents:        contents,
 		Items:           items,
 		PublicItems:     publicItems,
+		NonPublicItems:  nonPublicItems,
 		EntriesSeries:   srelationsMap,
 		EntriesAgents:   entriesagents,
 		ContentsAgents:  caMap,

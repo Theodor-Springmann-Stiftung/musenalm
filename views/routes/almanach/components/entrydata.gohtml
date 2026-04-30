@@ -257,11 +257,47 @@
 											<span class="font-medium">{{- $item.Owner -}}</span>
 										{{- end -}}
 									</div>
-									{{- if or $media $item.Identifier -}}
+									{{- if or $media $item.Identifier $item.Location -}}
 										<div class="text-sm text-gray-600 mt-0.5">
 											{{- $media -}}
 											{{- if and $media $item.Identifier }} · {{ end -}}
-											{{- $item.Identifier -}}
+											{{- if $item.Identifier -}}<strong>{{- $item.Identifier -}}</strong>{{- end -}}
+											{{- if and (or $media $item.Identifier) $item.Location }} · {{ end -}}
+											{{- $item.Location -}}
+										</div>
+									{{- end -}}
+									{{- if $item.Annotation -}}
+										<div class="annotation-content text-sm text-gray-600 mt-0.5">{{- Safe $item.Annotation -}}</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+							</div>
+						</div>
+					</div>
+				{{- end -}}
+				{{- if and $model.request.user $model.result.NonPublicItems -}}
+					<div class="entryrow mt-2">
+						<div class="fieldlabel">{{- if not $model.result.PublicItems -}}Exemplare{{- end -}}</div>
+						<div class="fieldvalue">
+							<div class="flex flex-col gap-1.5">
+							{{- range $item := $model.result.NonPublicItems -}}
+								{{- $media := index $item.Media 0 -}}
+								<div class="border-l-2 border-blue-600 bg-blue-50 pl-3 pr-2 py-1.5 rounded-r-xs">
+									<div class="flex items-baseline gap-2 flex-wrap">
+										{{- if $item.Uri -}}
+											<a href="{{ $item.Uri }}" class="font-medium" target="_blank" rel="noopener">{{- $item.Owner -}}</a><i class="ri-external-link-line ml-1"></i>
+										{{- else if $item.Owner -}}
+											<span class="font-medium">{{- $item.Owner -}}</span>
+										{{- end -}}
+										<span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold font-sans rounded-xs uppercase tracking-wide shrink-0">Nicht öffentlich</span>
+									</div>
+									{{- if or $media $item.Identifier $item.Location -}}
+										<div class="text-sm text-gray-600 mt-0.5">
+											{{- $media -}}
+											{{- if and $media $item.Identifier }} · {{ end -}}
+											{{- if $item.Identifier -}}<strong>{{- $item.Identifier -}}</strong>{{- end -}}
+											{{- if and (or $media $item.Identifier) $item.Location }} · {{ end -}}
+											{{- $item.Location -}}
 										</div>
 									{{- end -}}
 									{{- if $item.Annotation -}}
