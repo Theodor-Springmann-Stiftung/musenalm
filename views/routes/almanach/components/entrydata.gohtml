@@ -235,10 +235,41 @@
 					</div>
 				{{- end -}}
 				{{- if $model.result.Entry.Annotation -}}
-					<div class="entryrow">
+					<div class="entryrow mb-2">
 						<div class="fieldlabel">Anmerkungen</div>
 						<div class="fieldvalue annotation-content">
 							{{- Safe (ReplaceSlashParen $model.result.Entry.Annotation) -}}
+						</div>
+					</div>
+				{{- end -}}
+				{{- if $model.result.PublicItems -}}
+					<div class="entryrow mt-2">
+						<div class="fieldlabel">Exemplare</div>
+						<div class="fieldvalue">
+								<div class="flex flex-col gap-1.5">
+							{{- range $item := $model.result.PublicItems -}}
+								{{- $media := index $item.Media 0 -}}
+								<div class="border-l-2 border-green-600 bg-green-50 pl-3 pr-2 py-1.5 rounded-r-xs">
+									<div>
+										{{- if $item.Uri -}}
+											<a href="{{ $item.Uri }}" class="font-medium" target="_blank" rel="noopener">{{- $item.Owner -}}</a><i class="ri-external-link-line ml-1"></i>
+										{{- else if $item.Owner -}}
+											<span class="font-medium">{{- $item.Owner -}}</span>
+										{{- end -}}
+									</div>
+									{{- if or $media $item.Identifier -}}
+										<div class="text-sm text-gray-600 mt-0.5">
+											{{- $media -}}
+											{{- if and $media $item.Identifier }} · {{ end -}}
+											{{- $item.Identifier -}}
+										</div>
+									{{- end -}}
+									{{- if $item.Annotation -}}
+										<div class="annotation-content text-sm text-gray-600 mt-0.5">{{- Safe $item.Annotation -}}</div>
+									{{- end -}}
+								</div>
+							{{- end -}}
+							</div>
 						</div>
 					</div>
 				{{- end -}}

@@ -218,7 +218,7 @@ func itemsFields(app core.App) core.FieldsList {
 
 	fields := core.NewFieldsList(
 		&core.RelationField{Name: dbmodels.ENTRIES_TABLE, CollectionId: bcoll.Id, Required: false},
-		&core.TextField{Name: dbmodels.ITEMS_IDENTIFIER_FIELD, Required: true, Presentable: true},
+		&core.TextField{Name: dbmodels.ITEMS_IDENTIFIER_FIELD, Required: false, Presentable: true},
 		&core.TextField{Name: dbmodels.ITEMS_LOCATION_FIELD, Required: false, Presentable: true},
 		&core.TextField{Name: dbmodels.ITEMS_OWNER_FIELD, Required: false, Presentable: false},
 		&core.SelectField{

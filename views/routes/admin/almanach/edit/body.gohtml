@@ -488,9 +488,12 @@ type AlmanachResult struct {
 								<input type="hidden" name="items_id[]" value="{{ $item.Id }}" />
 								<div class="items-summary flex flex-col gap-2">
 									<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
-									<div class="text-base font-bold" data-summary-container>
+									<div class="flex items-center gap-2 text-base font-bold" data-summary-container>
 											<span data-items-strike data-summary-field="owner" data-summary-hide-empty="true">{{ $item.Owner }}</span>
 											<span data-new-badge class="items-new-badge hidden text-sm text-gray-600 ml-1">(Neu)</span>
+											{{- if $item.Public -}}
+												<span class="px-1.5 py-0.5 bg-green-200 text-green-800 text-xs font-bold rounded uppercase tracking-wide">Öffentlich</span>
+											{{- end -}}
 										</div>
 										<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold rounded-sm" data-summary-container>
 											<span data-items-strike data-summary-field="identifier" data-summary-hide-empty="true">{{ $item.Identifier }}</span>

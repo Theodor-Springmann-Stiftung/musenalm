@@ -186,6 +186,7 @@ export class ItemsEditor extends HTMLElement {
 		if (!itemId) {
 			row.remove();
 			this._refreshRowIds();
+			this._syncAddButtonVisibility();
 			return;
 		}
 

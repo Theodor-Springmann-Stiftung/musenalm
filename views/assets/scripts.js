@@ -7237,7 +7237,7 @@ class Qd extends HTMLElement {
   _cancelEdit(t) {
     const e = t.querySelector('input[name="items_id[]"]');
     if (!(e ? e.value.trim() : "")) {
-      t.remove(), this._refreshRowIds();
+      t.remove(), this._refreshRowIds(), this._syncAddButtonVisibility();
       return;
     }
     this._resetToOriginal(t), this._setRowMode(t, "summary");

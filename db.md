@@ -1,8 +1,4 @@
-- verdeckung von Status-Asuwahl vom Listenende.
 - Speichern/Anzeigen bei der erstelllung von neuen Personen
 - 224 / 133.059 Beiträge in 2.360 Bänden
-- Dargestellte Person
 - Kommentar bei Reihenzuweisung
 - Orts- Publikatiosnangabe
-- Digitalisat: Exemplare öffentlich / nicht öffentlich
-- Exemplare hinzufügenbutton verschwindet bei abbrechen
