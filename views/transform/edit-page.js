@@ -77,6 +77,7 @@ export class EditPage extends HTMLElement {
 		const submitter = event.submitter instanceof HTMLElement ? event.submitter : null;
 		const saveAction = submitter?.getAttribute("name") === "save_action" ? submitter.getAttribute("value") || "" : "";
 		const isViewAction = saveAction === "view";
+		const viewRedirectUrl = isViewAction ? (submitter?.dataset?.redirectUrl || "").trim() : "";
 
 		event.preventDefault();
 		this._isSaving = true;
@@ -92,12 +93,12 @@ export class EditPage extends HTMLElement {
 			const replacement = this._extractReplacementPage(html);
 
 			if (!replacement) {
-				window.location.assign(response.url || form.action || window.location.href);
+				window.location.assign(viewRedirectUrl || response.url || form.action || window.location.href);
 				return;
 			}
 
 			if (isViewAction && response.redirected) {
-				window.location.assign(response.url);
+				window.location.assign(viewRedirectUrl || response.url);
 				return;
 			}
 

@@ -7919,27 +7919,27 @@ class iu extends HTMLElement {
       t.preventDefault();
       return;
     }
-    const i = t.submitter instanceof HTMLElement ? t.submitter : null, r = (i?.getAttribute("name") === "save_action" && i.getAttribute("value") || "") === "view";
+    const i = t.submitter instanceof HTMLElement ? t.submitter : null, r = (i?.getAttribute("name") === "save_action" && i.getAttribute("value") || "") === "view", a = r ? (i?.dataset?.redirectUrl || "").trim() : "";
     t.preventDefault(), this._isSaving = !0, this._setFormSavingState(e, i, !0);
     try {
-      const a = await fetch(e.action || window.location.href, {
+      const o = await fetch(e.action || window.location.href, {
         method: (e.method || "POST").toUpperCase(),
         body: this._buildFormData(e, i),
         credentials: "same-origin"
-      }), o = await a.text(), l = this._extractReplacementPage(o);
-      if (!l) {
-        window.location.assign(a.url || e.action || window.location.href);
+      }), l = await o.text(), c = this._extractReplacementPage(l);
+      if (!c) {
+        window.location.assign(a || o.url || e.action || window.location.href);
         return;
       }
-      if (r && a.redirected) {
-        window.location.assign(a.url);
+      if (r && o.redirected) {
+        window.location.assign(a || o.url);
         return;
       }
-      a.redirected && window.history.replaceState(null, "", a.url);
-      const c = l.querySelector("[data-toast]");
-      this.replaceWith(l), c && window.showToast?.(c.dataset.toastMessage, c.dataset.toast);
-    } catch (a) {
-      console.error("EditPage save failed", a), window.location.assign(e.action || window.location.href);
+      o.redirected && window.history.replaceState(null, "", o.url);
+      const u = c.querySelector("[data-toast]");
+      this.replaceWith(c), u && window.showToast?.(u.dataset.toastMessage, u.dataset.toast);
+    } catch (o) {
+      console.error("EditPage save failed", o), window.location.assign(e.action || window.location.href);
     } finally {
       this._isSaving = !1, this._setFormSavingState(e, i, !1);
     }

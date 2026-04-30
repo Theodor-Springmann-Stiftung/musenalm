@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	musenalmapp "github.com/Theodor-Springmann-Stiftung/musenalm/app"
@@ -131,7 +130,8 @@ func (p *PersonNewPage) POST(engine *templating.Engine, app core.App, ia pagemod
 			musenalmApp.ScheduleAgentGNDRefresh(createdAgent.Id)
 		}
 
-		redirect := fmt.Sprintf(URL_PERSON_REDIRECT, strconv.Itoa(createdAgent.MusenalmID()))
+		setFlashSuccess(e, "Person erstellt.")
+		redirect := fmt.Sprintf(URL_PERSON_EDIT_FORMAT, createdAgent.Id)
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }

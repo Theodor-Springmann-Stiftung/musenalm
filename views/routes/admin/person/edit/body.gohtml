@@ -187,6 +187,7 @@
 			"show_delete" (not $model.is_new)
 			"delete_label" "Person löschen"
 			"show_view_action" (not $model.is_new)
+		"view_redirect_url" (printf "/person/%d" $agent.MusenalmID)
 		) }}
 		{{- if not $model.is_new -}}
 		<dialog data-role="edit-delete-dialog" class="fixed inset-0 m-auto rounded-md border border-slate-200 p-0 shadow-xl backdrop:bg-black/40">

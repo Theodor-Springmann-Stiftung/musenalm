@@ -1,4 +1,3 @@
 - Speichern/Anzeigen bei der erstelllung von neuen Personen
 - 224 / 133.059 Beiträge in 2.360 Bänden
 - Kommentar bei Reihenzuweisung
-- Orts- Publikatiosnangabe

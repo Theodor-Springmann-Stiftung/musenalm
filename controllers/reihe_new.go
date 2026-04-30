@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/canonical"
@@ -120,7 +121,8 @@ func (p *ReiheNewPage) POST(engine *templating.Engine, app core.App, ia pagemode
 			return p.renderPage(engine, app, e, req, "Speichern fehlgeschlagen.")
 		}
 
-		redirect := fmt.Sprintf(URL_REIHE_REDIRECT, createdSeries.MusenalmID())
+		setFlashSuccess(e, "Reihe erstellt.")
+		redirect := fmt.Sprintf(URL_REIHE_EDIT_FORMAT, strconv.Itoa(createdSeries.MusenalmID()))
 		return e.Redirect(http.StatusSeeOther, redirect)
 	}
 }
