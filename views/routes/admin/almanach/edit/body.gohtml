@@ -494,6 +494,9 @@ type AlmanachResult struct {
 											{{- if $item.Public -}}
 												<span class="px-1.5 py-0.5 bg-green-200 text-green-800 text-xs font-bold rounded uppercase tracking-wide">Öffentlich</span>
 											{{- end -}}
+											{{- if $item.Basis -}}
+												<span class="px-1.5 py-0.5 bg-stone-200 text-stone-600 text-xs font-bold rounded uppercase tracking-wide">Grundlage</span>
+											{{- end -}}
 										</div>
 										<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold rounded-sm" data-summary-container>
 											<span data-items-strike data-summary-field="identifier" data-summary-hide-empty="true">{{ $item.Identifier }}</span>
@@ -578,6 +581,12 @@ type AlmanachResult struct {
 										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700" for="items_public">
 											<input type="checkbox" name="items_public[]" {{ if $item.Public }}checked{{ end }} />
 											<span>Öffentlich zugänglich</span>
+										</label>
+									</div>
+									<div class="inputwrapper">
+										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700" for="items_basis">
+											<input type="checkbox" name="items_basis[]" {{ if $item.Basis }}checked{{ end }} />
+											<span>Exemplar ist Grundlage für die Aufnahme</span>
 										</label>
 									</div>
 								</div>
@@ -686,6 +695,12 @@ type AlmanachResult struct {
 										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700">
 											<input type="checkbox" name="items_public[]" />
 											<span>Öffentlich zugänglich</span>
+										</label>
+									</div>
+									<div class="inputwrapper">
+										<label class="flex cursor-pointer items-center gap-1.5 text-sm font-bold text-gray-700">
+											<input type="checkbox" name="items_basis[]" />
+											<span>Exemplar ist Grundlage für die Aufnahme</span>
 										</label>
 									</div>
 								</div>

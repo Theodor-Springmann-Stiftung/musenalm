@@ -156,3 +156,11 @@ func (a *Item) Public() bool {
 func (a *Item) SetPublic(public bool) {
 	a.Set(ITEMS_PUBLIC_FIELD, public)
 }
+
+func (a *Item) Basis() bool {
+	return a.GetBool(ITEMS_BASIS_FIELD)
+}
+
+func (a *Item) SetBasis(basis bool) {
+	a.Set(ITEMS_BASIS_FIELD, basis)
+}

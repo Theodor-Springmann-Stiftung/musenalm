@@ -88,6 +88,7 @@ var CARRIER_TYPE_VALUES = []string{
 	"Audio Belt",
 	"Audio wire reel",
 }
+
 var LANGUAGE_VALUES = []string{
 	"abk",
 	"aar",
@@ -417,8 +418,10 @@ var AGENT_RELATIONS = []string{
 	"Dargestellt",
 }
 
-var PUBLIC_VIEW_RULE = types.Pointer("")
-var PUBLIC_LIST_RULE = types.Pointer("")
+var (
+	PUBLIC_VIEW_RULE = types.Pointer("")
+	PUBLIC_LIST_RULE = types.Pointer("")
+)
 
 const (
 	FTS_LIMIT = 100000
@@ -517,6 +520,7 @@ const (
 	ITEMS_MEDIA_FIELD      = "media"
 	ITEMS_CONDITION_FIELD  = "condition"
 	ITEMS_IDENTIFIER_FIELD = "identifier"
+	ITEMS_BASIS_FIELD      = "basis"
 	ITEMS_PUBLIC_FIELD     = "public"
 
 	SESSIONS_TOKEN_FIELD       = "token"

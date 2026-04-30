@@ -7753,7 +7753,7 @@ class eu extends HTMLElement {
       const a = s[r], o = (a.querySelector('input[name="items_id[]"]')?.value || "").trim();
       if (o && e.has(o))
         continue;
-      const l = (a.querySelector('[name="items_owner[]"]')?.value || "").trim(), c = (a.querySelector('[name="items_identifier[]"]')?.value || "").trim(), u = (a.querySelector('[name="items_location[]"]')?.value || "").trim(), b = (a.querySelector('[name="items_annotation[]"]')?.value || "").trim(), g = (a.querySelector('[name="items_uri[]"]')?.value || "").trim(), p = (a.querySelector('[name="items_media[]"]')?.value || "").trim(), v = a.querySelector('[name="items_public[]"]')?.checked || !1;
+      const l = (a.querySelector('[name="items_owner[]"]')?.value || "").trim(), c = (a.querySelector('[name="items_identifier[]"]')?.value || "").trim(), u = (a.querySelector('[name="items_location[]"]')?.value || "").trim(), b = (a.querySelector('[name="items_annotation[]"]')?.value || "").trim(), g = (a.querySelector('[name="items_uri[]"]')?.value || "").trim(), p = (a.querySelector('[name="items_media[]"]')?.value || "").trim(), v = a.querySelector('[name="items_public[]"]')?.checked || !1, f = a.querySelector('[name="items_basis[]"]')?.checked || !1;
       if (o || l || c || u || b || g || p) {
         if (!p)
           throw new Error(`Exemplar ${r + 1}: "Vorhanden als" muss ausgefüllt werden.`);
@@ -7765,7 +7765,8 @@ class eu extends HTMLElement {
           annotation: b,
           uri: g,
           media: p ? [p] : [],
-          public: v
+          public: v,
+          basis: f
         });
       }
     }

@@ -502,6 +502,7 @@ export class AlmanachEditPage extends HTMLElement {
 			const uri = (row.querySelector('[name="items_uri[]"]')?.value || "").trim();
 			const mediaValue = (row.querySelector('[name="items_media[]"]')?.value || "").trim();
 			const isPublic = row.querySelector('[name="items_public[]"]')?.checked || false;
+			const isBasis = row.querySelector('[name="items_basis[]"]')?.checked || false;
 			const hasValues = id || owner || identifier || location || annotation || uri || mediaValue;
 			if (!hasValues) {
 				continue;
@@ -518,6 +519,7 @@ export class AlmanachEditPage extends HTMLElement {
 				uri,
 				media: mediaValue ? [mediaValue] : [],
 				public: isPublic,
+				basis: isBasis,
 			});
 		}
 		return {

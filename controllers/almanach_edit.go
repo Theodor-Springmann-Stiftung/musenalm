@@ -391,6 +391,7 @@ type almanachItemPayload struct {
 	Annotation string   `json:"annotation"`
 	URI        string   `json:"uri"`
 	Public     bool     `json:"public"`
+	Basis      bool     `json:"basis"`
 }
 
 type almanachRelationPayload struct {
