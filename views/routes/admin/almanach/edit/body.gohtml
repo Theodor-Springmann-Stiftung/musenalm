@@ -484,18 +484,22 @@ type AlmanachResult struct {
 
 					<div class="items-list flex flex-col gap-3">
 						{{- range $i, $item := $model.result.Items -}}
-							<div class="items-row border rounded-xs flex flex-col gap-3" data-item-id="{{ $item.Id }}">
+							<div class="items-row border rounded-xs flex flex-col gap-3 bg-white" data-item-id="{{ $item.Id }}">
 								<input type="hidden" name="items_id[]" value="{{ $item.Id }}" />
 								<div class="items-summary flex flex-col gap-2">
-									<div class="flex items-center justify-between bg-stone-100 px-3 py-2 rounded-xs">
-									<div class="flex items-center gap-2 text-base font-bold" data-summary-container>
+									<div class="flex items-start justify-between bg-stone-100 px-3 py-2 rounded-xs">
+									<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-bold" data-summary-container>
 											<span data-items-strike data-summary-field="owner" data-summary-hide-empty="true">{{ $item.Owner }}</span>
 											<span data-new-badge class="items-new-badge hidden text-sm text-gray-600 ml-1">(Neu)</span>
-											{{- if $item.Public -}}
-												<span class="px-1.5 py-0.5 bg-green-200 text-green-800 text-xs font-bold rounded uppercase tracking-wide">Öffentlich</span>
-											{{- end -}}
-											{{- if $item.Basis -}}
-												<span class="px-1.5 py-0.5 bg-stone-200 text-stone-600 text-xs font-bold rounded uppercase tracking-wide">Grundlage</span>
+											{{- if or $item.Public $item.Basis -}}
+												<div class="flex shrink-0 items-center gap-1.5">
+													{{- if $item.Public -}}
+														<span class="px-1.5 py-0.5 bg-green-200 text-green-800 text-xs font-bold rounded uppercase tracking-wide">Öffentlich</span>
+													{{- end -}}
+													{{- if $item.Basis -}}
+														<span class="px-1.5 py-0.5 bg-stone-200 text-stone-600 text-xs font-bold rounded uppercase tracking-wide">Grundlage</span>
+													{{- end -}}
+												</div>
 											{{- end -}}
 										</div>
 										<div class="px-2 py-0.5 bg-stone-200 text-sm font-bold rounded-sm" data-summary-container>

@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/app"
+	localcmd "github.com/Theodor-Springmann-Stiftung/musenalm/cmd"
 	"github.com/Theodor-Springmann-Stiftung/musenalm/helpers"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/migrations"
 	_ "github.com/Theodor-Springmann-Stiftung/musenalm/controllers"
@@ -27,6 +28,7 @@ func main() {
 		Automigrate:  false,
 		TemplateLang: migratecmd.TemplateLangGo,
 	})
+	localcmd.RegisterResetKeepAuthCommand(app)
 
 	if err := app.Serve(); err != nil {
 		log.Fatal(err)
