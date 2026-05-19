@@ -18,6 +18,17 @@ func ItemsFromBändeAndBIBLIO(
 	biblio map[int]xmlmodels.BIBLIOEintrag,
 	entriesmap map[int]*dbmodels.Entry,
 ) ([]*dbmodels.Item, error) {
+	return ItemsFromBändeAndBIBLIOWithAliases(app, entries, biblio, entriesmap, nil, nil)
+}
+
+func ItemsFromBändeAndBIBLIOWithAliases(
+	app core.App,
+	entries xmlmodels.Bände,
+	biblio map[int]xmlmodels.BIBLIOEintrag,
+	entriesmap map[int]*dbmodels.Entry,
+	modernBandEntries map[int]*dbmodels.Entry,
+	legacyData *xmlmodels.LegacyFallbackData,
+) ([]*dbmodels.Item, error) {
 	collection, err := app.FindCollectionByNameOrId(dbmodels.ITEMS_TABLE)
 	records := make([]*dbmodels.Item, 0, len(entries.Bände))
 	r := regexp.MustCompile(`\d{6}`)
@@ -30,7 +41,14 @@ func ItemsFromBändeAndBIBLIO(
 		bandItems := []*dbmodels.Item{}
 		band := entries.Bände[i]
 		banddb, ok := entriesmap[band.ID]
+		if !ok && modernBandEntries != nil {
+			banddb = modernBandEntries[band.ID]
+			ok = banddb != nil
+		}
 		if !ok {
+			if UsesLegacyContents(band.ID) {
+				continue
+			}
 			app.Logger().Error("Error finding entry", "error", err, "entry", band.ID)
 			continue
 		}
@@ -129,6 +147,78 @@ func ItemsFromBändeAndBIBLIO(
 				}
 			}
 		}
+	}
+
+	if legacyData != nil {
+		legacyRecords, legacyErr := itemsFromPostCutoverLegacyRows(app, collection, biblio, entriesmap, modernBandEntries, legacyData)
+		if legacyErr != nil {
+			return nil, legacyErr
+		}
+		records = append(records, legacyRecords...)
+	}
+
+	return records, nil
+}
+
+func itemsFromPostCutoverLegacyRows(
+	app core.App,
+	collection *core.Collection,
+	biblio map[int]xmlmodels.BIBLIOEintrag,
+	entriesmap map[int]*dbmodels.Entry,
+	modernBandEntries map[int]*dbmodels.Entry,
+	legacyData *xmlmodels.LegacyFallbackData,
+) ([]*dbmodels.Item, error) {
+	if legacyData == nil {
+		return nil, nil
+	}
+
+	matchedEntries := map[string]bool{}
+	for _, entry := range modernBandEntries {
+		if entry != nil {
+			matchedEntries[entry.Id] = true
+		}
+	}
+
+	records := []*dbmodels.Item{}
+	for _, legacy := range legacyData.AlmNeu.Rows {
+		entryID := legacy.LegacyEntryID()
+		if !UsesLegacyContents(entryID) {
+			continue
+		}
+
+		entry := entriesmap[entryID]
+		if entry == nil {
+			continue
+		}
+		if matchedEntries[entry.Id] {
+			continue
+		}
+
+		if legacy.BiblioNr == 0 {
+			continue
+		}
+
+		item := dbmodels.NewItem(core.NewRecord(collection))
+		item.SetEntry(entry.Id)
+		item.SetIdentifier(strconv.Itoa(legacy.BiblioNr))
+		item.SetOwner("Theodor Springmann Stiftung")
+		if e, ok := biblio[legacy.BiblioNr]; ok {
+			item.SetLocation(strings.TrimSpace(e.Standort))
+			item.SetCondition(strings.TrimSpace(e.Zustand))
+			message := ""
+			message = appendMessage(e.NotizÄusseres, message)
+			message = appendMessage(e.NotizInhalt, message)
+			message = appendMessage(e.Anmerkungen, message)
+			item.SetAnnotation(formatItemAnnotation(message))
+		}
+
+		if item.Location() == "" {
+			item.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-2])
+		} else {
+			item.SetEditState(dbmodels.EDITORSTATE_VALUES[len(dbmodels.EDITORSTATE_VALUES)-1])
+		}
+
+		records = append(records, item)
 	}
 
 	return records, nil

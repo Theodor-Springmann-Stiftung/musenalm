@@ -1,0 +1,116 @@
+# Summary
+Total image files scanned: 26849
+Total parseable image files: 26788
+Total duplicate Inhaltsnummern: 10
+Total files with invalid suffixes: 1
+Total files with unparseable content ids: 61
+
+# Duplicate Inhaltsnummern
+INHNR 132680 (3 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/alm-2373-132680.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4855/alm-4855-132680.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4886/alm-4886-132680.jpg
+INHNR 47430 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-642/alm-642-47430.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-643/alm-643-47430.jpg
+INHNR 66244 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1100/alm-1100-66244.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1120/alm-1120-66244.jpg
+INHNR 106169 (2 duplicate files)
+  slot-1
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4195/alm-4195-106169,01.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4195/alm-4195-106169,1.jpg
+INHNR 132643 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1870/alm-1870-132643.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1905/alm-1905-132643.jpg
+INHNR 132650 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1905/alm.1905-132650.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4855/alm-4855-132650.jpg
+INHNR 132651 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1905/alm-1905-132651.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4855/alm-4855-132651.jpg
+INHNR 132659 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1905/alm-1905-132659.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4855/alm-4855-132659.jpg
+INHNR 132682 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4855/alm-4855-132682.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4886/alm-4886-132682.jpg
+INHNR 132699 (2 duplicate files)
+  base
+    musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1953/alm-1953-132699.jpg
+    musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4886/alm-4886-132699.jpg
+
+# Invalid Filename Cases
+## Unparseable content id
+  musenalm-data/Almanach-Bilder/Alm-Bilder 1-500/alm-144/Göttinger Taschenkalender 1797 (var. 1) alm-144-135981.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 1-500/alm-144/Göttinger Taschenkalender 1797 (var. 2) alm-144-132982.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1581/bild 0001.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1581/bild 0001.tif
+  musenalm-data/Almanach-Bilder/Alm-Bilder 1000 ff/alm-1841/ alm-1841-129739.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0001.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0002.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0003.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0004.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0006.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0009.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0010.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0011.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2373/Image 0012.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2396/alm-2396 -77041.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2639/ alm-2639-129292.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2639/ alm-2639-129294.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0001.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0002.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0003.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0004.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0005.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0006.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0009.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0010.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0011.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0015.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0016.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0017.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0018.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0019.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0020.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 4000 ff/alm-4571-Sicherung/bild 0021.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0001.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0002.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0003.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0004.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0005.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0006.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0007.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0008.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0009.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0010.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0011.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0012.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0013.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0014.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0015.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0016.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0017.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0018.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0019.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0020.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0021.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0022.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0023.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0024.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0025.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0026.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0027.jpg
+  musenalm-data/Almanach-Bilder/Alm-Bilder 501-999/alm-969 (Rohscans)/0028.jpg
+
+## Invalid suffix after content id
+  INHNR 125756 suffix ' -2': musenalm-data/Almanach-Bilder/Alm-Bilder 2000 ff/alm-2731/alm-2731-125756 -2.jpg

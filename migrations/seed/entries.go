@@ -44,6 +44,9 @@ func RecordsFromBände(
 
 	for i := 0; i < len(adb.Bände.Bände); i++ {
 		band := adb.Bände.Bände[i]
+		if UsesLegacyContents(band.ID) {
+			continue
+		}
 		record := dbmodels.NewEntry(core.NewRecord(collection))
 		pseudonymData := extractEntryPseudonymImportData(band.Verantwortlichkeitsangabe, band.Anmerkungen)
 
@@ -109,6 +112,138 @@ func RecordsFromBände(
 	}
 
 	return records, nil
+}
+
+func RecordsFromPostCutoverAlmNeu(
+	app core.App,
+	adb xmlmodels.AccessDB,
+	legacyData *xmlmodels.LegacyFallbackData,
+	places map[string]*dbmodels.Place,
+	series map[int]*dbmodels.Series,
+) ([]*dbmodels.Entry, map[int]*dbmodels.Entry, error) {
+	collection, err := app.FindCollectionByNameOrId(dbmodels.ENTRIES_TABLE)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ocol, err := app.FindCollectionByNameOrId(dbmodels.PLACES_TABLE)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scol, err := app.FindCollectionByNameOrId(dbmodels.SERIES_TABLE)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	omap := datatypes.MakeMap(adb.Orte.Orte, func(o xmlmodels.Ort) int { return o.ID })
+	relmap := datatypes.MakeMultiMap(
+		adb.Relationen_Bände_Reihen.Relationen,
+		func(r xmlmodels.Relation_Band_Reihe) int { return r.Band },
+	)
+	rmap := datatypes.MakeMap(adb.Reihen.Reihen, func(r xmlmodels.Reihe) int { return r.ID })
+	seriesByTitle := map[string]*dbmodels.Series{}
+	for _, record := range series {
+		if record == nil {
+			continue
+		}
+		seriesByTitle[strings.ToLower(strings.TrimSpace(NormalizeString(record.Title())))] = record
+	}
+
+	nextSeriesID, err := nextFreeSeriesMusenalmID(app, series)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	matches := MatchPostCutoverBands(adb.Bände, legacyData)
+	records := make([]*dbmodels.Entry, 0, len(matches))
+	modernBandEntries := make(map[int]*dbmodels.Entry)
+
+	for _, match := range matches {
+		record := dbmodels.NewEntry(core.NewRecord(collection))
+		legacy := match.LegacyAlm
+		pseudonymData := extractEntryPseudonymImportData(legacy.Herausgeber, legacy.Anmerkungen)
+
+		record.SetMusenalmID(legacy.LegacyEntryID())
+		record.SetTitleStmt(NormalizeString(legacy.AlmTitel))
+		record.SetReferences(NormalizeString(legacy.Nachweis))
+		record.SetAnnotation(NormalizeString(pseudonymData.annotation))
+		record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
+		record.SetPseudonym(pseudonymData.pseudonym)
+		record.SetPlaceStmt(NormalizeString(legacy.Ort))
+		record.SetExtent(NormalizeString(legacy.Struktur))
+		record.SetCarrierType([]string{"Band"})
+		record.SetContentType([]string{"unbewegtes Bild", "Text"})
+		record.SetMediaType([]string{"ohne Hilfsmittel"})
+		record.SetLanguage([]string{"ger"})
+		if legacy.Jahr != 0 {
+			record.SetYear(legacy.Jahr)
+		}
+
+		needsReview := false
+		if match.ModernBand != nil {
+			band := *match.ModernBand
+			pseudonymData = extractEntryPseudonymImportData(band.Verantwortlichkeitsangabe, band.Anmerkungen)
+			record.SetTitleStmt(NormalizeString(band.Titelangabe))
+			record.SetReferences(NormalizeString(band.Nachweis))
+			record.SetAnnotation(NormalizeString(pseudonymData.annotation))
+			record.SetResponsibilityStmt(NormalizeString(pseudonymData.responsibility))
+			record.SetPseudonym(pseudonymData.pseudonym)
+			record.SetPlaceStmt(NormalizeString(band.Ortsangabe))
+			record.SetExtent(NormalizeString(band.Struktur))
+			if band.Jahr != 0 {
+				record.SetYear(band.Jahr)
+			}
+			enrichEntryFromLegacy(record, legacy)
+			if handlePreferredTitleEntry(record, band, rmap, relmap, LegacyBandMatch{LegacyAlm: legacy}, true) {
+				needsReview = true
+			}
+			handleDeprecated(record, band, LegacyBandMatch{LegacyAlm: legacy}, true)
+			handleOrte(record, band, omap, app, ocol, places)
+			modernBandEntries[band.ID] = record
+		} else {
+			handleDeprecated(record, xmlmodels.Band{}, LegacyBandMatch{LegacyAlm: legacy}, true)
+			seriesRecord, created, err := resolveLegacySeriesForEntry(app, scol, seriesByTitle, &nextSeriesID, legacy)
+			if err != nil {
+				return nil, nil, err
+			}
+			if seriesRecord != nil {
+				record.SetSeries(seriesRecord.Id)
+				jahr := strconv.Itoa(record.Year())
+				if record.Year() == 0 {
+					jahr = "[o. J.]"
+				}
+				record.SetPreferredTitle(seriesRecord.Title() + " " + jahr)
+			} else {
+				record.SetPreferredTitle(normalizeLegacyEntryPreferredTitle(legacy.Reihentitel))
+			}
+			appendEntryComment(record, "Kein Baende.xml-Anreicherungstreffer für AlmNeu-Band > 4849; bitte prüfen.")
+			if strings.TrimSpace(record.PreferredTitle()) == "" {
+				appendEntryComment(record, "Kein verwertbarer Reihentitel aus AlmNeu.xml; bitte prüfen.")
+			}
+			if created {
+				appendEntryComment(record, "Reihentitel aus AlmNeu.xml als neue Reihe angelegt; bitte prüfen.")
+			}
+			needsReview = true
+		}
+
+		if match.Ambiguous {
+			appendEntryComment(record, "Mehrdeutiger Baende.xml-Titelabgleich; AlmNeu-only importiert, bitte prüfen.")
+			needsReview = true
+		}
+
+		applyLegacyUpdatedToEntry(record, LegacyBandMatch{LegacyAlm: legacy}, true)
+		if needsReview {
+			record.SetEditState(dbmodels.EDITORSTATE_VALUES[5])
+		} else {
+			contentCount := len(legacyData.InhalteByEntryID[legacy.LegacyEntryID()])
+			record.SetEditState(determineEntryEditState(record, xmlmodels.Band{}, LegacyBandMatch{LegacyAlm: legacy}, true, contentCount))
+		}
+
+		records = append(records, record)
+	}
+
+	return records, modernBandEntries, nil
 }
 
 func handlePreferredTitleEntry(
@@ -178,10 +313,9 @@ func handleOrte(
 		o, ok := orte[v.Value]
 		if ok {
 			n := NormalizeString(o.Name)
-			e := false
 			if strings.HasPrefix(n, "[") {
 				n = n[1 : len(n)-1]
-				e = true
+				record.SetMeta(map[string]dbmodels.MetaData{dbmodels.PLACES_TABLE: {Conjecture: true}})
 			}
 
 			ort, ok := places[n]
@@ -200,21 +334,8 @@ func handleOrte(
 				} else {
 					before := record.Places()
 					record.SetPlaces(append(before, orec.Id))
+					places[n] = orec
 				}
-			}
-
-			if e {
-				rec, err := app.FindFirstRecordByData(dbmodels.PLACES_TABLE, dbmodels.PLACES_NAME_FIELD, NormalizeString(o.Name))
-				if err != nil {
-					app.Logger().Error("Error finding record", "error", err, "record", rec)
-				} else if rec != nil {
-					err = app.Delete(rec)
-					if err != nil {
-						app.Logger().Error("Error deleting record", "error", err, "record", rec)
-					}
-				}
-				// INFO: We do not need to get the record metadata here, as we know that the record is new
-				record.SetMeta(map[string]dbmodels.MetaData{dbmodels.PLACES_TABLE: {Conjecture: true}})
 			}
 		}
 	}
@@ -397,4 +518,63 @@ func isWrappedLegacyTitleNote(part string) bool {
 	default:
 		return false
 	}
+}
+
+func resolveLegacySeriesForEntry(
+	app core.App,
+	collection *core.Collection,
+	seriesByTitle map[string]*dbmodels.Series,
+	nextFreeID *int,
+	legacy xmlmodels.LegacyAlmNeuRow,
+) (*dbmodels.Series, bool, error) {
+	title := normalizeLegacyEntryPreferredTitle(legacy.Reihentitel)
+	key := strings.ToLower(strings.TrimSpace(title))
+	if key == "" {
+		return nil, false, nil
+	}
+
+	if existing := seriesByTitle[key]; existing != nil {
+		return existing, false, nil
+	}
+
+	record := dbmodels.NewSeries(core.NewRecord(collection))
+	record.SetTitle(title)
+	record.SetFrequency("jährlich")
+	record.SetReferences(NormalizeString(legacy.Nachweis))
+	record.SetComment("Automatisch aus AlmNeu.xml angelegt; bitte prüfen.")
+	record.SetMusenalmID(*nextFreeID)
+	record.SetEditState(dbmodels.EDITORSTATE_VALUES[5])
+	if err := app.Save(record); err != nil {
+		return nil, false, err
+	}
+
+	*nextFreeID = *nextFreeID + 1
+	seriesByTitle[key] = record
+	return record, true, nil
+}
+
+func nextFreeSeriesMusenalmID(app core.App, series map[int]*dbmodels.Series) (int, error) {
+	maxID := 0
+	for _, record := range series {
+		if record == nil {
+			continue
+		}
+		if id := record.MusenalmID(); id > maxID {
+			maxID = id
+		}
+	}
+
+	var row struct {
+		MusenalmID int `db:"musenalm_id"`
+	}
+	err := app.RecordQuery(dbmodels.SERIES_TABLE).
+		Select(dbmodels.MUSENALMID_FIELD).
+		OrderBy(dbmodels.MUSENALMID_FIELD + " DESC").
+		Limit(1).
+		One(&row)
+	if err == nil && row.MusenalmID > maxID {
+		maxID = row.MusenalmID
+	}
+
+	return maxID + 1, nil
 }

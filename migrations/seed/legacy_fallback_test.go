@@ -57,8 +57,8 @@ func TestLegacyBandMatches(t *testing.T) {
 
 	got := LegacyBandMatches(baende, inhalte, legacy)
 
-	if len(got) != 6 {
-		t.Fatalf("expected 6 legacy band matches, got %d", len(got))
+	if len(got) != 4 {
+		t.Fatalf("expected 4 pre-cutover legacy band matches, got %d", len(got))
 	}
 
 	if len(got[4845].Rows) != 1 {
@@ -81,15 +81,49 @@ func TestLegacyBandMatches(t *testing.T) {
 		t.Fatalf("band 4848 should still not receive legacy rows when no legacy content exists")
 	}
 
-	if got[4849].LegacyAlm.LegacyEntryID() != 9001 {
-		t.Fatalf("expected band 4849 to resolve to legacy entry 9001, got %+v", got[4849].LegacyAlm)
+	if _, ok := got[4849]; ok {
+		t.Fatalf("band 4849 should no longer be treated as post-cutover legacy fallback")
+	}
+	if _, ok := got[4850]; ok {
+		t.Fatalf("band 4850 should now be handled by the AlmNeu-driven post-cutover path")
+	}
+	if _, ok := got[4851]; ok {
+		t.Fatalf("band 4851 should now be handled by the AlmNeu-driven post-cutover path")
+	}
+}
+
+func TestMatchPostCutoverBandsPrefersExactLegacySeriesThenYear(t *testing.T) {
+	baende := xmlmodels.Bände{
+		Bände: []xmlmodels.Band{
+			{ID: 6000, Jahr: 1800, ReihentitelALT: "Legacy Series", BiblioID: 12},
+			{ID: 6001, Jahr: 1801, ReihentitelALT: "Legacy Series", BiblioID: 13},
+			{ID: 6002, Jahr: 1801, ReihentitelALT: "Other", BiblioID: 99},
+		},
 	}
 
-	if len(got[4849].Rows) != 2 {
-		t.Fatalf("expected 2 rows for band 4849, got %d", len(got[4849].Rows))
+	legacy := &xmlmodels.LegacyFallbackData{
+		AlmNeu: xmlmodels.LegacyAlmNeu{
+			Rows: []xmlmodels.LegacyAlmNeuRow{
+				{Nummer: 9000, Jahr: 1801, Reihentitel: " Legacy   Series ", BiblioNr: 12},
+				{Nummer: 9001, Jahr: 1802, Reihentitel: "Missing", BiblioNr: 99},
+			},
+		},
 	}
 
-	if len(got[4851].Rows) != 0 {
-		t.Fatalf("expected no legacy rows for band 4851, got %d", len(got[4851].Rows))
+	got := MatchPostCutoverBands(baende, legacy)
+	if len(got) != 2 {
+		t.Fatalf("expected 2 post-cutover matches, got %d", len(got))
+	}
+	if got[0].ModernBand == nil || got[0].ModernBand.ID != 6001 {
+		t.Fatalf("expected title+year match to choose band 6001, got %+v", got[0].ModernBand)
+	}
+	if got[0].MatchedBy != "legacy_series_title" {
+		t.Fatalf("expected title match, got %q", got[0].MatchedBy)
+	}
+	if got[1].ModernBand == nil || got[1].ModernBand.ID != 6002 {
+		t.Fatalf("expected biblio fallback to choose band 6002, got %+v", got[1].ModernBand)
+	}
+	if got[1].MatchedBy != "biblio_id" {
+		t.Fatalf("expected biblio fallback match, got %q", got[1].MatchedBy)
 	}
 }

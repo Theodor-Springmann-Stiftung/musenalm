@@ -51,6 +51,7 @@ func init() {
 		var agentsmapid map[string]*dbmodels.Agent
 		var agentsmapname map[string]*dbmodels.Agent
 		var contentsmap map[int]*dbmodels.Content
+		var modernBandEntries map[int]*dbmodels.Entry
 		var r_entries_series map[string][]*dbmodels.REntriesSeries
 		var r_entries_agents map[string][]*dbmodels.REntriesAgents
 		var r_contents_agents map[string][]*dbmodels.RContentsAgents
@@ -114,6 +115,12 @@ func init() {
 		if err != nil {
 			panic(err)
 		}
+		postCutoverEntries, postCutoverBandEntries, err := seed.RecordsFromPostCutoverAlmNeu(app, *adb, legacyData, placesmap, seriesmap)
+		if err != nil {
+			panic(err)
+		}
+		entries = append(entries, postCutoverEntries...)
+		modernBandEntries = postCutoverBandEntries
 		for _, record := range entries {
 			if err = app.Save(record); err != nil {
 				app.Logger().Error("Error saving record", "error", err, "record", record)
@@ -126,7 +133,7 @@ func init() {
 		wg.Add(1)
 
 		go func() {
-			records, err := seed.ItemsFromBändeAndBIBLIO(app, adb.Bände, adb.BIBLIO, entriesmap)
+			records, err := seed.ItemsFromBändeAndBIBLIOWithAliases(app, adb.Bände, adb.BIBLIO, entriesmap, modernBandEntries, legacyData)
 			if err != nil {
 				panic(err)
 			}
@@ -157,7 +164,14 @@ func init() {
 		wg.Add(2)
 
 		go func() {
-			records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen, seriesmap, entriesmap)
+			entriesByModernBand := map[int]*dbmodels.Entry{}
+			for id, entry := range entriesmap {
+				entriesByModernBand[id] = entry
+			}
+			for id, entry := range modernBandEntries {
+				entriesByModernBand[id] = entry
+			}
+			records, err := seed.RecordsFromRelationBändeReihen(app, adb.Relationen_Bände_Reihen, seriesmap, entriesByModernBand)
 			if err != nil {
 				panic(err)
 			}
@@ -173,7 +187,14 @@ func init() {
 		}()
 
 		go func() {
-			records, err := seed.RecordsFromRelationBändeAkteure(app, adb.Relationen_Bände_Akteure, entriesmap, agentsmap)
+			entriesByModernBand := map[int]*dbmodels.Entry{}
+			for id, entry := range entriesmap {
+				entriesByModernBand[id] = entry
+			}
+			for id, entry := range modernBandEntries {
+				entriesByModernBand[id] = entry
+			}
+			records, err := seed.RecordsFromRelationBändeAkteure(app, adb.Relationen_Bände_Akteure, entriesByModernBand, agentsmap)
 			if err != nil {
 				panic(err)
 			}

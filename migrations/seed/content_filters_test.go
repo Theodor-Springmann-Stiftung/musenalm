@@ -16,15 +16,15 @@ func TestSelectedContentCountsPreservesModernCountsBeforeCutover(t *testing.T) {
 
 	legacy := map[int]LegacyBandMatch{
 		4848: {LegacyAlm: xmlmodels.LegacyAlmNeuRow{Nummer: 4848}},
-		4849: {LegacyAlm: xmlmodels.LegacyAlmNeuRow{Nummer: 4849}, Rows: []xmlmodels.LegacyINHTabRow{{INHNR: 1}}},
+		4850: {LegacyAlm: xmlmodels.LegacyAlmNeuRow{Nummer: 4850}, Rows: []xmlmodels.LegacyINHTabRow{{INHNR: 1}}},
 	}
 
 	got := SelectedContentCounts(inhalte, legacy)
 	if got[4848] != 0 {
 		t.Fatalf("expected no count for 4848 without legacy rows, got %d", got[4848])
 	}
-	if got[4849] != 1 {
-		t.Fatalf("expected legacy count 1 for 4849, got %d", got[4849])
+	if got[4850] != 1 {
+		t.Fatalf("expected legacy count 1 for 4850, got %d", got[4850])
 	}
 }
 

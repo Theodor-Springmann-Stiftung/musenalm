@@ -115,13 +115,17 @@ func (r *legacyContentEntryResolver) resolveUncached(legacyEntryID int) (*dbmode
 		return nil, xmlmodels.LegacyAlmNeuRow{}, false
 	}
 
-	if legacyEntryID <= LEGACY_CUTOVER_ENTRY_ID {
-		entry, ok := r.entriesByOld[legacyEntryID]
-		legacyAlm, ok := r.legacy.AlmByLegacyEntryID[legacyEntryID]
-		if !ok {
-			legacyAlm = xmlmodels.LegacyAlmNeuRow{Nummer: legacyEntryID}
-		}
+	legacyAlm, hasLegacyAlm := r.legacy.AlmByLegacyEntryID[legacyEntryID]
+	if !hasLegacyAlm {
+		legacyAlm = xmlmodels.LegacyAlmNeuRow{Nummer: legacyEntryID}
+	}
 
+	if entry, ok := r.entriesByOld[legacyEntryID]; ok && entry != nil {
+		return entry, legacyAlm, true
+	}
+
+	if legacyEntryID <= LEGACY_CUTOVER_ENTRY_ID {
+		entry, _ := r.entriesByOld[legacyEntryID]
 		if entry != nil {
 			return entry, legacyAlm, true
 		}
