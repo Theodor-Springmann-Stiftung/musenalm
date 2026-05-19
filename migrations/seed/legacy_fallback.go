@@ -167,7 +167,7 @@ func MatchPostCutoverBands(
 }
 
 func normalizedLegacySeriesTitle(raw string) string {
-	raw = normalizeLegacyEntryPreferredTitle(raw)
+	raw = normalizeLegacySeriesTitleForMatching(raw)
 	raw = strings.ToLower(strings.TrimSpace(raw))
 	return raw
 }

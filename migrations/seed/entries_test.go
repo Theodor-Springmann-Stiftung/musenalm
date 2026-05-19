@@ -44,6 +44,29 @@ func TestNormalizeLegacyEntryPreferredTitleKeepsExistingParens(t *testing.T) {
 	}
 }
 
+func TestNormalizeLegacySeriesTitleForMatchingStripsTrailingYear(t *testing.T) {
+	got := normalizeLegacySeriesTitleForMatching("Anthologie, Schlesische 1774")
+	want := "Anthologie, Schlesische"
+
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestNormalizeLegacySeriesTitleForMatchingStripsOJVariants(t *testing.T) {
+	tests := []string{
+		"Anthologie, Schlesische [o.J.]",
+		"Anthologie, Schlesische o.J.",
+		"Anthologie, Schlesische oj",
+	}
+
+	for _, input := range tests {
+		if got := normalizeLegacySeriesTitleForMatching(input); got != "Anthologie, Schlesische" {
+			t.Fatalf("expected o.J. variant %q to normalize to base title, got %q", input, got)
+		}
+	}
+}
+
 func TestEnrichEntryFromLegacyFillMissingOnly(t *testing.T) {
 	entry := dbmodels.NewEntry(core.NewRecord(core.NewBaseCollection(dbmodels.ENTRIES_TABLE)))
 	entry.SetYear(0)

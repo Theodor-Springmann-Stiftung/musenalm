@@ -2,6 +2,7 @@ package seed
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -12,6 +13,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
+
+var legacySeriesYearSuffixRegexp = regexp.MustCompile(`(?i)(?:[\s,;:.()-]|\[)*(?:\[?\s*o\s*\.?\s*j\s*\.?\s*\]?|\[?\s*o\s*\.?\s*j\s*\.?\s*\]|\d{4})(?:[\s,;:.()\]-]*)$`)
 
 func RecordsFromBände(
 	app core.App,
@@ -503,6 +506,19 @@ func normalizeLegacyEntryPreferredTitle(raw string) string {
 	return base + " " + strings.Join(suffixes, " ")
 }
 
+func normalizeLegacySeriesTitleForMatching(raw string) string {
+	raw = normalizeLegacyEntryPreferredTitle(raw)
+	raw = strings.TrimSpace(raw)
+	for {
+		trimmed := strings.TrimSpace(legacySeriesYearSuffixRegexp.ReplaceAllString(raw, ""))
+		if trimmed == raw {
+			break
+		}
+		raw = trimmed
+	}
+	return strings.TrimSpace(raw)
+}
+
 func isWrappedLegacyTitleNote(part string) bool {
 	if len(part) < 2 {
 		return false
@@ -527,7 +543,7 @@ func resolveLegacySeriesForEntry(
 	nextFreeID *int,
 	legacy xmlmodels.LegacyAlmNeuRow,
 ) (*dbmodels.Series, bool, error) {
-	title := normalizeLegacyEntryPreferredTitle(legacy.Reihentitel)
+	title := normalizeLegacySeriesTitleForMatching(legacy.Reihentitel)
 	key := strings.ToLower(strings.TrimSpace(title))
 	if key == "" {
 		return nil, false, nil
