@@ -84,6 +84,8 @@ type App struct {
 	seriesOrderCacheRefreshMutex        sync.Mutex
 	seriesOrderCacheRefreshRun          bool
 	seriesOrderCacheRefreshQueued       bool
+	lobidClientMu                       sync.Mutex
+	lobidClient                         *lobidClient
 	placeOrderCache                     atomic.Pointer[OrderedIDsCache]
 	placeOrderCacheBuildMutex           sync.Mutex
 	placeOrderCacheRefreshMutex         sync.Mutex

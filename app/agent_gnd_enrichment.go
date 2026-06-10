@@ -2,15 +2,8 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
-	"math/rand"
-	"net/http"
-	"net/url"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -43,18 +36,14 @@ const (
 )
 
 var (
-	gndEnrichmentLobidBaseURL = "https://lobid.org/gnd/search"
-	gndEnrichmentHTTPClient   = &http.Client{Timeout: 15 * time.Second}
-	gndEnrichmentNow          = func() time.Time { return time.Now().UTC() }
-	gndEnrichmentSleep        = time.Sleep
-	gndEnrichmentRand         = rand.New(rand.NewSource(time.Now().UnixNano()))
-	gndEnrichmentRun          = func(app *App, ctx context.Context) error { return app.enrichAgentsWithGND(ctx) }
-	gndEnrichmentMu           sync.Mutex
-	gndEnrichmentRunning      bool
-	gndEnrichmentCancel       context.CancelFunc
-	gndEnrichmentRestart      bool
-	gndEnrichmentStatusMu     sync.RWMutex
-	gndEnrichmentStatus       AgentGNDStatusSnapshot
+	gndEnrichmentNow      = func() time.Time { return time.Now().UTC() }
+	gndEnrichmentRun      = func(app *App, ctx context.Context) error { return app.enrichAgentsWithGND(ctx) }
+	gndEnrichmentMu       sync.Mutex
+	gndEnrichmentRunning  bool
+	gndEnrichmentCancel   context.CancelFunc
+	gndEnrichmentRestart  bool
+	gndEnrichmentStatusMu sync.RWMutex
+	gndEnrichmentStatus   AgentGNDStatusSnapshot
 )
 
 type gndSearchResponse struct {
@@ -294,54 +283,16 @@ func (app *App) enrichAgentsWithGND(ctx context.Context) error {
 	total := len(targets)
 	setAgentGNDEnrichmentState(app, "running", "GND-Anreicherung laeuft.", 0, total, "")
 
-	workers := gndWorkerCount()
-	jobs := make(chan *dbmodels.Agent)
-	results := make(chan gndMatchResult, workers)
-
-	var wg sync.WaitGroup
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for agent := range jobs {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-				}
-
-				result := enrichAgentRecord(ctx, agent)
-				results <- result
-			}
-		}()
-	}
-
-	go func() {
-		stopped := false
-		for _, agent := range targets {
-			select {
-			case <-ctx.Done():
-				stopped = true
-			case jobs <- agent:
-			}
-			if stopped {
-				break
-			}
-		}
-		close(jobs)
-		wg.Wait()
-		close(results)
-	}()
-
 	updates := make([]gndMatchResult, 0, len(targets))
 	failureSamples := []string{}
 	weakSamples := []string{}
 
-	for result := range results {
+	for _, agent := range targets {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
 
+		result := app.enrichAgentRecord(ctx, agent)
 		stats.Processed++
 		if result.Retried {
 			stats.Retries++
@@ -444,22 +395,23 @@ func hasStoredGNDPayload(data map[string]any) bool {
 	return ok && raw != nil
 }
 
-func enrichAgentRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchResult {
+func (app *App) enrichAgentRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchResult {
 	normalizedURI := gndprovider.NormalizeURI(agent.URI())
 	if gndprovider.IsGNDURI(normalizedURI) {
-		return hydrateAgentGNDRecord(ctx, agent, normalizedURI)
+		return app.hydrateAgentGNDRecord(ctx, agent, normalizedURI)
 	}
-	return searchAgentGNDRecord(ctx, agent)
+	return app.searchAgentGNDRecord(ctx, agent)
 }
 
-func hydrateAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent, normalizedURI string) gndMatchResult {
+func (app *App) hydrateAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent, normalizedURI string) gndMatchResult {
 	result := gndMatchResult{
 		AgentID:    agent.Id,
 		Name:       agent.Name(),
 		MusenalmID: agent.MusenalmID(),
 	}
 
-	refreshed, err := syncAgentLinkedData(ctx, normalizedURI, agent.Data())
+	refreshed, retried, err := app.syncAgentLinkedData(ctx, normalizedURI, agent.Data())
+	result.Retried = retried
 	if err != nil {
 		result.Err = fmt.Errorf("refresh GND for %q (%d): %w", agent.Name(), agent.MusenalmID(), err)
 		return result
@@ -478,7 +430,7 @@ func hydrateAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent, normalize
 	return result
 }
 
-func searchAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchResult {
+func (app *App) searchAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchResult {
 	result := gndMatchResult{
 		AgentID:    agent.Id,
 		Name:       agent.Name(),
@@ -491,7 +443,7 @@ func searchAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchRe
 	}
 
 	hints := parseGNDBiographicalHints(agent.BiographicalData())
-	response, retried, err := searchLobidGND(ctx, queryName, hints)
+	response, retried, err := app.searchLobidGND(ctx, queryName, hints)
 	result.Retried = retried
 	if err != nil {
 		result.Err = fmt.Errorf("search GND for %q (%d): %w", agent.Name(), agent.MusenalmID(), err)
@@ -527,88 +479,6 @@ func searchAgentGNDRecord(ctx context.Context, agent *dbmodels.Agent) gndMatchRe
 	}
 
 	return result
-}
-
-func gndWorkerCount() int {
-	workers := runtime.NumCPU() * 2
-	if workers < 4 {
-		return 4
-	}
-	if workers > 16 {
-		return 16
-	}
-	return workers
-}
-
-func searchLobidGND(ctx context.Context, name string, hints gndBiographicalHints) (*gndSearchResponse, bool, error) {
-	rawQuery := buildGNDQuery(name, hints)
-	params := url.Values{}
-	params.Set("q", rawQuery)
-	params.Set("format", "json")
-
-	fullURL := gndEnrichmentLobidBaseURL + "?" + params.Encode()
-
-	var lastErr error
-	retried := false
-	for attempt := 0; attempt < 5; attempt++ {
-		if attempt == 0 {
-			log.Printf("GND lookup %q  %s", name, fullURL)
-		} else {
-			log.Printf("GND retry %d/4 %q  %s", attempt, name, fullURL)
-		}
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
-		if err != nil {
-			return nil, retried, err
-		}
-
-		resp, err := gndEnrichmentHTTPClient.Do(req)
-		if err == nil {
-			body, readErr := io.ReadAll(resp.Body)
-			resp.Body.Close()
-			if readErr != nil {
-				lastErr = readErr
-			} else if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-				out := &gndSearchResponse{}
-				if err := json.Unmarshal(body, out); err != nil {
-					return nil, retried, err
-				}
-				log.Printf("GND ok    %q  hits=%d", name, out.TotalItems)
-				return out, retried, nil
-			} else if !shouldRetryGNDStatus(resp.StatusCode) {
-				return nil, retried, fmt.Errorf("unexpected status %d", resp.StatusCode)
-			} else {
-				lastErr = fmt.Errorf("transient status %d", resp.StatusCode)
-				log.Printf("GND error %q  status=%d", name, resp.StatusCode)
-			}
-		} else {
-			lastErr = err
-			log.Printf("GND error %q  err=%v", name, err)
-		}
-
-		if attempt == 4 {
-			break
-		}
-
-		retried = true
-		gndEnrichmentSleep(gndBackoffDuration(attempt))
-	}
-
-	return nil, retried, lastErr
-}
-
-func shouldRetryGNDStatus(status int) bool {
-	return status < 200 || status >= 300
-}
-
-func gndBackoffDuration(attempt int) time.Duration {
-	base := 250 * time.Millisecond
-	backoff := base << attempt
-	if backoff > 5*time.Second {
-		backoff = 5 * time.Second
-	}
-	jitter := time.Duration(gndEnrichmentRand.Int63n(int64(base)))
-	return backoff + jitter
 }
 
 func buildGNDQuery(name string, hints gndBiographicalHints) string {

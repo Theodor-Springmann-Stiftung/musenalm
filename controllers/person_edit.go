@@ -39,6 +39,10 @@ type PersonEditPage struct {
 func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	app := ia.Core()
 	store := ia.GetCanonicalStore()
+	musenalmApp, ok := ia.(*musenalmapp.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
 	rg := router.Group(URL_PERSON_EDIT_BASE)
 	rg.BindFunc(middleware.IsAdminOrEditor())
 	rg.GET(URL_PERSON_EDIT, p.GET(engine, app))
@@ -48,6 +52,10 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	rg.POST(URL_PERSON_STATUS, p.POSTStatus(app, ia, store))
 	rg.POST(URL_PERSON_REFRESH, p.POSTRefreshLinkedData(app, ia))
 	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, ia, store))
+
+	lookup := router.Group(URL_PERSON_GND_LOOKUP)
+	lookup.BindFunc(middleware.IsAdminOrEditor())
+	lookup.GET("", p.GETGNDLookup(musenalmApp))
 	return nil
 }
 
@@ -487,6 +495,25 @@ func (p *PersonEditPage) POSTRefreshLinkedData(app core.App, ia pagemodels.IApp)
 			"uri":                     refreshedAgent.URI(),
 			"can_refresh_linked_data": musenalmApp.CanRefreshAgentLinkedDataURI(refreshedAgent.URI()),
 		})
+	}
+}
+
+func (p *PersonEditPage) GETGNDLookup(app *musenalmapp.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		query := strings.TrimSpace(e.Request.URL.Query().Get("q"))
+		if query == "" {
+			return e.JSON(http.StatusOK, []map[string]any{})
+		}
+
+		results, err := app.SearchPersonGNDNameSuggestions(e.Request.Context(), query)
+		if err != nil {
+			app.Logger().Error("Failed person GND lookup", "query", query, "error", err)
+			return e.JSON(http.StatusBadGateway, map[string]any{
+				"error": "GND-Suche ist gerade nicht verfuegbar.",
+			})
+		}
+
+		return e.JSON(http.StatusOK, results)
 	}
 }
 

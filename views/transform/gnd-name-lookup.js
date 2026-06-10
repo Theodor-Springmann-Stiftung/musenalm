@@ -1,7 +1,5 @@
-const GND_SEARCH_URL = "https://lobid.org/gnd/search";
 const GND_DEBOUNCE_MS = 300;
 const GND_MIN_CHARS = 3;
-const GND_SIZE = 10;
 
 export class GndNameLookup extends HTMLElement {
 	constructor() {
@@ -82,14 +80,14 @@ export class GndNameLookup extends HTMLElement {
 	}
 
 	async _fetch(query) {
-		const params = new URLSearchParams({
-			q: query,
-			format: "json:preferredName,*_dateOfBirth in_placeOfBirth,†_dateOfDeath in_placeOfDeath",
-			filter: "type:DifferentiatedPerson",
-			size: String(GND_SIZE),
-		});
+		const lookupURL = this.getAttribute("data-lookup-url");
+		if (!lookupURL) {
+			this._close();
+			return;
+		}
+		const params = new URLSearchParams({ q: query });
 		try {
-			const resp = await fetch(`${GND_SEARCH_URL}?${params}`);
+			const resp = await fetch(`${lookupURL}?${params}`);
 			if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 			const data = await resp.json();
 			this._results = Array.isArray(data) ? data : [];

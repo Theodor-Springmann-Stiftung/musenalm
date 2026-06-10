@@ -49,7 +49,7 @@ func (app *App) refreshAgentGND(agentID string) {
 	targetURI := startURI
 	targetData := gndprovider.ClearedData(startData)
 
-	result, err := syncAgentLinkedData(context.Background(), startURI, startData)
+	result, _, err := app.syncAgentLinkedData(context.Background(), startURI, startData)
 	if err != nil {
 		if errors.Is(err, ErrLinkedDataRefreshUnsupportedURI) {
 			app.Logger().Info("Clearing linked metadata for unsupported URI", "agent_id", agentID, "uri", startURI)
@@ -113,7 +113,7 @@ func (app *App) RefreshAgentLinkedData(agentID string) (*dbmodels.Agent, error) 
 	startURI := gndprovider.NormalizeURI(agent.URI())
 	startData := agent.Data()
 
-	result, err := syncAgentLinkedData(context.Background(), startURI, startData)
+	result, _, err := app.syncAgentLinkedData(context.Background(), startURI, startData)
 	if err != nil {
 		return nil, err
 	}
@@ -155,20 +155,28 @@ func linkedDataProviderForURI(uri string) string {
 	return ""
 }
 
-func syncAgentLinkedData(ctx context.Context, uri string, data map[string]any) (linkedDataRefreshResult, error) {
+func (app *App) syncAgentLinkedData(ctx context.Context, uri string, data map[string]any) (linkedDataRefreshResult, bool, error) {
 	normalizedURI := gndprovider.NormalizeURI(uri)
 	switch linkedDataProviderForURI(normalizedURI) {
 	case "gnd":
-		syncedURI, syncedData, err := gndprovider.SyncData(ctx, normalizedURI, data)
+		gndID, err := gndprovider.ExtractGNDID(normalizedURI)
 		if err != nil {
-			return linkedDataRefreshResult{}, err
+			return linkedDataRefreshResult{}, false, err
+		}
+		record, retried, err := app.fetchLobidGNDRecord(ctx, gndID)
+		if err != nil {
+			return linkedDataRefreshResult{}, retried, err
+		}
+		syncedURI, syncedData, err := gndprovider.SyncDataWithRecord(normalizedURI, data, record)
+		if err != nil {
+			return linkedDataRefreshResult{}, retried, err
 		}
 		return linkedDataRefreshResult{
 			URI:      syncedURI,
 			Data:     syncedData,
 			Provider: "gnd",
-		}, nil
+		}, retried, nil
 	default:
-		return linkedDataRefreshResult{}, fmt.Errorf("%w: %q", ErrLinkedDataRefreshUnsupportedURI, normalizedURI)
+		return linkedDataRefreshResult{}, false, fmt.Errorf("%w: %q", ErrLinkedDataRefreshUnsupportedURI, normalizedURI)
 	}
 }

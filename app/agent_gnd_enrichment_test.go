@@ -131,56 +131,6 @@ func TestMarkAgentWeakGNDMatchSetsReviewAndCommentOnce(t *testing.T) {
 	}
 }
 
-func TestSearchLobidGNDRetriesTransient404(t *testing.T) {
-	attempts := 0
-	origURL := gndEnrichmentLobidBaseURL
-	origSleep := gndEnrichmentSleep
-	origClient := gndEnrichmentHTTPClient
-	defer func() {
-		gndEnrichmentLobidBaseURL = origURL
-		gndEnrichmentSleep = origSleep
-		gndEnrichmentHTTPClient = origClient
-	}()
-	gndEnrichmentLobidBaseURL = "https://lobid.test/gnd/search"
-	gndEnrichmentSleep = func(time.Duration) {}
-	gndEnrichmentHTTPClient = &http.Client{
-		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-			attempts++
-			if attempts == 1 {
-				return &http.Response{
-					StatusCode: http.StatusNotFound,
-					Body:       io.NopCloser(strings.NewReader("not found")),
-					Header:     make(http.Header),
-					Request:    req,
-				}, nil
-			}
-
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body: io.NopCloser(strings.NewReader(
-					`{"totalItems":1,"member":[{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl","variantName":["Barth, Karl"],"dateOfBirth":["1787"],"dateOfDeath":["1853"]}]}`,
-				)),
-				Header:  make(http.Header),
-				Request: req,
-			}, nil
-		}),
-	}
-
-	resp, retried, err := searchLobidGND(context.Background(), "Barth, Karl", parseGNDBiographicalHints("1787-1853"))
-	if err != nil {
-		t.Fatalf("searchLobidGND: %v", err)
-	}
-	if !retried {
-		t.Fatal("expected retry flag")
-	}
-	if attempts != 2 {
-		t.Fatalf("expected 2 attempts, got %d", attempts)
-	}
-	if resp.TotalItems != 1 || len(resp.Member) != 1 {
-		t.Fatalf("unexpected response: %#v", resp)
-	}
-}
-
 func TestStartAgentGNDEnrichmentRestartable(t *testing.T) {
 	testApp, musenalmApp := newTestMusenalmApp(t)
 	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
@@ -291,27 +241,15 @@ func TestEnrichAgentsWithGNDDoesNotWriteLastRunOnFailure(t *testing.T) {
 
 	createTestAgent(t, testApp, "", nil)
 
-	origURL := gndEnrichmentLobidBaseURL
-	origSleep := gndEnrichmentSleep
-	origClient := gndEnrichmentHTTPClient
-	defer func() {
-		gndEnrichmentLobidBaseURL = origURL
-		gndEnrichmentSleep = origSleep
-		gndEnrichmentHTTPClient = origClient
-	}()
-
-	gndEnrichmentLobidBaseURL = "https://lobid.test/gnd/search"
-	gndEnrichmentSleep = func(time.Duration) {}
-	gndEnrichmentHTTPClient = &http.Client{
-		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusInternalServerError,
-				Body:       io.NopCloser(strings.NewReader("boom")),
-				Header:     make(http.Header),
-				Request:    req,
-			}, nil
-		}),
-	}
+	restoreHTTP := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body:       io.NopCloser(strings.NewReader("boom")),
+			Header:     make(http.Header),
+			Request:    req,
+		}, nil
+	}))
+	defer restoreHTTP()
 
 	err := musenalmApp.enrichAgentsWithGND(context.Background())
 	if err == nil {
@@ -345,20 +283,14 @@ func TestEnrichAgentsWithGNDSearchesMissingAndRefreshesExistingURI(t *testing.T)
 	search := createTestAgent(t, testApp, "", map[string]any{"custom": "search"})
 
 	origNow := gndEnrichmentNow
-	origSearchURL := gndEnrichmentLobidBaseURL
-	origSearchSleep := gndEnrichmentSleep
-	origSearchClient := gndEnrichmentHTTPClient
 	defer func() {
 		gndEnrichmentNow = origNow
-		gndEnrichmentLobidBaseURL = origSearchURL
-		gndEnrichmentSleep = origSearchSleep
-		gndEnrichmentHTTPClient = origSearchClient
 	}()
 	gndEnrichmentNow = func() time.Time { return time.Date(2026, 6, 10, 12, 0, 0, 0, time.UTC) }
-	gndEnrichmentLobidBaseURL = "https://lobid.test/gnd/search"
-	gndEnrichmentSleep = func(time.Duration) {}
-	gndEnrichmentHTTPClient = &http.Client{
-		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+
+	restoreHTTP := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		switch req.URL.Path {
+		case "/gnd/search":
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Body: io.NopCloser(strings.NewReader(
@@ -367,20 +299,25 @@ func TestEnrichAgentsWithGNDSearchesMissingAndRefreshesExistingURI(t *testing.T)
 				Header:  make(http.Header),
 				Request: req,
 			}, nil
-		}),
-	}
-
-	restoreProviderClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Body: io.NopCloser(strings.NewReader(
-				`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
-			)),
-			Header:  make(http.Header),
-			Request: req,
-		}, nil
+		case "/gnd/116267968.json":
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body: io.NopCloser(strings.NewReader(
+					`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
+				)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		default:
+			return &http.Response{
+				StatusCode: http.StatusNotFound,
+				Body:       io.NopCloser(strings.NewReader("not found")),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
 	}))
-	defer restoreProviderClient()
+	defer restoreHTTP()
 
 	if err := musenalmApp.enrichAgentsWithGND(context.Background()); err != nil {
 		t.Fatalf("enrichAgentsWithGND: %v", err)

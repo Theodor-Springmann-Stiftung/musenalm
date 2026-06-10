@@ -1,13 +1,6 @@
 package gnd
 
-import (
-	"context"
-	"io"
-	"net/http"
-	"strings"
-	"testing"
-	"time"
-)
+import "testing"
 
 func TestFromData(t *testing.T) {
 	data := map[string]any{
@@ -68,7 +61,7 @@ func TestSyncDataRemovesGNDPayloadWhenURICleared(t *testing.T) {
 		"custom":                      "keep",
 	}
 
-	uri, synced, err := SyncData(context.Background(), "", data)
+	uri, synced, err := SyncDataWithRecord("", data, nil)
 	if err != nil {
 		t.Fatalf("SyncData: %v", err)
 	}
@@ -84,46 +77,14 @@ func TestSyncDataRemovesGNDPayloadWhenURICleared(t *testing.T) {
 }
 
 func TestSyncDataFetchesAndNormalizesGNDRecord(t *testing.T) {
-	origClient := httpClient
-	origBaseURL := lobidBaseURL
-	origSleep := sleep
-	defer func() {
-		httpClient = origClient
-		lobidBaseURL = origBaseURL
-		sleep = origSleep
-	}()
-
-	attempts := 0
-	httpClient = &http.Client{
-		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-			attempts++
-			if attempts == 1 {
-				return &http.Response{
-					StatusCode: http.StatusNotFound,
-					Body:       io.NopCloser(strings.NewReader("not found")),
-					Header:     make(http.Header),
-					Request:    req,
-				}, nil
-			}
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body: io.NopCloser(strings.NewReader(
-					`{"id":"https://d-nb.info/gnd/116267968","gndIdentifier":"116267968","preferredName":"Barth, Carl"}`,
-				)),
-				Header:  make(http.Header),
-				Request: req,
-			}, nil
-		}),
+	record := map[string]any{
+		"id":            "https://d-nb.info/gnd/116267968",
+		"gndIdentifier": "116267968",
+		"preferredName": "Barth, Carl",
 	}
-	lobidBaseURL = "https://lobid.test/gnd"
-	sleep = func(time.Duration) {}
-
-	uri, synced, err := SyncData(context.Background(), "d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
+	uri, synced, err := SyncDataWithRecord("d-nb.info/gnd/116267968", map[string]any{"custom": "keep"}, record)
 	if err != nil {
-		t.Fatalf("SyncData: %v", err)
-	}
-	if attempts != 2 {
-		t.Fatalf("expected retry, got %d attempts", attempts)
+		t.Fatalf("SyncDataWithRecord: %v", err)
 	}
 	if uri != "https://d-nb.info/gnd/116267968" {
 		t.Fatalf("expected normalized URI, got %q", uri)
@@ -138,10 +99,4 @@ func TestSyncDataFetchesAndNormalizesGNDRecord(t *testing.T) {
 	if record["preferredName"] != "Barth, Carl" {
 		t.Fatalf("expected fetched GND payload, got %#v", record)
 	}
-}
-
-type roundTripFunc func(*http.Request) (*http.Response, error)
-
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req)
 }

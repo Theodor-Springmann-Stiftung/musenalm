@@ -1,42 +1,14 @@
 package gnd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"math/rand"
-	"net/http"
 	"net/url"
 	"path"
 	"strings"
-	"time"
 )
 
 const dataKey = "gnd"
-
-var (
-	lobidBaseURL = "https://lobid.org/gnd"
-	httpClient   = &http.Client{Timeout: 15 * time.Second}
-	sleep        = time.Sleep
-	rng          = rand.New(rand.NewSource(time.Now().UnixNano()))
-)
-
-func SetHTTPClientForTesting(client *http.Client) func() {
-	original := httpClient
-	httpClient = client
-	return func() {
-		httpClient = original
-	}
-}
-
-func SetSleepForTesting(fn func(time.Duration)) func() {
-	original := sleep
-	sleep = fn
-	return func() {
-		sleep = original
-	}
-}
 
 func FromData(uri string, data map[string]any) *Person {
 	if !IsGNDURI(uri) || len(data) == 0 {
@@ -120,7 +92,7 @@ func NormalizeURI(uri string) string {
 	return uri
 }
 
-func SyncData(ctx context.Context, uri string, data map[string]any) (string, map[string]any, error) {
+func SyncDataWithRecord(uri string, data map[string]any, record map[string]any) (string, map[string]any, error) {
 	normalizedURI := NormalizeURI(uri)
 	cleaned := cloneData(data)
 
@@ -128,14 +100,11 @@ func SyncData(ctx context.Context, uri string, data map[string]any) (string, map
 		return normalizedURI, ClearedData(cleaned), nil
 	}
 
-	gndID, err := extractGNDID(normalizedURI)
-	if err != nil {
+	if _, err := ExtractGNDID(normalizedURI); err != nil {
 		return normalizedURI, data, err
 	}
-
-	record, err := fetchRecord(ctx, gndID)
-	if err != nil {
-		return normalizedURI, data, err
+	if len(record) == 0 {
+		return normalizedURI, data, fmt.Errorf("missing GND record payload")
 	}
 
 	clearGNDData(cleaned)
@@ -153,7 +122,7 @@ func ClearedData(data map[string]any) map[string]any {
 	return normalizeDataResult(cleaned)
 }
 
-func extractGNDID(uri string) (string, error) {
+func ExtractGNDID(uri string) (string, error) {
 	normalized := NormalizeURI(uri)
 	if normalized == "" || !IsGNDURI(normalized) {
 		return "", fmt.Errorf("not a d-nb.info URI: %q", uri)
@@ -169,62 +138,6 @@ func extractGNDID(uri string) (string, error) {
 		return "", fmt.Errorf("missing GND identifier in URI %q", uri)
 	}
 	return id, nil
-}
-
-func fetchRecord(ctx context.Context, gndID string) (map[string]any, error) {
-	endpoint := strings.TrimRight(lobidBaseURL, "/") + "/" + url.PathEscape(gndID) + ".json"
-
-	var lastErr error
-	for attempt := 0; attempt < 5; attempt++ {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		resp, err := httpClient.Do(req)
-		if err == nil {
-			body, readErr := io.ReadAll(resp.Body)
-			resp.Body.Close()
-			if readErr != nil {
-				lastErr = readErr
-			} else if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-				record := map[string]any{}
-				if err := json.Unmarshal(body, &record); err != nil {
-					return nil, err
-				}
-				return record, nil
-			} else if !shouldRetryStatus(resp.StatusCode) {
-				return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
-			} else {
-				lastErr = fmt.Errorf("transient status %d", resp.StatusCode)
-			}
-		} else {
-			lastErr = err
-		}
-
-		if attempt == 4 {
-			break
-		}
-		sleep(backoffDuration(attempt))
-	}
-
-	return nil, lastErr
-}
-
-func shouldRetryStatus(status int) bool {
-	return status == http.StatusTooManyRequests ||
-		status == http.StatusNotFound ||
-		status >= 500
-}
-
-func backoffDuration(attempt int) time.Duration {
-	base := 250 * time.Millisecond
-	backoff := base << attempt
-	if backoff > 5*time.Second {
-		backoff = 5 * time.Second
-	}
-	jitter := time.Duration(rng.Int63n(int64(base)))
-	return backoff + jitter
 }
 
 func clearGNDData(data map[string]any) {

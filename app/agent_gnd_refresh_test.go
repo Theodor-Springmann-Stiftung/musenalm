@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	gndprovider "github.com/Theodor-Springmann-Stiftung/musenalm/providers/gnd"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tests"
@@ -21,7 +20,7 @@ func TestRefreshAgentGNDUpdatesDataForDNBURI(t *testing.T) {
 
 	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
 
-	origClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	origClient := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Body: io.NopCloser(strings.NewReader(
@@ -56,7 +55,7 @@ func TestRefreshAgentLinkedDataUpdatesDataForDNBURI(t *testing.T) {
 
 	agent := createTestAgent(t, testApp, "https://d-nb.info/gnd/116267968", map[string]any{"custom": "keep"})
 
-	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	restoreClient := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Body: io.NopCloser(strings.NewReader(
@@ -104,7 +103,7 @@ func TestRefreshAgentGNDClearsStaleDataOnFetchFailure(t *testing.T) {
 		"custom": "keep",
 	})
 
-	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	restoreClient := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusInternalServerError,
 			Body:       io.NopCloser(strings.NewReader("boom")),
@@ -113,9 +112,6 @@ func TestRefreshAgentGNDClearsStaleDataOnFetchFailure(t *testing.T) {
 		}, nil
 	}))
 	defer restoreClient()
-
-	restoreSleep := gndproviderTestSwapSleep(t)
-	defer restoreSleep()
 
 	musenalmApp.refreshAgentGND(agent.Id)
 
@@ -143,7 +139,7 @@ func TestRefreshAgentGNDSkipsStaleWorkerResult(t *testing.T) {
 	})
 
 	release := make(chan struct{})
-	restoreClient := gndproviderTestSwapClient(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
+	restoreClient := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		<-release
 		return &http.Response{
 			StatusCode: http.StatusOK,
@@ -206,11 +202,24 @@ func newTestMusenalmApp(t *testing.T) (*tests.TestApp, *App) {
 		testApp.Cleanup()
 		t.Fatalf("save settings collection: %v", err)
 	}
+	if err := testApp.Save(testLobidCacheCollection()); err != nil {
+		testApp.Cleanup()
+		t.Fatalf("save lobid cache collection: %v", err)
+	}
 
 	musenalmApp := &App{
 		PB:                      &pocketbase.PocketBase{App: testApp},
 		displayCache:            NewDisplayCache(),
 		displayCacheRefreshPlan: newDisplayRefreshPlan(),
+		lobidClient: newLobidClient(testApp, lobidClientConfig{
+			searchInterval:   time.Nanosecond,
+			lookupInterval:   time.Nanosecond,
+			searchRetries:    lobidSearchMaxRetries,
+			lookupRetries:    lobidLookupMaxRetries,
+			backoffBase:      time.Millisecond,
+			backoffCap:       2 * time.Millisecond,
+			jitterUpperBound: time.Nanosecond,
+		}),
 	}
 	return testApp, musenalmApp
 }
@@ -272,14 +281,25 @@ func testSettingsCollection() *core.Collection {
 	return collection
 }
 
-func gndproviderTestSwapClient(t *testing.T, transport http.RoundTripper) func() {
-	t.Helper()
-	return gndprovider.SetHTTPClientForTesting(&http.Client{Transport: transport})
+func testLobidCacheCollection() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.LOBID_CACHE_TABLE)
+	collection.Fields = core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true},
+		&core.TextField{Name: dbmodels.KIND_FIELD, Required: true},
+		&core.NumberField{Name: dbmodels.STATUS_CODE_FIELD, Required: true},
+		&core.TextField{Name: dbmodels.BODY_FIELD},
+		&core.DateField{Name: dbmodels.EXPIRES_AT_FIELD, Required: true},
+	)
+	return collection
 }
 
-func gndproviderTestSwapSleep(t *testing.T) func() {
+func lobidClientTestSwapHTTP(t *testing.T, transport http.RoundTripper) func() {
 	t.Helper()
-	return gndprovider.SetSleepForTesting(func(time.Duration) {})
+	original := lobidClientHTTP
+	lobidClientHTTP = &http.Client{Transport: transport}
+	return func() {
+		lobidClientHTTP = original
+	}
 }
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
