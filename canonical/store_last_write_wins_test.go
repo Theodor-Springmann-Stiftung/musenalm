@@ -277,6 +277,19 @@ func newCanonicalTestApp(t *testing.T) *tests.TestApp {
 		app.Cleanup()
 		t.Fatalf("save contents collection: %v", err)
 	}
+	contents, err := app.FindCollectionByNameOrId(dbmodels.CONTENTS_TABLE)
+	if err != nil {
+		app.Cleanup()
+		t.Fatalf("find contents collection: %v", err)
+	}
+	if err := app.Save(testCanonicalContentNumberReservationsCollection(entries.Id)); err != nil {
+		app.Cleanup()
+		t.Fatalf("save content number reservations collection: %v", err)
+	}
+	if err := app.Save(testCanonicalContentPermalinkRedirectsCollection(contents.Id)); err != nil {
+		app.Cleanup()
+		t.Fatalf("save content permalink redirects collection: %v", err)
+	}
 
 	return app
 }
@@ -382,6 +395,31 @@ func testCanonicalContentsCollection(entriesCollectionID string) *core.Collectio
 	dbmodels.SetMusenalmIDField(&fields)
 	dbmodels.SetEditorStateField(&fields)
 	dbmodels.SetNotesAndAnnotationsField(&fields)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	collection.Fields = fields
+	return collection
+}
+
+func testCanonicalContentNumberReservationsCollection(entriesCollectionID string) *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.CONTENT_NUMBER_RESERVATIONS_TABLE)
+	fields := core.NewFieldsList(
+		&core.RelationField{Name: dbmodels.ENTRIES_TABLE, CollectionId: entriesCollectionID, MaxSelect: 1, Required: true},
+		&core.NumberField{Name: dbmodels.CONTENT_NUMBER_RESERVATION_START_FIELD, Required: true},
+		&core.NumberField{Name: dbmodels.CONTENT_NUMBER_RESERVATION_RESERVED_COUNT_FIELD, Required: true},
+		&core.NumberField{Name: dbmodels.CONTENT_NUMBER_RESERVATION_NEXT_FIELD, Required: true},
+		&core.BoolField{Name: dbmodels.CONTENT_NUMBER_RESERVATION_ACTIVE_FIELD},
+	)
+	dbmodels.SetCreatedUpdatedFields(&fields)
+	collection.Fields = fields
+	return collection
+}
+
+func testCanonicalContentPermalinkRedirectsCollection(contentsCollectionID string) *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.CONTENT_PERMALINK_REDIRECTS_TABLE)
+	fields := core.NewFieldsList(
+		&core.RelationField{Name: dbmodels.CONTENTS_TABLE, CollectionId: contentsCollectionID, MaxSelect: 1, Required: true},
+		&core.NumberField{Name: dbmodels.CONTENT_PERMALINK_REDIRECT_OLD_FIELD, Required: true},
+	)
 	dbmodels.SetCreatedUpdatedFields(&fields)
 	collection.Fields = fields
 	return collection

@@ -13,7 +13,12 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-const minNewMusenalmID = 5000
+const minNewEntryMusenalmID = 5000
+const minNewContentMusenalmID = 140000
+
+type musenalmIDSetter interface {
+	SetMusenalmID(int)
+}
 
 type Store struct{}
 
@@ -168,11 +173,9 @@ func (s *Store) CreateAgent(tx core.App, input AgentInput, effects *MutationEffe
 	}
 
 	agent := dbmodels.NewAgent(core.NewRecord(collection))
-	nextID, err := nextMusenalmID(tx, dbmodels.AGENTS_TABLE)
-	if err != nil {
+	if err := assignNewMusenalmID(tx, dbmodels.AGENTS_TABLE, agent); err != nil {
 		return nil, err
 	}
-	agent.SetMusenalmID(nextID)
 	s.applyAgentInput(agent, input)
 	if err := tx.Save(agent); err != nil {
 		return nil, err
@@ -267,11 +270,9 @@ func (s *Store) CreatePlace(tx core.App, input PlaceInput, effects *MutationEffe
 	}
 
 	place := dbmodels.NewPlace(core.NewRecord(collection))
-	nextID, err := nextMusenalmID(tx, dbmodels.PLACES_TABLE)
-	if err != nil {
+	if err := assignNewMusenalmID(tx, dbmodels.PLACES_TABLE, place); err != nil {
 		return nil, err
 	}
-	place.SetMusenalmID(nextID)
 	s.applyPlaceInput(place, input)
 	if err := tx.Save(place); err != nil {
 		return nil, err
@@ -364,11 +365,9 @@ func (s *Store) CreateSeries(tx core.App, input SeriesInput, effects *MutationEf
 	}
 
 	series := dbmodels.NewSeries(core.NewRecord(collection))
-	nextID, err := nextMusenalmID(tx, dbmodels.SERIES_TABLE)
-	if err != nil {
+	if err := assignNewMusenalmID(tx, dbmodels.SERIES_TABLE, series); err != nil {
 		return nil, err
 	}
-	series.SetMusenalmID(nextID)
 	s.applySeriesInput(series, input)
 	if err := tx.Save(series); err != nil {
 		return nil, err
@@ -467,11 +466,9 @@ func (s *Store) CreateEntry(tx core.App, input EntryInput, effects *MutationEffe
 	}
 
 	entry := dbmodels.NewEntry(core.NewRecord(collection))
-	nextID, err := nextMusenalmID(tx, dbmodels.ENTRIES_TABLE)
-	if err != nil {
+	if err := assignNewEntryMusenalmID(tx, entry); err != nil {
 		return nil, err
 	}
-	entry.SetMusenalmID(nextID)
 	s.applyEntryInput(entry, input)
 	if err := tx.Save(entry); err != nil {
 		return nil, err
@@ -793,11 +790,9 @@ func (s *Store) CreateContent(tx core.App, entry *dbmodels.Entry, input ContentI
 	}
 
 	content := dbmodels.NewContent(core.NewRecord(collection))
-	nextID, err := s.allocateContentMusenalmID(tx, entry)
-	if err != nil {
+	if err := s.assignNewContentMusenalmID(tx, entry, content); err != nil {
 		return nil, err
 	}
-	content.SetMusenalmID(nextID)
 	if err := s.applyContentInput(content, entry, input); err != nil {
 		return nil, err
 	}
@@ -840,6 +835,9 @@ func (s *Store) CreateContentNumberReservation(tx core.App, entry *dbmodels.Entr
 	}
 	if highestEntryContentID > 0 {
 		candidateStart := highestEntryContentID + 1
+		if candidateStart < minNewContentMusenalmID {
+			candidateStart = minNewContentMusenalmID
+		}
 		rangeEnd := candidateStart + reservedCount - 1
 		fits, err := s.contentNumberRangeFitsForEntry(tx, entry.Id, candidateStart, rangeEnd)
 		if err != nil {
@@ -1647,16 +1645,41 @@ func nextMusenalmID(app core.App, table string) (int, error) {
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return minNewMusenalmID, nil
+			return 1, nil
 		}
 		return 0, err
 	}
 
-	nextID := record.MusenalmID + 1
-	if nextID < minNewMusenalmID {
-		return minNewMusenalmID, nil
+	return record.MusenalmID + 1, nil
+}
+
+func assignNewMusenalmID(app core.App, table string, record musenalmIDSetter) error {
+	nextID, err := nextMusenalmID(app, table)
+	if err != nil {
+		return err
+	}
+	record.SetMusenalmID(nextID)
+	return nil
+}
+
+func nextEntryMusenalmID(app core.App) (int, error) {
+	nextID, err := nextMusenalmID(app, dbmodels.ENTRIES_TABLE)
+	if err != nil {
+		return 0, err
+	}
+	if nextID < minNewEntryMusenalmID {
+		return minNewEntryMusenalmID, nil
 	}
 	return nextID, nil
+}
+
+func assignNewEntryMusenalmID(app core.App, entry *dbmodels.Entry) error {
+	nextID, err := nextEntryMusenalmID(app)
+	if err != nil {
+		return err
+	}
+	entry.SetMusenalmID(nextID)
+	return nil
 }
 
 func globalNextContentMusenalmID(app core.App) (int, error) {
@@ -1682,6 +1705,9 @@ func globalNextContentMusenalmID(app core.App) (int, error) {
 	if maxRedirectID+1 > nextID {
 		nextID = maxRedirectID + 1
 	}
+	if nextID < minNewContentMusenalmID {
+		nextID = minNewContentMusenalmID
+	}
 	return nextID, nil
 }
 
@@ -1700,6 +1726,10 @@ func (s *Store) allocateContentMusenalmID(tx core.App, entry *dbmodels.Entry) (i
 
 	for reservation.HasRemaining() {
 		assignedID := reservation.NextMusenalmID()
+		if assignedID < minNewContentMusenalmID {
+			reservation.SetNextMusenalmID(minNewContentMusenalmID)
+			continue
+		}
 		blocked, err := dbmodels.ContentPermalinkRedirectRangeBlocked(tx, assignedID, assignedID)
 		if err != nil {
 			return 0, err
@@ -1725,6 +1755,15 @@ func (s *Store) allocateContentMusenalmID(tx core.App, entry *dbmodels.Entry) (i
 		return 0, err
 	}
 	return globalNextContentMusenalmID(tx)
+}
+
+func (s *Store) assignNewContentMusenalmID(tx core.App, entry *dbmodels.Entry, content *dbmodels.Content) error {
+	nextID, err := s.allocateContentMusenalmID(tx, entry)
+	if err != nil {
+		return err
+	}
+	content.SetMusenalmID(nextID)
+	return nil
 }
 
 func (s *Store) contentNumberRangeFitsForEntry(tx core.App, entryID string, startID, endID int) (bool, error) {
