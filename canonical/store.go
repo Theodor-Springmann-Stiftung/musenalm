@@ -13,6 +13,8 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
+const minNewMusenalmID = 5000
+
 type Store struct{}
 
 type ValidationError struct {
@@ -1645,12 +1647,16 @@ func nextMusenalmID(app core.App, table string) (int, error) {
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 1, nil
+			return minNewMusenalmID, nil
 		}
 		return 0, err
 	}
 
-	return record.MusenalmID + 1, nil
+	nextID := record.MusenalmID + 1
+	if nextID < minNewMusenalmID {
+		return minNewMusenalmID, nil
+	}
+	return nextID, nil
 }
 
 func globalNextContentMusenalmID(app core.App) (int, error) {
