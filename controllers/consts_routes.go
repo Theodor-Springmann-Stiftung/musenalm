@@ -254,6 +254,8 @@ const (
 	URL_SETTINGS_DELETE       = "delete/"
 	URL_SETTINGS_FTS5_REBUILD = "fts5/rebuild/"
 	URL_SETTINGS_FTS5_STATUS  = "fts5/status/"
+	URL_SETTINGS_GND_ENRICH   = "gnd/enrich/"
+	URL_SETTINGS_GND_STATUS   = "gnd/status/"
 	TEMPLATE_SETTINGS         = "/admin/settings/"
 
 	URL_FILES_ADMIN     = "/admin/files/"

@@ -34,6 +34,10 @@ func (p *SettingsAdmin) Down(ia pagemodels.IApp, engine *templating.Engine) erro
 
 func (p *SettingsAdmin) Setup(router *router.Router[*core.RequestEvent], ia pagemodels.IApp, engine *templating.Engine) error {
 	appInstance := ia.Core()
+	musenalmApp, ok := ia.(*app.App)
+	if !ok {
+		return fmt.Errorf("unexpected app implementation %T", ia)
+	}
 	rg := router.Group(URL_SETTINGS_ADMIN)
 	rg.BindFunc(middleware.Authenticated(appInstance))
 	rg.BindFunc(middleware.IsAdmin())
@@ -42,6 +46,8 @@ func (p *SettingsAdmin) Setup(router *router.Router[*core.RequestEvent], ia page
 	rg.POST(URL_SETTINGS_DELETE, handleSettingDelete(appInstance, URL_SETTINGS_ADMIN))
 	rg.POST(URL_SETTINGS_FTS5_REBUILD, handleFTS5Run(appInstance))
 	rg.GET(URL_SETTINGS_FTS5_STATUS, handleFTS5Status(appInstance))
+	rg.POST(URL_SETTINGS_GND_ENRICH, handleAgentGNDRun(musenalmApp))
+	rg.GET(URL_SETTINGS_GND_STATUS, handleAgentGNDStatus(appInstance))
 	return nil
 }
 
@@ -189,11 +195,89 @@ func settingsData(app core.App) (map[string]any, error) {
 		}
 	}
 
+	var gndLastRun string
+	var gndLastRunDT types.DateTime
+	if setting, err := dbmodels.Settings_Key(app, "agents_gnd_enrichment_last_run"); err == nil && setting != nil {
+		if dt, ok := parseSettingDateTime(setting.Value()); ok {
+			gndLastRunDT = dt
+			gndLastRun = formatSettingValue(dt)
+		} else {
+			gndLastRun = formatSettingValue(setting.Value())
+		}
+	}
+
 	return map[string]any{
 		"settings":             list,
 		"fts5_last_rebuild":    lastRebuild,
 		"fts5_last_rebuild_dt": lastRebuildDT,
+		"gnd_last_run":         gndLastRun,
+		"gnd_last_run_dt":      gndLastRunDT,
 	}, nil
+}
+
+func handleAgentGNDRun(musenalmApp *app.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		req := templating.NewRequest(e)
+		if err := e.Request.ParseForm(); err != nil {
+			return e.JSON(http.StatusBadRequest, map[string]any{"error": "Formulardaten ungueltig."})
+		}
+		if err := req.CheckCSRF(e.Request.FormValue("csrf_token")); err != nil {
+			return e.JSON(http.StatusUnauthorized, map[string]any{"error": err.Error()})
+		}
+
+		status, err := app.StartAgentGNDEnrichment(musenalmApp, true)
+		if err != nil {
+			return e.JSON(http.StatusInternalServerError, map[string]any{"error": "GND-Anreicherung konnte nicht gestartet werden."})
+		}
+		musenalmApp.Logger().Info("Manual GND enrichment triggered", "status", status)
+		return e.JSON(http.StatusAccepted, map[string]any{"success": true, "status": status})
+	}
+}
+
+func handleAgentGNDStatus(coreApp core.App) HandleFunc {
+	return func(e *core.RequestEvent) error {
+		status := settingString(coreApp, "agents_gnd_enrichment_status")
+		if status == "" {
+			status = "idle"
+		}
+		message := normalizeGermanMessage(settingString(coreApp, "agents_gnd_enrichment_message"))
+		errMsg := normalizeGermanMessage(settingString(coreApp, "agents_gnd_enrichment_error"))
+		done := 0
+		total := 0
+		if setting, err := dbmodels.Settings_Key(coreApp, "agents_gnd_enrichment_done"); err == nil && setting != nil {
+			done = parseSettingInt(setting.Value())
+		}
+		if setting, err := dbmodels.Settings_Key(coreApp, "agents_gnd_enrichment_total"); err == nil && setting != nil {
+			total = parseSettingInt(setting.Value())
+		}
+
+		if snapshot, ok := app.AgentGNDStatus(); ok {
+			if app.AgentGNDIsRunning() || status == "" || status == "idle" || status == "running" || status == "restarting" {
+				status = snapshot.Status
+				message = normalizeGermanMessage(snapshot.Message)
+				errMsg = normalizeGermanMessage(snapshot.Error)
+				done = snapshot.Done
+				total = snapshot.Total
+			}
+		} else if (status == "running" || status == "restarting") && !app.AgentGNDIsRunning() {
+			status = "aborted"
+			message = "GND-Anreicherung wurde unterbrochen."
+		}
+
+		lastRun := ""
+		if setting, err := dbmodels.Settings_Key(coreApp, "agents_gnd_enrichment_last_run"); err == nil && setting != nil {
+			lastRun = formatSettingValue(setting.Value())
+		}
+
+		return e.JSON(http.StatusOK, map[string]any{
+			"status":   status,
+			"message":  message,
+			"error":    errMsg,
+			"done":     done,
+			"total":    total,
+			"last_run": lastRun,
+		})
+	}
 }
 
 func parseSettingValue(valueRaw string) any {

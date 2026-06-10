@@ -202,6 +202,10 @@ func newTestMusenalmApp(t *testing.T) (*tests.TestApp, *App) {
 		testApp.Cleanup()
 		t.Fatalf("save agents collection: %v", err)
 	}
+	if err := testApp.Save(testSettingsCollection()); err != nil {
+		testApp.Cleanup()
+		t.Fatalf("save settings collection: %v", err)
+	}
 
 	musenalmApp := &App{
 		PB:                      &pocketbase.PocketBase{App: testApp},
@@ -255,6 +259,15 @@ func testAgentsCollection() *core.Collection {
 		&core.TextField{Name: dbmodels.COMMENT_FIELD},
 		&core.TextField{Name: dbmodels.ANNOTATION_FIELD},
 		&core.TextField{Name: dbmodels.EDITOR_FIELD},
+	)
+	return collection
+}
+
+func testSettingsCollection() *core.Collection {
+	collection := core.NewBaseCollection(dbmodels.SETTINGS_TABLE)
+	collection.Fields = core.NewFieldsList(
+		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true},
+		&core.JSONField{Name: dbmodels.VALUE_FIELD},
 	)
 	return collection
 }

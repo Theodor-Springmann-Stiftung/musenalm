@@ -6,6 +6,8 @@ export class ExportManager extends HTMLElement {
 		this.deleteUrl = "";
 		this.fts5RebuildUrl = "";
 		this.fts5StatusUrl = "";
+		this.gndEnrichmentUrl = "";
+		this.gndStatusUrl = "";
 		this.csrf = "";
 		this.list = null;
 		this.status = null;
@@ -14,6 +16,11 @@ export class ExportManager extends HTMLElement {
 		this.fts5ProgressText = null;
 		this.fts5ProgressPercent = null;
 		this.fts5ProgressBar = null;
+		this.gndStatus = null;
+		this.gndProgress = null;
+		this.gndProgressText = null;
+		this.gndProgressPercent = null;
+		this.gndProgressBar = null;
 		this.pollTimer = null;
 		this.pollIntervalMs = 2500;
 	}
@@ -24,6 +31,8 @@ export class ExportManager extends HTMLElement {
 		this.deleteUrl = this.dataset.deleteUrl || "";
 		this.fts5RebuildUrl = this.dataset.fts5RebuildUrl || "";
 		this.fts5StatusUrl = this.dataset.fts5StatusUrl || "";
+		this.gndEnrichmentUrl = this.dataset.gndEnrichmentUrl || "";
+		this.gndStatusUrl = this.dataset.gndStatusUrl || "";
 		this.csrf = this.dataset.csrf || "";
 		this.list = this.querySelector("[data-role='export-list']");
 		this.status = this.querySelector("[data-role='status']");
@@ -32,17 +41,29 @@ export class ExportManager extends HTMLElement {
 		this.fts5ProgressText = this.querySelector("[data-role='fts5-progress-text']");
 		this.fts5ProgressPercent = this.querySelector("[data-role='fts5-progress-percent']");
 		this.fts5ProgressBar = this.querySelector("[data-role='fts5-progress-bar']");
+		this.gndStatus = this.querySelector("[data-role='gnd-status']");
+		this.gndProgress = this.querySelector("[data-role='gnd-progress']");
+		this.gndProgressText = this.querySelector("[data-role='gnd-progress-text']");
+		this.gndProgressPercent = this.querySelector("[data-role='gnd-progress-percent']");
+		this.gndProgressBar = this.querySelector("[data-role='gnd-progress-bar']");
 		this.fts5LastRebuild = this.querySelector("[data-role='fts5-last-rebuild']");
 		this.fts5LastRebuildWrap = this.querySelector("[data-role='fts5-last-rebuild-wrap']");
 		this.fts5Button = this.querySelector("[data-role='fts5-rebuild']");
 		this.fts5ButtonLabel = this.querySelector("[data-role='fts5-rebuild-label']");
+		this.gndLastRun = this.querySelector("[data-role='gnd-last-run']");
+		this.gndLastRunWrap = this.querySelector("[data-role='gnd-last-run-wrap']");
+		this.gndButton = this.querySelector("[data-role='gnd-enrichment']");
+		this.gndButtonLabel = this.querySelector("[data-role='gnd-enrichment-label']");
 		this.fts5StatusValue = "idle";
 		this.fts5HadRunning = false;
+		this.gndStatusValue = "idle";
+		this.gndHadRunning = false;
 
 		this.addEventListener("click", (event) => this.handleAction(event));
 
 		this.refreshList();
 		this.refreshFts5Status();
+		this.refreshGndStatus();
 	}
 
 	disconnectedCallback() {
@@ -114,6 +135,12 @@ export class ExportManager extends HTMLElement {
 			return;
 		}
 
+		const gndTarget = event.target.closest("[data-role='gnd-enrichment']");
+		if (gndTarget) {
+			await this.handleGndEnrichment(event);
+			return;
+		}
+
 		const target = event.target.closest("[data-action]");
 		if (!target) return;
 		const action = target.getAttribute("data-action");
@@ -175,6 +202,20 @@ export class ExportManager extends HTMLElement {
 			const json = await this.safeJson(response);
 			if (!json) return;
 			this.updateFts5Status(json);
+			this.syncPollingState();
+		} catch {
+			// ignore refresh errors
+		}
+	}
+
+	async refreshGndStatus() {
+		if (!this.gndStatusUrl) return;
+		try {
+			const response = await fetch(this.gndStatusUrl, { credentials: "same-origin" });
+			if (!response.ok) return;
+			const json = await this.safeJson(response);
+			if (!json) return;
+			this.updateGndStatus(json);
 			this.syncPollingState();
 		} catch {
 			// ignore refresh errors
@@ -297,6 +338,122 @@ export class ExportManager extends HTMLElement {
 		}
 	}
 
+	updateGndStatus(data) {
+		if (!this.gndStatus) return;
+		const prevStatus = this.gndStatusValue;
+		const status = this.normalizeText(data.status) || "idle";
+		const message = this.normalizeText(data.message || "");
+		const err = this.normalizeText(data.error || "");
+		const done = Number.isFinite(data.done) ? data.done : 0;
+		const total = Number.isFinite(data.total) ? data.total : 0;
+		const lastRun = this.formatGermanDateTime(this.normalizeText(data.last_run || ""));
+		this.gndStatusValue = status;
+
+		this.gndStatus.classList.remove(
+			"hidden",
+			"text-slate-700",
+			"text-green-800",
+			"text-red-700",
+			"text-amber-800",
+			"bg-slate-50",
+			"bg-green-50",
+			"bg-red-50",
+			"bg-amber-50",
+			"border-slate-200",
+			"border-green-200",
+			"border-red-200",
+			"border-amber-200",
+		);
+		if (status === "running" || status === "restarting") {
+			this.gndHadRunning = true;
+		}
+
+		if (status === "complete" && !this.gndHadRunning) {
+			this.gndStatus.textContent = "";
+			this.gndStatus.classList.add("hidden");
+		} else if (status === "error") {
+			this.gndStatus.textContent = err || "GND-Anreicherung fehlgeschlagen.";
+			this.gndStatus.classList.add("text-red-700", "bg-red-50", "border-red-200");
+		} else if (status === "aborted") {
+			this.gndStatus.textContent = message || "GND-Anreicherung abgebrochen.";
+			this.gndStatus.classList.add("text-red-700", "bg-red-50", "border-red-200");
+		} else if (status === "complete") {
+			this.gndStatus.textContent = message || "GND-Anreicherung abgeschlossen.";
+			this.gndStatus.classList.add("text-green-800", "bg-green-50", "border-green-200");
+		} else if (status === "restarting") {
+			this.gndStatus.textContent = message || "GND-Anreicherung wird neu gestartet.";
+			this.gndStatus.classList.add("text-amber-800", "bg-amber-50", "border-amber-200");
+		} else if (status === "running") {
+			this.gndStatus.textContent = message || "GND-Anreicherung laeuft.";
+			this.gndStatus.classList.add("text-amber-800", "bg-amber-50", "border-amber-200");
+		} else {
+			this.gndStatus.textContent = message || "";
+			if (!this.gndStatus.textContent) {
+				this.gndStatus.classList.add("hidden");
+			} else {
+				this.gndStatus.classList.add("text-slate-700", "bg-slate-50", "border-slate-200");
+			}
+		}
+		if (this.gndStatus.textContent) {
+			this.gndStatus.classList.remove("hidden");
+		}
+
+		if (this.gndProgress) {
+			if (status === "running" || status === "restarting") {
+				this.gndProgress.classList.remove("hidden");
+			} else {
+				this.gndProgress.classList.add("hidden");
+			}
+		}
+
+		if (this.gndButton) {
+			const isRunning = status === "running";
+			if (this.gndButtonLabel) {
+				this.gndButtonLabel.textContent = isRunning ? "Abbrechen & neu starten" : "Anreicherung starten";
+			}
+			this.gndButton.classList.toggle("bg-slate-900", !isRunning);
+			this.gndButton.classList.toggle("hover:bg-slate-800", !isRunning);
+			this.gndButton.classList.toggle("bg-amber-600", isRunning);
+			this.gndButton.classList.toggle("hover:bg-amber-700", isRunning);
+		}
+
+		if (this.gndLastRun && lastRun) {
+			this.gndLastRun.textContent = lastRun;
+			if (this.gndLastRunWrap) {
+				this.gndLastRunWrap.classList.remove("hidden");
+			}
+		}
+
+		if (prevStatus === "running" && status !== "running") {
+			window.setTimeout(() => {
+				this.refreshGndStatus();
+			}, 500);
+		}
+
+		if ((status === "running" || status === "restarting") && total > 0) {
+			const percent = Math.min(100, Math.round((done / total) * 100));
+			if (this.gndProgressText) {
+				this.gndProgressText.textContent = `${done} / ${total}`;
+			}
+			if (this.gndProgressPercent) {
+				this.gndProgressPercent.textContent = `${percent}%`;
+			}
+			if (this.gndProgressBar) {
+				this.gndProgressBar.style.width = `${percent}%`;
+			}
+		} else if (status === "running" || status === "restarting") {
+			if (this.gndProgressText) {
+				this.gndProgressText.textContent = "Wird vorbereitet...";
+			}
+			if (this.gndProgressPercent) {
+				this.gndProgressPercent.textContent = "";
+			}
+			if (this.gndProgressBar) {
+				this.gndProgressBar.style.width = "0%";
+			}
+		}
+	}
+
 	formatGermanDateTime(value) {
 		const raw = String(value || "").trim();
 		if (!raw) return "";
@@ -323,7 +480,8 @@ export class ExportManager extends HTMLElement {
 			? this.list.querySelector("[data-export-status='running'], [data-export-status='queued']")
 			: null;
 		const fts5Running = this.fts5Progress && !this.fts5Progress.classList.contains("hidden");
-		if (hasExports || fts5Running) {
+		const gndRunning = this.gndProgress && !this.gndProgress.classList.contains("hidden");
+		if (hasExports || fts5Running || gndRunning) {
 			this.startPolling();
 		} else {
 			this.stopPolling();
@@ -335,6 +493,7 @@ export class ExportManager extends HTMLElement {
 		this.pollTimer = window.setInterval(() => {
 			this.refreshList();
 			this.refreshFts5Status();
+			this.refreshGndStatus();
 		}, this.pollIntervalMs);
 	}
 
@@ -408,6 +567,76 @@ export class ExportManager extends HTMLElement {
 				this.fts5Status.textContent = "FTS5-Neuaufbau konnte nicht gestartet werden.";
 				this.fts5Status.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
 				this.fts5Status.classList.add("text-red-700", "bg-red-50", "border-red-200");
+			}
+		} finally {
+			if (button) button.disabled = false;
+		}
+	}
+
+	async handleGndEnrichment(event) {
+		event.preventDefault();
+		if (!this.gndEnrichmentUrl) return;
+		const button = event.target.closest("[data-role='gnd-enrichment']");
+		if (button) button.disabled = true;
+		if (this.gndStatus) {
+			this.gndStatus.textContent = "GND-Anreicherung wird gestartet...";
+			this.gndStatus.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+			this.gndStatus.classList.add("text-slate-700", "bg-slate-50", "border-slate-200");
+		}
+		if (this.gndProgress) {
+			this.gndProgress.classList.remove("hidden");
+		}
+		if (this.gndProgressText) {
+			this.gndProgressText.textContent = "Wird vorbereitet...";
+		}
+		if (this.gndProgressPercent) {
+			this.gndProgressPercent.textContent = "";
+		}
+		if (this.gndProgressBar) {
+			this.gndProgressBar.style.width = "0%";
+		}
+
+		const payload = new URLSearchParams();
+		payload.set("csrf_token", this.getCsrfToken());
+
+		try {
+			const response = await fetch(this.gndEnrichmentUrl, {
+				method: "POST",
+				body: payload,
+				credentials: "same-origin",
+			});
+			if (!response.ok) {
+				const message = await this.extractError(response);
+				if (this.gndStatus) {
+					this.gndStatus.textContent = message || "GND-Anreicherung konnte nicht gestartet werden.";
+					this.gndStatus.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+					this.gndStatus.classList.add("text-red-700", "bg-red-50", "border-red-200");
+				}
+				return;
+			}
+			const json = await this.safeJson(response);
+			if (json && json.error) {
+				if (this.gndStatus) {
+					this.gndStatus.textContent = json.error;
+					this.gndStatus.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+					this.gndStatus.classList.add("text-red-700", "bg-red-50", "border-red-200");
+				}
+				return;
+			}
+			this.gndHadRunning = true;
+			if (json && json.status === "restarting") {
+				this.updateGndStatus({
+					status: "restarting",
+					message: "GND-Anreicherung wird neu gestartet.",
+				});
+			}
+			await this.refreshGndStatus();
+			this.startPolling();
+		} catch {
+			if (this.gndStatus) {
+				this.gndStatus.textContent = "GND-Anreicherung konnte nicht gestartet werden.";
+				this.gndStatus.classList.remove("hidden", "text-slate-700", "text-green-800", "text-amber-800");
+				this.gndStatus.classList.add("text-red-700", "bg-red-50", "border-red-200");
 			}
 		} finally {
 			if (button) button.disabled = false;

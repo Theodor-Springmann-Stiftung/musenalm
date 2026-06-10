@@ -4,6 +4,8 @@
 	class="admin-page-shell block"
 	data-fts5-rebuild-url="/admin/settings/fts5/rebuild/"
 	data-fts5-status-url="/admin/settings/fts5/status/"
+	data-gnd-enrichment-url="/admin/settings/gnd/enrich/"
+	data-gnd-status-url="/admin/settings/gnd/status/"
 	data-csrf="{{ $model.csrf_token }}">
 	<header class="admin-page-header">
 		<div class="admin-page-heading">
@@ -49,6 +51,39 @@
 						</div>
 						<div class="h-2 w-full bg-slate-200 rounded">
 							<div class="h-2 bg-slate-700 rounded transition-all duration-200" style="width: 0%;" data-role="fts5-progress-bar"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="bg-slate-50 rounded-xs shadow-sm border border-slate-200 p-6">
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div class="min-w-0">
+						<h2 class="text-lg font-semibold text-slate-900">GND-Daten anreichern</h2>
+						<p class="text-sm text-slate-600 mt-1">Reichert Agenten ohne vollstaendige GND-Verknuepfung nachtraeglich an. Bereits vollstaendig angereicherte Agenten werden uebersprungen, vorhandene GND-URIs ohne gespeicherte Daten werden aktualisiert.</p>
+					</div>
+					<div class="flex items-center gap-3 shrink-0">
+						<button type="button" class="inline-flex items-center gap-2 rounded-xs bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400/50 whitespace-nowrap" data-role="gnd-enrichment">
+							<i class="ri-links-line"></i>
+							<span data-role="gnd-enrichment-label">Anreicherung starten</span>
+						</button>
+					</div>
+				</div>
+				<div>
+					{{- if $model.gnd_last_run_dt.IsZero | not -}}
+						<div class="text-xs text-slate-500">Zuletzt angereichert: <span data-role="gnd-last-run">{{ GermanDate $model.gnd_last_run_dt }} {{ GermanTime $model.gnd_last_run_dt }}</span></div>
+					{{- else -}}
+						<div class="text-xs text-slate-500 hidden" data-role="gnd-last-run-wrap">Zuletzt angereichert: <span data-role="gnd-last-run"></span></div>
+					{{- end -}}
+					<div class="mt-3 hidden rounded-xs border px-3 py-2 text-sm" data-role="gnd-status"></div>
+					<div class="mt-3 hidden" data-role="gnd-progress">
+						<div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+							<span data-role="gnd-progress-text"></span>
+							<span data-role="gnd-progress-percent"></span>
+						</div>
+						<div class="h-2 w-full bg-slate-200 rounded">
+							<div class="h-2 bg-slate-700 rounded transition-all duration-200" style="width: 0%;" data-role="gnd-progress-bar"></div>
 						</div>
 					</div>
 				</div>

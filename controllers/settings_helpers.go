@@ -21,6 +21,15 @@ func parseSettingString(value any) (string, bool) {
 			return strings.TrimSpace(parsed), true
 		}
 		return strings.TrimSpace(string(v)), true
+	case types.JSONRaw:
+		if len(v) == 0 {
+			return "", false
+		}
+		var parsed string
+		if err := json.Unmarshal(v, &parsed); err == nil {
+			return strings.TrimSpace(parsed), true
+		}
+		return strings.TrimSpace(string(v)), true
 	case json.RawMessage:
 		if len(v) == 0 {
 			return "", false
