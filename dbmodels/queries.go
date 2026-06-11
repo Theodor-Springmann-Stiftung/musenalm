@@ -189,11 +189,6 @@ func Settings_All(app core.App) ([]*Setting, error) {
 	return settings, err
 }
 
-func LobidCache_Key(app core.App, key string) (*LobidCache, error) {
-	ret, err := TableByField[LobidCache](app, LOBID_CACHE_TABLE, KEY_FIELD, key)
-	return &ret, err
-}
-
 func Pages_All(app core.App) ([]*Page, error) {
 	pages := make([]*Page, 0)
 	err := app.RecordQuery(PAGES_TABLE).All(&pages)

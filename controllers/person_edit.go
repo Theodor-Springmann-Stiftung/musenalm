@@ -54,7 +54,8 @@ func (p *PersonEditPage) Setup(router *router.Router[*core.RequestEvent], ia pag
 	rg.POST(URL_PERSON_DELETE, p.POSTDelete(engine, app, ia, store))
 
 	lookup := router.Group(URL_PERSON_GND_LOOKUP)
-	lookup.BindFunc(middleware.IsAdminOrEditor())
+	lookup.BindFunc(middleware.Authenticated(app))
+	lookup.BindFunc(middleware.IsAdmin())
 	lookup.GET("", p.GETGNDLookup(musenalmApp))
 	return nil
 }

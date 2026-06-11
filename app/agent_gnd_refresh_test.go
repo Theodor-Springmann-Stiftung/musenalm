@@ -202,16 +202,11 @@ func newTestMusenalmApp(t *testing.T) (*tests.TestApp, *App) {
 		testApp.Cleanup()
 		t.Fatalf("save settings collection: %v", err)
 	}
-	if err := testApp.Save(testLobidCacheCollection()); err != nil {
-		testApp.Cleanup()
-		t.Fatalf("save lobid cache collection: %v", err)
-	}
-
 	musenalmApp := &App{
 		PB:                      &pocketbase.PocketBase{App: testApp},
 		displayCache:            NewDisplayCache(),
 		displayCacheRefreshPlan: newDisplayRefreshPlan(),
-		lobidClient: newLobidClient(testApp, lobidClientConfig{
+		lobidClient: newLobidClient(lobidClientConfig{
 			searchInterval:   time.Nanosecond,
 			lookupInterval:   time.Nanosecond,
 			searchRetries:    lobidSearchMaxRetries,
@@ -277,18 +272,6 @@ func testSettingsCollection() *core.Collection {
 	collection.Fields = core.NewFieldsList(
 		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true},
 		&core.JSONField{Name: dbmodels.VALUE_FIELD},
-	)
-	return collection
-}
-
-func testLobidCacheCollection() *core.Collection {
-	collection := core.NewBaseCollection(dbmodels.LOBID_CACHE_TABLE)
-	collection.Fields = core.NewFieldsList(
-		&core.TextField{Name: dbmodels.KEY_FIELD, Required: true},
-		&core.TextField{Name: dbmodels.KIND_FIELD, Required: true},
-		&core.NumberField{Name: dbmodels.STATUS_CODE_FIELD, Required: true},
-		&core.TextField{Name: dbmodels.BODY_FIELD},
-		&core.DateField{Name: dbmodels.EXPIRES_AT_FIELD, Required: true},
 	)
 	return collection
 }

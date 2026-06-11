@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestLobidClientSetsUserAgentAndCachesSearchResponses(t *testing.T) {
+func TestLobidClientSetsUserAgent(t *testing.T) {
 	testApp, musenalmApp := newTestMusenalmApp(t)
 	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
 
@@ -35,18 +35,15 @@ func TestLobidClientSetsUserAgentAndCachesSearchResponses(t *testing.T) {
 	}))
 	defer restoreHTTP()
 
-	for i := 0; i < 2; i++ {
-		results, err := musenalmApp.SearchPersonGNDNameSuggestions(context.Background(), "Barth")
-		if err != nil {
-			t.Fatalf("SearchPersonGNDNameSuggestions run %d: %v", i+1, err)
-		}
-		if len(results) != 1 {
-			t.Fatalf("expected one suggestion, got %#v", results)
-		}
+	results, err := musenalmApp.SearchPersonGNDNameSuggestions(context.Background(), "Barth")
+	if err != nil {
+		t.Fatalf("SearchPersonGNDNameSuggestions: %v", err)
 	}
-
+	if len(results) != 1 {
+		t.Fatalf("expected one suggestion, got %#v", results)
+	}
 	if attempts.Load() != 1 {
-		t.Fatalf("expected cached second lookup, got %d HTTP attempts", attempts.Load())
+		t.Fatalf("expected one HTTP attempt, got %d", attempts.Load())
 	}
 }
 
@@ -115,37 +112,6 @@ func TestLobidClientDoesNotRetryForbiddenSearch(t *testing.T) {
 	}
 	if !isLobidHTTPStatus(err, http.StatusForbidden) {
 		t.Fatalf("expected forbidden lobid error, got %v", err)
-	}
-}
-
-func TestLobidClientCaches404RecordLookups(t *testing.T) {
-	testApp, musenalmApp := newTestMusenalmApp(t)
-	defer cleanupTestMusenalmApp(t, testApp, musenalmApp)
-
-	var attempts atomic.Int32
-	restoreHTTP := lobidClientTestSwapHTTP(t, roundTripFunc(func(req *http.Request) (*http.Response, error) {
-		attempts.Add(1)
-		return &http.Response{
-			StatusCode: http.StatusNotFound,
-			Body:       io.NopCloser(strings.NewReader("not found")),
-			Header:     make(http.Header),
-			Request:    req,
-		}, nil
-	}))
-	defer restoreHTTP()
-
-	for i := 0; i < 2; i++ {
-		_, _, err := musenalmApp.fetchLobidGNDRecord(context.Background(), "116267968")
-		if err == nil {
-			t.Fatal("expected 404 error")
-		}
-		if !isLobidHTTPStatus(err, http.StatusNotFound) {
-			t.Fatalf("expected 404 lobid error, got %v", err)
-		}
-	}
-
-	if attempts.Load() != 1 {
-		t.Fatalf("expected cached 404 after first miss, got %d HTTP attempts", attempts.Load())
 	}
 }
 

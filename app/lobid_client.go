@@ -14,10 +14,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/Theodor-Springmann-Stiftung/musenalm/dbmodels"
-	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 const (
@@ -26,7 +22,6 @@ const (
 	lobidSearchPath              = "/gnd/search"
 	lobidSearchInterval          = 3 * time.Second
 	lobidLookupInterval          = 500 * time.Millisecond
-	lobidCacheTTL                = 24 * time.Hour
 	lobidSearchMaxRetries        = 4
 	lobidLookupMaxRetries        = 4
 	lobidSearchSuggestionSize    = 10
@@ -42,7 +37,6 @@ const (
 var (
 	lobidBaseURL    = lobidBaseURLDefault
 	lobidNow        = func() time.Time { return time.Now().UTC() }
-	lobidSleep      = time.Sleep
 	lobidClientHTTP = &http.Client{
 		Timeout: 20 * time.Second,
 	}
@@ -63,7 +57,6 @@ type lobidClientConfig struct {
 }
 
 type lobidClient struct {
-	app        core.App
 	config     lobidClientConfig
 	globalSem  chan struct{}
 	searchSem  chan struct{}
@@ -82,7 +75,6 @@ type lobidResponse struct {
 	StatusCode int
 	Body       []byte
 	Header     http.Header
-	Cached     bool
 }
 
 type lobidHTTPError struct {
@@ -106,7 +98,7 @@ func defaultLobidClientConfig() lobidClientConfig {
 	}
 }
 
-func newLobidClient(app core.App, cfg lobidClientConfig) *lobidClient {
+func newLobidClient(cfg lobidClientConfig) *lobidClient {
 	if cfg.searchInterval == 0 {
 		cfg.searchInterval = lobidSearchInterval
 	}
@@ -130,7 +122,6 @@ func newLobidClient(app core.App, cfg lobidClientConfig) *lobidClient {
 	}
 
 	return &lobidClient{
-		app:       app,
 		config:    cfg,
 		globalSem: make(chan struct{}, 2),
 		searchSem: make(chan struct{}, 1),
@@ -149,7 +140,7 @@ func (app *App) LobidClient() *lobidClient {
 	defer app.lobidClientMu.Unlock()
 
 	if app.lobidClient == nil {
-		app.lobidClient = newLobidClient(app.PB.App, defaultLobidClientConfig())
+		app.lobidClient = newLobidClient(defaultLobidClientConfig())
 	}
 
 	return app.lobidClient
@@ -194,10 +185,7 @@ func (app *App) fetchLobidGNDRecord(ctx context.Context, gndID string) (map[stri
 
 func (c *lobidClient) searchJSON(ctx context.Context, params url.Values, out any) (bool, error) {
 	fullURL := strings.TrimRight(lobidBaseURL, "/") + lobidSearchPath + "?" + params.Encode()
-	cacheKey := string(lobidRequestClassSearch) + ":" + fullURL
-	response, retried, err := c.doRequest(ctx, lobidRequestClassSearch, fullURL, cacheKey, map[int]time.Duration{
-		http.StatusOK: lobidCacheTTL,
-	})
+	response, retried, err := c.doRequest(ctx, lobidRequestClassSearch, fullURL)
 	if err != nil {
 		return retried, err
 	}
@@ -209,11 +197,7 @@ func (c *lobidClient) searchJSON(ctx context.Context, params url.Values, out any
 
 func (c *lobidClient) fetchRecord(ctx context.Context, gndID string) (map[string]any, bool, error) {
 	fullURL := strings.TrimRight(lobidBaseURL, "/") + "/gnd/" + url.PathEscape(gndID) + ".json"
-	cacheKey := string(lobidRequestClassRecord) + ":" + fullURL
-	response, retried, err := c.doRequest(ctx, lobidRequestClassRecord, fullURL, cacheKey, map[int]time.Duration{
-		http.StatusOK:       lobidCacheTTL,
-		http.StatusNotFound: lobidCacheTTL,
-	})
+	response, retried, err := c.doRequest(ctx, lobidRequestClassRecord, fullURL)
 	if err != nil {
 		return nil, retried, err
 	}
@@ -229,18 +213,7 @@ func (c *lobidClient) doRequest(
 	ctx context.Context,
 	class lobidRequestClass,
 	fullURL string,
-	cacheKey string,
-	cacheableStatuses map[int]time.Duration,
 ) (*lobidResponse, bool, error) {
-	if cached, err := c.loadCachedResponse(cacheKey); err != nil {
-		return nil, false, err
-	} else if cached != nil {
-		if cached.StatusCode >= 200 && cached.StatusCode < 300 {
-			return cached, false, nil
-		}
-		return cached, false, &lobidHTTPError{StatusCode: cached.StatusCode, URL: fullURL}
-	}
-
 	maxRetries := c.retryLimitForClass(class)
 	retried := false
 	var lastResp *lobidResponse
@@ -257,11 +230,6 @@ func (c *lobidClient) doRequest(
 
 		if err == nil {
 			lastResp = response
-			if ttl, ok := cacheableStatuses[response.StatusCode]; ok {
-				if cacheErr := c.storeCachedResponse(cacheKey, string(class), response, ttl); cacheErr != nil {
-					c.app.Logger().Warn("Failed to cache lobid response", "url", fullURL, "error", cacheErr)
-				}
-			}
 			if response.StatusCode >= 200 && response.StatusCode < 300 {
 				return response, retried, nil
 			}
@@ -434,65 +402,6 @@ func readLobidBody(resp *http.Response) ([]byte, error) {
 		reader = gzipReader
 	}
 	return io.ReadAll(reader)
-}
-
-func (c *lobidClient) loadCachedResponse(cacheKey string) (*lobidResponse, error) {
-	entry, err := dbmodels.LobidCache_Key(c.app, cacheKey)
-	if err != nil {
-		if isRecordNotFoundError(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if entry == nil {
-		return nil, nil
-	}
-	if expiresAt := entry.ExpiresAt(); expiresAt.IsZero() || expiresAt.Time().Before(lobidNow()) {
-		return nil, nil
-	}
-
-	return &lobidResponse{
-		StatusCode: entry.StatusCode(),
-		Body:       []byte(entry.Body()),
-		Cached:     true,
-	}, nil
-}
-
-func (c *lobidClient) storeCachedResponse(cacheKey, kind string, response *lobidResponse, ttl time.Duration) error {
-	if response == nil {
-		return nil
-	}
-
-	collection, err := c.app.FindCachedCollectionByNameOrId(dbmodels.LOBID_CACHE_TABLE)
-	if err != nil {
-		return err
-	}
-
-	var record *core.Record
-	entry, err := dbmodels.LobidCache_Key(c.app, cacheKey)
-	if err != nil {
-		if !isRecordNotFoundError(err) {
-			return err
-		}
-	} else if entry != nil {
-		record = entry.ProxyRecord()
-	}
-
-	if record == nil {
-		record = core.NewRecord(collection)
-	}
-
-	expiresAt, err := types.ParseDateTime(lobidNow().Add(ttl))
-	if err != nil {
-		return err
-	}
-	record.Set(dbmodels.KEY_FIELD, cacheKey)
-	record.Set(dbmodels.KIND_FIELD, kind)
-	record.Set(dbmodels.STATUS_CODE_FIELD, response.StatusCode)
-	record.Set(dbmodels.BODY_FIELD, string(response.Body))
-	record.Set(dbmodels.EXPIRES_AT_FIELD, expiresAt)
-
-	return c.app.Save(record)
 }
 
 func acquireSemaphore(ctx context.Context, sem chan struct{}) error {
